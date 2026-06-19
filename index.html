@@ -180,6 +180,7 @@
   .junta-hero .jl{font-family:var(--mono); font-size:.68rem; letter-spacing:.18em; text-transform:uppercase; color:#f0c9ce}
   .junta-hero .jd{font-family:var(--serif); font-size:1.5rem; font-weight:600; margin:4px 0 2px}
   .junta-hero .jt{font-size:.95rem; color:#f3d9dc}
+  .junta-hero .jconv{font-family:var(--mono); font-size:.74rem; color:#f0c9ce; margin-top:6px}
   .count{display:flex; gap:10px; margin:16px 0 4px}
   .count .b{background:rgba(255,255,255,.13); border-radius:11px; padding:9px 4px; text-align:center; flex:1}
   .count .n{font-family:var(--mono); font-size:1.5rem; font-weight:700; line-height:1}
@@ -337,22 +338,26 @@
 <section id="junta" class="view">
   <div class="topbar"><button class="back" onclick="goHome()" aria-label="Volver">‹</button><h1>Próxima junta</h1><span class="tb-ic">📅</span></div>
   <div class="wrap">
-    <div class="banner" id="juntaFlag">
-      📝 <b>Fecha provisional.</b> Aún no me has pasado la fecha real de la junta — dímela y la fijo.
-    </div>
-
     <div class="card junta-hero">
-      <div class="jl">Junta general de vecinos</div>
+      <div class="jl" id="juntaTipo">Junta General Ordinaria</div>
       <div class="jd" id="juntaFecha">—</div>
       <div class="jt" id="juntaLugar">—</div>
+      <div class="jconv" id="juntaConv"></div>
       <div class="count" id="juntaCount"></div>
     </div>
 
-    <h2>Orden del día</h2>
-    <div class="card"><ol class="orden" id="juntaOrden"></ol></div>
+    <div id="juntaUpcoming">
+      <h2>Orden del día</h2>
+      <div class="card"><ol class="orden" id="juntaOrden"></ol></div>
+      <button class="btn" id="juntaBtn" onclick="descargarICS()">📅 Añadir a mi calendario</button>
+      <p class="note">Los propietarios con deudas pendientes a la fecha de la junta pueden participar en las
+        deliberaciones, pero no tienen derecho a voto (Arts. 15.2 y 16.2 de la Ley de Propiedad Horizontal).</p>
+    </div>
 
-    <button class="btn" onclick="descargarICS()">📅 Añadir a mi calendario</button>
-    <p class="note">Asistir o delegar el voto es la forma de decidir sobre cuentas, obras y normas de la comunidad.</p>
+    <div id="juntaPast" class="card" style="display:none">
+      <p style="margin:0">✅ <b>La junta ya se celebró.</b> En cuanto tengamos el acta, publicaremos aquí
+        <b>los acuerdos adoptados</b>.</p>
+    </div>
   </div>
 </section>
 
@@ -501,31 +506,51 @@ function pintaTabla(){
    3) JUNTA  >>> EDITA AQUÍ la fecha y el orden del día <<<
    ==================================================================== */
 const JUNTA = {
-  fechaISO: "2026-07-15T19:00",                 // fecha provisional
-  lugar: "Portal del edificio · Calle Rioja, 25",
-  titulo: "Junta General de Vecinos · Rioja 25",
-  confirmada: false,
+  fechaISO: "2026-06-25T19:00",                 // 1ª convocatoria
+  hora2: "19:30",                               // 2ª convocatoria
+  lugar: "Sala de juntas de la Comunidad · C/ Rioja 25, 28042 Madrid",
+  titulo: "Junta General Ordinaria",
   orden: [
-    "Lectura y aprobación del acta anterior",
-    "Estado de cuentas y presupuesto",
-    "Obras y mantenimiento del edificio",
-    "Ruegos y preguntas",
+    "Aprobación de las cuentas cerradas (01-01-2025 al 31-12-2025).",
+    "Aprobación del nuevo presupuesto de gastos ordinarios previsibles.",
+    "Obras de ascensores derivadas de la Inspección Técnica Periódica Obligatoria. Aprobación de derrama para financiar la actuación.",
+    "Filtraciones en el garaje: información y medidas a adoptar.",
+    "Solicitud de poda o tala del arbolado.",
+    "Solicitud de instalación de desfibrilador en la comunidad.",
+    "Horario y temporada de piscina para el próximo año. Revisión de las normas de uso de las zonas comunes y la piscina.",
+    "Presupuesto para la instalación de aislamiento térmico en la cubierta.",
+    "Mejoras en la finca: espejos en las cabinas de los ascensores, pintura del portón de entrada, renovación estética del portal e iluminación de rellanos y escaleras.",
+    "Cambio de la Junta Rectora.",
+    "Ruegos y preguntas.",
   ],
 };
+
+function juntaPasada(){
+  const f = new Date(JUNTA.fechaISO);
+  const finDia = new Date(f.getFullYear(), f.getMonth(), f.getDate()+1, 0, 0, 0); // medianoche del día siguiente
+  return new Date() >= finDia;
+}
 
 function pintaJunta(){
   const f = new Date(JUNTA.fechaISO);
   const dias = ["domingo","lunes","martes","miércoles","jueves","viernes","sábado"];
-  const fechaTxt = `${dias[f.getDay()]} ${f.getDate()} de ${["enero","febrero","marzo","abril","mayo","junio","julio","agosto","septiembre","octubre","noviembre","diciembre"][f.getMonth()]}`;
+  const meses = ["enero","febrero","marzo","abril","mayo","junio","julio","agosto","septiembre","octubre","noviembre","diciembre"];
   const hora = `${String(f.getHours()).padStart(2,"0")}:${String(f.getMinutes()).padStart(2,"0")}`;
+  const fechaTxt = `${dias[f.getDay()]} ${f.getDate()} de ${meses[f.getMonth()]} de ${f.getFullYear()}`;
+  document.getElementById("juntaTipo").textContent = JUNTA.titulo;
   document.getElementById("juntaFecha").textContent = `${fechaTxt[0].toUpperCase()+fechaTxt.slice(1)}, ${hora} h`;
   document.getElementById("juntaLugar").textContent = JUNTA.lugar;
+  document.getElementById("juntaConv").textContent = `1ª convocatoria ${hora} · 2ª convocatoria ${JUNTA.hora2}`;
   document.getElementById("juntaOrden").innerHTML = JUNTA.orden.map(o=>`<li>${o}</li>`).join("");
-  if(JUNTA.confirmada) document.getElementById("juntaFlag").style.display="none";
 
-  const diff = f - new Date();
+  const pasada = juntaPasada();
+  document.getElementById("juntaUpcoming").style.display = pasada ? "none" : "";
+  document.getElementById("juntaPast").style.display = pasada ? "" : "none";
+
   const cont = document.getElementById("juntaCount");
-  if(diff<=0){ cont.innerHTML = `<div class="b" style="flex:none;width:100%"><div class="n">En curso o pasada</div></div>`; return; }
+  if(pasada){ cont.style.display = "none"; return; }
+  cont.style.display = "";
+  const diff = Math.max(0, f - new Date());
   const d = Math.floor(diff/864e5), h = Math.floor(diff%864e5/36e5), m = Math.floor(diff%36e5/6e4);
   cont.innerHTML =
     `<div class="b"><div class="n">${d}</div><div class="u">días</div></div>`+
@@ -587,8 +612,13 @@ function pintaHome(){
     txtP = "Quincena "+fmt(ini).replace(/ \d{4}$/,"")+"–"+fmt(fin).replace(/ \d{4}$/,"");
   }
   document.getElementById("liveParking").textContent = txtP;
-  const dJ = Math.ceil((new Date(JUNTA.fechaISO)-new Date())/864e5);
-  document.getElementById("liveJunta").textContent = dJ>0 ? "Faltan "+dJ+" días" : "Próximamente";
+  if(juntaPasada()){
+    document.getElementById("liveJunta").textContent = "Pendiente de acuerdos";
+  } else {
+    const f = new Date(JUNTA.fechaISO), n = new Date();
+    const dJ = Math.round((new Date(f.getFullYear(),f.getMonth(),f.getDate()) - new Date(n.getFullYear(),n.getMonth(),n.getDate()))/864e5);
+    document.getElementById("liveJunta").textContent = dJ>1 ? "Faltan "+dJ+" días" : (dJ===1 ? "Mañana" : "Hoy");
+  }
 }
 
 /* init */

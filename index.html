@@ -154,6 +154,15 @@
   details{margin-top:14px} summary{cursor:pointer; font-weight:700; color:var(--green-2); font-family:var(--serif)}
 
   /* reciclaje */
+  .sub{color:var(--muted); font-size:.85rem; margin:-4px 0 14px}
+  .freqs{display:flex; flex-direction:column; gap:12px}
+  .freq{border:1px solid var(--line); border-left:6px solid var(--c); border-radius:14px; padding:14px 16px; background:#fff}
+  .freq .fh{display:flex; align-items:center; gap:9px}
+  .freq .fi{font-size:1.5rem}
+  .freq .fn{font-family:var(--serif); font-size:1.16rem; font-weight:600}
+  .freq .fd{font-size:.86rem; color:var(--muted); margin:7px 0 11px}
+  .freq .fw{font-family:var(--mono); font-size:.76rem; font-weight:700; line-height:1.4; padding:9px 12px; border-radius:10px; background:#f1ece0; color:var(--ink)}
+  .freq .fw.all{background:var(--okbg); color:var(--ok)}
   .cubos{display:grid; grid-template-columns:repeat(auto-fill,minmax(150px,1fr)); gap:12px}
   .cubo{border:1px solid var(--line); border-radius:14px; padding:13px 14px; background:#fff; position:relative; overflow:hidden}
   .cubo::before{content:""; position:absolute; left:0; top:0; bottom:0; width:6px; background:var(--c)}
@@ -274,9 +283,29 @@
   <div class="topbar"><button class="back" onclick="goHome()" aria-label="Volver">‹</button><h1>Reciclaje</h1><span class="tb-ic">♻️</span></div>
   <div class="wrap">
     <div class="banner">
-      🏠 <b>Nuestra comunidad:</b> saca los cubos a partir de las <b>20:00</b>.
-      <span id="recicNota">Contenedores junto al portal.</span> (Edítalo con los datos reales.)
+      🏠 <b>Nuestra comunidad:</b> saca los cubos de <b>lunes a sábado a las 07:00</b>.
     </div>
+
+    <h2>Frecuencias de recogida</h2>
+    <p class="sub">Servicio del Ayuntamiento de Madrid · desde el 1 de enero de 2023</p>
+    <div class="freqs">
+      <div class="freq" style="--c:#8a5a2b">
+        <div class="fh"><span class="fi">🥬</span><span class="fn">Orgánica</span></div>
+        <div class="fd">Restos de comida cocinada o cruda, papel de cocina y servilletas manchadas…</div>
+        <div class="fw all">📅 Todos los días — incluso domingos y festivos</div>
+      </div>
+      <div class="freq" style="--c:#f2b705">
+        <div class="fh"><span class="fi">🥫</span><span class="fn">Envases</span></div>
+        <div class="fd">Envases de plástico, metal, briks, poliespán…</div>
+        <div class="fw all">📅 Ahora también todos los días — incluso domingos y festivos</div>
+      </div>
+      <div class="freq" style="--c:#7a7f78">
+        <div class="fh"><span class="fi">🗑️</span><span class="fn">Resto no reciclable</span></div>
+        <div class="fd">Residuos de limpieza doméstica, colillas, residuos higiénico-sanitarios, arena de gato…</div>
+        <div class="fw">📅 Lunes a sábado — excepto festivos</div>
+      </div>
+    </div>
+    <p class="note"><a href="https://www.madrid.es/reciclaje" target="_blank" rel="noopener">madrid.es/reciclaje</a></p>
 
     <h2>Cada residuo, a su cubo</h2>
     <div class="cubos">

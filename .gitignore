@@ -1,2 +1,4 @@
 make_icons.py
 setup-github.sh
+# Documentos con datos personales — NUNCA publicar (repo y web son públicos)
+*.pdf

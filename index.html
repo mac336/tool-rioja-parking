@@ -347,9 +347,23 @@
     </div>
 
     <div id="juntaUpcoming">
+      <button class="btn" id="juntaBtn" onclick="descargarICS()">🔔 Avisarme de la junta</button>
+      <p class="note">Se añade a tu calendario con dos avisos: <b>el día antes</b> y <b>1 hora antes</b>.</p>
+
       <h2>Orden del día</h2>
       <div class="card"><ol class="orden" id="juntaOrden"></ol></div>
-      <button class="btn" id="juntaBtn" onclick="descargarICS()">📅 Añadir a mi calendario</button>
+
+      <h2>¿No puedes asistir?</h2>
+      <div class="card">
+        <p style="margin:0 0 10px">Puedes <b>delegar tu voto</b> en otro propietario. En el escrito de delegación tienes que indicar:</p>
+        <ul style="margin:0 0 10px; padding-left:20px; font-size:.92rem">
+          <li>Nombre de la persona en quien delegas (tu representante).</li>
+          <li>Tu <b>DNI</b>, tu <b>piso</b> y el <b>titular</b> de la vivienda.</li>
+          <li>Fecha y <b>firma</b>.</li>
+        </ul>
+        <p class="note" style="margin:0">El modelo de delegación está en la convocatoria oficial (pág. 2). Entrégalo firmado antes de la junta.</p>
+      </div>
+
       <p class="note">Los propietarios con deudas pendientes a la fecha de la junta pueden participar en las
         deliberaciones, pero no tienen derecho a voto (Arts. 15.2 y 16.2 de la Ley de Propiedad Horizontal).</p>
     </div>
@@ -562,16 +576,21 @@ function descargarICS(){
   const f = new Date(JUNTA.fechaISO), end = new Date(f.getTime()+90*6e4);
   const z = n => String(n).padStart(2,"0");
   const ics = dt => `${dt.getFullYear()}${z(dt.getMonth()+1)}${z(dt.getDate())}T${z(dt.getHours())}${z(dt.getMinutes())}00`;
+  const esc = s => String(s).replace(/\\/g,"\\\\").replace(/;/g,"\\;").replace(/,/g,"\\,").replace(/\n/g,"\\n");
+  const desc = `1ª convocatoria ${z(f.getHours())}:${z(f.getMinutes())} · 2ª convocatoria ${JUNTA.hora2}\n\nOrden del día:\n`
+    + JUNTA.orden.map((o,i)=>`${i+1}. ${o}`).join("\n");
   const txt = [
-    "BEGIN:VCALENDAR","VERSION:2.0","PRODID:-//Rioja25//ES","BEGIN:VEVENT",
+    "BEGIN:VCALENDAR","VERSION:2.0","PRODID:-//Rioja25//ES","CALSCALE:GREGORIAN","BEGIN:VEVENT",
     "UID:junta-"+ics(f)+"@rioja25","DTSTART:"+ics(f),"DTEND:"+ics(end),
-    "SUMMARY:"+JUNTA.titulo,"LOCATION:"+JUNTA.lugar,
-    "DESCRIPTION:Orden del día - "+JUNTA.orden.join("; "),
+    "SUMMARY:"+esc(JUNTA.titulo+" · Rioja 25"),"LOCATION:"+esc(JUNTA.lugar),"DESCRIPTION:"+esc(desc),
+    // avisos: el día antes (19:00) y 1 hora antes
+    "BEGIN:VALARM","ACTION:DISPLAY","DESCRIPTION:"+esc("Mañana es la junta de vecinos de Rioja 25"),"TRIGGER:-P1D","END:VALARM",
+    "BEGIN:VALARM","ACTION:DISPLAY","DESCRIPTION:"+esc("La junta de vecinos empieza en 1 hora"),"TRIGGER:-PT1H","END:VALARM",
     "END:VEVENT","END:VCALENDAR",
   ].join("\r\n");
   const url = URL.createObjectURL(new Blob([txt],{type:"text/calendar"}));
   const a = document.createElement("a"); a.href=url; a.download="junta-rioja25.ics"; a.click();
-  URL.revokeObjectURL(url);
+  setTimeout(()=>URL.revokeObjectURL(url), 4000);
 }
 
 /* ====================== navegación ====================== */

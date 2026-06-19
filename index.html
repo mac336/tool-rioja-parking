@@ -146,6 +146,7 @@
   .tablewrap{overflow-x:auto; border:1px solid var(--line); border-radius:12px}
   th,td{border:1px solid var(--line); padding:6px 7px; text-align:center; white-space:nowrap}
   th{background:#efe7d6; color:var(--green); font-size:.72rem}
+  th.qh{white-space:normal; min-width:74px; line-height:1.25; font-weight:700}
   td.piso,th.piso{text-align:left; font-weight:700; background:#faf6ec; position:sticky; left:0; z-index:2; font-family:var(--sans)}
   td.cur{background:var(--okbg); font-weight:700; color:var(--ok)}
   th.cur{background:#cfe6d6}
@@ -474,10 +475,13 @@ function buscarPiso(){
 
 function pintaTabla(){
   const N = 5;  // 5 quincenas desde la actual hacia adelante
+  const rangoTxt = (ini,fin)=> ini.getMonth()===fin.getMonth()
+    ? `${ini.getDate()} al ${fin.getDate()} ${MESES[fin.getMonth()]}`
+    : `${ini.getDate()} ${MESES[ini.getMonth()]} al ${fin.getDate()} ${MESES[fin.getMonth()]}`;
   let head = `<tr><th class="piso">Plaza \\ Quincena</th>`;
   for(let i=0;i<N;i++){
     const {ini,fin}=fechasDeQuincena(Q_ACTUAL+i);
-    head += `<th class="${i===0?'cur':''}">${ini.getDate()}/${ini.getMonth()+1}–${fin.getDate()}/${fin.getMonth()+1}</th>`;
+    head += `<th class="qh ${i===0?'cur':''}">${rangoTxt(ini,fin)}</th>`;
   }
   head += `</tr>`;
   let body = "";

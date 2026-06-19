@@ -1,0 +1,292 @@
+<!DOCTYPE html>
+<html lang="es">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>Comunidad C/ Rioja 25</title>
+<style>
+  :root{
+    --bg:#f4f6f8; --card:#fff; --ink:#1f2a37; --muted:#667085;
+    --brand:#1d4e89; --brand2:#2f6fb0; --line:#e3e8ee; --accent:#e8f0fa;
+    --ok:#117a37; --okbg:#e7f4ec; --warn:#8a5a00; --warnbg:#fff4dc;
+  }
+  *{box-sizing:border-box}
+  body{margin:0;font-family:-apple-system,BlinkMacSystemFont,"Segoe UI",Roboto,Helvetica,Arial,sans-serif;background:var(--bg);color:var(--ink);line-height:1.5}
+  header{background:linear-gradient(135deg,var(--brand),var(--brand2));color:#fff;padding:22px 18px}
+  header h1{margin:0;font-size:1.35rem}
+  header p{margin:4px 0 0;opacity:.9;font-size:.9rem}
+  .wrap{max-width:1000px;margin:0 auto;padding:0 14px}
+  nav{display:flex;gap:8px;background:var(--card);border-bottom:1px solid var(--line);position:sticky;top:0;z-index:10}
+  nav button{flex:1;border:0;background:none;padding:14px 8px;font-size:1rem;font-weight:600;color:var(--muted);cursor:pointer;border-bottom:3px solid transparent}
+  nav button.active{color:var(--brand);border-bottom-color:var(--brand)}
+  section{display:none;padding:18px 0 60px}
+  section.active{display:block}
+  h2{font-size:1.15rem;margin:18px 0 12px}
+  .card{background:var(--card);border:1px solid var(--line);border-radius:12px;padding:14px 16px;margin-bottom:12px}
+  /* contactos */
+  .contact{display:flex;flex-wrap:wrap;gap:4px 16px;align-items:baseline}
+  .contact .fn{font-size:.72rem;text-transform:uppercase;letter-spacing:.04em;color:var(--brand);font-weight:700;width:100%}
+  .contact .nm{font-weight:600;font-size:1.02rem}
+  .contact .row{width:100%;color:var(--muted);font-size:.9rem;display:flex;gap:8px}
+  .contact a{color:var(--brand2);text-decoration:none}
+  .contact .tel{font-variant-numeric:tabular-nums}
+  .ico{width:1.1em;display:inline-block;text-align:center;opacity:.7}
+  /* parking */
+  .banner{background:var(--warnbg);border:1px solid #f0d488;color:var(--warn);border-radius:10px;padding:10px 14px;font-size:.86rem;margin-bottom:14px}
+  .now{background:var(--accent);border:1px solid #cfe0f3}
+  .now .label{font-size:.75rem;text-transform:uppercase;letter-spacing:.04em;color:var(--brand);font-weight:700}
+  .now .dates{font-size:1.05rem;font-weight:700;margin:2px 0 12px}
+  .plazas{display:grid;grid-template-columns:repeat(auto-fill,minmax(135px,1fr));gap:10px}
+  .plaza{background:#fff;border:1px solid var(--line);border-radius:10px;padding:10px 12px}
+  .plaza .p{font-size:.78rem;color:var(--muted);font-weight:600}
+  .plaza .who{font-size:1.05rem;font-weight:700;margin-top:2px}
+  .plaza.libre{opacity:.6}
+  .picker{display:flex;flex-wrap:wrap;gap:10px;align-items:center;margin:6px 0 4px}
+  select{padding:9px 12px;border:1px solid var(--line);border-radius:9px;font-size:1rem;background:#fff;color:var(--ink)}
+  #miResultado{margin-top:10px}
+  .hit{background:var(--okbg);border:1px solid #b6e0c4;color:var(--ok);border-radius:9px;padding:8px 12px;margin-bottom:6px;font-size:.95rem}
+  .hit.next{background:var(--accent);border-color:#cfe0f3;color:var(--brand)}
+  .hit.none{background:#f5f5f5;border-color:var(--line);color:var(--muted)}
+  table{width:100%;border-collapse:collapse;font-size:.8rem;background:#fff}
+  .tablewrap{overflow-x:auto;border:1px solid var(--line);border-radius:10px}
+  th,td{border:1px solid var(--line);padding:5px 7px;text-align:center;white-space:nowrap}
+  th{background:var(--accent);color:var(--brand)}
+  td.piso,th.piso{text-align:left;font-weight:600;background:#fafbfc;position:sticky;left:0;z-index:2}
+  td.cur{background:var(--okbg);font-weight:700}
+  th.cur{background:#cfe6d6}
+  .note{font-size:.82rem;color:var(--muted);margin-top:10px}
+  details{margin-top:14px}
+  summary{cursor:pointer;font-weight:600;color:var(--brand)}
+</style>
+</head>
+<body>
+<header>
+  <div class="wrap">
+    <h1>Comunidad de Propietarios · C/ Rioja nº 25</h1>
+    <p>Directorio de contactos y rotación de plazas de aparcamiento</p>
+  </div>
+</header>
+
+<nav class="wrap" style="max-width:1000px">
+  <button id="tab-contactos" class="active" onclick="show('contactos')">📒 Contactos</button>
+  <button id="tab-parking" onclick="show('parking')">🅿️ Parking</button>
+</nav>
+
+<div class="wrap">
+
+<!-- ============ CONTACTOS ============ -->
+<section id="contactos" class="active">
+  <h2>Directorio de la comunidad</h2>
+  <div id="listaContactos"></div>
+</section>
+
+<!-- ============ PARKING ============ -->
+<section id="parking">
+  <div class="banner">
+    ⚠️ <b>Datos de rotación a verificar.</b> No pude leer con seguridad cada casilla de la hoja original (foto poco nítida),
+    así que la tabla usa una rotación de ejemplo. Revísala con la hoja oficial y corrige los nombres en el código si hace falta.
+    Envíame una foto más nítida y la dejo exacta.
+  </div>
+
+  <div class="card now">
+    <div class="label">Quincena actual</div>
+    <div class="dates" id="quincenaActual">—</div>
+    <div class="plazas" id="plazasActuales"></div>
+  </div>
+
+  <div class="card">
+    <h2 style="margin-top:0">¿Qué plaza me toca?</h2>
+    <div class="picker">
+      <label for="selPiso">Selecciona tu piso:</label>
+      <select id="selPiso" onchange="buscarPiso()"><option value="">—</option></select>
+    </div>
+    <div id="miResultado"></div>
+  </div>
+
+  <details open>
+    <summary>Ver calendario completo</summary>
+    <div class="tablewrap" style="margin-top:10px"><table id="tablaCal"></table></div>
+    <p class="note">
+      Reglas de la junta: el límite para los cambios de turno es los <b>sábados a las 20:00</b>.
+      Las plazas exteriores son <b>solo para turismos</b> (no camiones ni furgonetas).
+      La rotación se repite en bucle al terminar el 20-06-2026.
+    </p>
+  </details>
+</section>
+
+</div>
+
+<script>
+/* ====================================================================
+   1) CONTACTOS  (Hoja 1)
+   ==================================================================== */
+const CONTACTOS = [
+  {fn:"Administrador", nm:"Antonio Ortega Martín", dir:"C/ Rodríguez San Pedro nº 2, Planta 3ª, Oficina 302 · Madrid", tel:["91 594 39 33","91 808 59 88"], web:"info@fincasortegadelgado.com"},
+  {fn:"Ascensores", nm:"ThyssenKrupp Elevadores", dir:"C/ Villaescusa nº 2", tel:["91 327 45 46"]},
+  {fn:"Antenas y portero", nm:"Telyme", dir:"C/ Tordoman nº 12, Local · 28043 Madrid", tel:["91 381 49 45"]},
+  {fn:"Calefacción", nm:"Stic Instalaciones", dir:"C/ Vicente Gaceo, 21", tel:["91 314 42 70","670 08 84 30 (fin de semana/festivos)","603 63 90 18 (fin de semana/festivos)"], web:"info@stic-instalaciones.com"},
+  {fn:"Conserje", nm:"Iván Rivera Carballada", dir:"", tel:["647 26 76 48"]},
+  {fn:"Contraincendios", nm:"Seguridad Abex, S.L.", dir:"C/ Ceuta nº 17 · 28700 S.S. de los Reyes (Madrid)", tel:["91 652 16 18"]},
+  {fn:"Contadores de agua", nm:"Monedero", dir:"Avda. América nº 7 · 28002 Madrid", tel:["91 411 48 70"]},
+  {fn:"Desinsectación", nm:"Pest-Rapid", dir:"C/ Pto. de Maspalomas, 9 · 28029 Madrid", tel:["91 386 51 07"], web:"pestrapid@yahoo.es"},
+  {fn:"Jardinería", nm:"José Luis Sánchez Bachiller", dir:"", tel:["620 034 595"]},
+  {fn:"Mant. Piscina", nm:"Aquakit", dir:"Avda. Real de Pinto 87, Nave Mod II Nave F · 28021 Madrid", tel:["91 665 07 18","610 216 604"]},
+  {fn:"Puertas Garaje", nm:"Automatizaciones Lázaro", dir:"C/ Mercedes Arteaga nº 13 · 28019 Madrid", tel:["91 472 34 10"]},
+  {fn:"Presidente", nm:"David Seco", dir:"1D esc. dcha.", tel:[]},
+  {fn:"Vicepresidente", nm:"Luis Garrigan", dir:"2D esc. izq.", tel:[]},
+  {fn:"Seguro", nm:"OCASO", dir:"Nº Póliza: 220960", tel:["91 703 90 10"]},
+];
+
+function pintaContactos(){
+  const cont = document.getElementById("listaContactos");
+  cont.innerHTML = CONTACTOS.map(c=>{
+    let rows = "";
+    if(c.dir) rows += `<div class="row"><span class="ico">📍</span><span>${c.dir}</span></div>`;
+    c.tel.forEach(t=>{
+      const num = t.replace(/[^0-9]/g,"");
+      rows += `<div class="row"><span class="ico">📞</span><a class="tel" href="tel:${num}">${t}</a></div>`;
+    });
+    if(c.web){
+      if(c.web.includes("@")) rows += `<div class="row"><span class="ico">✉️</span><a href="mailto:${c.web}">${c.web}</a></div>`;
+      else rows += `<div class="row"><span class="ico">🌐</span><a href="https://${c.web}" target="_blank">${c.web}</a></div>`;
+    }
+    return `<div class="card contact"><div class="fn">${c.fn}</div><div class="nm">${c.nm}</div>${rows}</div>`;
+  }).join("");
+}
+
+/* ====================================================================
+   2) PARKING  (Hoja 2)
+   --------------------------------------------------------------------
+   ROTACION: 10 quincenas. Cada fila lista los 6 pisos que ocupan
+   Plaza 1, 2, 3, 4, 5 y 6 (en ese orden) durante esa quincena.
+   "LIBRE" = plaza no asignada esa quincena.
+   >>> EDITA AQUÍ los nombres para que coincidan con la hoja oficial <<<
+   ==================================================================== */
+const INICIO = new Date(2026,0,31);   // 31-01-2026 (inicio del ciclo)
+const DIAS_QUINCENA = 14;
+
+const ROTACION = [
+  /* Q1  31 ene - 14 feb */ ["Bajo A","Bajo B","Bajo C","Bajo D","Bajo E","Bajo F"],
+  /* Q2  14 feb - 28 feb */ ["LIBRE","1º A Dcha","1º B Dcha","1º C Dcha","1º D Dcha","1º E Dcha"],
+  /* Q3  28 feb - 14 mar */ ["1º F Dcha","2º A Dcha","2º B Dcha","2º C Dcha","2º D Dcha","2º E Dcha"],
+  /* Q4  14 mar - 28 mar */ ["2º F Dcha","3º A Dcha","3º B Dcha","3º C Dcha","3º D Dcha","3º E Dcha"],
+  /* Q5  28 mar - 11 abr */ ["3º F Dcha","1º A Izda","1º B Izda","1º C Izda","1º D Izda","1º E Izda"],
+  /* Q6  11 abr - 25 abr */ ["1º F Izda","2º A Izda","2º B Izda","2º C Izda","2º D Izda","2º E Izda"],
+  /* Q7  25 abr - 09 may */ ["2º F Izda","3º A Izda","3º B Izda","3º C Izda","3º D Izda","3º E Izda"],
+  /* Q8  09 may - 23 may */ ["3º F Izda","Bajo A","Bajo B","Bajo C","Bajo D","Bajo E"],
+  /* Q9  23 may - 06 jun */ ["Bajo F","LIBRE","1º A Dcha","1º B Dcha","1º C Dcha","1º D Dcha"],
+  /* Q10 06 jun - 20 jun */ ["1º E Dcha","1º F Dcha","2º A Dcha","2º B Dcha","2º C Dcha","2º D Dcha"],
+];
+
+// Lista de pisos para el selector (sin "LIBRE")
+const PISOS = [
+ "Bajo A","Bajo B","Bajo C","Bajo D","Bajo E","Bajo F",
+ "1º A Dcha","1º B Dcha","1º C Dcha","1º D Dcha","1º E Dcha","1º F Dcha",
+ "2º A Dcha","2º B Dcha","2º C Dcha","2º D Dcha","2º E Dcha","2º F Dcha",
+ "3º A Dcha","3º B Dcha","3º C Dcha","3º D Dcha","3º E Dcha","3º F Dcha",
+ "1º A Izda","1º B Izda","1º C Izda","1º D Izda","1º E Izda","1º F Izda",
+ "2º A Izda","2º B Izda","2º C Izda","2º D Izda","2º E Izda","2º F Izda",
+ "3º A Izda","3º B Izda","3º C Izda","3º D Izda","3º E Izda","3º F Izda",
+];
+
+const MESES = ["ene","feb","mar","abr","may","jun","jul","ago","sep","oct","nov","dic"];
+function fmt(d){ return d.getDate()+" "+MESES[d.getMonth()]+" "+d.getFullYear(); }
+function addDias(d,n){ const x=new Date(d); x.setDate(x.getDate()+n); return x; }
+
+// Índice de quincena global desde INICIO (permite bucle indefinido)
+function quincenaGlobal(fecha){
+  const ms = fecha - INICIO;
+  if(ms < 0) return 0;
+  return Math.floor(ms / (DIAS_QUINCENA*24*3600*1000));
+}
+function fechasDeQuincena(qGlobal){
+  const ini = addDias(INICIO, qGlobal*DIAS_QUINCENA);
+  const fin = addDias(ini, DIAS_QUINCENA);
+  return {ini, fin};
+}
+// patrón cíclico
+function patron(qGlobal){ return ROTACION[((qGlobal % ROTACION.length)+ROTACION.length)%ROTACION.length]; }
+
+const HOY = new Date();
+const Q_ACTUAL = quincenaGlobal(HOY);
+
+function pintaActual(){
+  const {ini,fin} = fechasDeQuincena(Q_ACTUAL);
+  document.getElementById("quincenaActual").textContent = fmt(ini)+" → "+fmt(addDias(fin,-1));
+  const fila = patron(Q_ACTUAL);
+  document.getElementById("plazasActuales").innerHTML = fila.map((piso,i)=>{
+    const libre = piso==="LIBRE";
+    return `<div class="plaza ${libre?'libre':''}"><div class="p">Plaza ${i+1}</div><div class="who">${libre?'— libre —':piso}</div></div>`;
+  }).join("");
+}
+
+function pintaSelector(){
+  const sel = document.getElementById("selPiso");
+  PISOS.forEach(p=> sel.insertAdjacentHTML("beforeend", `<option value="${p}">${p}</option>`));
+}
+
+function buscarPiso(){
+  const piso = document.getElementById("selPiso").value;
+  const out = document.getElementById("miResultado");
+  if(!piso){ out.innerHTML=""; return; }
+  const filaAhora = patron(Q_ACTUAL);
+  const idxAhora = filaAhora.indexOf(piso);
+  let html = "";
+  if(idxAhora>=0){
+    html += `<div class="hit">🅿️ <b>Ahora mismo</b> te toca la <b>Plaza ${idxAhora+1}</b> (hasta el ${fmt(addDias(fechasDeQuincena(Q_ACTUAL).fin,-1))}).</div>`;
+  }
+  let encontrados=0;
+  for(let k=1;k<=ROTACION.length && encontrados<3;k++){
+    const qg=Q_ACTUAL+k;
+    const idx=patron(qg).indexOf(piso);
+    if(idx>=0){
+      const {ini,fin}=fechasDeQuincena(qg);
+      html += `<div class="hit next">🔜 Plaza ${idx+1}: del ${fmt(ini)} al ${fmt(addDias(fin,-1))}.</div>`;
+      encontrados++;
+    }
+  }
+  if(!html) html = `<div class="hit none">Este piso no aparece en la rotación cargada.</div>`;
+  out.innerHTML = html;
+}
+
+function pintaTabla(){
+  const t = document.getElementById("tablaCal");
+  let head = `<tr><th class="piso">Piso \\ Quincena</th>`;
+  for(let q=0;q<ROTACION.length;q++){
+    const {ini,fin}=fechasDeQuincena(q);
+    const curPat0 = ((Q_ACTUAL%ROTACION.length)+ROTACION.length)%ROTACION.length;
+    const cur = (q === curPat0);
+    head += `<th class="${cur?'cur':''}">${ini.getDate()}/${ini.getMonth()+1}–${addDias(fin,-1).getDate()}/${addDias(fin,-1).getMonth()+1}</th>`;
+  }
+  head += `</tr>`;
+  const curPat = ((Q_ACTUAL%ROTACION.length)+ROTACION.length)%ROTACION.length;
+  let body = "";
+  PISOS.forEach(piso=>{
+    let row = `<tr><td class="piso">${piso}</td>`;
+    for(let q=0;q<ROTACION.length;q++){
+      const idx = ROTACION[q].indexOf(piso);
+      const txt = idx>=0 ? "P"+(idx+1) : "";
+      row += `<td class="${q===curPat&&idx>=0?'cur':''}">${txt}</td>`;
+    }
+    row += `</tr>`;
+    body += row;
+  });
+  t.innerHTML = head + body;
+}
+
+/* ====================== navegación ====================== */
+function show(id){
+  document.querySelectorAll("section").forEach(s=>s.classList.remove("active"));
+  document.querySelectorAll("nav button").forEach(b=>b.classList.remove("active"));
+  document.getElementById(id).classList.add("active");
+  document.getElementById("tab-"+id).classList.add("active");
+}
+
+/* init */
+pintaContactos();
+pintaActual();
+pintaSelector();
+pintaTabla();
+</script>
+</body>
+</html>

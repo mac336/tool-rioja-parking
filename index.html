@@ -91,6 +91,9 @@
     display:flex; align-items:center; gap:6px;
   }
   .tile .t-live::before{content:""; width:6px; height:6px; border-radius:50%; background:currentColor; flex:none}
+  .tile.cta{flex-direction:row; align-items:center; gap:14px; min-height:auto; padding:16px}
+  .tile.cta .cta-txt{display:flex; flex-direction:column; gap:2px; flex:1}
+  .tile.cta .cta-arrow{font-size:1.7rem; color:var(--tile-c); font-weight:700; line-height:1}
   .home-foot{margin:26px 0 0; text-align:center; font-size:.74rem; color:#a9c2b6; font-family:var(--mono); letter-spacing:.08em}
 
   /* ===================== VISTAS ===================== */
@@ -190,7 +193,8 @@
   .orden li:last-child{border-bottom:0}
   .orden li::before{content:counter(od,decimal-leading-zero); position:absolute; left:0; top:9px; font-family:var(--mono); font-size:.8rem; font-weight:700; color:var(--brass)}
   .btn{appearance:none; border:0; cursor:pointer; font-family:var(--sans); font-weight:700; font-size:.95rem;
-       background:var(--green); color:var(--paper); padding:13px 16px; border-radius:12px; width:100%; margin-top:6px}
+       background:var(--green); color:var(--paper); padding:14px 16px; border-radius:12px; width:100%; margin-top:6px;
+       display:block; text-align:center; text-decoration:none; box-sizing:border-box}
   .btn:active{opacity:.85}
 
   @media (prefers-reduced-motion:reduce){
@@ -232,6 +236,14 @@
         <span class="t-name">Próxima junta</span>
         <span class="t-desc">Fecha, orden del día y recordatorio</span>
         <span class="t-live" id="liveJunta">—</span>
+      </button>
+      <button class="tile cta" style="--tile-c:#c9742b; grid-column:1/-1" onclick="show('sugerencias')">
+        <span class="ic">💡</span>
+        <span class="cta-txt">
+          <span class="t-name">Sugerencias</span>
+          <span class="t-desc">¿Una idea para mejorar el portal? Cuéntanosla</span>
+        </span>
+        <span class="cta-arrow">›</span>
       </button>
     </div>
 
@@ -371,6 +383,23 @@
       <p style="margin:0">✅ <b>La junta ya se celebró.</b> En cuanto tengamos el acta, publicaremos aquí
         <b>los acuerdos adoptados</b>.</p>
     </div>
+  </div>
+</section>
+
+<!-- ============ SUGERENCIAS ============ -->
+<section id="sugerencias" class="view">
+  <div class="topbar"><button class="back" onclick="goHome()" aria-label="Volver">‹</button><h1>Sugerencias</h1><span class="tb-ic">💡</span></div>
+  <div class="wrap">
+    <div class="card" style="text-align:center">
+      <div style="font-size:2.8rem; line-height:1">💡</div>
+      <h2 style="margin:8px 0 8px">Este portal lo hacemos entre todos</h2>
+      <p style="color:var(--muted); margin:0">¿Echas algo en falta? ¿Se te ocurre cómo mejorarlo o qué información
+        añadir? Toda idea para mejorar la vida en la comunidad es bienvenida.</p>
+    </div>
+
+    <a class="btn" href="mailto:cdelarioja25@gmail.com?subject=Sugerencia%20para%20el%20portal%20Rioja%2025&body=Hola%2C%0A%0AMe%20gustar%C3%ADa%20proponer%20lo%20siguiente%20para%20el%20portal%20de%20la%20comunidad%3A%0A%0A">✉️ Enviar sugerencia</a>
+    <p class="note">Se abrirá tu aplicación de correo con un mensaje ya preparado. También puedes escribir directamente a
+      <a href="mailto:cdelarioja25@gmail.com">cdelarioja25@gmail.com</a>.</p>
   </div>
 </section>
 

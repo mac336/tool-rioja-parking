@@ -149,6 +149,7 @@
   td.piso,th.piso{text-align:left; font-weight:700; background:#faf6ec; position:sticky; left:0; z-index:2; font-family:var(--sans)}
   td.cur{background:var(--okbg); font-weight:700; color:var(--ok)}
   th.cur{background:#cfe6d6}
+  td.libreCell{color:var(--muted); background:#faf6ec; font-style:italic}
   .note{font-size:.82rem; color:var(--muted); margin-top:12px}
   details{margin-top:14px} summary{cursor:pointer; font-weight:700; color:var(--green-2); font-family:var(--serif)}
 
@@ -241,11 +242,6 @@
 <section id="parking" class="view">
   <div class="topbar"><button class="back" onclick="goHome()" aria-label="Volver">‹</button><h1>Parking</h1><span class="tb-ic">🅿️</span></div>
   <div class="wrap">
-    <div class="banner" id="parkingFlag">
-      ⚠️ <b>Revisa una casilla:</b> en la hoja oficial, una de las plazas de planta baja sale con la letra ilegible.
-      La he puesto como <b>“Bajo C”</b> (no hay “Bajo D”). Dime si es C o D y lo ajusto.
-    </div>
-
     <div class="card now">
       <div class="label">Quincena actual</div>
       <div class="dates" id="quincenaActual">—</div>
@@ -262,12 +258,12 @@
     </div>
 
     <details open>
-      <summary>Calendario completo</summary>
+      <summary>Próximas quincenas</summary>
       <div class="tablewrap" style="margin-top:10px"><table id="tablaCal"></table></div>
       <p class="note">
+        Cada columna es una quincena (desde la actual). En cada plaza ves el piso al que le toca.
         El límite para los cambios de turno es los <b>sábados a las 20:00</b>.
-        Las plazas exteriores son <b>solo para turismos</b> (no camiones ni furgonetas).
-        Calendario oficial: 31-01-2026 → 20-06-2026 (luego se repite el ciclo).
+        Plazas exteriores <b>solo para turismos</b> (no camiones ni furgonetas).
       </p>
     </details>
   </div>
@@ -364,25 +360,26 @@ function pintaContactos(){
 }
 
 /* ====================================================================
-   2) PARKING  (calendario oficial 31-01-2026 → 20-06-2026)
-   ROTACION[q] = pisos que ocupan Plaza 1,2,3,4,5,6 en la quincena q.
+   2) PARKING  (rotación continua; hoja oficial 31-01-2026 → 20-06-2026)
    ==================================================================== */
 const INICIO = new Date(2026,0,31);
 const DIAS_QUINCENA = 14;
 
-const ROTACION = [
-  /*                          Plaza1        Plaza2        Plaza3        Plaza4        Plaza5        Plaza6   */
-  /* Q1  31 ene - 14 feb */ ["3º A Dcha",  "3º B Dcha",  "3º C Dcha",  "3º D Dcha",  "3º E Dcha",  "3º F Dcha"],
-  /* Q2  14 feb - 28 feb */ ["1º A Izqda", "1º B Izqda", "1º C Izqda", "1º D Izqda", "1º E Izqda", "1º F Izqda"],
-  /* Q3  28 feb - 14 mar */ ["2º A Izqda", "2º B Izqda", "2º C Izqda", "2º D Izqda", "2º E Izqda", "2º F Izqda"],
-  /* Q4  14 mar - 28 mar */ ["3º A Izqda", "3º B Izqda", "3º C Izqda", "3º D Izqda", "3º E Izqda", "3º F Izqda"],
-  /* Q5  28 mar - 11 abr */ ["LIBRE",      "Bajo A",     "Bajo B",     "Bajo C",     "Bajo E",     "Bajo F"],
-  /* Q6  11 abr - 25 abr */ ["1º F Dcha",  "1º A Dcha",  "1º B Dcha",  "1º C Dcha",  "1º D Dcha",  "1º E Dcha"],
-  /* Q7  25 abr - 09 may */ ["2º F Dcha",  "2º A Dcha",  "2º B Dcha",  "2º C Dcha",  "2º D Dcha",  "2º E Dcha"],
-  /* Q8  09 may - 23 may */ ["3º F Dcha",  "3º A Dcha",  "3º B Dcha",  "3º C Dcha",  "3º D Dcha",  "3º E Dcha"],
-  /* Q9  23 may - 06 jun */ ["1º F Izqda", "1º A Izqda", "1º B Izqda", "1º C Izqda", "1º D Izqda", "1º E Izqda"],
-  /* Q10 06 jun - 20 jun */ ["2º F Izqda", "2º A Izqda", "2º B Izqda", "2º C Izqda", "2º D Izqda", "2º E Izqda"],
-];
+/* Rotación REAL y continua (no se reinicia tras junio):
+   - ciclo de 7 grupos en este orden: bajo, 1º-2º-3º Dcha, 1º-2º-3º Izqda
+   - cada grupo tiene 6 "slots" (los bajos = 5 vecinos + 1 LIBRE) que rotan juntos
+   - cada vez que vuelve un grupo, todo se desplaza +1 plaza (el de la 6 pasa a la 1)
+   "base" = la asignación tal cual aparece en la hoja oficial en la quincena "anchor". */
+const CICLO = ["bajo","1D","2D","3D","1I","2I","3I"];
+const GRUPO = {
+  bajo:{ anchor:4, base:["LIBRE",      "Bajo A",    "Bajo B",    "Bajo C",    "Bajo E",    "Bajo F"]    },
+  "1D":{ anchor:5, base:["1º F Dcha",  "1º A Dcha", "1º B Dcha", "1º C Dcha", "1º D Dcha", "1º E Dcha"] },
+  "2D":{ anchor:6, base:["2º F Dcha",  "2º A Dcha", "2º B Dcha", "2º C Dcha", "2º D Dcha", "2º E Dcha"] },
+  "3D":{ anchor:0, base:["3º A Dcha",  "3º B Dcha", "3º C Dcha", "3º D Dcha", "3º E Dcha", "3º F Dcha"] },
+  "1I":{ anchor:1, base:["1º A Izqda", "1º B Izqda","1º C Izqda","1º D Izqda","1º E Izqda","1º F Izqda"]},
+  "2I":{ anchor:2, base:["2º A Izqda", "2º B Izqda","2º C Izqda","2º D Izqda","2º E Izqda","2º F Izqda"]},
+  "3I":{ anchor:3, base:["3º A Izqda", "3º B Izqda","3º C Izqda","3º D Izqda","3º E Izqda","3º F Izqda"]},
+};
 
 const PISOS = [
  "Bajo A","Bajo B","Bajo C","Bajo E","Bajo F",
@@ -399,7 +396,12 @@ const fmt = d => d.getDate()+" "+MESES[d.getMonth()]+" "+d.getFullYear();
 const addDias = (d,n)=>{ const x=new Date(d); x.setDate(x.getDate()+n); return x; };
 function quincenaGlobal(f){ const ms=f-INICIO; return ms<0?0:Math.floor(ms/(DIAS_QUINCENA*864e5)); }
 function fechasDeQuincena(qg){ const ini=addDias(INICIO,qg*DIAS_QUINCENA); return {ini, fin:addDias(ini,DIAS_QUINCENA)}; }
-function patron(qg){ return ROTACION[((qg%ROTACION.length)+ROTACION.length)%ROTACION.length]; }
+function cyclePos(qg){ return ((qg+3)%7+7)%7; }
+function patron(qg){
+  const g = GRUPO[CICLO[cyclePos(qg)]];
+  const s = Math.round((qg - g.anchor)/7);            // nº de ciclos completos desde la hoja oficial
+  return g.base.map((_,idx)=> g.base[((idx - s)%6+6)%6]); // desplaza +1 plaza por ciclo
+}
 
 const HOY = new Date();
 const Q_ACTUAL = quincenaGlobal(HOY);
@@ -416,40 +418,45 @@ function pintaActual(){
 function pintaSelector(){
   const sel = document.getElementById("selPiso");
   PISOS.forEach(p=> sel.insertAdjacentHTML("beforeend", `<option value="${p}">${p}</option>`));
+  let guardado=null; try{ guardado = localStorage.getItem("r25-piso"); }catch(e){}
+  if(guardado && PISOS.includes(guardado)){ sel.value = guardado; buscarPiso(); }
 }
 
 function buscarPiso(){
   const piso = document.getElementById("selPiso").value;
   const out = document.getElementById("miResultado");
-  if(!piso){ out.innerHTML=""; return; }
+  if(!piso){ out.innerHTML=""; try{ localStorage.removeItem("r25-piso"); }catch(e){} return; }
+  try{ localStorage.setItem("r25-piso", piso); }catch(e){}
   const idxAhora = patron(Q_ACTUAL).indexOf(piso);
   let html = "";
   if(idxAhora>=0) html += `<div class="hit">🅿️ <b>Ahora</b> te toca la <b>Plaza ${idxAhora+1}</b> (hasta el ${fmt(fechasDeQuincena(Q_ACTUAL).fin)}).</div>`;
   let n=0;
-  for(let k=1;k<=ROTACION.length && n<3;k++){
+  for(let k=1;k<=22 && n<3;k++){
     const qg=Q_ACTUAL+k, idx=patron(qg).indexOf(piso);
     if(idx>=0){ const {ini,fin}=fechasDeQuincena(qg); html += `<div class="hit next">🔜 Plaza ${idx+1}: del ${fmt(ini)} al ${fmt(fin)}.</div>`; n++; }
   }
   out.innerHTML = html || `<div class="hit none">Este piso no aparece en la rotación.</div>`;
+  pintaHome();
 }
 
 function pintaTabla(){
-  const curPat = ((Q_ACTUAL%ROTACION.length)+ROTACION.length)%ROTACION.length;
-  let head = `<tr><th class="piso">Piso \\ Quincena</th>`;
-  for(let q=0;q<ROTACION.length;q++){
-    const {ini,fin}=fechasDeQuincena(q);
-    head += `<th class="${q===curPat?'cur':''}">${ini.getDate()}/${ini.getMonth()+1}–${fin.getDate()}/${fin.getMonth()+1}</th>`;
+  const N = 5;  // 5 quincenas desde la actual hacia adelante
+  let head = `<tr><th class="piso">Plaza \\ Quincena</th>`;
+  for(let i=0;i<N;i++){
+    const {ini,fin}=fechasDeQuincena(Q_ACTUAL+i);
+    head += `<th class="${i===0?'cur':''}">${ini.getDate()}/${ini.getMonth()+1}–${fin.getDate()}/${fin.getMonth()+1}</th>`;
   }
   head += `</tr>`;
   let body = "";
-  PISOS.forEach(piso=>{
-    let row = `<tr><td class="piso">${piso}</td>`;
-    for(let q=0;q<ROTACION.length;q++){
-      const idx = ROTACION[q].indexOf(piso);
-      row += `<td class="${q===curPat&&idx>=0?'cur':''}">${idx>=0?"P"+(idx+1):""}</td>`;
+  for(let p=0;p<6;p++){
+    let row = `<tr><td class="piso">Plaza ${p+1}</td>`;
+    for(let i=0;i<N;i++){
+      const piso = patron(Q_ACTUAL+i)[p];
+      const libre = piso==="LIBRE";
+      row += `<td class="${i===0?'cur':''} ${libre?'libreCell':''}">${libre?'— libre —':piso}</td>`;
     }
     body += row+`</tr>`;
-  });
+  }
   document.getElementById("tablaCal").innerHTML = head + body;
 }
 
@@ -534,7 +541,15 @@ window.addEventListener("popstate", e=>{
 function pintaHome(){
   document.getElementById("liveContactos").textContent = CONTACTOS.length+" contactos";
   const {ini,fin} = fechasDeQuincena(Q_ACTUAL);
-  document.getElementById("liveParking").textContent = "Quincena "+fmt(ini).replace(/ \d{4}$/,"")+"–"+fmt(fin).replace(/ \d{4}$/,"");
+  let piso=null; try{ piso = localStorage.getItem("r25-piso"); }catch(e){}
+  let txtP;
+  if(piso && PISOS.includes(piso)){
+    const idx = patron(Q_ACTUAL).indexOf(piso);
+    txtP = idx>=0 ? piso+" → Plaza "+(idx+1) : piso+" → sin plaza";
+  } else {
+    txtP = "Quincena "+fmt(ini).replace(/ \d{4}$/,"")+"–"+fmt(fin).replace(/ \d{4}$/,"");
+  }
+  document.getElementById("liveParking").textContent = txtP;
   const dJ = Math.ceil((new Date(JUNTA.fechaISO)-new Date())/864e5);
   document.getElementById("liveJunta").textContent = dJ>0 ? "Faltan "+dJ+" días" : "Próximamente";
 }

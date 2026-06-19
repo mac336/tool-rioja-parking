@@ -1,6 +1,6 @@
 // Service worker mínimo: cache-first para que la app abra offline.
 // Sube el número de versión cuando cambies archivos para forzar actualización.
-const CACHE = 'rioja25-v2';
+const CACHE = 'rioja25-v3';
 const ASSETS = [
   '.',
   'index.html',

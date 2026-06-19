@@ -2,8 +2,16 @@
 <html lang="es">
 <head>
 <meta charset="UTF-8">
-<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<meta name="viewport" content="width=device-width, initial-scale=1.0, viewport-fit=cover">
 <title>Comunidad C/ Rioja 25</title>
+<!-- PWA -->
+<link rel="manifest" href="manifest.webmanifest">
+<meta name="theme-color" content="#1d4e89">
+<link rel="icon" href="icon-192.png">
+<link rel="apple-touch-icon" href="apple-touch-icon.png">
+<meta name="apple-mobile-web-app-capable" content="yes">
+<meta name="apple-mobile-web-app-status-bar-style" content="black-translucent">
+<meta name="apple-mobile-web-app-title" content="Rioja25">
 <style>
   :root{
     --bg:#f4f6f8; --card:#fff; --ink:#1f2a37; --muted:#667085;
@@ -287,6 +295,56 @@ pintaContactos();
 pintaActual();
 pintaSelector();
 pintaTabla();
+
+/* ===== PWA: service worker + sugerencia de instalación ===== */
+if ('serviceWorker' in navigator) {
+  window.addEventListener('load', () => navigator.serviceWorker.register('sw.js').catch(()=>{}));
+}
+
+(function(){
+  const isStandalone = window.matchMedia('(display-mode: standalone)').matches || window.navigator.standalone === true;
+  if (isStandalone) return; // ya está instalada
+
+  function makeBar(html){
+    const bar = document.createElement('div');
+    bar.innerHTML = html;
+    Object.assign(bar.style, {
+      position:'fixed', left:'12px', right:'12px', bottom:'14px', zIndex:9999,
+      background:'#1d4e89', color:'#fff', borderRadius:'14px', padding:'12px 14px',
+      boxShadow:'0 8px 24px rgba(0,0,0,.25)', display:'flex', gap:'10px', alignItems:'center',
+      font:'600 .92rem -apple-system,Segoe UI,Roboto,sans-serif'
+    });
+    document.body.appendChild(bar);
+    return bar;
+  }
+
+  // Android / Chrome / Edge: prompt nativo de instalación
+  let deferred = null;
+  window.addEventListener('beforeinstallprompt', (e) => {
+    e.preventDefault();
+    deferred = e;
+    if (localStorage.getItem('rioja25-install-dismissed')) return;
+    const bar = makeBar('<span style="flex:1">📲 Instala <b>Rioja25</b> en tu móvil</span>'
+      + '<button id="pwaInstall" style="border:0;border-radius:9px;padding:8px 12px;font-weight:700;background:#fff;color:#1d4e89;cursor:pointer">Instalar</button>'
+      + '<button id="pwaClose" style="border:0;background:transparent;color:#cfe0f3;font-size:1.2rem;cursor:pointer;line-height:1">×</button>');
+    bar.querySelector('#pwaInstall').onclick = async () => {
+      bar.remove(); deferred.prompt(); await deferred.userChoice; deferred = null;
+    };
+    bar.querySelector('#pwaClose').onclick = () => { bar.remove(); localStorage.setItem('rioja25-install-dismissed','1'); };
+  });
+
+  // iOS Safari: no hay prompt nativo, mostramos instrucción una vez
+  const isIOS = /iphone|ipad|ipod/i.test(navigator.userAgent);
+  const isSafari = /^((?!chrome|android|crios|fxios).)*safari/i.test(navigator.userAgent);
+  if (isIOS && isSafari && !localStorage.getItem('rioja25-ios-dismissed')) {
+    window.addEventListener('load', () => {
+      const bar = makeBar('<span style="flex:1">📲 Para instalar <b>Rioja25</b>: pulsa <b>Compartir</b> '
+        + '<span style="font-size:1.1em">⬆️</span> y luego <b>“Añadir a pantalla de inicio”</b></span>'
+        + '<button id="pwaClose" style="border:0;background:transparent;color:#cfe0f3;font-size:1.2rem;cursor:pointer;line-height:1">×</button>');
+      bar.querySelector('#pwaClose').onclick = () => { bar.remove(); localStorage.setItem('rioja25-ios-dismissed','1'); };
+    });
+  }
+})();
 </script>
 </body>
 </html>

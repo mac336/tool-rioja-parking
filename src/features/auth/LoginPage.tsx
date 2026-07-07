@@ -3,26 +3,38 @@ import { Link, useNavigate } from 'react-router-dom'
 import { Logo } from '@/components/Logo'
 import { Button, Field, Alert } from '@/components/ui'
 import { usingSupabase } from '@/lib/supabase'
-import { signInMagic, signInGoogle } from '@/lib/session'
+import { enviarCodigo, verificarCodigo, signInGoogle } from '@/lib/session'
+
+type Paso = 'inicio' | 'correo' | 'codigo'
 
 export function LoginPage() {
   const nav = useNavigate()
+  const [paso, setPaso] = useState<Paso>('inicio')
   const [email, setEmail] = useState('')
-  const [enviado, setEnviado] = useState(false)
+  const [codigo, setCodigo] = useState('')
   const [error, setError] = useState('')
   const [cargando, setCargando] = useState(false)
-  const [modoCorreo, setModoCorreo] = useState(false)
 
   const entrarDemo = () => nav('/') // modo mock: acceso directo a la demo
 
-  const enviarEnlace = async () => {
+  const pedirCodigo = async () => {
     setError('')
     if (!/.+@.+\..+/.test(email)) { setError('Introduce un correo válido.'); return }
     setCargando(true)
-    const { error } = await signInMagic(email)
+    const { error } = await enviarCodigo(email.trim())
     setCargando(false)
-    if (error) setError('No hemos podido enviar el enlace. Inténtalo de nuevo.')
-    else setEnviado(true)
+    if (error) setError('Ese correo no tiene acceso aprobado, o no se pudo enviar el código.')
+    else setPaso('codigo')
+  }
+
+  const entrarConCodigo = async () => {
+    setError('')
+    if (!/^\d{6}$/.test(codigo.trim())) { setError('El código son 6 dígitos.'); return }
+    setCargando(true)
+    const { error } = await verificarCodigo(email.trim(), codigo.trim())
+    setCargando(false)
+    if (error) setError('Código incorrecto o caducado. Pide uno nuevo.')
+    else nav('/')
   }
 
   return (
@@ -42,18 +54,28 @@ export function LoginPage() {
               <span className="inline-block h-5 w-5 rounded-full bg-[conic-gradient(at_50%_50%,#EA4335,#FBBC05,#34A853,#4285F4,#EA4335)]" />
               Entrar con Google
             </Button>
-            <Button variant="primary" block size="lg" onClick={entrarDemo}>Recibir enlace por correo</Button>
+            <Button variant="primary" block size="lg" onClick={entrarDemo}>Recibir código por correo</Button>
           </>
-        ) : enviado ? (
-          <Alert tipo="success">Te hemos enviado un enlace de acceso a <b>{email}</b>. Ábrelo desde este dispositivo para entrar.</Alert>
-        ) : modoCorreo ? (
+        ) : paso === 'codigo' ? (
+          <>
+            {error && <Alert tipo="danger">{error}</Alert>}
+            <p className="text-center text-[14px] text-muted">Te hemos enviado un <b>código de 6 dígitos</b> a<br /><b>{email}</b></p>
+            <Field label="Código de acceso" inputMode="numeric" maxLength={6} value={codigo}
+              onChange={(e) => setCodigo(e.target.value.replace(/\D/g, ''))}
+              placeholder="000000" className="text-center text-[22px] tracking-[0.4em]" />
+            <Button variant="primary" block size="lg" disabled={cargando} onClick={entrarConCodigo}>
+              {cargando ? 'Comprobando…' : 'Entrar'}
+            </Button>
+            <Button variant="ghost" block onClick={() => { setPaso('correo'); setCodigo(''); setError('') }}>Usar otro correo</Button>
+          </>
+        ) : paso === 'correo' ? (
           <>
             {error && <Alert tipo="danger">{error}</Alert>}
             <Field label="Tu correo" type="email" value={email} onChange={(e) => setEmail(e.target.value)} placeholder="tucorreo@ejemplo.com" />
-            <Button variant="primary" block size="lg" disabled={cargando} onClick={enviarEnlace}>
-              {cargando ? 'Enviando…' : 'Enviar enlace de acceso'}
+            <Button variant="primary" block size="lg" disabled={cargando} onClick={pedirCodigo}>
+              {cargando ? 'Enviando…' : 'Enviarme el código'}
             </Button>
-            <Button variant="ghost" block onClick={() => setModoCorreo(false)}>Volver</Button>
+            <Button variant="ghost" block onClick={() => { setPaso('inicio'); setError('') }}>Volver</Button>
           </>
         ) : (
           <>
@@ -61,7 +83,7 @@ export function LoginPage() {
               <span className="inline-block h-5 w-5 rounded-full bg-[conic-gradient(at_50%_50%,#EA4335,#FBBC05,#34A853,#4285F4,#EA4335)]" />
               Entrar con Google
             </Button>
-            <Button variant="primary" block size="lg" onClick={() => setModoCorreo(true)}>Recibir enlace por correo</Button>
+            <Button variant="primary" block size="lg" onClick={() => setPaso('correo')}>Recibir código por correo</Button>
           </>
         )}
 

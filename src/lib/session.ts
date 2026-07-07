@@ -7,9 +7,15 @@ import { iniciales } from '@/lib/format'
 
 export type AuthStatus = 'loading' | 'anon' | 'pending' | 'active' | 'suspended'
 
-/** Login con enlace mágico (OTP por correo). El correo debe estar aprobado. */
-export async function signInMagic(email: string, redirectTo = window.location.origin) {
-  return supabase.auth.signInWithOtp({ email, options: { emailRedirectTo: redirectTo } })
+/** Envía un código de 6 dígitos (OTP) por correo. Solo a usuarios ya aprobados
+ *  (shouldCreateUser:false → un correo no dado de alta no crea cuenta). */
+export async function enviarCodigo(email: string) {
+  return supabase.auth.signInWithOtp({ email, options: { shouldCreateUser: false } })
+}
+
+/** Verifica el código de 6 dígitos e inicia la sesión. */
+export async function verificarCodigo(email: string, token: string) {
+  return supabase.auth.verifyOtp({ email, token, type: 'email' })
 }
 
 /** Login con Google (requiere el proveedor configurado en Supabase). */

@@ -1,0 +1,712 @@
+<!DOCTYPE html>
+<html lang="es">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0, viewport-fit=cover">
+<title>Rioja 25 · Comunidad de vecinos</title>
+<!-- PWA -->
+<link rel="manifest" href="manifest.webmanifest">
+<meta name="theme-color" content="#123026">
+<link rel="icon" href="icon-192.png">
+<link rel="apple-touch-icon" href="apple-touch-icon.png">
+<meta name="apple-mobile-web-app-capable" content="yes">
+<meta name="apple-mobile-web-app-status-bar-style" content="black-translucent">
+<meta name="apple-mobile-web-app-title" content="Rioja25">
+<style>
+  :root{
+    --green:#1b4736; --green-deep:#102a20; --green-2:#27604a;
+    --brass:#c9a24b; --brass-soft:#e6cd8c;
+    --paper:#f3ecdd; --paper-2:#fbf7ef; --card:#ffffff;
+    --ink:#1f261e; --muted:#6c7268; --line:#e4dcc9;
+    --wine:#8a2f3b;
+    --ok:#1f7a44; --okbg:#e6f2ea;
+    --serif:"Iowan Old Style","Palatino Linotype",Palatino,Georgia,"Times New Roman",serif;
+    --sans:-apple-system,BlinkMacSystemFont,"Segoe UI",Roboto,Helvetica,Arial,sans-serif;
+    --mono:ui-monospace,"SF Mono",Menlo,Consolas,"Roboto Mono",monospace;
+  }
+  *{box-sizing:border-box}
+  html,body{margin:0}
+  body{
+    font-family:var(--sans); color:var(--ink); background:var(--paper);
+    line-height:1.5; -webkit-text-size-adjust:100%;
+    padding-bottom:env(safe-area-inset-bottom);
+  }
+  a{color:var(--green-2)}
+
+  /* ===================== HOME ===================== */
+  #home{
+    min-height:100svh;
+    background:
+      radial-gradient(120% 80% at 50% -10%, #245a45 0%, var(--green) 42%, var(--green-deep) 100%);
+    color:var(--paper);
+    position:relative; overflow:hidden;
+    padding:calc(env(safe-area-inset-top) + 34px) 20px 40px;
+  }
+  /* lattice sutil tipo suelo de portal */
+  #home::before{
+    content:""; position:absolute; inset:0; pointer-events:none; opacity:.10;
+    background-image:
+      repeating-linear-gradient(45deg, var(--brass) 0 1px, transparent 1px 26px),
+      repeating-linear-gradient(-45deg, var(--brass) 0 1px, transparent 1px 26px);
+    mask-image:linear-gradient(180deg, #000 0%, transparent 70%);
+  }
+  .home-inner{position:relative; max-width:560px; margin:0 auto}
+  .eyebrow{
+    font-family:var(--mono); font-size:.66rem; letter-spacing:.32em; text-transform:uppercase;
+    color:var(--brass-soft); margin:0 0 10px;
+  }
+  .wordmark{
+    font-family:var(--serif); font-weight:600; line-height:.92;
+    font-size:clamp(3.1rem,17vw,4.6rem); margin:0; letter-spacing:-.01em;
+  }
+  .wordmark .num{color:var(--brass)}
+  .addr{font-size:.92rem; color:#cfe0d6; margin:10px 0 0}
+  .rule{height:1px; background:linear-gradient(90deg,var(--brass),transparent); margin:24px 0 22px}
+
+  .tiles{display:grid; grid-template-columns:repeat(2,1fr); gap:14px}
+  .tile{
+    appearance:none; text-align:left; cursor:pointer; color:var(--ink);
+    background:var(--paper-2); border:1px solid rgba(0,0,0,.06); border-radius:18px;
+    padding:16px 15px 15px; position:relative; overflow:hidden;
+    box-shadow:0 10px 24px rgba(0,0,0,.22);
+    display:flex; flex-direction:column; gap:9px; min-height:152px;
+    transition:transform .12s ease, box-shadow .12s ease;
+    opacity:0; transform:translateY(14px);
+    animation:rise .5s cubic-bezier(.2,.7,.2,1) forwards;
+  }
+  .tile:nth-child(1){animation-delay:.05s} .tile:nth-child(2){animation-delay:.12s}
+  .tile:nth-child(3){animation-delay:.19s} .tile:nth-child(4){animation-delay:.26s}
+  @keyframes rise{to{opacity:1; transform:none}}
+  .tile:active{transform:scale(.97)}
+  .tile::before{content:""; position:absolute; top:0; left:0; right:0; height:4px; background:var(--tile-c,var(--brass))}
+  .tile .ic{
+    width:46px; height:46px; border-radius:13px; display:grid; place-items:center; font-size:1.5rem;
+    background:color-mix(in srgb, var(--tile-c,var(--brass)) 16%, white);
+  }
+  .tile .t-name{font-family:var(--serif); font-size:1.28rem; font-weight:600; line-height:1.1}
+  .tile .t-desc{font-size:.8rem; color:var(--muted); margin-top:-3px}
+  .tile .t-live{
+    margin-top:auto; font-family:var(--mono); font-size:.7rem; letter-spacing:.02em;
+    color:var(--tile-c,var(--green-2)); font-weight:600;
+    display:flex; align-items:center; gap:6px;
+  }
+  .tile .t-live::before{content:""; width:6px; height:6px; border-radius:50%; background:currentColor; flex:none}
+  .tile.cta{flex-direction:row; align-items:center; gap:14px; min-height:auto; padding:16px}
+  .tile.cta .cta-txt{display:flex; flex-direction:column; gap:2px; flex:1}
+  .tile.cta .cta-arrow{font-size:1.7rem; color:var(--tile-c); font-weight:700; line-height:1}
+  .home-foot{margin:26px 0 0; text-align:center; font-size:.74rem; color:#a9c2b6; font-family:var(--mono); letter-spacing:.08em}
+
+  /* ===================== VISTAS ===================== */
+  .view{display:none; min-height:100svh; background:var(--paper)}
+  .view.is-active{display:block}
+  .topbar{
+    position:sticky; top:0; z-index:20; background:var(--green); color:var(--paper);
+    display:flex; align-items:center; gap:8px;
+    padding:calc(env(safe-area-inset-top) + 12px) 14px 12px;
+    box-shadow:0 2px 10px rgba(0,0,0,.16);
+  }
+  .topbar .back{
+    appearance:none; border:0; background:rgba(255,255,255,.12); color:var(--paper);
+    width:38px; height:38px; border-radius:11px; font-size:1.25rem; cursor:pointer; flex:none;
+  }
+  .topbar .back:active{background:rgba(255,255,255,.25)}
+  .topbar h1{font-family:var(--serif); font-size:1.3rem; font-weight:600; margin:0}
+  .topbar .tb-ic{margin-left:auto; font-size:1.3rem; opacity:.9}
+  .wrap{max-width:680px; margin:0 auto; padding:18px 14px 70px}
+  h2{font-family:var(--serif); font-size:1.18rem; margin:22px 0 12px}
+  h2:first-child{margin-top:4px}
+
+  .card{background:var(--card); border:1px solid var(--line); border-radius:14px; padding:14px 16px; margin-bottom:12px}
+  .banner{background:#fff4dc; border:1px solid #ecd28f; color:#7a5600; border-radius:12px; padding:11px 14px; font-size:.84rem; margin-bottom:16px}
+  .banner b{color:#5e4300}
+
+  /* contactos */
+  .contact{display:flex; flex-wrap:wrap; gap:4px 16px; align-items:baseline}
+  .contact .fn{font-family:var(--mono); font-size:.66rem; text-transform:uppercase; letter-spacing:.14em; color:var(--brass); font-weight:700; width:100%}
+  .contact .nm{font-weight:700; font-size:1.04rem; width:100%}
+  .contact .row{width:100%; color:var(--muted); font-size:.9rem; display:flex; gap:9px; align-items:center}
+  .contact a{color:var(--green-2); text-decoration:none; font-weight:600}
+  .contact .tel{font-family:var(--mono); font-variant-numeric:tabular-nums}
+  .ico{width:1.2em; text-align:center; opacity:.8}
+
+  /* parking */
+  .now{background:linear-gradient(135deg,var(--green),var(--green-2)); color:var(--paper); border:0}
+  .now .label{font-family:var(--mono); font-size:.68rem; text-transform:uppercase; letter-spacing:.18em; color:var(--brass-soft); font-weight:700}
+  .now .dates{font-family:var(--serif); font-size:1.18rem; font-weight:600; margin:3px 0 13px}
+  .plazas{display:grid; grid-template-columns:repeat(auto-fill,minmax(132px,1fr)); gap:10px}
+  .plaza{background:rgba(255,255,255,.10); border:1px solid rgba(255,255,255,.18); border-radius:11px; padding:10px 12px}
+  .plaza .p{font-family:var(--mono); font-size:.72rem; color:var(--brass-soft); font-weight:700; letter-spacing:.08em}
+  .plaza .who{font-size:1.02rem; font-weight:700; margin-top:2px}
+  .plaza.libre{opacity:.62}
+  .picker{display:flex; flex-wrap:wrap; gap:10px; align-items:center; margin:4px 0}
+  select{padding:11px 13px; border:1px solid var(--line); border-radius:11px; font-size:1rem; background:#fff; color:var(--ink); font-family:var(--sans)}
+  #miResultado{margin-top:12px}
+  .hit{background:var(--okbg); border:1px solid #b6e0c4; color:var(--ok); border-radius:11px; padding:9px 13px; margin-bottom:7px; font-size:.95rem}
+  .hit.next{background:#eef3fb; border-color:#cfdcee; color:var(--green-2)}
+  .hit.none{background:#f4f1ea; border-color:var(--line); color:var(--muted)}
+  .hit b{font-family:var(--mono)}
+  table{width:100%; border-collapse:collapse; font-size:.78rem; background:#fff; font-family:var(--mono)}
+  .tablewrap{overflow-x:auto; border:1px solid var(--line); border-radius:12px}
+  th,td{border:1px solid var(--line); padding:6px 7px; text-align:center; white-space:nowrap}
+  th{background:#efe7d6; color:var(--green); font-size:.72rem}
+  th.qh{white-space:normal; min-width:74px; line-height:1.25; font-weight:700}
+  td.piso,th.piso{text-align:left; font-weight:700; background:#faf6ec; position:sticky; left:0; z-index:2; font-family:var(--sans)}
+  td.cur{background:var(--okbg); font-weight:700; color:var(--ok)}
+  th.cur{background:#cfe6d6}
+  td.libreCell{color:var(--muted); background:#faf6ec; font-style:italic}
+  .note{font-size:.82rem; color:var(--muted); margin-top:12px}
+  details{margin-top:14px} summary{cursor:pointer; font-weight:700; color:var(--green-2); font-family:var(--serif)}
+
+  /* reciclaje */
+  .sub{color:var(--muted); font-size:.85rem; margin:-4px 0 14px}
+  .freqs{display:flex; flex-direction:column; gap:12px}
+  .freq{border:1px solid var(--line); border-left:6px solid var(--c); border-radius:14px; padding:14px 16px; background:#fff}
+  .freq .fh{display:flex; align-items:center; gap:9px}
+  .freq .fi{font-size:1.5rem}
+  .freq .fn{font-family:var(--serif); font-size:1.16rem; font-weight:600}
+  .freq .fd{font-size:.86rem; color:var(--muted); margin:7px 0 11px}
+  .freq .fw{font-family:var(--mono); font-size:.76rem; font-weight:700; line-height:1.4; padding:9px 12px; border-radius:10px; background:#f1ece0; color:var(--ink)}
+  .freq .fw.all{background:var(--okbg); color:var(--ok)}
+  .cubos{display:grid; grid-template-columns:repeat(auto-fill,minmax(150px,1fr)); gap:12px}
+  .cubo{border:1px solid var(--line); border-radius:14px; padding:13px 14px; background:#fff; position:relative; overflow:hidden}
+  .cubo::before{content:""; position:absolute; left:0; top:0; bottom:0; width:6px; background:var(--c)}
+  .cubo .cn{font-weight:700; font-size:1rem; display:flex; align-items:center; gap:8px}
+  .cubo .dot{width:14px; height:14px; border-radius:4px; background:var(--c); border:1px solid rgba(0,0,0,.15)}
+  .cubo .cd{font-size:.84rem; color:var(--muted); margin-top:5px}
+  .extra{display:flex; gap:11px; align-items:flex-start; padding:9px 0; border-bottom:1px solid var(--line)}
+  .extra:last-child{border-bottom:0}
+  .extra .ee{font-size:1.3rem; flex:none; width:1.5em; text-align:center}
+  .extra .et{font-weight:700} .extra .ed{font-size:.85rem; color:var(--muted)}
+
+  /* junta */
+  .junta-hero{background:linear-gradient(135deg,var(--wine),#5e2029); color:#fff; border:0}
+  .junta-hero .jl{font-family:var(--mono); font-size:.68rem; letter-spacing:.18em; text-transform:uppercase; color:#f0c9ce}
+  .junta-hero .jd{font-family:var(--serif); font-size:1.5rem; font-weight:600; margin:4px 0 2px}
+  .junta-hero .jt{font-size:.95rem; color:#f3d9dc}
+  .junta-hero .jconv{font-family:var(--mono); font-size:.74rem; color:#f0c9ce; margin-top:6px}
+  .count{display:flex; gap:10px; margin:16px 0 4px}
+  .count .b{background:rgba(255,255,255,.13); border-radius:11px; padding:9px 4px; text-align:center; flex:1}
+  .count .n{font-family:var(--mono); font-size:1.5rem; font-weight:700; line-height:1}
+  .count .u{font-size:.66rem; letter-spacing:.1em; text-transform:uppercase; color:#f0c9ce; margin-top:3px}
+  .orden{list-style:none; padding:0; margin:0; counter-reset:od}
+  .orden li{counter-increment:od; padding:10px 0 10px 38px; border-bottom:1px solid var(--line); position:relative}
+  .orden li:last-child{border-bottom:0}
+  .orden li::before{content:counter(od,decimal-leading-zero); position:absolute; left:0; top:9px; font-family:var(--mono); font-size:.8rem; font-weight:700; color:var(--brass)}
+  .btn{appearance:none; border:0; cursor:pointer; font-family:var(--sans); font-weight:700; font-size:.95rem;
+       background:var(--green); color:var(--paper); padding:14px 16px; border-radius:12px; width:100%; margin-top:6px;
+       display:block; text-align:center; text-decoration:none; box-sizing:border-box}
+  .btn:active{opacity:.85}
+
+  @media (prefers-reduced-motion:reduce){
+    .tile{animation:none; opacity:1; transform:none}
+  }
+  :focus-visible{outline:3px solid var(--brass); outline-offset:2px; border-radius:6px}
+</style>
+</head>
+<body>
+
+<!-- ============ HOME ============ -->
+<section id="home">
+  <div class="home-inner">
+    <p class="eyebrow">Comunidad de propietarios</p>
+    <h1 class="wordmark">Rioja <span class="num">25</span></h1>
+    <div class="rule"></div>
+
+    <div class="tiles">
+      <button class="tile" style="--tile-c:var(--brass)" onclick="show('contactos')">
+        <span class="ic">📒</span>
+        <span class="t-name">Contactos</span>
+        <span class="t-desc">Administrador, conserje y servicios</span>
+        <span class="t-live" id="liveContactos">—</span>
+      </button>
+      <button class="tile" style="--tile-c:var(--green-2)" onclick="show('parking')">
+        <span class="ic">🅿️</span>
+        <span class="t-name">Parking</span>
+        <span class="t-desc">Rotación de las 6 plazas exteriores</span>
+        <span class="t-live" id="liveParking">—</span>
+      </button>
+      <button class="tile" style="--tile-c:#2e8b57" onclick="show('reciclaje')">
+        <span class="ic">♻️</span>
+        <span class="t-name">Reciclaje</span>
+        <span class="t-desc">Qué cubo usar y dónde sacar la basura</span>
+        <span class="t-live" id="liveReciclaje">5 cubos + punto limpio</span>
+      </button>
+      <button class="tile" style="--tile-c:var(--wine)" onclick="show('junta')">
+        <span class="ic">📅</span>
+        <span class="t-name">Próxima junta</span>
+        <span class="t-desc">Fecha, orden del día y recordatorio</span>
+        <span class="t-live" id="liveJunta">—</span>
+      </button>
+      <button class="tile cta" style="--tile-c:#c9742b; grid-column:1/-1" onclick="show('sugerencias')">
+        <span class="ic">💡</span>
+        <span class="cta-txt">
+          <span class="t-name">Sugerencias</span>
+          <span class="t-desc">¿Una idea para mejorar el portal? Cuéntanosla</span>
+        </span>
+        <span class="cta-arrow">›</span>
+      </button>
+    </div>
+
+    <p class="home-foot">Para los vecinos de Rioja 25</p>
+  </div>
+</section>
+
+<!-- ============ CONTACTOS ============ -->
+<section id="contactos" class="view">
+  <div class="topbar"><button class="back" onclick="goHome()" aria-label="Volver">‹</button><h1>Contactos</h1><span class="tb-ic">📒</span></div>
+  <div class="wrap">
+    <h2>Directorio de la comunidad</h2>
+    <div id="listaContactos"></div>
+  </div>
+</section>
+
+<!-- ============ PARKING ============ -->
+<section id="parking" class="view">
+  <div class="topbar"><button class="back" onclick="goHome()" aria-label="Volver">‹</button><h1>Parking</h1><span class="tb-ic">🅿️</span></div>
+  <div class="wrap">
+    <div class="card now">
+      <div class="label">Quincena actual</div>
+      <div class="dates" id="quincenaActual">—</div>
+      <div class="plazas" id="plazasActuales"></div>
+    </div>
+
+    <div class="card">
+      <h2 style="margin-top:0">¿Qué plaza me toca?</h2>
+      <div class="picker">
+        <label for="selPiso">Tu piso:</label>
+        <select id="selPiso" onchange="buscarPiso()"><option value="">Elige…</option></select>
+      </div>
+      <div id="miResultado"></div>
+    </div>
+
+    <details open>
+      <summary>Próximas quincenas</summary>
+      <div class="tablewrap" style="margin-top:10px"><table id="tablaCal"></table></div>
+      <p class="note">
+        Cada columna es una quincena (desde la actual). En cada plaza ves el piso al que le toca.
+        El límite para los cambios de turno es los <b>sábados a las 20:00</b>.
+        Plazas exteriores <b>solo para turismos</b> (no camiones ni furgonetas).
+      </p>
+    </details>
+  </div>
+</section>
+
+<!-- ============ RECICLAJE ============ -->
+<section id="reciclaje" class="view">
+  <div class="topbar"><button class="back" onclick="goHome()" aria-label="Volver">‹</button><h1>Reciclaje</h1><span class="tb-ic">♻️</span></div>
+  <div class="wrap">
+    <div class="banner">
+      🏠 <b>Nuestra comunidad:</b> saca los cubos de <b>lunes a sábado a las 07:00</b>.
+    </div>
+
+    <h2>Frecuencias de recogida</h2>
+    <p class="sub">Servicio del Ayuntamiento de Madrid · desde el 1 de enero de 2023</p>
+    <div class="freqs">
+      <div class="freq" style="--c:#8a5a2b">
+        <div class="fh"><span class="fi">🥬</span><span class="fn">Orgánica</span></div>
+        <div class="fd">Restos de comida cocinada o cruda, papel de cocina y servilletas manchadas…</div>
+        <div class="fw all">📅 Todos los días — incluso domingos y festivos</div>
+      </div>
+      <div class="freq" style="--c:#f2b705">
+        <div class="fh"><span class="fi">🥫</span><span class="fn">Envases</span></div>
+        <div class="fd">Envases de plástico, metal, briks, poliespán…</div>
+        <div class="fw all">📅 Ahora también todos los días — incluso domingos y festivos</div>
+      </div>
+      <div class="freq" style="--c:#7a7f78">
+        <div class="fh"><span class="fi">🗑️</span><span class="fn">Resto no reciclable</span></div>
+        <div class="fd">Residuos de limpieza doméstica, colillas, residuos higiénico-sanitarios, arena de gato…</div>
+        <div class="fw">📅 Lunes a sábado — excepto festivos</div>
+      </div>
+    </div>
+    <p class="note"><a href="https://www.madrid.es/reciclaje" target="_blank" rel="noopener">madrid.es/reciclaje</a></p>
+
+    <h2>Cada residuo, a su cubo</h2>
+    <p class="sub">🏠 En la comunidad</p>
+    <div class="cubos">
+      <div class="cubo" style="--c:#f2b705"><div class="cn"><span class="dot"></span>Amarillo</div><div class="cd">Envases de plástico, metal, latas, briks y poliespán. Aplástalos antes de tirarlos.</div></div>
+      <div class="cubo" style="--c:#8a5a2b"><div class="cn"><span class="dot"></span>Marrón</div><div class="cd">Orgánica: restos de comida (cocinada o cruda) y residuos de cocina.</div></div>
+      <div class="cubo" style="--c:#7a7f78"><div class="cn"><span class="dot"></span>Gris — resto</div><div class="cd">Lo que no va en ningún otro cubo (pañales, cerámica, colillas…).</div></div>
+    </div>
+    <p class="sub" style="margin-top:16px">📍 A unos 20 m, a la izquierda de la urbanización</p>
+    <div class="cubos">
+      <div class="cubo" style="--c:#2f6fb0"><div class="cn"><span class="dot"></span>Azul</div><div class="cd">Papel y cartón. Pliega las cajas para que ocupen menos.</div></div>
+      <div class="cubo" style="--c:#2e8b57"><div class="cn"><span class="dot"></span>Verde — vidrio</div><div class="cd">Botellas y tarros, <b>sin</b> tapas ni corchos.</div></div>
+    </div>
+
+    <h2>Lo que no va al cubo</h2>
+    <div class="card">
+      <div class="extra"><span class="ee">🛋️</span><div><div class="et">Muebles y enseres</div><div class="ed">Cita gratuita en Línea Madrid (010) o app del Ayuntamiento, o llévalos al punto limpio.</div></div></div>
+      <div class="extra"><span class="ee">🛢️</span><div><div class="et">Aceite de cocina usado</div><div class="ed">En botella cerrada, al contenedor naranja o al punto limpio. Nunca por el fregadero.</div></div></div>
+      <div class="extra"><span class="ee">🔋</span><div><div class="et">Pilas y bombillas</div><div class="ed">Contenedores específicos en supermercados o punto limpio.</div></div></div>
+      <div class="extra"><span class="ee">👕</span><div><div class="et">Ropa y calzado</div><div class="ed">Contenedores textiles (Humana, Cáritas…).</div></div></div>
+      <div class="extra"><span class="ee">💊</span><div><div class="et">Medicamentos</div><div class="ed">Punto SIGRE de cualquier farmacia.</div></div></div>
+    </div>
+    <p class="note">Punto limpio y citas: <a href="tel:010">010 · Línea Madrid</a></p>
+  </div>
+</section>
+
+<!-- ============ JUNTA ============ -->
+<section id="junta" class="view">
+  <div class="topbar"><button class="back" onclick="goHome()" aria-label="Volver">‹</button><h1>Próxima junta</h1><span class="tb-ic">📅</span></div>
+  <div class="wrap">
+    <div class="card junta-hero">
+      <div class="jl" id="juntaTipo">Junta General Ordinaria</div>
+      <div class="jd" id="juntaFecha">—</div>
+      <div class="jt" id="juntaLugar">—</div>
+      <div class="jconv" id="juntaConv"></div>
+      <div class="count" id="juntaCount"></div>
+    </div>
+
+    <div id="juntaUpcoming">
+      <button class="btn" id="juntaBtn" onclick="descargarICS()">🔔 Avisarme de la junta</button>
+      <p class="note">Se añade a tu calendario con dos avisos: <b>el día antes</b> y <b>1 hora antes</b>.</p>
+
+      <h2>Orden del día</h2>
+      <div class="card"><ol class="orden" id="juntaOrden"></ol></div>
+
+      <h2>¿No puedes asistir?</h2>
+      <div class="card">
+        <p style="margin:0 0 10px">Puedes <b>delegar tu voto</b> en otro propietario. En el escrito de delegación tienes que indicar:</p>
+        <ul style="margin:0 0 10px; padding-left:20px; font-size:.92rem">
+          <li>Nombre de la persona en quien delegas (tu representante).</li>
+          <li>Tu <b>DNI</b>, tu <b>piso</b> y el <b>titular</b> de la vivienda.</li>
+          <li>Fecha y <b>firma</b>.</li>
+        </ul>
+        <p class="note" style="margin:0">El modelo de delegación está en la convocatoria oficial (pág. 2). Entrégalo firmado antes de la junta.</p>
+      </div>
+
+      <p class="note">Los propietarios con deudas pendientes a la fecha de la junta pueden participar en las
+        deliberaciones, pero no tienen derecho a voto (Arts. 15.2 y 16.2 de la Ley de Propiedad Horizontal).</p>
+    </div>
+
+    <div id="juntaPast" class="card" style="display:none">
+      <p style="margin:0">✅ <b>La junta ya se celebró.</b> En cuanto tengamos el acta, publicaremos aquí
+        <b>los acuerdos adoptados</b>.</p>
+    </div>
+  </div>
+</section>
+
+<!-- ============ SUGERENCIAS ============ -->
+<section id="sugerencias" class="view">
+  <div class="topbar"><button class="back" onclick="goHome()" aria-label="Volver">‹</button><h1>Sugerencias</h1><span class="tb-ic">💡</span></div>
+  <div class="wrap">
+    <div class="card" style="text-align:center">
+      <div style="font-size:2.8rem; line-height:1">💡</div>
+      <h2 style="margin:8px 0 8px">Este portal lo hacemos entre todos</h2>
+      <p style="color:var(--muted); margin:0">¿Echas algo en falta? ¿Se te ocurre cómo mejorarlo o qué información
+        añadir? Toda idea para mejorar la vida en la comunidad es bienvenida.</p>
+    </div>
+
+    <a class="btn" href="mailto:cdelarioja25@gmail.com?subject=Sugerencia%20para%20el%20portal%20Rioja%2025&body=Hola%2C%0A%0AMe%20gustar%C3%ADa%20proponer%20lo%20siguiente%20para%20el%20portal%20de%20la%20comunidad%3A%0A%0A">✉️ Enviar sugerencia</a>
+    <p class="note">Se abrirá tu aplicación de correo con un mensaje ya preparado. También puedes escribir directamente a
+      <a href="mailto:cdelarioja25@gmail.com">cdelarioja25@gmail.com</a>.</p>
+  </div>
+</section>
+
+<script>
+/* ====================================================================
+   1) CONTACTOS
+   ==================================================================== */
+const CONTACTOS = [
+  {fn:"Administrador", nm:"Antonio Ortega Martín", dir:"C/ Rodríguez San Pedro nº 2, 2º, Oficina 302 · 28015 Madrid", tel:["91 594 39 33","91 808 59 88"], web:"info@fincasortegadelgado.com"},
+  {fn:"Ascensores", nm:"ThyssenKrupp Elevadores", dir:"C/ Villaescusa nº 2", tel:["91 327 45 46"]},
+  {fn:"Antenas y portero", nm:"Telyme", dir:"C/ Tordoman nº 12, Local · 28043 Madrid", tel:["91 381 49 45"]},
+  {fn:"Calefacción", nm:"Stic Instalaciones", dir:"C/ Vicente Gaceo, 21", tel:["91 314 42 70","670 08 84 30 (fin de semana/festivos)","603 63 90 18 (fin de semana/festivos)"], web:"info@stic-instalaciones.com"},
+  {fn:"Conserje", nm:"Iván Rivera Carballada", dir:"", tel:["647 26 76 48"]},
+  {fn:"Contraincendios", nm:"Seguridad Abex, S.L.", dir:"C/ Ceuta nº 17 · 28700 S.S. de los Reyes (Madrid)", tel:["91 652 16 18"]},
+  {fn:"Contadores de agua", nm:"Monedero", dir:"Avda. América nº 7 · 28002 Madrid", tel:["91 411 48 70"]},
+  {fn:"Desinsectación", nm:"Pest-Rapid", dir:"C/ Pto. de Maspalomas, 9 · 28029 Madrid", tel:["91 386 51 07"], web:"pestrapid@yahoo.es"},
+  {fn:"Jardinería", nm:"José Luis Sánchez Bachiller", dir:"", tel:["620 034 595"]},
+  {fn:"Mant. Piscina", nm:"Aquakit", dir:"Avda. Real de Pinto 87, Nave Mod II Nave F · 28021 Madrid", tel:["91 665 07 18","610 216 604"]},
+  {fn:"Puertas Garaje", nm:"Automatizaciones Lázaro", dir:"C/ Mercedes Arteaga nº 13 · 28019 Madrid", tel:["91 472 34 10"]},
+  {fn:"Presidente", nm:"David Seco", dir:"1D esc. dcha.", tel:[]},
+  {fn:"Vicepresidente", nm:"Luis Garrigan", dir:"2D esc. izq.", tel:[]},
+  {fn:"Seguro", nm:"OCASO", dir:"Nº Póliza: 220960", tel:["91 703 90 10"]},
+];
+
+function pintaContactos(){
+  document.getElementById("listaContactos").innerHTML = CONTACTOS.map(c=>{
+    let rows = "";
+    if(c.dir) rows += `<div class="row"><span class="ico">📍</span><span>${c.dir}</span></div>`;
+    c.tel.forEach(t=>{
+      const num = t.replace(/[^0-9]/g,"");
+      rows += `<div class="row"><span class="ico">📞</span><a class="tel" href="tel:${num}">${t}</a></div>`;
+    });
+    if(c.web){
+      if(c.web.includes("@")) rows += `<div class="row"><span class="ico">✉️</span><a href="mailto:${c.web}">${c.web}</a></div>`;
+      else rows += `<div class="row"><span class="ico">🌐</span><a href="https://${c.web}" target="_blank" rel="noopener">${c.web}</a></div>`;
+    }
+    return `<div class="card contact"><div class="fn">${c.fn}</div><div class="nm">${c.nm}</div>${rows}</div>`;
+  }).join("");
+}
+
+/* ====================================================================
+   2) PARKING  (rotación continua; hoja oficial 31-01-2026 → 20-06-2026)
+   ==================================================================== */
+const INICIO = new Date(2026,0,31);
+const DIAS_QUINCENA = 14;
+
+/* Rotación REAL y continua (no se reinicia tras junio):
+   - ciclo de 7 grupos en este orden: bajo, 1º-2º-3º Dcha, 1º-2º-3º Izqda
+   - cada grupo tiene 6 "slots" (los bajos = 5 vecinos + 1 LIBRE) que rotan juntos
+   - cada vez que vuelve un grupo, todo se desplaza +1 plaza (el de la 6 pasa a la 1)
+   "base" = la asignación tal cual aparece en la hoja oficial en la quincena "anchor". */
+const CICLO = ["bajo","1D","2D","3D","1I","2I","3I"];
+const GRUPO = {
+  bajo:{ anchor:4, base:["LIBRE",      "Bajo A",    "Bajo B",    "Bajo C",    "Bajo E",    "Bajo F"]    },
+  "1D":{ anchor:5, base:["1º F Dcha",  "1º A Dcha", "1º B Dcha", "1º C Dcha", "1º D Dcha", "1º E Dcha"] },
+  "2D":{ anchor:6, base:["2º F Dcha",  "2º A Dcha", "2º B Dcha", "2º C Dcha", "2º D Dcha", "2º E Dcha"] },
+  "3D":{ anchor:0, base:["3º A Dcha",  "3º B Dcha", "3º C Dcha", "3º D Dcha", "3º E Dcha", "3º F Dcha"] },
+  "1I":{ anchor:1, base:["1º A Izqda", "1º B Izqda","1º C Izqda","1º D Izqda","1º E Izqda","1º F Izqda"]},
+  "2I":{ anchor:2, base:["2º A Izqda", "2º B Izqda","2º C Izqda","2º D Izqda","2º E Izqda","2º F Izqda"]},
+  "3I":{ anchor:3, base:["3º A Izqda", "3º B Izqda","3º C Izqda","3º D Izqda","3º E Izqda","3º F Izqda"]},
+};
+
+const PISOS = [
+ "Bajo A","Bajo B","Bajo C","Bajo E","Bajo F",
+ "1º A Dcha","1º B Dcha","1º C Dcha","1º D Dcha","1º E Dcha","1º F Dcha",
+ "2º A Dcha","2º B Dcha","2º C Dcha","2º D Dcha","2º E Dcha","2º F Dcha",
+ "3º A Dcha","3º B Dcha","3º C Dcha","3º D Dcha","3º E Dcha","3º F Dcha",
+ "1º A Izqda","1º B Izqda","1º C Izqda","1º D Izqda","1º E Izqda","1º F Izqda",
+ "2º A Izqda","2º B Izqda","2º C Izqda","2º D Izqda","2º E Izqda","2º F Izqda",
+ "3º A Izqda","3º B Izqda","3º C Izqda","3º D Izqda","3º E Izqda","3º F Izqda",
+];
+
+const MESES = ["ene","feb","mar","abr","may","jun","jul","ago","sep","oct","nov","dic"];
+const fmt = d => d.getDate()+" "+MESES[d.getMonth()]+" "+d.getFullYear();
+const addDias = (d,n)=>{ const x=new Date(d); x.setDate(x.getDate()+n); return x; };
+function quincenaGlobal(f){ const ms=f-INICIO; return ms<0?0:Math.floor(ms/(DIAS_QUINCENA*864e5)); }
+function fechasDeQuincena(qg){ const ini=addDias(INICIO,qg*DIAS_QUINCENA); return {ini, fin:addDias(ini,DIAS_QUINCENA)}; }
+function cyclePos(qg){ return ((qg+3)%7+7)%7; }
+function patron(qg){
+  const g = GRUPO[CICLO[cyclePos(qg)]];
+  const s = Math.round((qg - g.anchor)/7);            // nº de ciclos completos desde la hoja oficial
+  return g.base.map((_,idx)=> g.base[((idx - s)%6+6)%6]); // desplaza +1 plaza por ciclo
+}
+
+const HOY = new Date();
+const Q_ACTUAL = quincenaGlobal(HOY);
+
+function pintaActual(){
+  const {ini,fin} = fechasDeQuincena(Q_ACTUAL);
+  document.getElementById("quincenaActual").textContent = fmt(ini)+" → "+fmt(fin);
+  document.getElementById("plazasActuales").innerHTML = patron(Q_ACTUAL).map((piso,i)=>{
+    const libre = piso==="LIBRE";
+    return `<div class="plaza ${libre?'libre':''}"><div class="p">Plaza ${i+1}</div><div class="who">${libre?'— libre —':piso}</div></div>`;
+  }).join("");
+}
+
+function pintaSelector(){
+  const sel = document.getElementById("selPiso");
+  PISOS.forEach(p=> sel.insertAdjacentHTML("beforeend", `<option value="${p}">${p}</option>`));
+  let guardado=null; try{ guardado = localStorage.getItem("r25-piso"); }catch(e){}
+  if(guardado && PISOS.includes(guardado)){ sel.value = guardado; buscarPiso(); }
+}
+
+function buscarPiso(){
+  const piso = document.getElementById("selPiso").value;
+  const out = document.getElementById("miResultado");
+  if(!piso){ out.innerHTML=""; try{ localStorage.removeItem("r25-piso"); }catch(e){} return; }
+  try{ localStorage.setItem("r25-piso", piso); }catch(e){}
+  const idxAhora = patron(Q_ACTUAL).indexOf(piso);
+  let html = "";
+  if(idxAhora>=0) html += `<div class="hit">🅿️ <b>Ahora</b> te toca la <b>Plaza ${idxAhora+1}</b> (hasta el ${fmt(fechasDeQuincena(Q_ACTUAL).fin)}).</div>`;
+  let n=0;
+  for(let k=1;k<=22 && n<3;k++){
+    const qg=Q_ACTUAL+k, idx=patron(qg).indexOf(piso);
+    if(idx>=0){ const {ini,fin}=fechasDeQuincena(qg); html += `<div class="hit next">🔜 Plaza ${idx+1}: del ${fmt(ini)} al ${fmt(fin)}.</div>`; n++; }
+  }
+  out.innerHTML = html || `<div class="hit none">Este piso no aparece en la rotación.</div>`;
+  pintaHome();
+}
+
+function pintaTabla(){
+  const N = 5;  // 5 quincenas desde la actual hacia adelante
+  const rangoTxt = (ini,fin)=> ini.getMonth()===fin.getMonth()
+    ? `${ini.getDate()} al ${fin.getDate()} ${MESES[fin.getMonth()]}`
+    : `${ini.getDate()} ${MESES[ini.getMonth()]} al ${fin.getDate()} ${MESES[fin.getMonth()]}`;
+  let head = `<tr><th class="piso">Plaza \\ Quincena</th>`;
+  for(let i=0;i<N;i++){
+    const {ini,fin}=fechasDeQuincena(Q_ACTUAL+i);
+    head += `<th class="qh ${i===0?'cur':''}">${rangoTxt(ini,fin)}</th>`;
+  }
+  head += `</tr>`;
+  let body = "";
+  for(let p=0;p<6;p++){
+    let row = `<tr><td class="piso">Plaza ${p+1}</td>`;
+    for(let i=0;i<N;i++){
+      const piso = patron(Q_ACTUAL+i)[p];
+      const libre = piso==="LIBRE";
+      row += `<td class="${i===0?'cur':''} ${libre?'libreCell':''}">${libre?'— libre —':piso}</td>`;
+    }
+    body += row+`</tr>`;
+  }
+  document.getElementById("tablaCal").innerHTML = head + body;
+}
+
+/* ====================================================================
+   3) JUNTA  >>> EDITA AQUÍ la fecha y el orden del día <<<
+   ==================================================================== */
+const JUNTA = {
+  fechaISO: "2026-06-25T19:00",                 // 1ª convocatoria
+  hora2: "19:30",                               // 2ª convocatoria
+  lugar: "Sala de juntas de la Comunidad",
+  titulo: "Junta General Ordinaria",
+  orden: [
+    "Aprobación de las cuentas cerradas (01-01-2025 al 31-12-2025).",
+    "Aprobación del nuevo presupuesto de gastos ordinarios previsibles.",
+    "Obras de ascensores derivadas de la Inspección Técnica Periódica Obligatoria. Aprobación de derrama para financiar la actuación.",
+    "Filtraciones en el garaje: información y medidas a adoptar.",
+    "Solicitud de poda o tala del arbolado.",
+    "Solicitud de instalación de desfibrilador en la comunidad.",
+    "Horario y temporada de piscina para el próximo año. Revisión de las normas de uso de las zonas comunes y la piscina.",
+    "Presupuesto para la instalación de aislamiento térmico en la cubierta.",
+    "Mejoras en la finca: espejos en las cabinas de los ascensores, pintura del portón de entrada, renovación estética del portal e iluminación de rellanos y escaleras.",
+    "Cambio de la Junta Rectora.",
+    "Ruegos y preguntas.",
+  ],
+};
+
+function juntaPasada(){
+  const f = new Date(JUNTA.fechaISO);
+  const finDia = new Date(f.getFullYear(), f.getMonth(), f.getDate()+1, 0, 0, 0); // medianoche del día siguiente
+  return new Date() >= finDia;
+}
+
+function pintaJunta(){
+  const f = new Date(JUNTA.fechaISO);
+  const dias = ["domingo","lunes","martes","miércoles","jueves","viernes","sábado"];
+  const meses = ["enero","febrero","marzo","abril","mayo","junio","julio","agosto","septiembre","octubre","noviembre","diciembre"];
+  const hora = `${String(f.getHours()).padStart(2,"0")}:${String(f.getMinutes()).padStart(2,"0")}`;
+  const fechaTxt = `${dias[f.getDay()]} ${f.getDate()} de ${meses[f.getMonth()]} de ${f.getFullYear()}`;
+  document.getElementById("juntaTipo").textContent = JUNTA.titulo;
+  document.getElementById("juntaFecha").textContent = `${fechaTxt[0].toUpperCase()+fechaTxt.slice(1)}, ${hora} h`;
+  document.getElementById("juntaLugar").textContent = JUNTA.lugar;
+  document.getElementById("juntaConv").textContent = `1ª convocatoria ${hora} · 2ª convocatoria ${JUNTA.hora2}`;
+  document.getElementById("juntaOrden").innerHTML = JUNTA.orden.map(o=>`<li>${o}</li>`).join("");
+
+  const pasada = juntaPasada();
+  document.getElementById("juntaUpcoming").style.display = pasada ? "none" : "";
+  document.getElementById("juntaPast").style.display = pasada ? "" : "none";
+
+  const cont = document.getElementById("juntaCount");
+  if(pasada){ cont.style.display = "none"; return; }
+  cont.style.display = "";
+  const diff = Math.max(0, f - new Date());
+  const d = Math.floor(diff/864e5), h = Math.floor(diff%864e5/36e5), m = Math.floor(diff%36e5/6e4);
+  cont.innerHTML =
+    `<div class="b"><div class="n">${d}</div><div class="u">días</div></div>`+
+    `<div class="b"><div class="n">${h}</div><div class="u">horas</div></div>`+
+    `<div class="b"><div class="n">${m}</div><div class="u">min</div></div>`;
+}
+
+function descargarICS(){
+  const f = new Date(JUNTA.fechaISO), end = new Date(f.getTime()+90*6e4);
+  const z = n => String(n).padStart(2,"0");
+  const ics = dt => `${dt.getFullYear()}${z(dt.getMonth()+1)}${z(dt.getDate())}T${z(dt.getHours())}${z(dt.getMinutes())}00`;
+  const esc = s => String(s).replace(/\\/g,"\\\\").replace(/;/g,"\\;").replace(/,/g,"\\,").replace(/\n/g,"\\n");
+  const desc = `1ª convocatoria ${z(f.getHours())}:${z(f.getMinutes())} · 2ª convocatoria ${JUNTA.hora2}\n\nOrden del día:\n`
+    + JUNTA.orden.map((o,i)=>`${i+1}. ${o}`).join("\n");
+  const txt = [
+    "BEGIN:VCALENDAR","VERSION:2.0","PRODID:-//Rioja25//ES","CALSCALE:GREGORIAN","BEGIN:VEVENT",
+    "UID:junta-"+ics(f)+"@rioja25","DTSTART:"+ics(f),"DTEND:"+ics(end),
+    "SUMMARY:"+esc(JUNTA.titulo+" · Rioja 25"),"LOCATION:"+esc(JUNTA.lugar),"DESCRIPTION:"+esc(desc),
+    // avisos: el día antes (19:00) y 1 hora antes
+    "BEGIN:VALARM","ACTION:DISPLAY","DESCRIPTION:"+esc("Mañana es la junta de vecinos de Rioja 25"),"TRIGGER:-P1D","END:VALARM",
+    "BEGIN:VALARM","ACTION:DISPLAY","DESCRIPTION:"+esc("La junta de vecinos empieza en 1 hora"),"TRIGGER:-PT1H","END:VALARM",
+    "END:VEVENT","END:VCALENDAR",
+  ].join("\r\n");
+  const url = URL.createObjectURL(new Blob([txt],{type:"text/calendar"}));
+  const a = document.createElement("a"); a.href=url; a.download="junta-rioja25.ics"; a.click();
+  setTimeout(()=>URL.revokeObjectURL(url), 4000);
+}
+
+/* ====================== navegación ====================== */
+function show(id){
+  document.getElementById("home").style.display="none";
+  document.querySelectorAll(".view").forEach(v=>v.classList.remove("is-active"));
+  document.getElementById(id).classList.add("is-active");
+  document.querySelector("meta[name=theme-color]").setAttribute("content","#1b4736");
+  window.scrollTo(0,0);
+  if(location.hash!=="#"+id) history.pushState({id},"","#"+id);
+}
+function goHome(){
+  document.querySelectorAll(".view").forEach(v=>v.classList.remove("is-active"));
+  document.getElementById("home").style.display="";
+  document.querySelector("meta[name=theme-color]").setAttribute("content","#123026");
+  window.scrollTo(0,0);
+  if(location.hash) history.pushState({},"","#");
+}
+window.addEventListener("popstate", e=>{
+  const id = (e.state && e.state.id) || location.hash.slice(1);
+  if(id && document.getElementById(id) && document.getElementById(id).classList.contains("view")){
+    document.getElementById("home").style.display="none";
+    document.querySelectorAll(".view").forEach(v=>v.classList.remove("is-active"));
+    document.getElementById(id).classList.add("is-active");
+  } else { goHome(); }
+});
+
+/* tiles con datos en vivo */
+function pintaHome(){
+  document.getElementById("liveContactos").textContent = CONTACTOS.length+" contactos";
+  const {ini,fin} = fechasDeQuincena(Q_ACTUAL);
+  let piso=null; try{ piso = localStorage.getItem("r25-piso"); }catch(e){}
+  let txtP;
+  if(piso && PISOS.includes(piso)){
+    const idx = patron(Q_ACTUAL).indexOf(piso);
+    txtP = idx>=0 ? piso+" → Plaza "+(idx+1) : piso+" → sin plaza";
+  } else {
+    txtP = "Quincena "+fmt(ini).replace(/ \d{4}$/,"")+"–"+fmt(fin).replace(/ \d{4}$/,"");
+  }
+  document.getElementById("liveParking").textContent = txtP;
+  if(juntaPasada()){
+    document.getElementById("liveJunta").textContent = "Pendiente de acuerdos";
+  } else {
+    const f = new Date(JUNTA.fechaISO), n = new Date();
+    const dJ = Math.round((new Date(f.getFullYear(),f.getMonth(),f.getDate()) - new Date(n.getFullYear(),n.getMonth(),n.getDate()))/864e5);
+    document.getElementById("liveJunta").textContent = dJ>1 ? "Faltan "+dJ+" días" : (dJ===1 ? "Mañana" : "Hoy");
+  }
+}
+
+/* init */
+pintaContactos(); pintaActual(); pintaSelector(); pintaTabla(); pintaJunta(); pintaHome();
+setInterval(()=>{ if(document.getElementById("junta").classList.contains("is-active")) pintaJunta(); }, 60000);
+// abrir sección si llega por hash (p.ej. acceso directo instalado)
+if(location.hash.length>1){ const id=location.hash.slice(1); if(document.getElementById(id)?.classList.contains("view")) show(id); }
+
+/* ===== PWA ===== */
+if('serviceWorker' in navigator){ window.addEventListener('load',()=>navigator.serviceWorker.register('sw.js').catch(()=>{})); }
+(function(){
+  const standalone = window.matchMedia('(display-mode: standalone)').matches || window.navigator.standalone === true;
+  if(standalone) return;
+  function bar(html){
+    const b=document.createElement('div'); b.innerHTML=html;
+    Object.assign(b.style,{position:'fixed',left:'12px',right:'12px',bottom:'14px',zIndex:9999,
+      background:'#123026',color:'#f3ecdd',borderRadius:'14px',padding:'12px 14px',
+      boxShadow:'0 8px 24px rgba(0,0,0,.3)',display:'flex',gap:'10px',alignItems:'center',
+      font:'600 .9rem var(--sans)'});
+    document.body.appendChild(b); return b;
+  }
+  let deferred=null;
+  window.addEventListener('beforeinstallprompt',e=>{
+    e.preventDefault(); deferred=e;
+    if(localStorage.getItem('r25-install')) return;
+    const b=bar('<span style="flex:1">📲 Instala <b>Rioja25</b> en tu móvil</span>'+
+      '<button id="i" style="border:0;border-radius:9px;padding:8px 12px;font-weight:700;background:#c9a24b;color:#123026;cursor:pointer">Instalar</button>'+
+      '<button id="x" style="border:0;background:transparent;color:#9db3a8;font-size:1.2rem;cursor:pointer">×</button>');
+    b.querySelector('#i').onclick=async()=>{ b.remove(); deferred.prompt(); await deferred.userChoice; deferred=null; };
+    b.querySelector('#x').onclick=()=>{ b.remove(); localStorage.setItem('r25-install','1'); };
+  });
+  const isIOS=/iphone|ipad|ipod/i.test(navigator.userAgent);
+  const isSafari=/^((?!chrome|android|crios|fxios).)*safari/i.test(navigator.userAgent);
+  if(isIOS && isSafari && !localStorage.getItem('r25-ios')){
+    window.addEventListener('load',()=>{
+      const b=bar('<span style="flex:1">📲 Instala <b>Rioja25</b>: pulsa <b>Compartir</b> ⬆️ y <b>“Añadir a pantalla de inicio”</b></span>'+
+        '<button id="x" style="border:0;background:transparent;color:#9db3a8;font-size:1.2rem;cursor:pointer">×</button>');
+      b.querySelector('#x').onclick=()=>{ b.remove(); localStorage.setItem('r25-ios','1'); };
+    });
+  }
+})();
+</script>
+</body>
+</html>

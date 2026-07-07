@@ -1,4 +1,25 @@
+# Dependencias y build
+node_modules/
+dist/
+dist-ssr/
+*.local
+*.tsbuildinfo
+
+# Entorno — NUNCA subir secretos
+.env
+.env.*
+!.env.example
+
+# Supabase local
+supabase/.temp/
+supabase/.branches/
+
+# Editor / SO
+.DS_Store
+.vscode/
+*.log
+
+# Scripts y documentos con datos personales — NUNCA publicar (repo y web son públicos)
 make_icons.py
 setup-github.sh
-# Documentos con datos personales — NUNCA publicar (repo y web son públicos)
 *.pdf

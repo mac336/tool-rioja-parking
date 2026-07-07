@@ -1,0 +1,1152 @@
+<!DOCTYPE html>
+<html>
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<script src="./support.js"></script>
+</head>
+<body>
+<x-dc>
+<helmet>
+<meta name="design_doc_mode" content="canvas">
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+<link href="https://fonts.googleapis.com/css2?family=Figtree:ital,wght@0,400;0,500;0,600;0,700;0,800;1,400&family=Bricolage+Grotesque:opsz,wght@12..96,400..800&display=swap" rel="stylesheet">
+<style>
+  * { box-sizing: border-box; }
+  body { margin: 0; }
+  a { color: var(--primary); text-decoration: none; }
+  a:hover { color: var(--primary-700); }
+  ::-webkit-scrollbar { width: 0; height: 0; }
+</style>
+</helmet>
+
+<div style="--bg:#F1F5F2;--surface:#FFFFFF;--surface-2:#F6F9F6;--ink:#132520;--muted:#5C6E66;--faint:#8DA096;--primary:#10A26C;--primary-700:#0B7E52;--primary-soft:#DCF5E8;--accent:#F2793B;--accent-soft:#FFE8D6;--border:#E3E9E4;--border-strong:#CBD6CE;--success:#1B9E5A;--success-soft:#E1F3E7;--warn:#CF8A17;--warn-soft:#FBEED2;--danger:#D2453E;--danger-soft:#FBE4E3;--info:#2F76C9;--info-soft:#E3EEFA; font-family:'Figtree',system-ui,sans-serif; background:radial-gradient(120% 80% at 50% -10%, #FBFDFB 0%, #EAF0EB 60%, #E4EBE5 100%); color:var(--ink); min-height:100vh; padding:64px clamp(24px,5vw,96px) 140px; -webkit-font-smoothing:antialiased;">
+
+  <!-- ===================== MASTHEAD ===================== -->
+  <div style="max-width:1180px;margin:0 auto 8px;display:flex;align-items:center;gap:22px;flex-wrap:wrap;">
+    <div style="width:76px;height:76px;border-radius:22px;background:linear-gradient(160deg,#16B478,#0b7e52);box-shadow:0 14px 30px -10px rgba(16,162,108,.55), inset 0 1px 0 rgba(255,255,255,.25);position:relative;display:flex;align-items:flex-end;justify-content:center;flex:0 0 auto;overflow:hidden;">
+      <div style="position:absolute;top:12px;left:0;right:0;display:flex;justify-content:center;">
+        <svg width="42" height="18" viewBox="0 0 42 18" fill="none"><path d="M4 16 21 3l17 13" stroke="rgba(255,255,255,.95)" stroke-width="3.2" stroke-linecap="round" stroke-linejoin="round"/><path d="M31.5 10.5v-6" stroke="rgba(255,255,255,.95)" stroke-width="3.4" stroke-linecap="round"/></svg>
+      </div>
+      <div style="font-family:'Bricolage Grotesque','Figtree',sans-serif;font-weight:700;letter-spacing:-.015em;font-size:40px;line-height:1;color:#fff;padding-bottom:12px;letter-spacing:.5px;">25</div>
+    </div>
+    <div style="flex:1 1 320px;">
+      <div style="font-family:'Bricolage Grotesque','Figtree',sans-serif;font-weight:700;letter-spacing:-.015em;font-size:44px;line-height:1;letter-spacing:.3px;">Rioja&nbsp;25 <span style="font-family:'Figtree';font-size:15px;font-weight:600;color:var(--muted);letter-spacing:.14em;text-transform:uppercase;vertical-align:middle;margin-left:10px;">Comunidad</span></div>
+      <div style="margin-top:8px;color:var(--muted);font-size:16px;max-width:620px;">Sistema de diseño y pantallas de la app de comunidad de vecinos. PWA mobile-first, en español. Versión 2 — <b style="color:var(--ink)">más cercana y con más color</b>: acento naranja cálido, formas redondeadas y módulos a color.</div>
+    </div>
+    <div style="display:flex;gap:8px;flex-wrap:wrap;">
+      <span style="font-size:12.5px;font-weight:600;color:var(--primary-700);background:var(--primary-soft);padding:7px 12px;border-radius:999px;">Mobile-first</span>
+      <span style="font-size:12.5px;font-weight:600;color:#7a5a12;background:var(--accent-soft);padding:7px 12px;border-radius:999px;">Claro + oscuro</span>
+      <span style="font-size:12.5px;font-weight:600;color:var(--muted);background:var(--surface);border:1px solid var(--border);padding:7px 12px;border-radius:999px;">Accesible AA</span>
+    </div>
+  </div>
+
+  <!-- ===================== TURN 1 · STYLE TILES ===================== -->
+  <section id="1" style="max-width:1180px;margin:44px auto 0;">
+    <div style="display:flex;align-items:baseline;gap:12px;margin-bottom:18px;">
+      <span style="font:700 12px/1 'Figtree';letter-spacing:.16em;color:var(--faint);text-transform:uppercase;">Direcciones visuales</span>
+      <div style="flex:1;height:1px;background:var(--border);"></div>
+      <span style="font-size:13px;color:var(--muted);">Comparativa · construida en <b style="color:var(--primary-700)">B</b></span>
+    </div>
+    <div style="display:flex;gap:20px;flex-wrap:wrap;">
+
+      <!-- Tile A -->
+      <div id="1a" style="flex:1 1 320px;min-width:300px;background:var(--surface);border:1px solid var(--border);border-radius:22px;overflow:hidden;box-shadow:0 18px 40px -26px rgba(20,40,30,.35);">
+        <div style="height:132px;background:linear-gradient(150deg,#12352a,#0d271f);position:relative;display:flex;align-items:center;padding:0 22px;gap:16px;">
+          <div style="width:52px;height:52px;border-radius:15px;background:linear-gradient(160deg,#caa04a,#a97e2c);display:flex;align-items:center;justify-content:center;font-family:'Bricolage Grotesque','Figtree',sans-serif;font-weight:700;letter-spacing:-.015em;font-size:26px;color:#1c1408;">25</div>
+          <div style="font-family:'Bricolage Grotesque','Figtree',sans-serif;font-weight:700;letter-spacing:-.015em;font-size:26px;color:#f3ead2;">Rioja 25</div>
+          <span style="position:absolute;top:14px;right:16px;font:700 10px/1 'Figtree';letter-spacing:.14em;color:#e9dcb5;background:rgba(255,255,255,.1);border:1px solid rgba(233,220,181,.4);padding:6px 10px;border-radius:999px;">A</span>
+        </div>
+        <div style="padding:18px 20px 22px;">
+          <div style="font-weight:700;font-size:16px;">Portal clásico renovado</div>
+          <div style="color:var(--muted);font-size:13.5px;margin:6px 0 14px;line-height:1.5;">Verde profundo y latón, serif señorial. Cálido y con solera, modernizado en espaciados.</div>
+          <div style="display:flex;gap:7px;">
+            <span style="width:26px;height:26px;border-radius:7px;background:#12352a;border:1px solid rgba(0,0,0,.06);"></span>
+            <span style="width:26px;height:26px;border-radius:7px;background:#caa04a;"></span>
+            <span style="width:26px;height:26px;border-radius:7px;background:#e9dcb5;"></span>
+            <span style="width:26px;height:26px;border-radius:7px;background:#f6f2e6;border:1px solid var(--border);"></span>
+          </div>
+        </div>
+      </div>
+
+      <!-- Tile B (chosen) -->
+      <div id="1b" style="flex:1 1 320px;min-width:300px;background:var(--surface);border:2px solid var(--primary);border-radius:22px;overflow:hidden;box-shadow:0 24px 50px -24px rgba(16,162,108,.45);position:relative;">
+        <div style="position:absolute;top:14px;right:16px;z-index:2;font:700 10px/1 'Figtree';letter-spacing:.12em;color:#fff;background:var(--primary);padding:6px 11px;border-radius:999px;">B · ELEGIDA</div>
+        <div style="height:132px;background:linear-gradient(150deg,#e7f5ee,#d6efe2);position:relative;display:flex;align-items:center;padding:0 22px;gap:16px;">
+          <div style="width:52px;height:52px;border-radius:15px;background:linear-gradient(160deg,#16B478,#0b7e52);display:flex;align-items:center;justify-content:center;font-family:'Bricolage Grotesque','Figtree',sans-serif;font-weight:700;letter-spacing:-.015em;font-size:26px;color:#fff;box-shadow:0 8px 18px -6px rgba(16,162,108,.6);">25</div>
+          <div style="font-family:'Bricolage Grotesque','Figtree',sans-serif;font-weight:700;letter-spacing:-.015em;font-size:26px;color:#0b7e52;">Rioja 25</div>
+        </div>
+        <div style="padding:18px 20px 22px;">
+          <div style="font-weight:700;font-size:16px;">Fresco y luminoso</div>
+          <div style="color:var(--muted);font-size:13.5px;margin:6px 0 14px;line-height:1.5;">Fondos claros, acento verde-teal vivo, mucho aire y tarjetas suaves. Máxima legibilidad para todas las edades.</div>
+          <div style="display:flex;gap:7px;">
+            <span style="width:26px;height:26px;border-radius:7px;background:#10A26C;"></span>
+            <span style="width:26px;height:26px;border-radius:7px;background:#F2793B;"></span>
+            <span style="width:26px;height:26px;border-radius:7px;background:#DCF5E8;"></span>
+            <span style="width:26px;height:26px;border-radius:7px;background:#F1F5F2;border:1px solid var(--border);"></span>
+          </div>
+        </div>
+      </div>
+
+      <!-- Tile C -->
+      <div id="1c" style="flex:1 1 320px;min-width:300px;background:var(--surface);border:1px solid var(--border);border-radius:22px;overflow:hidden;box-shadow:0 18px 40px -26px rgba(20,40,30,.35);">
+        <div style="height:132px;background:linear-gradient(150deg,#efece7,#e6e2db);position:relative;display:flex;align-items:center;padding:0 22px;gap:16px;">
+          <div style="width:52px;height:52px;border-radius:15px;background:#2a2723;display:flex;align-items:center;justify-content:center;font-family:'Bricolage Grotesque','Figtree',sans-serif;font-weight:700;letter-spacing:-.015em;font-size:26px;color:#e9b872;">25</div>
+          <div style="font-family:'Bricolage Grotesque','Figtree',sans-serif;font-weight:700;letter-spacing:-.015em;font-size:26px;color:#2a2723;">Rioja 25</div>
+          <span style="position:absolute;top:14px;right:16px;font:700 10px/1 'Figtree';letter-spacing:.14em;color:#7a746b;background:#fff;border:1px solid #ddd8d0;padding:6px 10px;border-radius:999px;">C</span>
+        </div>
+        <div style="padding:18px 20px 22px;">
+          <div style="font-weight:700;font-size:16px;">Minimal neutro</div>
+          <div style="color:var(--muted);font-size:13.5px;margin:6px 0 14px;line-height:1.5;">Grises cálidos y un solo acento ámbar. Foco total en el contenido, sobrio y atemporal.</div>
+          <div style="display:flex;gap:7px;">
+            <span style="width:26px;height:26px;border-radius:7px;background:#2a2723;"></span>
+            <span style="width:26px;height:26px;border-radius:7px;background:#d99a3f;"></span>
+            <span style="width:26px;height:26px;border-radius:7px;background:#e6e2db;"></span>
+            <span style="width:26px;height:26px;border-radius:7px;background:#f6f4f0;border:1px solid var(--border);"></span>
+          </div>
+        </div>
+      </div>
+
+    </div>
+  </section>
+
+  <!-- ===================== FUNDAMENTOS ===================== -->
+  <section id="2" style="max-width:1180px;margin:64px auto 0;">
+    <div style="display:flex;align-items:baseline;gap:12px;margin-bottom:22px;">
+      <span style="font:700 12px/1 'Figtree';letter-spacing:.16em;color:var(--faint);text-transform:uppercase;">Fundamentos</span>
+      <div style="flex:1;height:1px;background:var(--border);"></div>
+      <span style="font-size:13px;color:var(--muted);">Color · Tipografía · Espaciado · Radios · Sombras</span>
+    </div>
+
+    <div style="display:flex;gap:20px;flex-wrap:wrap;align-items:flex-start;">
+      <!-- LIGHT palette -->
+      <div style="flex:1 1 520px;background:var(--surface);border:1px solid var(--border);border-radius:20px;padding:22px 24px 26px;box-shadow:0 16px 40px -30px rgba(20,40,30,.4);">
+        <div style="display:flex;align-items:center;gap:10px;margin-bottom:16px;"><span style="width:9px;height:9px;border-radius:50%;background:var(--accent);"></span><b style="font-size:15px;">Paleta · Modo claro</b></div>
+        <div style="display:grid;grid-template-columns:repeat(4,1fr);gap:12px;">
+          <div><div style="height:56px;border-radius:12px;background:#10A26C;"></div><div style="font-weight:600;font-size:12.5px;margin-top:7px;">Primary</div><div style="color:var(--faint);font-size:11.5px;font-variant-numeric:tabular-nums;">#10A26C</div></div>
+          <div><div style="height:56px;border-radius:12px;background:#0B7E52;"></div><div style="font-weight:600;font-size:12.5px;margin-top:7px;">Primary·700</div><div style="color:var(--faint);font-size:11.5px;">#0B7E52</div></div>
+          <div><div style="height:56px;border-radius:12px;background:#DCF5E8;border:1px solid var(--border);"></div><div style="font-weight:600;font-size:12.5px;margin-top:7px;">Primary·soft</div><div style="color:var(--faint);font-size:11.5px;">#DCF5E8</div></div>
+          <div><div style="height:56px;border-radius:12px;background:#F2793B;"></div><div style="font-weight:600;font-size:12.5px;margin-top:7px;">Acento·25</div><div style="color:var(--faint);font-size:11.5px;">#F2793B</div></div>
+          <div><div style="height:56px;border-radius:12px;background:#132520;"></div><div style="font-weight:600;font-size:12.5px;margin-top:7px;">Ink</div><div style="color:var(--faint);font-size:11.5px;">#132520</div></div>
+          <div><div style="height:56px;border-radius:12px;background:#5C6E66;"></div><div style="font-weight:600;font-size:12.5px;margin-top:7px;">Muted</div><div style="color:var(--faint);font-size:11.5px;">#5C6E66</div></div>
+          <div><div style="height:56px;border-radius:12px;background:#F1F5F2;border:1px solid var(--border);"></div><div style="font-weight:600;font-size:12.5px;margin-top:7px;">Fondo</div><div style="color:var(--faint);font-size:11.5px;">#F1F5F2</div></div>
+          <div><div style="height:56px;border-radius:12px;background:#FFFFFF;border:1px solid var(--border);"></div><div style="font-weight:600;font-size:12.5px;margin-top:7px;">Superficie</div><div style="color:var(--faint);font-size:11.5px;">#FFFFFF</div></div>
+        </div>
+        <div style="height:1px;background:var(--border);margin:20px 0 16px;"></div>
+        <div style="font-weight:600;font-size:12.5px;color:var(--muted);margin-bottom:11px;">Semánticos</div>
+        <div style="display:grid;grid-template-columns:repeat(4,1fr);gap:12px;">
+          <div><div style="height:40px;border-radius:10px;background:#1B9E5A;"></div><div style="font-size:11.5px;margin-top:6px;font-weight:600;">Éxito</div></div>
+          <div><div style="height:40px;border-radius:10px;background:#CF8A17;"></div><div style="font-size:11.5px;margin-top:6px;font-weight:600;">Aviso</div></div>
+          <div><div style="height:40px;border-radius:10px;background:#D2453E;"></div><div style="font-size:11.5px;margin-top:6px;font-weight:600;">Error</div></div>
+          <div><div style="height:40px;border-radius:10px;background:#2F76C9;"></div><div style="font-size:11.5px;margin-top:6px;font-weight:600;">Info</div></div>
+        </div>
+      </div>
+
+      <!-- DARK palette -->
+      <div style="flex:1 1 300px;min-width:280px;background:#0E1714;border:1px solid #22302A;border-radius:20px;padding:22px 24px 26px;box-shadow:0 16px 40px -26px rgba(0,0,0,.5);">
+        <div style="display:flex;align-items:center;gap:10px;margin-bottom:16px;"><span style="width:9px;height:9px;border-radius:50%;background:#34C08A;"></span><b style="font-size:15px;color:#EAF2EE;">Modo oscuro</b></div>
+        <div style="display:grid;grid-template-columns:repeat(3,1fr);gap:12px;">
+          <div><div style="height:52px;border-radius:12px;background:#34C08A;"></div><div style="font-weight:600;font-size:12px;margin-top:7px;color:#EAF2EE;">Primary</div><div style="color:#7f948b;font-size:11px;">#34C08A</div></div>
+          <div><div style="height:52px;border-radius:12px;background:#16221D;border:1px solid #26332D;"></div><div style="font-weight:600;font-size:12px;margin-top:7px;color:#EAF2EE;">Superficie</div><div style="color:#7f948b;font-size:11px;">#16221D</div></div>
+          <div><div style="height:52px;border-radius:12px;background:#0E1714;border:1px solid #26332D;"></div><div style="font-weight:600;font-size:12px;margin-top:7px;color:#EAF2EE;">Fondo</div><div style="color:#7f948b;font-size:11px;">#0E1714</div></div>
+          <div><div style="height:52px;border-radius:12px;background:#EAF2EE;"></div><div style="font-weight:600;font-size:12px;margin-top:7px;color:#EAF2EE;">Ink</div><div style="color:#7f948b;font-size:11px;">#EAF2EE</div></div>
+          <div><div style="height:52px;border-radius:12px;background:#9DB0A7;"></div><div style="font-weight:600;font-size:12px;margin-top:7px;color:#EAF2EE;">Muted</div><div style="color:#7f948b;font-size:11px;">#9DB0A7</div></div>
+          <div><div style="height:52px;border-radius:12px;background:#FF9D66;"></div><div style="font-weight:600;font-size:12px;margin-top:7px;color:#EAF2EE;">Acento</div><div style="color:#7f948b;font-size:11px;">#FF9D66</div></div>
+        </div>
+        <div style="margin-top:18px;background:#16221D;border:1px solid #26332D;border-radius:12px;padding:14px;">
+          <div style="color:#EAF2EE;font-weight:600;font-size:13px;">Contraste AA ✓</div>
+          <div style="color:#9DB0A7;font-size:12px;margin-top:4px;line-height:1.5;">Texto ≥ 4.5:1 sobre superficies. Foco visible con anillo de 3px.</div>
+        </div>
+      </div>
+    </div>
+
+    <!-- Type + spacing row -->
+    <div style="display:flex;gap:20px;flex-wrap:wrap;margin-top:20px;align-items:flex-start;">
+      <div style="flex:1 1 520px;background:var(--surface);border:1px solid var(--border);border-radius:20px;padding:24px 26px;box-shadow:0 16px 40px -30px rgba(20,40,30,.4);">
+        <div style="display:flex;align-items:center;gap:10px;margin-bottom:18px;"><span style="width:9px;height:9px;border-radius:50%;background:var(--primary);"></span><b style="font-size:15px;">Tipografía</b><span style="color:var(--muted);font-size:12.5px;margin-left:auto;">Instrument Serif · Figtree</span></div>
+        <div style="font-family:'Bricolage Grotesque','Figtree',sans-serif;font-weight:700;letter-spacing:-.015em;font-size:46px;line-height:1.02;">Comunidad Rioja 25</div>
+        <div style="color:var(--muted);font-size:12px;margin-top:4px;">Display / Serif · 40–48px · titulares y marca</div>
+        <div style="height:1px;background:var(--border);margin:18px 0;"></div>
+        <div style="font-weight:800;font-size:26px;">Título de sección · 26/700</div>
+        <div style="font-weight:700;font-size:19px;margin-top:12px;">Encabezado de tarjeta · 19/700</div>
+        <div style="font-weight:500;font-size:16px;margin-top:12px;line-height:1.55;color:var(--ink);">Texto de cuerpo · 16/500. Legible y cómodo para todas las edades; interlineado holgado y ancho de línea contenido.</div>
+        <div style="font-size:13px;color:var(--muted);margin-top:12px;">Secundario · 13px · metadatos y ayudas</div>
+        <div style="font-size:11.5px;letter-spacing:.14em;text-transform:uppercase;font-weight:700;color:var(--faint);margin-top:12px;">Etiqueta · 11.5px · overline</div>
+      </div>
+
+      <div style="flex:1 1 300px;min-width:280px;display:flex;flex-direction:column;gap:20px;">
+        <div style="background:var(--surface);border:1px solid var(--border);border-radius:20px;padding:22px 24px;box-shadow:0 16px 40px -30px rgba(20,40,30,.4);">
+          <b style="font-size:15px;">Espaciado</b><div style="color:var(--muted);font-size:12.5px;margin:4px 0 14px;">Base 4 · escala 4/8/12/16/24/32</div>
+          <div style="display:flex;align-items:flex-end;gap:8px;">
+            <div style="text-align:center;"><div style="width:4px;height:4px;background:var(--primary);border-radius:2px;margin:0 auto;"></div><div style="font-size:10px;color:var(--faint);margin-top:6px;">4</div></div>
+            <div style="text-align:center;"><div style="width:8px;height:8px;background:var(--primary);border-radius:2px;margin:0 auto;"></div><div style="font-size:10px;color:var(--faint);margin-top:6px;">8</div></div>
+            <div style="text-align:center;"><div style="width:12px;height:12px;background:var(--primary);border-radius:2px;margin:0 auto;"></div><div style="font-size:10px;color:var(--faint);margin-top:6px;">12</div></div>
+            <div style="text-align:center;"><div style="width:16px;height:16px;background:var(--primary);border-radius:3px;margin:0 auto;"></div><div style="font-size:10px;color:var(--faint);margin-top:6px;">16</div></div>
+            <div style="text-align:center;"><div style="width:24px;height:24px;background:var(--primary);border-radius:4px;margin:0 auto;"></div><div style="font-size:10px;color:var(--faint);margin-top:6px;">24</div></div>
+            <div style="text-align:center;"><div style="width:32px;height:32px;background:var(--primary);border-radius:5px;margin:0 auto;"></div><div style="font-size:10px;color:var(--faint);margin-top:6px;">32</div></div>
+          </div>
+        </div>
+        <div style="background:var(--surface);border:1px solid var(--border);border-radius:20px;padding:22px 24px;box-shadow:0 16px 40px -30px rgba(20,40,30,.4);">
+          <b style="font-size:15px;">Radios &amp; sombras</b>
+          <div style="display:flex;gap:12px;margin-top:14px;align-items:flex-end;">
+            <div style="text-align:center;"><div style="width:46px;height:38px;border-radius:8px;background:var(--surface-2);border:1px solid var(--border);"></div><div style="font-size:10px;color:var(--faint);margin-top:6px;">8 · sm</div></div>
+            <div style="text-align:center;"><div style="width:46px;height:38px;border-radius:14px;background:var(--surface-2);border:1px solid var(--border);"></div><div style="font-size:10px;color:var(--faint);margin-top:6px;">14 · md</div></div>
+            <div style="text-align:center;"><div style="width:46px;height:38px;border-radius:20px;background:var(--surface-2);border:1px solid var(--border);"></div><div style="font-size:10px;color:var(--faint);margin-top:6px;">20 · lg</div></div>
+            <div style="text-align:center;"><div style="width:46px;height:38px;border-radius:999px;background:var(--surface-2);border:1px solid var(--border);"></div><div style="font-size:10px;color:var(--faint);margin-top:6px;">pill</div></div>
+          </div>
+          <div style="display:flex;gap:16px;margin-top:18px;">
+            <div style="width:60px;height:40px;border-radius:12px;background:#fff;box-shadow:0 2px 5px -2px rgba(20,40,30,.25);"></div>
+            <div style="width:60px;height:40px;border-radius:12px;background:#fff;box-shadow:0 10px 24px -12px rgba(20,40,30,.4);"></div>
+            <div style="width:60px;height:40px;border-radius:12px;background:#fff;box-shadow:0 24px 50px -20px rgba(20,40,30,.5);"></div>
+          </div>
+        </div>
+      </div>
+    </div>
+  </section>
+
+  <!-- ===================== COMPONENTES ===================== -->
+  <section id="3" style="max-width:1180px;margin:64px auto 0;">
+    <div style="display:flex;align-items:baseline;gap:12px;margin-bottom:22px;">
+      <span style="font:700 12px/1 'Figtree';letter-spacing:.16em;color:var(--faint);text-transform:uppercase;">Componentes</span>
+      <div style="flex:1;height:1px;background:var(--border);"></div>
+      <span style="font-size:13px;color:var(--muted);">Botones · Campos · Chips · Tarjetas · Tabla · Toasts</span>
+    </div>
+
+    <div style="display:grid;grid-template-columns:repeat(auto-fit,minmax(300px,1fr));gap:20px;align-items:start;">
+
+      <!-- Botones -->
+      <div style="background:var(--surface);border:1px solid var(--border);border-radius:20px;padding:22px 24px;box-shadow:0 16px 40px -30px rgba(20,40,30,.4);">
+        <b style="font-size:14px;">Botones</b>
+        <div style="display:flex;flex-direction:column;gap:12px;margin-top:16px;">
+          <button style="height:48px;border:none;border-radius:999px;background:var(--primary);color:#fff;font:700 15px 'Figtree';cursor:pointer;box-shadow:0 8px 18px -8px rgba(16,162,108,.6);">Reservar zona</button>
+          <button style="height:48px;border:1.5px solid var(--border-strong);border-radius:999px;background:var(--surface);color:var(--ink);font:600 15px 'Figtree';cursor:pointer;">Secundario</button>
+          <button style="height:48px;border:none;border-radius:14px;background:transparent;color:var(--primary);font:700 15px 'Figtree';cursor:pointer;">Acción de texto</button>
+          <div style="display:flex;gap:12px;">
+            <button style="flex:1;height:44px;border:none;border-radius:999px;background:var(--danger);color:#fff;font:700 14px 'Figtree';cursor:pointer;">Eliminar</button>
+            <button style="flex:1;height:44px;border:1.5px solid var(--border);border-radius:999px;background:var(--surface-2);color:var(--faint);font:600 14px 'Figtree';cursor:not-allowed;">Deshabilitado</button>
+          </div>
+        </div>
+        <div style="font-size:11px;color:var(--faint);margin-top:12px;line-height:1.5;">Altura ≥ 44px · foco: anillo 3px var(--primary-soft) · pressed: −2% brillo.</div>
+      </div>
+
+      <!-- Campos -->
+      <div style="background:var(--surface);border:1px solid var(--border);border-radius:20px;padding:22px 24px;box-shadow:0 16px 40px -30px rgba(20,40,30,.4);">
+        <b style="font-size:14px;">Campos de formulario</b>
+        <div style="margin-top:16px;">
+          <label style="font-size:13px;font-weight:600;color:var(--muted);">Correo electrónico</label>
+          <div style="margin-top:6px;height:48px;border:1.5px solid var(--border-strong);border-radius:12px;display:flex;align-items:center;padding:0 14px;color:var(--ink);font-size:15px;">vecino@rioja25.es</div>
+        </div>
+        <div style="margin-top:14px;">
+          <label style="font-size:13px;font-weight:600;color:var(--primary-700);">Piso (foco)</label>
+          <div style="margin-top:6px;height:48px;border:2px solid var(--primary);border-radius:12px;box-shadow:0 0 0 4px var(--primary-soft);display:flex;align-items:center;justify-content:space-between;padding:0 14px;font-size:15px;">2º C Dcha<span style="color:var(--faint);">▾</span></div>
+        </div>
+        <div style="margin-top:14px;">
+          <label style="font-size:13px;font-weight:600;color:var(--danger);">Correo electrónico</label>
+          <div style="margin-top:6px;height:48px;border:1.5px solid var(--danger);border-radius:12px;background:var(--danger-soft);display:flex;align-items:center;padding:0 14px;font-size:15px;color:#8a2e29;">correo-invalido</div>
+          <div style="font-size:12px;color:var(--danger);margin-top:6px;">Introduce un correo válido.</div>
+        </div>
+      </div>
+
+      <!-- Chips + badges -->
+      <div style="background:var(--surface);border:1px solid var(--border);border-radius:20px;padding:22px 24px;box-shadow:0 16px 40px -30px rgba(20,40,30,.4);">
+        <b style="font-size:14px;">Chips de estado</b>
+        <div style="display:flex;flex-wrap:wrap;gap:8px;margin-top:14px;">
+          <span style="font:700 12px 'Figtree';color:#a3341f;background:var(--danger-soft);padding:6px 12px;border-radius:999px;display:inline-flex;align-items:center;gap:6px;"><span style="width:7px;height:7px;border-radius:50%;background:#d2453e;"></span>Abierta</span>
+          <span style="font:700 12px 'Figtree';color:#1f5aa3;background:var(--info-soft);padding:6px 12px;border-radius:999px;display:inline-flex;align-items:center;gap:6px;"><span style="width:7px;height:7px;border-radius:50%;background:#2f76c9;"></span>En curso</span>
+          <span style="font:700 12px 'Figtree';color:#0f6b3f;background:var(--success-soft);padding:6px 12px;border-radius:999px;display:inline-flex;align-items:center;gap:6px;"><span style="width:7px;height:7px;border-radius:50%;background:#1b9e5a;"></span>Resuelta</span>
+          <span style="font:700 12px 'Figtree';color:var(--muted);background:var(--surface-2);border:1px solid var(--border);padding:6px 12px;border-radius:999px;display:inline-flex;align-items:center;gap:6px;"><span style="width:7px;height:7px;border-radius:50%;background:var(--faint);"></span>Cerrada</span>
+        </div>
+        <b style="font-size:14px;display:block;margin-top:20px;">Badges de rol</b>
+        <div style="display:flex;flex-wrap:wrap;gap:8px;margin-top:14px;">
+          <span style="font:700 11.5px 'Figtree';letter-spacing:.04em;color:var(--muted);background:var(--surface-2);border:1px solid var(--border);padding:5px 11px;border-radius:8px;">Vecino</span>
+          <span style="font:700 11.5px 'Figtree';letter-spacing:.04em;color:#7a5a12;background:var(--accent-soft);border:1px solid #F8CFAF;padding:5px 11px;border-radius:8px;">Junta</span>
+          <span style="font:700 11.5px 'Figtree';letter-spacing:.04em;color:#fff;background:var(--primary);padding:5px 11px;border-radius:8px;">Admin</span>
+        </div>
+        <b style="font-size:14px;display:block;margin-top:20px;">Categorías</b>
+        <div style="display:flex;flex-wrap:wrap;gap:8px;margin-top:14px;">
+          <span style="font:600 12px 'Figtree';color:var(--muted);background:var(--surface-2);border:1px solid var(--border);padding:6px 11px;border-radius:999px;">💡 Iluminación</span>
+          <span style="font:600 12px 'Figtree';color:var(--muted);background:var(--surface-2);border:1px solid var(--border);padding:6px 11px;border-radius:999px;">🛗 Ascensor</span>
+          <span style="font:600 12px 'Figtree';color:var(--muted);background:var(--surface-2);border:1px solid var(--border);padding:6px 11px;border-radius:999px;">🧹 Limpieza</span>
+        </div>
+      </div>
+
+      <!-- Toast + aviso -->
+      <div style="background:var(--surface);border:1px solid var(--border);border-radius:20px;padding:22px 24px;box-shadow:0 16px 40px -30px rgba(20,40,30,.4);">
+        <b style="font-size:14px;">Avisos y toasts</b>
+        <div style="margin-top:16px;display:flex;flex-direction:column;gap:12px;">
+          <div style="background:#132520;color:#EAF2EE;border-radius:14px;padding:14px 16px;display:flex;align-items:center;gap:12px;box-shadow:0 14px 30px -14px rgba(0,0,0,.5);"><span style="width:26px;height:26px;border-radius:50%;background:var(--success);display:flex;align-items:center;justify-content:center;color:#fff;font-size:15px;">✓</span><div style="font-size:14px;font-weight:600;">Reserva confirmada</div></div>
+          <div style="background:var(--info-soft);border:1px solid #c3ddf7;border-radius:14px;padding:14px 16px;display:flex;gap:12px;"><span style="font-size:18px;">ℹ️</span><div><div style="font-weight:700;font-size:14px;color:#1f5aa3;">Votación abierta</div><div style="font-size:12.5px;color:#3a6aa8;margin-top:2px;">Cambio de horario de piscina · cierra el 12 jul.</div></div></div>
+          <div style="background:var(--warn-soft);border:1px solid #eed49a;border-radius:14px;padding:14px 16px;display:flex;gap:12px;"><span style="font-size:18px;">⚠️</span><div><div style="font-weight:700;font-size:14px;color:#9C5220;">Tu plaza cambia mañana</div><div style="font-size:12.5px;color:#9a6a1a;margin-top:2px;">Nueva quincena: plaza P-14.</div></div></div>
+        </div>
+      </div>
+
+      <!-- Tarjeta muestra -->
+      <div style="background:var(--surface);border:1px solid var(--border);border-radius:20px;padding:22px 24px;box-shadow:0 16px 40px -30px rgba(20,40,30,.4);">
+        <b style="font-size:14px;">Tarjeta de lista</b>
+        <div style="margin-top:16px;border:1px solid var(--border);border-radius:16px;padding:16px;background:var(--surface);">
+          <div style="display:flex;justify-content:space-between;align-items:flex-start;gap:10px;">
+            <div style="font-weight:700;font-size:15px;">Luz fundida en el portal</div>
+            <span style="font:700 11px 'Figtree';color:#a3341f;background:var(--danger-soft);padding:4px 9px;border-radius:999px;white-space:nowrap;">Abierta</span>
+          </div>
+          <div style="color:var(--muted);font-size:13px;margin-top:6px;line-height:1.45;">Portal · reportada por 3º B · hace 2 h</div>
+          <div style="display:flex;align-items:center;gap:8px;margin-top:12px;">
+            <span style="font:600 11.5px 'Figtree';color:var(--muted);background:var(--surface-2);border:1px solid var(--border);padding:4px 9px;border-radius:999px;">💡 Iluminación</span>
+            <span style="margin-left:auto;font-size:12px;color:var(--faint);">2 comentarios</span>
+          </div>
+        </div>
+      </div>
+
+      <!-- Tabla -->
+      <div style="background:var(--surface);border:1px solid var(--border);border-radius:20px;padding:22px 24px;box-shadow:0 16px 40px -30px rgba(20,40,30,.4);">
+        <b style="font-size:14px;">Tabla (parking / admin)</b>
+        <div style="margin-top:16px;border:1px solid var(--border);border-radius:14px;overflow:hidden;">
+          <div style="display:grid;grid-template-columns:1.4fr 1fr .8fr;background:var(--surface-2);font:700 11.5px 'Figtree';letter-spacing:.05em;text-transform:uppercase;color:var(--faint);padding:10px 14px;">
+            <div>Vecino</div><div>Quincena</div><div style="text-align:right;">Plaza</div>
+          </div>
+          <div style="display:grid;grid-template-columns:1.4fr 1fr .8fr;padding:12px 14px;font-size:13.5px;border-top:1px solid var(--border);align-items:center;">
+            <div style="font-weight:600;">2º C Dcha</div><div style="color:var(--muted);">1–15 jul</div><div style="text-align:right;font-weight:700;color:var(--primary-700);">P-07</div>
+          </div>
+          <div style="display:grid;grid-template-columns:1.4fr 1fr .8fr;padding:12px 14px;font-size:13.5px;border-top:1px solid var(--border);align-items:center;background:var(--primary-soft);">
+            <div style="font-weight:700;">Tú · 4º A</div><div style="color:#0b7e52;">16–31 jul</div><div style="text-align:right;font-weight:700;color:var(--primary-700);">P-14</div>
+          </div>
+          <div style="display:grid;grid-template-columns:1.4fr 1fr .8fr;padding:12px 14px;font-size:13.5px;border-top:1px solid var(--border);align-items:center;">
+            <div style="font-weight:600;">Bajo Izq</div><div style="color:var(--muted);">1–15 ago</div><div style="text-align:right;font-weight:700;color:var(--primary-700);">P-02</div>
+          </div>
+        </div>
+      </div>
+
+    </div>
+  </section>
+
+  <!-- ===================== PANTALLAS MÓVIL ===================== -->
+  <section id="4" style="max-width:1320px;margin:64px auto 0;">
+    <div style="display:flex;align-items:baseline;gap:12px;margin-bottom:30px;">
+      <span style="font:700 12px/1 'Figtree';letter-spacing:.16em;color:var(--faint);text-transform:uppercase;">Pantallas · Móvil</span>
+      <div style="flex:1;height:1px;background:var(--border);"></div>
+      <span style="font-size:13px;color:var(--muted);">Diseñado a 392 px · área táctil ≥ 44 px</span>
+    </div>
+
+    <div style="display:flex;flex-wrap:wrap;gap:56px 44px;justify-content:flex-start;">
+
+      <!-- 01 · LOGIN -->
+      <figure style="margin:0;flex:0 0 auto;width:392px;">
+        <figcaption style="font:600 13.5px 'Figtree';color:var(--muted);margin:0 0 14px 4px;display:flex;gap:10px;align-items:center;"><span style="font-weight:800;color:var(--ink);background:var(--surface);border:1px solid var(--border);width:28px;height:28px;border-radius:9px;display:inline-flex;align-items:center;justify-content:center;">01</span> Entrada · Login</figcaption>
+        <div style="width:392px;height:812px;border-radius:48px;background:#0e1a15;padding:11px;box-shadow:0 45px 90px -34px rgba(20,40,30,.55);position:relative;">
+          <div style="position:absolute;top:24px;left:50%;transform:translateX(-50%);width:120px;height:31px;background:#0e1a15;border-radius:999px;z-index:6;"></div>
+          <div style="width:100%;height:100%;border-radius:38px;overflow:hidden;background:linear-gradient(180deg,#DFF6EA 0%,#F1F5F2 42%);position:relative;display:flex;flex-direction:column;">
+            <div style="height:52px;flex:0 0 auto;"><dc-import name="StatusBar" tint="#0b7e52" hint-size="100%,100%"></dc-import></div>
+            <div style="flex:1;display:flex;flex-direction:column;padding:0 30px;">
+              <div style="flex:0 0 auto;text-align:center;margin-top:40px;">
+                <div style="width:88px;height:88px;border-radius:26px;background:linear-gradient(160deg,#16B478,#0b7e52);box-shadow:0 18px 36px -12px rgba(16,162,108,.6);margin:0 auto;position:relative;display:flex;align-items:flex-end;justify-content:center;overflow:hidden;">
+                  <div style="position:absolute;top:15px;left:0;right:0;display:flex;justify-content:center;"><svg width="48" height="20" viewBox="0 0 48 20" fill="none"><path d="M5 18 24 3.5 43 18" stroke="rgba(255,255,255,.95)" stroke-width="3.6" stroke-linecap="round" stroke-linejoin="round"/><path d="M36 12v-7" stroke="rgba(255,255,255,.95)" stroke-width="3.8" stroke-linecap="round"/></svg></div>
+                  <div style="font-family:'Bricolage Grotesque','Figtree',sans-serif;font-weight:700;letter-spacing:-.015em;font-size:46px;color:#fff;padding-bottom:13px;">25</div>
+                </div>
+                <div style="font-family:'Bricolage Grotesque','Figtree',sans-serif;font-weight:700;letter-spacing:-.015em;font-size:34px;margin-top:22px;line-height:1.05;color:#0f2b22;">Bienvenido a<br>Rioja&nbsp;25</div>
+                <div style="color:var(--muted);font-size:15px;margin-top:12px;line-height:1.5;padding:0 6px;">Todo lo de tu comunidad, en un solo sitio y de confianza.</div>
+              </div>
+              <div style="flex:1;"></div>
+              <div style="flex:0 0 auto;display:flex;flex-direction:column;gap:12px;padding-bottom:8px;">
+                <button style="height:54px;border:1.5px solid var(--border-strong);border-radius:999px;background:#fff;color:var(--ink);font:600 15.5px 'Figtree';display:flex;align-items:center;justify-content:center;gap:11px;cursor:pointer;box-shadow:0 3px 8px -4px rgba(20,40,30,.2);">
+                  <span style="width:22px;height:22px;border-radius:50%;background:conic-gradient(#EA4335 0 25%,#FBBC05 0 50%,#34A853 0 75%,#4285F4 0);display:inline-block;"></span>
+                  Entrar con Google
+                </button>
+                <button style="height:54px;border:none;border-radius:999px;background:var(--primary);color:#fff;font:700 15.5px 'Figtree';cursor:pointer;box-shadow:0 12px 24px -10px rgba(16,162,108,.65);">Recibir enlace por correo</button>
+                <div style="display:flex;align-items:center;gap:12px;margin:6px 0;"><div style="flex:1;height:1px;background:var(--border-strong);opacity:.7;"></div><span style="font-size:12.5px;color:var(--faint);">¿Aún no tienes acceso?</span><div style="flex:1;height:1px;background:var(--border-strong);opacity:.7;"></div></div>
+                <button style="height:52px;border:1.5px solid var(--primary);border-radius:999px;background:var(--primary-soft);color:var(--primary-700);font:700 15px 'Figtree';cursor:pointer;">Solicitar acceso</button>
+              </div>
+              <div style="flex:0 0 auto;text-align:center;padding:18px 0 30px;color:var(--faint);font-size:11.5px;line-height:1.5;">Solo vecinos verificados · Portal de la comunidad</div>
+            </div>
+          </div>
+        </div>
+      </figure>
+
+      <!-- 02 · SOLICITAR ACCESO -->
+      <figure style="margin:0;flex:0 0 auto;width:392px;">
+        <figcaption style="font:600 13.5px 'Figtree';color:var(--muted);margin:0 0 14px 4px;display:flex;gap:10px;align-items:center;"><span style="font-weight:800;color:var(--ink);background:var(--surface);border:1px solid var(--border);width:28px;height:28px;border-radius:9px;display:inline-flex;align-items:center;justify-content:center;">02</span> Solicitar acceso</figcaption>
+        <div style="width:392px;height:812px;border-radius:48px;background:#0e1a15;padding:11px;box-shadow:0 45px 90px -34px rgba(20,40,30,.55);position:relative;">
+          <div style="position:absolute;top:24px;left:50%;transform:translateX(-50%);width:120px;height:31px;background:#0e1a15;border-radius:999px;z-index:6;"></div>
+          <div style="width:100%;height:100%;border-radius:38px;overflow:hidden;background:var(--bg);position:relative;display:flex;flex-direction:column;">
+            <div style="height:52px;flex:0 0 auto;"><dc-import name="StatusBar" tint="#132520" hint-size="100%,100%"></dc-import></div>
+            <div style="flex:0 0 auto;padding:6px 24px 14px;display:flex;align-items:center;gap:14px;">
+              <div style="width:40px;height:40px;border-radius:12px;border:1px solid var(--border);background:#fff;display:flex;align-items:center;justify-content:center;font-size:20px;color:var(--ink);">‹</div>
+              <div style="font-family:'Bricolage Grotesque','Figtree',sans-serif;font-weight:700;letter-spacing:-.015em;font-size:26px;">Solicitar acceso</div>
+            </div>
+            <div style="flex:1;overflow:hidden;padding:4px 24px 0;display:flex;flex-direction:column;gap:16px;">
+              <div style="color:var(--muted);font-size:14px;line-height:1.5;">Cuéntanos quién eres. La junta revisará tu solicitud y te avisaremos por correo.</div>
+              <div>
+                <label style="font-size:13px;font-weight:600;color:var(--muted);">Nombre y apellidos</label>
+                <div style="margin-top:7px;height:50px;border:1.5px solid var(--border-strong);border-radius:13px;background:#fff;display:flex;align-items:center;padding:0 15px;font-size:15px;">Marta Ruiz Bel</div>
+              </div>
+              <div>
+                <label style="font-size:13px;font-weight:600;color:var(--primary-700);">Piso</label>
+                <div style="margin-top:7px;height:50px;border:2px solid var(--primary);border-radius:13px;background:#fff;box-shadow:0 0 0 4px var(--primary-soft);display:flex;align-items:center;justify-content:space-between;padding:0 15px;font-size:15px;font-weight:600;">2º C Dcha<span style="color:var(--faint);">▾</span></div>
+              </div>
+              <div>
+                <label style="font-size:13px;font-weight:600;color:var(--muted);">Correo electrónico</label>
+                <div style="margin-top:7px;height:50px;border:1.5px solid var(--border-strong);border-radius:13px;background:#fff;display:flex;align-items:center;padding:0 15px;font-size:15px;color:var(--faint);">tucorreo@ejemplo.com</div>
+              </div>
+              <div>
+                <label style="font-size:13px;font-weight:600;color:var(--muted);">Comentario <span style="font-weight:400;color:var(--faint);">(opcional)</span></label>
+                <div style="margin-top:7px;height:76px;border:1.5px solid var(--border-strong);border-radius:13px;background:#fff;padding:12px 15px;font-size:14px;color:var(--faint);line-height:1.5;">Soy propietaria desde marzo…</div>
+              </div>
+            </div>
+            <div style="flex:0 0 auto;padding:14px 24px 30px;background:linear-gradient(180deg,rgba(241,245,242,0),var(--bg) 40%);">
+              <button style="width:100%;height:54px;border:none;border-radius:999px;background:var(--primary);color:#fff;font:700 16px 'Figtree';cursor:pointer;box-shadow:0 12px 24px -10px rgba(16,162,108,.65);">Enviar solicitud</button>
+            </div>
+          </div>
+        </div>
+      </figure>
+
+      <!-- 03 · SOLICITUD ENVIADA -->
+      <figure style="margin:0;flex:0 0 auto;width:392px;">
+        <figcaption style="font:600 13.5px 'Figtree';color:var(--muted);margin:0 0 14px 4px;display:flex;gap:10px;align-items:center;"><span style="font-weight:800;color:var(--ink);background:var(--surface);border:1px solid var(--border);width:28px;height:28px;border-radius:9px;display:inline-flex;align-items:center;justify-content:center;">03</span> Solicitud enviada · pendiente</figcaption>
+        <div style="width:392px;height:812px;border-radius:48px;background:#0e1a15;padding:11px;box-shadow:0 45px 90px -34px rgba(20,40,30,.55);position:relative;">
+          <div style="position:absolute;top:24px;left:50%;transform:translateX(-50%);width:120px;height:31px;background:#0e1a15;border-radius:999px;z-index:6;"></div>
+          <div style="width:100%;height:100%;border-radius:38px;overflow:hidden;background:linear-gradient(180deg,#DFF6EA,#F1F5F2 46%);position:relative;display:flex;flex-direction:column;">
+            <div style="height:52px;flex:0 0 auto;"><dc-import name="StatusBar" tint="#0b7e52" hint-size="100%,100%"></dc-import></div>
+            <div style="flex:1;display:flex;flex-direction:column;align-items:center;justify-content:center;text-align:center;padding:0 34px;">
+              <div style="width:96px;height:96px;border-radius:50%;background:#fff;box-shadow:0 20px 40px -16px rgba(16,162,108,.45);display:flex;align-items:center;justify-content:center;position:relative;">
+                <div style="width:70px;height:70px;border-radius:50%;background:var(--success-soft);display:flex;align-items:center;justify-content:center;"><span style="color:var(--success);font-size:38px;">✓</span></div>
+              </div>
+              <div style="font-family:'Bricolage Grotesque','Figtree',sans-serif;font-weight:700;letter-spacing:-.015em;font-size:30px;margin-top:26px;color:#0f2b22;">Solicitud enviada</div>
+              <div style="color:var(--muted);font-size:15px;margin-top:12px;line-height:1.55;">Gracias, Marta. La junta revisará tu acceso para el <b style="color:var(--ink)">2º C Dcha</b>. Te avisaremos por correo en cuanto se apruebe.</div>
+              <div style="margin-top:26px;display:inline-flex;align-items:center;gap:10px;background:var(--warn-soft);border:1px solid #eed49a;padding:11px 18px;border-radius:999px;">
+                <span style="width:9px;height:9px;border-radius:50%;background:var(--warn);box-shadow:0 0 0 4px rgba(207,138,23,.18);"></span>
+                <span style="font-weight:700;font-size:13.5px;color:#9C5220;">Pendiente de aprobación</span>
+              </div>
+            </div>
+            <div style="flex:0 0 auto;padding:0 30px 40px;">
+              <button style="width:100%;height:52px;border:1.5px solid var(--border-strong);border-radius:999px;background:#fff;color:var(--ink);font:600 15px 'Figtree';cursor:pointer;">Volver a la entrada</button>
+            </div>
+          </div>
+        </div>
+      </figure>
+
+      <!-- 04 · HOME -->
+      <figure style="margin:0;flex:0 0 auto;width:392px;">
+        <figcaption style="font:600 13.5px 'Figtree';color:var(--muted);margin:0 0 14px 4px;display:flex;gap:10px;align-items:center;"><span style="font-weight:800;color:var(--ink);background:var(--surface);border:1px solid var(--border);width:28px;height:28px;border-radius:9px;display:inline-flex;align-items:center;justify-content:center;">04</span> Inicio · Home</figcaption>
+        <div style="width:392px;height:812px;border-radius:48px;background:#0e1a15;padding:11px;box-shadow:0 45px 90px -34px rgba(20,40,30,.55);position:relative;">
+          <div style="position:absolute;top:24px;left:50%;transform:translateX(-50%);width:120px;height:31px;background:#0e1a15;border-radius:999px;z-index:6;"></div>
+          <div style="width:100%;height:100%;border-radius:38px;overflow:hidden;background:var(--bg);position:relative;display:flex;flex-direction:column;">
+            <div style="flex:0 0 auto;background:linear-gradient(160deg,#16B478,#0b7e52);padding-bottom:20px;">
+              <div style="height:52px;"><dc-import name="StatusBar" tint="#eafff6" hint-size="100%,100%"></dc-import></div>
+              <div style="padding:4px 22px 0;display:flex;align-items:center;gap:13px;">
+                <div style="flex:1;">
+                  <div style="color:rgba(255,255,255,.72);font-size:13px;font-weight:600;">Sábado, 6 de julio</div>
+                  <div style="font-family:'Bricolage Grotesque','Figtree',sans-serif;font-weight:700;letter-spacing:-.015em;font-size:27px;color:#fff;line-height:1.1;">¡Hola, Marta! 👋</div>
+                </div>
+                <div style="width:44px;height:44px;border-radius:13px;background:rgba(255,255,255,.14);border:1px solid rgba(255,255,255,.25);display:flex;align-items:center;justify-content:center;color:#fff;position:relative;">
+                  <svg width="21" height="21" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.9" stroke-linecap="round"><path d="M6 8a6 6 0 0 1 12 0c0 6 2 7 2 7H4s2-1 2-7"/><path d="M10 19a2 2 0 0 0 4 0"/></svg>
+                  <span style="position:absolute;top:9px;right:10px;width:8px;height:8px;border-radius:50%;background:var(--accent);border:1.5px solid #0b7e52;"></span>
+                </div>
+                <div style="width:44px;height:44px;border-radius:50%;background:#fff;display:flex;align-items:center;justify-content:center;font:700 15px 'Figtree';color:var(--primary-700);">MR</div>
+              </div>
+            </div>
+
+            <div style="flex:1;overflow:hidden;margin-top:-10px;background:var(--bg);border-radius:20px 20px 0 0;padding:18px 20px 0;">
+              <!-- vistazo en vivo -->
+              <div style="display:flex;align-items:center;justify-content:space-between;margin-bottom:11px;">
+                <span style="font:800 11.5px 'Figtree';letter-spacing:.12em;text-transform:uppercase;color:var(--faint);">Hoy en tu comunidad</span>
+              </div>
+              <div style="background:linear-gradient(135deg,#10A26C,#0B7E52);border-radius:18px;padding:16px 18px;display:flex;align-items:center;gap:14px;color:#fff;box-shadow:0 14px 30px -16px rgba(20,40,30,.6);">
+                <div style="width:46px;height:46px;border-radius:13px;background:rgba(242,121,59,.22);display:flex;align-items:center;justify-content:center;color:var(--accent);flex:0 0 auto;">
+                  <svg width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.9" stroke-linecap="round" stroke-linejoin="round"><path d="M5 11.5 6.6 7A2 2 0 0 1 8.5 5.7h7A2 2 0 0 1 17.4 7L19 11.5"/><path d="M5 11.5h14v6H5z"/><path d="M7.5 17.5v2M16.5 17.5v2"/></svg>
+                </div>
+                <div style="flex:1;">
+                  <div style="font-size:12.5px;color:rgba(255,255,255,.66);">Esta quincena aparcas en la</div>
+                  <div style="font-weight:700;font-size:18px;margin-top:1px;">Plaza P-14 <span style="font-weight:500;color:rgba(255,255,255,.6);font-size:13px;">· nivel −1</span></div>
+                </div>
+                <span style="color:rgba(255,255,255,.5);font-size:22px;">›</span>
+              </div>
+              <div style="display:flex;gap:12px;margin-top:12px;">
+                <div style="flex:1;background:var(--surface);border:1px solid var(--border);border-radius:16px;padding:13px 14px;">
+                  <div style="display:flex;align-items:center;gap:7px;"><span style="width:8px;height:8px;border-radius:50%;background:var(--info);"></span><span style="font-size:11.5px;font-weight:700;color:var(--info);text-transform:uppercase;letter-spacing:.04em;">Votación</span></div>
+                  <div style="font-weight:700;font-size:14px;margin-top:7px;line-height:1.25;">Horario de piscina</div>
+                  <div style="font-size:12px;color:var(--muted);margin-top:3px;">Cierra en 4 días</div>
+                </div>
+                <div style="flex:1;background:var(--surface);border:1px solid var(--border);border-radius:16px;padding:13px 14px;">
+                  <div style="display:flex;align-items:center;gap:7px;"><span style="width:8px;height:8px;border-radius:50%;background:var(--accent);"></span><span style="font-size:11.5px;font-weight:700;color:#9C5220;text-transform:uppercase;letter-spacing:.04em;">Junta</span></div>
+                  <div style="font-weight:700;font-size:14px;margin-top:7px;line-height:1.25;">Reunión anual</div>
+                  <div style="font-size:12px;color:var(--muted);margin-top:3px;">18 jul · 19:00</div>
+                </div>
+              </div>
+
+              <div style="margin-top:12px;background:var(--accent-soft);border:1px solid #F8CFAF;border-radius:16px;padding:11px 13px;display:flex;align-items:center;gap:11px;">
+                <div style="width:36px;height:36px;border-radius:50%;background:#fff;display:flex;align-items:center;justify-content:center;color:#E2571B;flex:0 0 auto;"><svg width="19" height="19" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.9" stroke-linecap="round" stroke-linejoin="round"><path d="M12 3v2M12 19v2M3 12h2M19 12h2M5.6 5.6l1.4 1.4M17 17l1.4 1.4M5.6 18.4 7 17M17 7l1.4-1.4"/><circle cx="12" cy="12" r="4"/></svg></div>
+                <div style="flex:1;"><div style="font-weight:700;font-size:13.5px;color:#7A3E12;">Cena de vecinos en el patio</div><div style="font-size:12px;color:#9C5220;margin-top:1px;">Sáb 19 · 21:00 · trae algo para compartir</div></div>
+                <span style="font:700 12.5px 'Figtree';color:#fff;background:var(--accent);padding:8px 14px;border-radius:999px;">Voy</span>
+              </div>
+
+              <!-- módulos -->
+              <div style="font:800 11.5px 'Figtree';letter-spacing:.12em;text-transform:uppercase;color:var(--faint);margin:20px 0 11px;">¿Qué necesitas?</div>
+              <div style="display:grid;grid-template-columns:1fr 1fr 1fr;gap:11px;">
+                <div style="background:var(--surface);border:1px solid var(--border);border-radius:16px;padding:14px 10px;display:flex;flex-direction:column;align-items:center;gap:9px;position:relative;">
+                  <span style="position:absolute;top:9px;right:10px;font:700 10px 'Figtree';color:#fff;background:var(--danger);border-radius:999px;padding:2px 7px;">2</span>
+                  <div style="width:42px;height:42px;border-radius:14px;background:#FFE4DB;color:#D9542B;display:flex;align-items:center;justify-content:center;"><svg width="22" height="22" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.9" stroke-linecap="round" stroke-linejoin="round"><path d="M12 3 2.5 20h19L12 3Z"/><path d="M12 10v4M12 17.5v.01"/></svg></div>
+                  <span style="font-weight:600;font-size:12.5px;text-align:center;">Incidencias</span>
+                </div>
+                <div style="background:var(--surface);border:1px solid var(--border);border-radius:16px;padding:14px 10px;display:flex;flex-direction:column;align-items:center;gap:9px;">
+                  <div style="width:42px;height:42px;border-radius:14px;background:#DFEDFC;color:#2F76C9;display:flex;align-items:center;justify-content:center;"><svg width="22" height="22" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.9" stroke-linecap="round" stroke-linejoin="round"><path d="M5 4.5h14v15H5z"/><path d="M9 12l2 2 4-4"/></svg></div>
+                  <span style="font-weight:600;font-size:12.5px;text-align:center;line-height:1.15;">Votaciones</span>
+                </div>
+                <div style="background:var(--surface);border:1px solid var(--border);border-radius:16px;padding:14px 10px;display:flex;flex-direction:column;align-items:center;gap:9px;">
+                  <div style="width:42px;height:42px;border-radius:14px;background:#DCF5E8;color:#0B7E52;display:flex;align-items:center;justify-content:center;"><svg width="22" height="22" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.9" stroke-linecap="round" stroke-linejoin="round"><path d="M4 5.5h16v15H4z"/><path d="M4 9.5h16"/><path d="M8 3v4M16 3v4"/></svg></div>
+                  <span style="font-weight:600;font-size:12.5px;text-align:center;">Reservas</span>
+                </div>
+                <div style="background:var(--surface);border:1px solid var(--border);border-radius:16px;padding:14px 10px;display:flex;flex-direction:column;align-items:center;gap:9px;">
+                  <div style="width:42px;height:42px;border-radius:14px;background:#EAE5FA;color:#7059C9;display:flex;align-items:center;justify-content:center;"><svg width="22" height="22" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.9" stroke-linecap="round" stroke-linejoin="round"><path d="M5 11.5 6.6 7A2 2 0 0 1 8.5 5.7h7A2 2 0 0 1 17.4 7L19 11.5"/><path d="M5 11.5h14v6H5z"/><path d="M7.5 17.5v2M16.5 17.5v2"/></svg></div>
+                  <span style="font-weight:600;font-size:12.5px;text-align:center;">Parking</span>
+                </div>
+                <div style="background:var(--surface);border:1px solid var(--border);border-radius:16px;padding:14px 10px;display:flex;flex-direction:column;align-items:center;gap:9px;">
+                  <div style="width:42px;height:42px;border-radius:14px;background:#FFF0D0;color:#A87414;display:flex;align-items:center;justify-content:center;"><svg width="22" height="22" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.9" stroke-linecap="round" stroke-linejoin="round"><path d="M6.5 4h3l1.5 4-2 1.5a12 12 0 0 0 5 5l1.5-2 4 1.5V21a2 2 0 0 1-2 2A16 16 0 0 1 3 6a2 2 0 0 1 2-2Z"/></svg></div>
+                  <span style="font-weight:600;font-size:12.5px;text-align:center;">Contactos</span>
+                </div>
+                <div style="background:var(--surface);border:1px solid var(--border);border-radius:16px;padding:14px 10px;display:flex;flex-direction:column;align-items:center;gap:9px;">
+                  <div style="width:42px;height:42px;border-radius:14px;background:#E5F4D9;color:#58991F;display:flex;align-items:center;justify-content:center;"><svg width="22" height="22" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.9" stroke-linecap="round" stroke-linejoin="round"><path d="M12 3C7.5 7.5 7.5 14 12 21c4.5-7 4.5-13.5 0-18Z"/><path d="M4.5 20.5 12 13"/></svg></div>
+                  <span style="font-weight:600;font-size:12.5px;text-align:center;">Reciclaje</span>
+                </div>
+              </div>
+            </div>
+            <div style="flex:0 0 auto;height:78px;"><dc-import name="TabBar" active="inicio" hint-size="100%,100%"></dc-import></div>
+          </div>
+        </div>
+      </figure>
+
+      <!-- 05 · INCIDENCIAS LISTA -->
+      <figure style="margin:0;flex:0 0 auto;width:392px;">
+        <figcaption style="font:600 13.5px 'Figtree';color:var(--muted);margin:0 0 14px 4px;display:flex;gap:10px;align-items:center;"><span style="font-weight:800;color:var(--ink);background:var(--surface);border:1px solid var(--border);width:28px;height:28px;border-radius:9px;display:inline-flex;align-items:center;justify-content:center;">05</span> Incidencias · lista</figcaption>
+        <div style="width:392px;height:812px;border-radius:48px;background:#0e1a15;padding:11px;box-shadow:0 45px 90px -34px rgba(20,40,30,.55);position:relative;">
+          <div style="position:absolute;top:24px;left:50%;transform:translateX(-50%);width:120px;height:31px;background:#0e1a15;border-radius:999px;z-index:6;"></div>
+          <div style="width:100%;height:100%;border-radius:38px;overflow:hidden;background:var(--bg);position:relative;display:flex;flex-direction:column;">
+            <div style="flex:0 0 auto;background:var(--surface);border-bottom:1px solid var(--border);">
+              <div style="height:52px;"><dc-import name="StatusBar" tint="#132520" hint-size="100%,100%"></dc-import></div>
+              <div style="padding:2px 20px 12px;display:flex;align-items:center;gap:12px;">
+                <div style="width:40px;height:40px;border-radius:12px;border:1px solid var(--border);display:flex;align-items:center;justify-content:center;font-size:20px;">‹</div>
+                <div style="font-family:'Bricolage Grotesque','Figtree',sans-serif;font-weight:700;letter-spacing:-.015em;font-size:25px;flex:1;">Incidencias</div>
+              </div>
+              <div style="display:flex;gap:8px;padding:0 20px 14px;">
+                <span style="font:700 12.5px 'Figtree';color:#fff;background:var(--primary);padding:8px 15px;border-radius:999px;">Todas · 4</span>
+                <span style="font:600 12.5px 'Figtree';color:var(--muted);background:var(--surface-2);border:1px solid var(--border);padding:8px 15px;border-radius:999px;">Abiertas · 2</span>
+                <span style="font:600 12.5px 'Figtree';color:var(--muted);background:var(--surface-2);border:1px solid var(--border);padding:8px 15px;border-radius:999px;">En curso</span>
+              </div>
+            </div>
+            <div style="flex:1;overflow:hidden;padding:16px 18px 0;display:flex;flex-direction:column;gap:12px;">
+              <div style="background:var(--surface);border:1px solid var(--border);border-radius:16px;padding:15px 16px;">
+                <div style="display:flex;justify-content:space-between;gap:10px;"><div style="font-weight:700;font-size:15.5px;">Luz fundida en el portal</div><span style="font:700 11px 'Figtree';color:#a3341f;background:var(--danger-soft);padding:4px 10px;border-radius:999px;white-space:nowrap;height:fit-content;">Abierta</span></div>
+                <div style="color:var(--muted);font-size:13px;margin-top:5px;">Portal · reportada por 3º B · hace 2 h</div>
+                <div style="display:flex;align-items:center;gap:8px;margin-top:12px;"><span style="font:600 11.5px 'Figtree';color:var(--muted);background:var(--surface-2);border:1px solid var(--border);padding:4px 10px;border-radius:999px;">Iluminación</span><span style="margin-left:auto;font-size:12px;color:var(--faint);display:flex;align-items:center;gap:4px;">💬 2</span></div>
+              </div>
+              <div style="background:var(--surface);border:1px solid var(--border);border-radius:16px;padding:15px 16px;">
+                <div style="display:flex;justify-content:space-between;gap:10px;"><div style="font-weight:700;font-size:15.5px;">Ruido en el ascensor</div><span style="font:700 11px 'Figtree';color:#1f5aa3;background:var(--info-soft);padding:4px 10px;border-radius:999px;white-space:nowrap;height:fit-content;">En curso</span></div>
+                <div style="color:var(--muted);font-size:13px;margin-top:5px;">Ascensor A · técnico avisado · ayer</div>
+                <div style="display:flex;align-items:center;gap:8px;margin-top:12px;"><span style="font:600 11.5px 'Figtree';color:var(--muted);background:var(--surface-2);border:1px solid var(--border);padding:4px 10px;border-radius:999px;">Ascensor</span><span style="margin-left:auto;font-size:12px;color:var(--faint);display:flex;align-items:center;gap:4px;">💬 5</span></div>
+              </div>
+              <div style="background:var(--surface);border:1px solid var(--border);border-radius:16px;padding:15px 16px;">
+                <div style="display:flex;justify-content:space-between;gap:10px;"><div style="font-weight:700;font-size:15.5px;">Gotera en el garaje</div><span style="font:700 11px 'Figtree';color:#a3341f;background:var(--danger-soft);padding:4px 10px;border-radius:999px;white-space:nowrap;height:fit-content;">Abierta</span></div>
+                <div style="color:var(--muted);font-size:13px;margin-top:5px;">Nivel −1 · reportada por Bajo Izq · 3 jul</div>
+                <div style="display:flex;align-items:center;gap:8px;margin-top:12px;"><span style="font:600 11.5px 'Figtree';color:var(--muted);background:var(--surface-2);border:1px solid var(--border);padding:4px 10px;border-radius:999px;">Filtraciones</span><span style="margin-left:auto;font-size:12px;color:var(--faint);display:flex;align-items:center;gap:4px;">💬 1</span></div>
+              </div>
+              <div style="background:var(--surface);border:1px solid var(--border);border-radius:16px;padding:15px 16px;opacity:.72;">
+                <div style="display:flex;justify-content:space-between;gap:10px;"><div style="font-weight:700;font-size:15.5px;">Puerta del trastero</div><span style="font:700 11px 'Figtree';color:#0f6b3f;background:var(--success-soft);padding:4px 10px;border-radius:999px;white-space:nowrap;height:fit-content;">Resuelta</span></div>
+                <div style="color:var(--muted);font-size:13px;margin-top:5px;">Trasteros · cerrada el 1 jul</div>
+              </div>
+            </div>
+            <div style="position:absolute;right:22px;bottom:96px;width:58px;height:58px;border-radius:999px;background:var(--primary);box-shadow:0 16px 30px -10px rgba(16,162,108,.7);display:flex;align-items:center;justify-content:center;color:#fff;font-size:30px;font-weight:300;z-index:5;">+</div>
+            <div style="flex:0 0 auto;height:78px;"><dc-import name="TabBar" active="incidencias" hint-size="100%,100%"></dc-import></div>
+          </div>
+        </div>
+      </figure>
+
+      <!-- 06 · INCIDENCIA DETALLE -->
+      <figure style="margin:0;flex:0 0 auto;width:392px;">
+        <figcaption style="font:600 13.5px 'Figtree';color:var(--muted);margin:0 0 14px 4px;display:flex;gap:10px;align-items:center;"><span style="font-weight:800;color:var(--ink);background:var(--surface);border:1px solid var(--border);width:28px;height:28px;border-radius:9px;display:inline-flex;align-items:center;justify-content:center;">06</span> Incidencia · detalle</figcaption>
+        <div style="width:392px;height:812px;border-radius:48px;background:#0e1a15;padding:11px;box-shadow:0 45px 90px -34px rgba(20,40,30,.55);position:relative;">
+          <div style="position:absolute;top:24px;left:50%;transform:translateX(-50%);width:120px;height:31px;background:#0e1a15;border-radius:999px;z-index:6;"></div>
+          <div style="width:100%;height:100%;border-radius:38px;overflow:hidden;background:var(--bg);position:relative;display:flex;flex-direction:column;">
+            <div style="flex:0 0 auto;background:var(--surface);border-bottom:1px solid var(--border);">
+              <div style="height:52px;"><dc-import name="StatusBar" tint="#132520" hint-size="100%,100%"></dc-import></div>
+              <div style="padding:2px 20px 12px;display:flex;align-items:center;gap:12px;">
+                <div style="width:40px;height:40px;border-radius:12px;border:1px solid var(--border);display:flex;align-items:center;justify-content:center;font-size:20px;">‹</div>
+                <div style="font-weight:700;font-size:15px;flex:1;">Incidencia #128</div>
+                <div style="width:40px;height:40px;border-radius:12px;border:1px solid var(--border);display:flex;align-items:center;justify-content:center;color:var(--muted);"><svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round"><circle cx="12" cy="5" r="1.4"/><circle cx="12" cy="12" r="1.4"/><circle cx="12" cy="19" r="1.4"/></svg></div>
+              </div>
+            </div>
+            <div style="flex:1;overflow:hidden;padding:0;display:flex;flex-direction:column;">
+              <div style="padding:16px 20px 0;">
+                <span style="font:700 11px 'Figtree';color:#a3341f;background:var(--danger-soft);padding:5px 11px;border-radius:999px;">● Abierta</span>
+                <div style="font-family:'Bricolage Grotesque','Figtree',sans-serif;font-weight:700;letter-spacing:-.015em;font-size:26px;margin-top:12px;line-height:1.1;">Luz fundida en el portal</div>
+                <div style="color:var(--muted);font-size:13.5px;margin-top:7px;">Reportada por 3º B · hoy, 08:20 · Iluminación</div>
+              </div>
+              <!-- stepper -->
+              <div style="display:flex;align-items:center;padding:16px 20px;gap:0;">
+                <div style="display:flex;flex-direction:column;align-items:center;flex:1;"><div style="width:26px;height:26px;border-radius:50%;background:var(--primary);color:#fff;display:flex;align-items:center;justify-content:center;font-size:13px;">✓</div><span style="font-size:10px;color:var(--ink);font-weight:700;margin-top:5px;">Abierta</span></div>
+                <div style="flex:.6;height:2px;background:var(--border-strong);margin-top:-14px;"></div>
+                <div style="display:flex;flex-direction:column;align-items:center;flex:1;"><div style="width:26px;height:26px;border-radius:50%;background:var(--surface);border:2px dashed var(--border-strong);"></div><span style="font-size:10px;color:var(--faint);margin-top:5px;">En curso</span></div>
+                <div style="flex:.6;height:2px;background:var(--border-strong);margin-top:-14px;"></div>
+                <div style="display:flex;flex-direction:column;align-items:center;flex:1;"><div style="width:26px;height:26px;border-radius:50%;background:var(--surface);border:2px dashed var(--border-strong);"></div><span style="font-size:10px;color:var(--faint);margin-top:5px;">Resuelta</span></div>
+                <div style="flex:.6;height:2px;background:var(--border-strong);margin-top:-14px;"></div>
+                <div style="display:flex;flex-direction:column;align-items:center;flex:1;"><div style="width:26px;height:26px;border-radius:50%;background:var(--surface);border:2px dashed var(--border-strong);"></div><span style="font-size:10px;color:var(--faint);margin-top:5px;">Cerrada</span></div>
+              </div>
+              <div style="flex:1;overflow:hidden;padding:0 20px;">
+                <div style="display:flex;gap:10px;">
+                  <div style="flex:1;height:96px;border-radius:14px;background:linear-gradient(135deg,#dfe7e2,#cfdad3);display:flex;align-items:center;justify-content:center;color:var(--faint);"><svg width="26" height="26" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.7"><rect x="3" y="5" width="18" height="14" rx="2"/><circle cx="9" cy="11" r="2"/><path d="m3 17 5-4 4 3 3-2 6 5" stroke-linecap="round" stroke-linejoin="round"/></svg></div>
+                  <div style="flex:1;height:96px;border-radius:14px;background:linear-gradient(135deg,#dfe7e2,#cfdad3);display:flex;align-items:center;justify-content:center;color:var(--faint);"><svg width="26" height="26" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.7"><rect x="3" y="5" width="18" height="14" rx="2"/><circle cx="9" cy="11" r="2"/><path d="m3 17 5-4 4 3 3-2 6 5" stroke-linecap="round" stroke-linejoin="round"/></svg></div>
+                </div>
+                <div style="font-size:14px;color:var(--ink);line-height:1.55;margin-top:14px;">La bombilla de la entrada lleva dos días sin funcionar. Por la noche se ve muy poco al entrar. Adjunto fotos.</div>
+                <div style="font:800 11px 'Figtree';letter-spacing:.1em;text-transform:uppercase;color:var(--faint);margin:16px 0 10px;">Comentarios</div>
+                <div style="display:flex;gap:10px;margin-bottom:10px;"><div style="width:32px;height:32px;border-radius:50%;background:var(--accent-soft);color:#9C5220;display:flex;align-items:center;justify-content:center;font:700 12px 'Figtree';flex:0 0 auto;">JT</div><div style="background:var(--surface);border:1px solid var(--border);border-radius:12px;padding:10px 12px;"><div style="font-size:12px;color:var(--muted);"><b style="color:var(--ink)">Junta</b> · hace 1 h</div><div style="font-size:13.5px;margin-top:2px;">Avisamos al electricista para mañana.</div></div></div>
+              </div>
+              <div style="flex:0 0 auto;padding:12px 18px 26px;background:var(--surface);border-top:1px solid var(--border);display:flex;gap:10px;align-items:center;">
+                <div style="flex:1;height:44px;border:1.5px solid var(--border-strong);border-radius:999px;display:flex;align-items:center;padding:0 16px;color:var(--faint);font-size:14px;">Escribe un comentario…</div>
+                <div style="width:44px;height:44px;border-radius:50%;background:var(--primary);display:flex;align-items:center;justify-content:center;color:#fff;"><svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="m4 12 16-8-6 16-3-6-7-2Z"/></svg></div>
+              </div>
+            </div>
+          </div>
+        </div>
+      </figure>
+
+      <!-- 07 · NUEVA INCIDENCIA -->
+      <figure style="margin:0;flex:0 0 auto;width:392px;">
+        <figcaption style="font:600 13.5px 'Figtree';color:var(--muted);margin:0 0 14px 4px;display:flex;gap:10px;align-items:center;"><span style="font-weight:800;color:var(--ink);background:var(--surface);border:1px solid var(--border);width:28px;height:28px;border-radius:9px;display:inline-flex;align-items:center;justify-content:center;">07</span> Nueva incidencia</figcaption>
+        <div style="width:392px;height:812px;border-radius:48px;background:#0e1a15;padding:11px;box-shadow:0 45px 90px -34px rgba(20,40,30,.55);position:relative;">
+          <div style="position:absolute;top:24px;left:50%;transform:translateX(-50%);width:120px;height:31px;background:#0e1a15;border-radius:999px;z-index:6;"></div>
+          <div style="width:100%;height:100%;border-radius:38px;overflow:hidden;background:var(--bg);position:relative;display:flex;flex-direction:column;">
+            <div style="flex:0 0 auto;background:var(--surface);border-bottom:1px solid var(--border);">
+              <div style="height:52px;"><dc-import name="StatusBar" tint="#132520" hint-size="100%,100%"></dc-import></div>
+              <div style="padding:2px 20px 12px;display:flex;align-items:center;gap:12px;">
+                <div style="width:40px;height:40px;border-radius:12px;border:1px solid var(--border);display:flex;align-items:center;justify-content:center;font-size:22px;color:var(--muted);">×</div>
+                <div style="font-family:'Bricolage Grotesque','Figtree',sans-serif;font-weight:700;letter-spacing:-.015em;font-size:24px;flex:1;">Nueva incidencia</div>
+              </div>
+            </div>
+            <div style="flex:1;overflow:hidden;padding:16px 20px 0;display:flex;flex-direction:column;gap:15px;">
+              <div>
+                <label style="font-size:13px;font-weight:600;color:var(--muted);">Título</label>
+                <div style="margin-top:7px;height:50px;border:1.5px solid var(--border-strong);border-radius:13px;background:#fff;display:flex;align-items:center;padding:0 15px;font-size:15px;">Grieta en la fachada</div>
+              </div>
+              <div>
+                <label style="font-size:13px;font-weight:600;color:var(--muted);">Categoría</label>
+                <div style="display:flex;flex-wrap:wrap;gap:8px;margin-top:9px;">
+                  <span style="font:700 12.5px 'Figtree';color:#fff;background:var(--primary);padding:8px 13px;border-radius:999px;">Fachada</span>
+                  <span style="font:600 12.5px 'Figtree';color:var(--muted);background:var(--surface-2);border:1px solid var(--border);padding:8px 13px;border-radius:999px;">Iluminación</span>
+                  <span style="font:600 12.5px 'Figtree';color:var(--muted);background:var(--surface-2);border:1px solid var(--border);padding:8px 13px;border-radius:999px;">Ascensor</span>
+                  <span style="font:600 12.5px 'Figtree';color:var(--muted);background:var(--surface-2);border:1px solid var(--border);padding:8px 13px;border-radius:999px;">Limpieza</span>
+                </div>
+              </div>
+              <div>
+                <label style="font-size:13px;font-weight:600;color:var(--muted);">Descripción</label>
+                <div style="margin-top:7px;height:88px;border:1.5px solid var(--border-strong);border-radius:13px;background:#fff;padding:12px 15px;font-size:14px;color:var(--faint);line-height:1.5;">Describe qué ocurre y dónde…</div>
+              </div>
+              <div>
+                <label style="font-size:13px;font-weight:600;color:var(--muted);">Foto</label>
+                <div style="display:flex;gap:10px;margin-top:9px;">
+                  <div style="width:82px;height:82px;border-radius:14px;border:2px dashed var(--border-strong);background:var(--surface-2);display:flex;flex-direction:column;align-items:center;justify-content:center;gap:5px;color:var(--primary-700);"><svg width="22" height="22" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.9" stroke-linecap="round" stroke-linejoin="round"><path d="M4 8h3l1.5-2h7L17 8h3v11H4z"/><circle cx="12" cy="13" r="3.4"/></svg><span style="font-size:10.5px;font-weight:700;">Añadir</span></div>
+                  <div style="width:82px;height:82px;border-radius:14px;background:linear-gradient(135deg,#dfe7e2,#cfdad3);position:relative;"><span style="position:absolute;top:5px;right:5px;width:20px;height:20px;border-radius:50%;background:rgba(19,37,32,.7);color:#fff;display:flex;align-items:center;justify-content:center;font-size:13px;">×</span></div>
+                </div>
+              </div>
+            </div>
+            <div style="flex:0 0 auto;padding:14px 20px 30px;">
+              <button style="width:100%;height:54px;border:none;border-radius:999px;background:var(--primary);color:#fff;font:700 16px 'Figtree';cursor:pointer;box-shadow:0 12px 24px -10px rgba(16,162,108,.65);">Crear incidencia</button>
+            </div>
+          </div>
+        </div>
+      </figure>
+
+      <!-- 08 · PROPUESTAS LISTA -->
+      <figure style="margin:0;flex:0 0 auto;width:392px;">
+        <figcaption style="font:600 13.5px 'Figtree';color:var(--muted);margin:0 0 14px 4px;display:flex;gap:10px;align-items:center;"><span style="font-weight:800;color:var(--ink);background:var(--surface);border:1px solid var(--border);width:28px;height:28px;border-radius:9px;display:inline-flex;align-items:center;justify-content:center;">08</span> Propuestas y votaciones</figcaption>
+        <div style="width:392px;height:812px;border-radius:48px;background:#0e1a15;padding:11px;box-shadow:0 45px 90px -34px rgba(20,40,30,.55);position:relative;">
+          <div style="position:absolute;top:24px;left:50%;transform:translateX(-50%);width:120px;height:31px;background:#0e1a15;border-radius:999px;z-index:6;"></div>
+          <div style="width:100%;height:100%;border-radius:38px;overflow:hidden;background:var(--bg);position:relative;display:flex;flex-direction:column;">
+            <div style="flex:0 0 auto;background:var(--surface);border-bottom:1px solid var(--border);">
+              <div style="height:52px;"><dc-import name="StatusBar" tint="#132520" hint-size="100%,100%"></dc-import></div>
+              <div style="padding:2px 20px 14px;display:flex;align-items:center;gap:12px;">
+                <div style="width:40px;height:40px;border-radius:12px;border:1px solid var(--border);display:flex;align-items:center;justify-content:center;font-size:20px;">‹</div>
+                <div style="font-family:'Bricolage Grotesque','Figtree',sans-serif;font-weight:700;letter-spacing:-.015em;font-size:23px;flex:1;line-height:1.05;">Propuestas</div>
+              </div>
+            </div>
+            <div style="flex:1;overflow:hidden;padding:16px 18px 0;display:flex;flex-direction:column;gap:13px;">
+              <div style="background:var(--surface);border:1.5px solid var(--primary);border-radius:16px;padding:16px;box-shadow:0 10px 24px -16px rgba(16,162,108,.5);">
+                <div style="display:flex;justify-content:space-between;align-items:center;"><span style="font:700 11px 'Figtree';color:var(--primary-700);background:var(--primary-soft);padding:5px 11px;border-radius:999px;">● Votación abierta</span><span style="font-size:12px;color:var(--muted);">Cierra en 4 días</span></div>
+                <div style="font-weight:700;font-size:16px;margin-top:11px;line-height:1.3;">Nuevo horario de la piscina en verano</div>
+                <div style="color:var(--muted);font-size:13px;margin-top:5px;line-height:1.45;">Propuesta por la Junta · 3 opciones</div>
+                <div style="display:flex;align-items:center;gap:12px;margin-top:13px;">
+                  <div style="flex:1;height:7px;background:var(--surface-2);border-radius:999px;overflow:hidden;"><div style="width:58%;height:100%;background:var(--primary);"></div></div>
+                  <span style="font-size:12px;font-weight:700;color:var(--muted);">23/40</span>
+                </div>
+                <button style="width:100%;height:46px;margin-top:14px;border:none;border-radius:999px;background:var(--primary);color:#fff;font:700 14.5px 'Figtree';cursor:pointer;">Votar ahora</button>
+              </div>
+              <div style="background:var(--surface);border:1px solid var(--border);border-radius:16px;padding:16px;">
+                <div style="display:flex;justify-content:space-between;align-items:center;"><span style="font:700 11px 'Figtree';color:#1f5aa3;background:var(--info-soft);padding:5px 11px;border-radius:999px;">Sí / No</span><span style="font-size:12px;color:var(--faint);">Ya votaste ✓</span></div>
+                <div style="font-weight:700;font-size:15.5px;margin-top:11px;line-height:1.3;">Instalar punto de recarga para coche eléctrico</div>
+                <div style="color:var(--muted);font-size:13px;margin-top:5px;">Cierra el 20 jul · 31/40 votos</div>
+              </div>
+              <div style="background:var(--surface);border:1px solid var(--border);border-radius:16px;padding:16px;opacity:.75;">
+                <div style="display:flex;justify-content:space-between;align-items:center;"><span style="font:700 11px 'Figtree';color:var(--muted);background:var(--surface-2);border:1px solid var(--border);padding:5px 11px;border-radius:999px;">Cerrada</span><span style="font-size:12px;color:var(--success);font-weight:700;">Aprobada</span></div>
+                <div style="font-weight:700;font-size:15.5px;margin-top:11px;line-height:1.3;">Cambio de empresa de limpieza</div>
+                <div style="color:var(--muted);font-size:13px;margin-top:5px;">Ver resultados · 38/40 votos</div>
+              </div>
+            </div>
+            <div style="flex:0 0 auto;height:26px;"></div>
+          </div>
+        </div>
+      </figure>
+
+      <!-- 09 · VOTACIÓN -->
+      <figure style="margin:0;flex:0 0 auto;width:392px;">
+        <figcaption style="font:600 13.5px 'Figtree';color:var(--muted);margin:0 0 14px 4px;display:flex;gap:10px;align-items:center;"><span style="font-weight:800;color:var(--ink);background:var(--surface);border:1px solid var(--border);width:28px;height:28px;border-radius:9px;display:inline-flex;align-items:center;justify-content:center;">09</span> Votación</figcaption>
+        <div style="width:392px;height:812px;border-radius:48px;background:#0e1a15;padding:11px;box-shadow:0 45px 90px -34px rgba(20,40,30,.55);position:relative;">
+          <div style="position:absolute;top:24px;left:50%;transform:translateX(-50%);width:120px;height:31px;background:#0e1a15;border-radius:999px;z-index:6;"></div>
+          <div style="width:100%;height:100%;border-radius:38px;overflow:hidden;background:var(--bg);position:relative;display:flex;flex-direction:column;">
+            <div style="flex:0 0 auto;background:var(--surface);border-bottom:1px solid var(--border);">
+              <div style="height:52px;"><dc-import name="StatusBar" tint="#132520" hint-size="100%,100%"></dc-import></div>
+              <div style="padding:2px 20px 12px;display:flex;align-items:center;gap:12px;">
+                <div style="width:40px;height:40px;border-radius:12px;border:1px solid var(--border);display:flex;align-items:center;justify-content:center;font-size:20px;">‹</div>
+                <div style="font-weight:700;font-size:15px;flex:1;">Votación</div>
+                <span style="font:700 11px 'Figtree';color:var(--primary-700);background:var(--primary-soft);padding:5px 11px;border-radius:999px;">Abierta</span>
+              </div>
+            </div>
+            <div style="flex:1;overflow:hidden;padding:18px 20px 0;">
+              <div style="font-family:'Bricolage Grotesque','Figtree',sans-serif;font-weight:700;letter-spacing:-.015em;font-size:25px;line-height:1.12;">Nuevo horario de la piscina en verano</div>
+              <div style="color:var(--muted);font-size:13.5px;margin-top:9px;line-height:1.5;">Elige el horario que prefieres. Un voto por vivienda; puedes cambiarlo hasta el cierre.</div>
+              <div style="display:flex;flex-direction:column;gap:11px;margin-top:18px;">
+                <div style="border:1.5px solid var(--border-strong);border-radius:15px;padding:15px 16px;display:flex;align-items:center;gap:13px;background:#fff;">
+                  <div style="width:24px;height:24px;border-radius:50%;border:2px solid var(--border-strong);flex:0 0 auto;"></div>
+                  <div><div style="font-weight:700;font-size:15px;">10:00 – 20:00</div><div style="font-size:12.5px;color:var(--muted);">Horario amplio</div></div>
+                </div>
+                <div style="border:2px solid var(--primary);border-radius:15px;padding:15px 16px;display:flex;align-items:center;gap:13px;background:var(--primary-soft);box-shadow:0 0 0 4px rgba(16,162,108,.12);">
+                  <div style="width:24px;height:24px;border-radius:50%;border:2px solid var(--primary);background:var(--primary);flex:0 0 auto;display:flex;align-items:center;justify-content:center;"><span style="width:9px;height:9px;border-radius:50%;background:#fff;"></span></div>
+                  <div><div style="font-weight:700;font-size:15px;color:#0f2b22;">11:00 – 21:00</div><div style="font-size:12.5px;color:#0b7e52;">Tu elección</div></div>
+                </div>
+                <div style="border:1.5px solid var(--border-strong);border-radius:15px;padding:15px 16px;display:flex;align-items:center;gap:13px;background:#fff;">
+                  <div style="width:24px;height:24px;border-radius:50%;border:2px solid var(--border-strong);flex:0 0 auto;"></div>
+                  <div><div style="font-weight:700;font-size:15px;">Mañanas y tardes con cierre</div><div style="font-size:12.5px;color:var(--muted);">Descanso 14–17 h</div></div>
+                </div>
+              </div>
+            </div>
+            <div style="flex:0 0 auto;padding:14px 20px 30px;">
+              <div style="display:flex;align-items:center;gap:8px;justify-content:center;margin-bottom:12px;color:var(--faint);font-size:12px;"><svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><rect x="5" y="10" width="14" height="10" rx="2"/><path d="M8 10V7a4 4 0 0 1 8 0v3"/></svg>Voto anónimo y verificado</div>
+              <button style="width:100%;height:54px;border:none;border-radius:999px;background:var(--primary);color:#fff;font:700 16px 'Figtree';cursor:pointer;box-shadow:0 12px 24px -10px rgba(16,162,108,.65);">Confirmar mi voto</button>
+            </div>
+          </div>
+        </div>
+      </figure>
+
+      <!-- 10 · RESULTADOS -->
+      <figure style="margin:0;flex:0 0 auto;width:392px;">
+        <figcaption style="font:600 13.5px 'Figtree';color:var(--muted);margin:0 0 14px 4px;display:flex;gap:10px;align-items:center;"><span style="font-weight:800;color:var(--ink);background:var(--surface);border:1px solid var(--border);width:28px;height:28px;border-radius:9px;display:inline-flex;align-items:center;justify-content:center;">10</span> Resultados</figcaption>
+        <div style="width:392px;height:812px;border-radius:48px;background:#0e1a15;padding:11px;box-shadow:0 45px 90px -34px rgba(20,40,30,.55);position:relative;">
+          <div style="position:absolute;top:24px;left:50%;transform:translateX(-50%);width:120px;height:31px;background:#0e1a15;border-radius:999px;z-index:6;"></div>
+          <div style="width:100%;height:100%;border-radius:38px;overflow:hidden;background:var(--bg);position:relative;display:flex;flex-direction:column;">
+            <div style="flex:0 0 auto;background:var(--surface);border-bottom:1px solid var(--border);">
+              <div style="height:52px;"><dc-import name="StatusBar" tint="#132520" hint-size="100%,100%"></dc-import></div>
+              <div style="padding:2px 20px 12px;display:flex;align-items:center;gap:12px;">
+                <div style="width:40px;height:40px;border-radius:12px;border:1px solid var(--border);display:flex;align-items:center;justify-content:center;font-size:20px;">‹</div>
+                <div style="font-weight:700;font-size:15px;flex:1;">Resultados</div>
+                <span style="font:700 11px 'Figtree';color:var(--muted);background:var(--surface-2);border:1px solid var(--border);padding:5px 11px;border-radius:999px;">Cerrada</span>
+              </div>
+            </div>
+            <div style="flex:1;overflow:hidden;padding:18px 20px 0;">
+              <div style="font-family:'Bricolage Grotesque','Figtree',sans-serif;font-weight:700;letter-spacing:-.015em;font-size:23px;line-height:1.12;">Nuevo horario de la piscina</div>
+              <div style="display:flex;gap:10px;margin-top:14px;">
+                <div style="flex:1;background:var(--surface);border:1px solid var(--border);border-radius:14px;padding:12px;text-align:center;"><div style="font-weight:800;font-size:22px;color:var(--primary-700);">38</div><div style="font-size:11.5px;color:var(--muted);">votos</div></div>
+                <div style="flex:1;background:var(--surface);border:1px solid var(--border);border-radius:14px;padding:12px;text-align:center;"><div style="font-weight:800;font-size:22px;">95%</div><div style="font-size:11.5px;color:var(--muted);">participación</div></div>
+                <div style="flex:1;background:var(--success-soft);border:1px solid #b8e3c8;border-radius:14px;padding:12px;text-align:center;"><div style="font-weight:800;font-size:15px;color:#0f6b3f;margin-top:5px;">Quórum ✓</div><div style="font-size:11px;color:#3a8a5c;">alcanzado</div></div>
+              </div>
+              <div style="display:flex;flex-direction:column;gap:14px;margin-top:22px;">
+                <div>
+                  <div style="display:flex;justify-content:space-between;font-size:13.5px;margin-bottom:7px;"><span style="font-weight:700;color:#0f2b22;">11:00 – 21:00 <span style="font:700 10px 'Figtree';color:#0b7e52;background:var(--primary-soft);padding:2px 7px;border-radius:999px;margin-left:4px;">Ganadora</span></span><span style="font-weight:700;">58%</span></div>
+                  <div style="height:14px;background:var(--surface-2);border-radius:999px;overflow:hidden;"><div style="width:58%;height:100%;background:var(--primary);border-radius:999px;"></div></div>
+                </div>
+                <div>
+                  <div style="display:flex;justify-content:space-between;font-size:13.5px;margin-bottom:7px;"><span style="color:var(--muted);">10:00 – 20:00</span><span style="font-weight:600;color:var(--muted);">29%</span></div>
+                  <div style="height:14px;background:var(--surface-2);border-radius:999px;overflow:hidden;"><div style="width:29%;height:100%;background:var(--border-strong);border-radius:999px;"></div></div>
+                </div>
+                <div>
+                  <div style="display:flex;justify-content:space-between;font-size:13.5px;margin-bottom:7px;"><span style="color:var(--muted);">Con cierre 14–17 h</span><span style="font-weight:600;color:var(--muted);">13%</span></div>
+                  <div style="height:14px;background:var(--surface-2);border-radius:999px;overflow:hidden;"><div style="width:13%;height:100%;background:var(--border-strong);border-radius:999px;"></div></div>
+                </div>
+              </div>
+              <div style="margin-top:22px;background:var(--primary-soft);border:1px solid #b8e3c8;border-radius:14px;padding:14px 16px;display:flex;align-items:center;gap:11px;"><span style="color:var(--primary-700);font-size:18px;">✓</span><div style="font-size:13.5px;color:#0f2b22;">Tu voto <b>11:00 – 21:00</b> fue registrado.</div></div>
+            </div>
+            <div style="flex:0 0 auto;height:26px;"></div>
+          </div>
+        </div>
+      </figure>
+
+      <!-- 11 · RESERVAS -->
+      <figure style="margin:0;flex:0 0 auto;width:392px;">
+        <figcaption style="font:600 13.5px 'Figtree';color:var(--muted);margin:0 0 14px 4px;display:flex;gap:10px;align-items:center;"><span style="font-weight:800;color:var(--ink);background:var(--surface);border:1px solid var(--border);width:28px;height:28px;border-radius:9px;display:inline-flex;align-items:center;justify-content:center;">11</span> Reservas · zonas comunes</figcaption>
+        <div style="width:392px;height:812px;border-radius:48px;background:#0e1a15;padding:11px;box-shadow:0 45px 90px -34px rgba(20,40,30,.55);position:relative;">
+          <div style="position:absolute;top:24px;left:50%;transform:translateX(-50%);width:120px;height:31px;background:#0e1a15;border-radius:999px;z-index:6;"></div>
+          <div style="width:100%;height:100%;border-radius:38px;overflow:hidden;background:var(--bg);position:relative;display:flex;flex-direction:column;">
+            <div style="flex:0 0 auto;background:var(--surface);border-bottom:1px solid var(--border);">
+              <div style="height:52px;"><dc-import name="StatusBar" tint="#132520" hint-size="100%,100%"></dc-import></div>
+              <div style="padding:2px 20px 12px;display:flex;align-items:center;gap:12px;">
+                <div style="width:40px;height:40px;border-radius:12px;border:1px solid var(--border);display:flex;align-items:center;justify-content:center;font-size:20px;">‹</div>
+                <div style="font-family:'Bricolage Grotesque','Figtree',sans-serif;font-weight:700;letter-spacing:-.015em;font-size:24px;flex:1;">Reservas</div>
+              </div>
+              <div style="display:flex;gap:8px;padding:0 20px 14px;overflow:hidden;">
+                <span style="font:700 12.5px 'Figtree';color:#fff;background:var(--primary);padding:8px 14px;border-radius:999px;white-space:nowrap;">Sala social</span>
+                <span style="font:600 12.5px 'Figtree';color:var(--muted);background:var(--surface-2);border:1px solid var(--border);padding:8px 14px;border-radius:999px;white-space:nowrap;">Piscina</span>
+                <span style="font:600 12.5px 'Figtree';color:var(--muted);background:var(--surface-2);border:1px solid var(--border);padding:8px 14px;border-radius:999px;white-space:nowrap;">Barbacoa</span>
+              </div>
+            </div>
+            <div style="flex:1;overflow:hidden;padding:16px 20px 0;">
+              <div style="font:800 11px 'Figtree';letter-spacing:.1em;text-transform:uppercase;color:var(--faint);margin-bottom:11px;">Julio 2026</div>
+              <div style="display:flex;gap:8px;">
+                <div style="flex:1;text-align:center;padding:9px 0;border-radius:12px;border:1px solid var(--border);background:#fff;"><div style="font-size:11px;color:var(--muted);">Vie</div><div style="font-weight:700;font-size:16px;">11</div></div>
+                <div style="flex:1;text-align:center;padding:9px 0;border-radius:999px;background:var(--primary);color:#fff;"><div style="font-size:11px;opacity:.8;">Sáb</div><div style="font-weight:700;font-size:16px;">12</div></div>
+                <div style="flex:1;text-align:center;padding:9px 0;border-radius:12px;border:1px solid var(--border);background:#fff;"><div style="font-size:11px;color:var(--muted);">Dom</div><div style="font-weight:700;font-size:16px;">13</div></div>
+                <div style="flex:1;text-align:center;padding:9px 0;border-radius:12px;border:1px solid var(--border);background:#fff;"><div style="font-size:11px;color:var(--muted);">Lun</div><div style="font-weight:700;font-size:16px;">14</div></div>
+                <div style="flex:1;text-align:center;padding:9px 0;border-radius:12px;border:1px solid var(--border);background:#fff;opacity:.5;"><div style="font-size:11px;color:var(--muted);">Mar</div><div style="font-weight:700;font-size:16px;">15</div></div>
+              </div>
+              <div style="font:800 11px 'Figtree';letter-spacing:.1em;text-transform:uppercase;color:var(--faint);margin:20px 0 11px;">Franjas · sábado 12</div>
+              <div style="display:grid;grid-template-columns:1fr 1fr;gap:10px;">
+                <div style="border:1.5px solid var(--border-strong);border-radius:13px;padding:13px;text-align:center;background:#fff;"><div style="font-weight:700;font-size:15px;">10:00–13:00</div><div style="font-size:11.5px;color:var(--success);font-weight:600;margin-top:2px;">Libre</div></div>
+                <div style="border:1.5px solid var(--border);border-radius:13px;padding:13px;text-align:center;background:var(--surface-2);opacity:.6;"><div style="font-weight:700;font-size:15px;color:var(--muted);">13:00–16:00</div><div style="font-size:11.5px;color:var(--faint);margin-top:2px;">Ocupada</div></div>
+                <div style="border:2px solid var(--primary);border-radius:13px;padding:13px;text-align:center;background:var(--primary-soft);box-shadow:0 0 0 4px rgba(16,162,108,.1);"><div style="font-weight:700;font-size:15px;color:#0f2b22;">16:00–19:00</div><div style="font-size:11.5px;color:#0b7e52;font-weight:700;margin-top:2px;">Seleccionada</div></div>
+                <div style="border:1.5px solid var(--border-strong);border-radius:13px;padding:13px;text-align:center;background:#fff;"><div style="font-weight:700;font-size:15px;">19:00–22:00</div><div style="font-size:11.5px;color:var(--success);font-weight:600;margin-top:2px;">Libre</div></div>
+              </div>
+            </div>
+            <div style="flex:0 0 auto;padding:12px 20px;background:var(--surface);border-top:1px solid var(--border);">
+              <div style="display:flex;justify-content:space-between;align-items:center;margin-bottom:11px;"><span style="font-size:13px;color:var(--muted);">Sala social · sáb 12 · 16–19 h</span></div>
+              <button style="width:100%;height:52px;border:none;border-radius:999px;background:var(--primary);color:#fff;font:700 15.5px 'Figtree';cursor:pointer;box-shadow:0 12px 24px -10px rgba(16,162,108,.65);">Reservar franja</button>
+            </div>
+            <div style="flex:0 0 auto;height:78px;"><dc-import name="TabBar" active="reservas" hint-size="100%,100%"></dc-import></div>
+          </div>
+        </div>
+      </figure>
+
+      <!-- 12 · MIS RESERVAS -->
+      <figure style="margin:0;flex:0 0 auto;width:392px;">
+        <figcaption style="font:600 13.5px 'Figtree';color:var(--muted);margin:0 0 14px 4px;display:flex;gap:10px;align-items:center;"><span style="font-weight:800;color:var(--ink);background:var(--surface);border:1px solid var(--border);width:28px;height:28px;border-radius:9px;display:inline-flex;align-items:center;justify-content:center;">12</span> Mis reservas · confirmación</figcaption>
+        <div style="width:392px;height:812px;border-radius:48px;background:#0e1a15;padding:11px;box-shadow:0 45px 90px -34px rgba(20,40,30,.55);position:relative;">
+          <div style="position:absolute;top:24px;left:50%;transform:translateX(-50%);width:120px;height:31px;background:#0e1a15;border-radius:999px;z-index:6;"></div>
+          <div style="width:100%;height:100%;border-radius:38px;overflow:hidden;background:var(--bg);position:relative;display:flex;flex-direction:column;">
+            <div style="flex:0 0 auto;background:var(--surface);border-bottom:1px solid var(--border);">
+              <div style="height:52px;"><dc-import name="StatusBar" tint="#132520" hint-size="100%,100%"></dc-import></div>
+              <div style="padding:2px 20px 12px;display:flex;align-items:center;gap:12px;">
+                <div style="width:40px;height:40px;border-radius:12px;border:1px solid var(--border);display:flex;align-items:center;justify-content:center;font-size:20px;">‹</div>
+                <div style="font-family:'Bricolage Grotesque','Figtree',sans-serif;font-weight:700;letter-spacing:-.015em;font-size:24px;flex:1;">Mis reservas</div>
+              </div>
+            </div>
+            <div style="flex:1;overflow:hidden;padding:16px 20px 0;">
+              <div style="background:#132520;color:#fff;border-radius:15px;padding:14px 16px;display:flex;align-items:center;gap:12px;box-shadow:0 14px 30px -14px rgba(0,0,0,.4);">
+                <span style="width:30px;height:30px;border-radius:50%;background:var(--success);display:flex;align-items:center;justify-content:center;font-size:16px;flex:0 0 auto;">✓</span>
+                <div><div style="font-weight:700;font-size:14.5px;">Reserva confirmada</div><div style="font-size:12.5px;color:rgba(255,255,255,.7);margin-top:1px;">Sala social · sáb 12 jul · 16–19 h</div></div>
+              </div>
+              <div style="font:800 11px 'Figtree';letter-spacing:.1em;text-transform:uppercase;color:var(--faint);margin:22px 0 11px;">Próximas</div>
+              <div style="display:flex;flex-direction:column;gap:11px;">
+                <div style="background:var(--surface);border:1px solid var(--border);border-radius:15px;padding:14px 15px;display:flex;gap:13px;align-items:center;">
+                  <div style="width:48px;height:48px;border-radius:999px;background:var(--primary-soft);color:var(--primary-700);display:flex;flex-direction:column;align-items:center;justify-content:center;flex:0 0 auto;"><span style="font-size:10px;font-weight:700;">JUL</span><span style="font-size:18px;font-weight:800;line-height:1;">12</span></div>
+                  <div style="flex:1;"><div style="font-weight:700;font-size:14.5px;">Sala social</div><div style="font-size:12.5px;color:var(--muted);">Sábado · 16:00 – 19:00</div></div>
+                  <span style="font:700 11px 'Figtree';color:var(--primary-700);background:var(--primary-soft);padding:4px 10px;border-radius:999px;">Activa</span>
+                </div>
+                <div style="background:var(--surface);border:1px solid var(--border);border-radius:15px;padding:14px 15px;display:flex;gap:13px;align-items:center;">
+                  <div style="width:48px;height:48px;border-radius:50%;background:var(--accent-soft);color:#9C5220;display:flex;flex-direction:column;align-items:center;justify-content:center;flex:0 0 auto;"><span style="font-size:10px;font-weight:700;">JUL</span><span style="font-size:18px;font-weight:800;line-height:1;">20</span></div>
+                  <div style="flex:1;"><div style="font-weight:700;font-size:14.5px;">Barbacoa</div><div style="font-size:12.5px;color:var(--muted);">Domingo · 14:00 – 18:00</div></div>
+                  <span style="font:700 11px 'Figtree';color:var(--muted);background:var(--surface-2);border:1px solid var(--border);padding:4px 10px;border-radius:999px;">Cancelar</span>
+                </div>
+              </div>
+            </div>
+            <div style="flex:0 0 auto;height:78px;"><dc-import name="TabBar" active="reservas" hint-size="100%,100%"></dc-import></div>
+          </div>
+        </div>
+      </figure>
+
+      <!-- 13 · PARKING -->
+      <figure style="margin:0;flex:0 0 auto;width:392px;">
+        <figcaption style="font:600 13.5px 'Figtree';color:var(--muted);margin:0 0 14px 4px;display:flex;gap:10px;align-items:center;"><span style="font-weight:800;color:var(--ink);background:var(--surface);border:1px solid var(--border);width:28px;height:28px;border-radius:9px;display:inline-flex;align-items:center;justify-content:center;">13</span> Parking · reparto quincenal</figcaption>
+        <div style="width:392px;height:812px;border-radius:48px;background:#0e1a15;padding:11px;box-shadow:0 45px 90px -34px rgba(20,40,30,.55);position:relative;">
+          <div style="position:absolute;top:24px;left:50%;transform:translateX(-50%);width:120px;height:31px;background:#0e1a15;border-radius:999px;z-index:6;"></div>
+          <div style="width:100%;height:100%;border-radius:38px;overflow:hidden;background:var(--bg);position:relative;display:flex;flex-direction:column;">
+            <div style="flex:0 0 auto;background:var(--surface);border-bottom:1px solid var(--border);">
+              <div style="height:52px;"><dc-import name="StatusBar" tint="#132520" hint-size="100%,100%"></dc-import></div>
+              <div style="padding:2px 20px 12px;display:flex;align-items:center;gap:12px;">
+                <div style="width:40px;height:40px;border-radius:12px;border:1px solid var(--border);display:flex;align-items:center;justify-content:center;font-size:20px;">‹</div>
+                <div style="font-family:'Bricolage Grotesque','Figtree',sans-serif;font-weight:700;letter-spacing:-.015em;font-size:24px;flex:1;">Parking</div>
+              </div>
+            </div>
+            <div style="flex:1;overflow:hidden;padding:16px 20px 0;">
+              <div style="background:linear-gradient(135deg,#10A26C,#0B7E52);border-radius:18px;padding:20px;color:#fff;position:relative;overflow:hidden;">
+                <div style="font-size:12.5px;color:rgba(255,255,255,.65);">Esta quincena · 16–31 jul</div>
+                <div style="display:flex;align-items:baseline;gap:10px;margin-top:6px;"><span style="font-size:13px;color:rgba(255,255,255,.7);">Te toca la</span><span style="font-family:'Bricolage Grotesque','Figtree',sans-serif;font-weight:700;letter-spacing:-.015em;font-size:42px;color:#fff;">Plaza P-14</span></div>
+                <div style="font-size:13px;color:rgba(255,255,255,.7);margin-top:2px;">Nivel −1 · junto al ascensor</div>
+                <div style="position:absolute;right:-6px;bottom:-10px;opacity:.14;color:#fff;"><svg width="120" height="120" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.4"><path d="M5 11.5 6.6 7A2 2 0 0 1 8.5 5.7h7A2 2 0 0 1 17.4 7L19 11.5"/><path d="M5 11.5h14v6H5z"/><path d="M7.5 17.5v2M16.5 17.5v2"/></svg></div>
+              </div>
+              <div style="font:800 11px 'Figtree';letter-spacing:.1em;text-transform:uppercase;color:var(--faint);margin:20px 0 10px;">Próximas quincenas · 6 plazas</div>
+              <div style="border:1px solid var(--border);border-radius:14px;overflow:hidden;background:var(--surface);">
+                <div style="display:grid;grid-template-columns:1.3fr .7fr;background:var(--surface-2);font:700 11px 'Figtree';letter-spacing:.04em;text-transform:uppercase;color:var(--faint);padding:9px 15px;"><div>Quincena</div><div style="text-align:right;">Tu plaza</div></div>
+                <div style="display:grid;grid-template-columns:1.3fr .7fr;padding:12px 15px;border-top:1px solid var(--border);align-items:center;background:var(--primary-soft);"><div><div style="font-weight:700;font-size:13.5px;">16–31 jul</div><div style="font-size:11.5px;color:#0b7e52;">Actual</div></div><div style="text-align:right;font-weight:800;color:var(--primary-700);">P-14</div></div>
+                <div style="display:grid;grid-template-columns:1.3fr .7fr;padding:12px 15px;border-top:1px solid var(--border);align-items:center;"><div style="font-weight:600;font-size:13.5px;">1–15 ago</div><div style="text-align:right;font-weight:700;color:var(--ink);">P-03</div></div>
+                <div style="display:grid;grid-template-columns:1.3fr .7fr;padding:12px 15px;border-top:1px solid var(--border);align-items:center;"><div style="font-weight:600;font-size:13.5px;">16–31 ago</div><div style="text-align:right;font-weight:700;color:var(--ink);">P-09</div></div>
+                <div style="display:grid;grid-template-columns:1.3fr .7fr;padding:12px 15px;border-top:1px solid var(--border);align-items:center;"><div style="font-weight:600;font-size:13.5px;">1–15 sep</div><div style="text-align:right;font-weight:700;color:var(--ink);">P-11</div></div>
+              </div>
+            </div>
+            <div style="flex:0 0 auto;height:78px;"><dc-import name="TabBar" active="parking" hint-size="100%,100%"></dc-import></div>
+          </div>
+        </div>
+      </figure>
+
+      <!-- 14 · CONTACTOS -->
+      <figure style="margin:0;flex:0 0 auto;width:392px;">
+        <figcaption style="font:600 13.5px 'Figtree';color:var(--muted);margin:0 0 14px 4px;display:flex;gap:10px;align-items:center;"><span style="font-weight:800;color:var(--ink);background:var(--surface);border:1px solid var(--border);width:28px;height:28px;border-radius:9px;display:inline-flex;align-items:center;justify-content:center;">14</span> Contactos · directorio</figcaption>
+        <div style="width:392px;height:812px;border-radius:48px;background:#0e1a15;padding:11px;box-shadow:0 45px 90px -34px rgba(20,40,30,.55);position:relative;">
+          <div style="position:absolute;top:24px;left:50%;transform:translateX(-50%);width:120px;height:31px;background:#0e1a15;border-radius:999px;z-index:6;"></div>
+          <div style="width:100%;height:100%;border-radius:38px;overflow:hidden;background:var(--bg);position:relative;display:flex;flex-direction:column;">
+            <div style="flex:0 0 auto;background:var(--surface);border-bottom:1px solid var(--border);">
+              <div style="height:52px;"><dc-import name="StatusBar" tint="#132520" hint-size="100%,100%"></dc-import></div>
+              <div style="padding:2px 20px 12px;display:flex;align-items:center;gap:12px;">
+                <div style="width:40px;height:40px;border-radius:12px;border:1px solid var(--border);display:flex;align-items:center;justify-content:center;font-size:20px;">‹</div>
+                <div style="font-family:'Bricolage Grotesque','Figtree',sans-serif;font-weight:700;letter-spacing:-.015em;font-size:24px;flex:1;">Contactos</div>
+              </div>
+            </div>
+            <div style="flex:1;overflow:hidden;padding:16px 20px 0;">
+              <div style="font:800 11px 'Figtree';letter-spacing:.1em;text-transform:uppercase;color:var(--faint);margin-bottom:10px;">Administración</div>
+              <div style="background:var(--surface);border:1px solid var(--border);border-radius:15px;padding:14px 15px;display:flex;gap:13px;align-items:center;">
+                <div style="width:46px;height:46px;border-radius:999px;background:var(--primary);color:#fff;display:flex;align-items:center;justify-content:center;font:700 15px 'Figtree';flex:0 0 auto;">AG</div>
+                <div style="flex:1;"><div style="font-weight:700;font-size:14.5px;">Fincas Aguirre</div><div style="font-size:12.5px;color:var(--muted);">Administrador</div></div>
+                <div style="display:flex;gap:8px;"><div style="width:40px;height:40px;border-radius:11px;background:var(--primary-soft);color:var(--primary-700);display:flex;align-items:center;justify-content:center;"><svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M6.5 4h3l1.5 4-2 1.5a12 12 0 0 0 5 5l1.5-2 4 1.5V21a2 2 0 0 1-2 2A16 16 0 0 1 3 6a2 2 0 0 1 2-2Z"/></svg></div><div style="width:40px;height:40px;border-radius:11px;background:var(--surface-2);border:1px solid var(--border);color:var(--muted);display:flex;align-items:center;justify-content:center;"><svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.9" stroke-linecap="round" stroke-linejoin="round"><rect x="3" y="5" width="18" height="14" rx="2"/><path d="m3 7 9 6 9-6"/></svg></div></div>
+              </div>
+              <div style="font:800 11px 'Figtree';letter-spacing:.1em;text-transform:uppercase;color:var(--faint);margin:18px 0 10px;">Conserjería</div>
+              <div style="background:var(--surface);border:1px solid var(--border);border-radius:15px;padding:14px 15px;display:flex;gap:13px;align-items:center;">
+                <div style="width:46px;height:46px;border-radius:50%;background:var(--accent-soft);color:#9C5220;display:flex;align-items:center;justify-content:center;font:700 15px 'Figtree';flex:0 0 auto;">MP</div>
+                <div style="flex:1;"><div style="font-weight:700;font-size:14.5px;">Manuel Pérez</div><div style="font-size:12.5px;color:var(--muted);">Conserje · 8–15 h</div></div>
+                <div style="display:flex;gap:8px;"><div style="width:40px;height:40px;border-radius:11px;background:var(--primary-soft);color:var(--primary-700);display:flex;align-items:center;justify-content:center;"><svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M6.5 4h3l1.5 4-2 1.5a12 12 0 0 0 5 5l1.5-2 4 1.5V21a2 2 0 0 1-2 2A16 16 0 0 1 3 6a2 2 0 0 1 2-2Z"/></svg></div></div>
+              </div>
+              <div style="font:800 11px 'Figtree';letter-spacing:.1em;text-transform:uppercase;color:var(--faint);margin:18px 0 10px;">Proveedores</div>
+              <div style="background:var(--surface);border:1px solid var(--border);border-radius:15px;overflow:hidden;">
+                <div style="padding:13px 15px;display:flex;gap:13px;align-items:center;"><div style="width:40px;height:40px;border-radius:11px;background:var(--surface-2);border:1px solid var(--border);display:flex;align-items:center;justify-content:center;font-size:18px;flex:0 0 auto;">🛗</div><div style="flex:1;"><div style="font-weight:700;font-size:14px;">Ascensores Otis</div><div style="font-size:12px;color:var(--muted);">Mantenimiento 24 h</div></div><span style="color:var(--primary-700);font-size:20px;">›</span></div>
+                <div style="padding:13px 15px;display:flex;gap:13px;align-items:center;border-top:1px solid var(--border);"><div style="width:40px;height:40px;border-radius:11px;background:var(--surface-2);border:1px solid var(--border);display:flex;align-items:center;justify-content:center;font-size:18px;flex:0 0 auto;">🔧</div><div style="flex:1;"><div style="font-weight:700;font-size:14px;">Fontanería Ebro</div><div style="font-size:12px;color:var(--muted);">Urgencias agua</div></div><span style="color:var(--primary-700);font-size:20px;">›</span></div>
+              </div>
+            </div>
+            <div style="flex:0 0 auto;height:26px;"></div>
+          </div>
+        </div>
+      </figure>
+
+      <!-- 15 · ADMIN MÓVIL -->
+      <figure style="margin:0;flex:0 0 auto;width:392px;">
+        <figcaption style="font:600 13.5px 'Figtree';color:var(--muted);margin:0 0 14px 4px;display:flex;gap:10px;align-items:center;"><span style="font-weight:800;color:var(--ink);background:var(--surface);border:1px solid var(--border);width:28px;height:28px;border-radius:9px;display:inline-flex;align-items:center;justify-content:center;">15</span> Panel de administración · móvil</figcaption>
+        <div style="width:392px;height:812px;border-radius:48px;background:#0e1a15;padding:11px;box-shadow:0 45px 90px -34px rgba(20,40,30,.55);position:relative;">
+          <div style="position:absolute;top:24px;left:50%;transform:translateX(-50%);width:120px;height:31px;background:#0e1a15;border-radius:999px;z-index:6;"></div>
+          <div style="width:100%;height:100%;border-radius:38px;overflow:hidden;background:#F3F4F1;position:relative;display:flex;flex-direction:column;">
+            <div style="flex:0 0 auto;background:#132520;">
+              <div style="height:52px;"><dc-import name="StatusBar" tint="#eafff6" hint-size="100%,100%"></dc-import></div>
+              <div style="padding:2px 20px 16px;">
+                <div style="display:flex;align-items:center;gap:10px;">
+                  <div style="font-family:'Bricolage Grotesque','Figtree',sans-serif;font-weight:700;letter-spacing:-.015em;font-size:24px;color:#fff;flex:1;">Gestión</div>
+                  <span style="font:700 10.5px 'Figtree';letter-spacing:.06em;color:#132520;background:var(--accent);padding:5px 11px;border-radius:8px;">ADMIN</span>
+                </div>
+                <div style="display:flex;gap:8px;margin-top:14px;background:rgba(255,255,255,.1);padding:4px;border-radius:12px;">
+                  <span style="flex:1;text-align:center;font:700 13px 'Figtree';color:#132520;background:#fff;padding:8px 0;border-radius:9px;">Solicitudes <span style="color:var(--danger);">3</span></span>
+                  <span style="flex:1;text-align:center;font:600 13px 'Figtree';color:rgba(255,255,255,.75);padding:8px 0;">Vecinos · 38</span>
+                </div>
+              </div>
+            </div>
+            <div style="flex:1;overflow:hidden;padding:16px 18px 0;display:flex;flex-direction:column;gap:13px;">
+              <div style="background:var(--surface);border:1px solid var(--border);border-radius:16px;padding:15px 16px;box-shadow:0 8px 20px -16px rgba(20,40,30,.4);">
+                <div style="display:flex;gap:12px;align-items:center;">
+                  <div style="width:44px;height:44px;border-radius:50%;background:var(--accent-soft);color:#9C5220;display:flex;align-items:center;justify-content:center;font:700 15px 'Figtree';flex:0 0 auto;">MR</div>
+                  <div style="flex:1;"><div style="font-weight:700;font-size:15px;">Marta Ruiz Bel</div><div style="font-size:12.5px;color:var(--muted);">marta.ruiz@correo.es</div></div>
+                  <span style="font:700 10.5px 'Figtree';color:#9C5220;background:var(--warn-soft);padding:4px 9px;border-radius:999px;white-space:nowrap;">Pendiente</span>
+                </div>
+                <div style="font-size:12.5px;color:var(--muted);margin-top:10px;background:var(--surface-2);border-radius:10px;padding:9px 11px;line-height:1.4;">"Soy propietaria desde marzo del 2º C Dcha."</div>
+                <div style="display:flex;gap:9px;margin-top:12px;">
+                  <div style="flex:1;height:42px;border:1.5px solid var(--border-strong);border-radius:11px;background:#fff;display:flex;align-items:center;justify-content:space-between;padding:0 12px;font-size:13px;font-weight:600;">2º C Dcha <span style="color:var(--faint);">▾</span></div>
+                  <div style="flex:.8;height:42px;border:1.5px solid var(--border-strong);border-radius:11px;background:#fff;display:flex;align-items:center;justify-content:space-between;padding:0 12px;font-size:13px;font-weight:600;">Vecino <span style="color:var(--faint);">▾</span></div>
+                </div>
+                <div style="display:flex;gap:9px;margin-top:11px;">
+                  <button style="flex:1;height:44px;border:none;border-radius:999px;background:var(--primary);color:#fff;font:700 14px 'Figtree';cursor:pointer;">Aprobar</button>
+                  <button style="flex:0 0 auto;width:100px;height:44px;border:1.5px solid var(--danger);border-radius:999px;background:#fff;color:var(--danger);font:700 14px 'Figtree';cursor:pointer;">Rechazar</button>
+                </div>
+              </div>
+              <div style="background:var(--surface);border:1px solid var(--border);border-radius:16px;padding:15px 16px;">
+                <div style="display:flex;gap:12px;align-items:center;">
+                  <div style="width:44px;height:44px;border-radius:50%;background:var(--surface-2);border:1px solid var(--border);color:var(--muted);display:flex;align-items:center;justify-content:center;font:700 15px 'Figtree';flex:0 0 auto;">JL</div>
+                  <div style="flex:1;"><div style="font-weight:700;font-size:15px;">Jorge Lama</div><div style="font-size:12.5px;color:var(--muted);">jorge.lama@correo.es · 1º A</div></div>
+                  <span style="font:700 10.5px 'Figtree';color:#9C5220;background:var(--warn-soft);padding:4px 9px;border-radius:999px;">Pendiente</span>
+                </div>
+              </div>
+            </div>
+            <div style="flex:0 0 auto;height:26px;"></div>
+          </div>
+        </div>
+      </figure>
+
+      <!-- 16 · ESTADOS -->
+      <figure style="margin:0;flex:0 0 auto;width:392px;">
+        <figcaption style="font:600 13.5px 'Figtree';color:var(--muted);margin:0 0 14px 4px;display:flex;gap:10px;align-items:center;"><span style="font-weight:800;color:var(--ink);background:var(--surface);border:1px solid var(--border);width:28px;height:28px;border-radius:9px;display:inline-flex;align-items:center;justify-content:center;">16</span> Estados · vacío · cargando · error</figcaption>
+        <div style="display:flex;flex-direction:column;gap:16px;">
+          <!-- vacío -->
+          <div style="background:var(--surface);border:1px solid var(--border);border-radius:22px;padding:34px 26px;text-align:center;box-shadow:0 16px 40px -30px rgba(20,40,30,.4);">
+            <div style="width:74px;height:74px;border-radius:20px;background:var(--primary-soft);color:var(--primary-700);display:flex;align-items:center;justify-content:center;margin:0 auto;"><svg width="34" height="34" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.7" stroke-linecap="round" stroke-linejoin="round"><path d="M4 7h16v13H4z"/><path d="M4 7 7 3h10l3 4"/><path d="M9 12h6"/></svg></div>
+            <div style="font-family:'Bricolage Grotesque','Figtree',sans-serif;font-weight:700;letter-spacing:-.015em;font-size:22px;margin-top:16px;">Todo en orden por aquí</div>
+            <div style="color:var(--muted);font-size:13.5px;margin-top:7px;line-height:1.5;">No hay incidencias abiertas. Cuando alguien reporte algo, aparecerá en esta lista.</div>
+            <button style="margin-top:16px;height:44px;padding:0 22px;border:1.5px solid var(--primary);border-radius:999px;background:var(--primary-soft);color:var(--primary-700);font:700 14px 'Figtree';cursor:pointer;">Reportar incidencia</button>
+          </div>
+          <!-- cargando -->
+          <div style="background:var(--surface);border:1px solid var(--border);border-radius:22px;padding:22px 24px;box-shadow:0 16px 40px -30px rgba(20,40,30,.4);">
+            <div style="font:700 12px 'Figtree';color:var(--faint);text-transform:uppercase;letter-spacing:.1em;margin-bottom:16px;">Cargando…</div>
+            <div style="display:flex;flex-direction:column;gap:14px;">
+              <div style="display:flex;gap:12px;align-items:center;"><div style="width:44px;height:44px;border-radius:12px;background:var(--surface-2);"></div><div style="flex:1;"><div style="height:12px;width:65%;background:var(--surface-2);border-radius:6px;"></div><div style="height:10px;width:40%;background:var(--surface-2);border-radius:6px;margin-top:8px;"></div></div></div>
+              <div style="display:flex;gap:12px;align-items:center;"><div style="width:44px;height:44px;border-radius:12px;background:var(--surface-2);"></div><div style="flex:1;"><div style="height:12px;width:80%;background:var(--surface-2);border-radius:6px;"></div><div style="height:10px;width:35%;background:var(--surface-2);border-radius:6px;margin-top:8px;"></div></div></div>
+            </div>
+          </div>
+          <!-- error -->
+          <div style="background:var(--surface);border:1px solid var(--border);border-radius:22px;padding:34px 26px;text-align:center;box-shadow:0 16px 40px -30px rgba(20,40,30,.4);">
+            <div style="width:74px;height:74px;border-radius:20px;background:var(--danger-soft);color:var(--danger);display:flex;align-items:center;justify-content:center;margin:0 auto;"><svg width="34" height="34" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round"><path d="M12 3 2.5 20h19L12 3Z"/><path d="M12 10v4.5M12 17.5v.01"/></svg></div>
+            <div style="font-family:'Bricolage Grotesque','Figtree',sans-serif;font-weight:700;letter-spacing:-.015em;font-size:22px;margin-top:16px;">No hemos podido cargar</div>
+            <div style="color:var(--muted);font-size:13.5px;margin-top:7px;line-height:1.5;">Revisa tu conexión e inténtalo de nuevo. Si sigue fallando, avisa a la junta.</div>
+            <button style="margin-top:16px;height:44px;padding:0 26px;border:none;border-radius:999px;background:var(--primary);color:#fff;font:700 14px 'Figtree';cursor:pointer;">Reintentar</button>
+          </div>
+        </div>
+      </figure>
+
+      <!--MSCREENS-->
+    </div>
+  </section>
+
+  <!-- ===================== ESCRITORIO ===================== -->
+  <section id="5" style="max-width:1240px;margin:70px auto 0;">
+    <div style="display:flex;align-items:baseline;gap:12px;margin-bottom:28px;">
+      <span style="font:700 12px/1 'Figtree';letter-spacing:.16em;color:var(--faint);text-transform:uppercase;">Pantallas · Escritorio</span>
+      <div style="flex:1;height:1px;background:var(--border);"></div>
+      <span style="font-size:13px;color:var(--muted);">Barra lateral fija · rejilla más ancha</span>
+    </div>
+
+    <!-- HOME DESKTOP -->
+    <div style="font:600 13.5px 'Figtree';color:var(--muted);margin:0 0 14px 4px;display:flex;gap:10px;align-items:center;"><span style="font-weight:800;color:var(--ink);background:var(--surface);border:1px solid var(--border);width:28px;height:28px;border-radius:9px;display:inline-flex;align-items:center;justify-content:center;">D1</span> Inicio · escritorio</div>
+    <div style="border-radius:20px;overflow:hidden;box-shadow:0 40px 90px -40px rgba(20,40,30,.5);border:1px solid var(--border);background:var(--surface);">
+      <div style="height:42px;background:#e9ede9;border-bottom:1px solid var(--border);display:flex;align-items:center;padding:0 16px;gap:8px;">
+        <span style="width:12px;height:12px;border-radius:50%;background:#f0645a;"></span><span style="width:12px;height:12px;border-radius:50%;background:#f6be4f;"></span><span style="width:12px;height:12px;border-radius:50%;background:#5cc85c;"></span>
+        <div style="margin:0 auto;background:#fff;border:1px solid var(--border);border-radius:8px;height:26px;width:340px;display:flex;align-items:center;justify-content:center;font-size:12.5px;color:var(--muted);gap:7px;"><svg width="12" height="12" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><rect x="5" y="11" width="14" height="9" rx="2"/><path d="M8 11V8a4 4 0 0 1 8 0v3"/></svg>rioja25.app</div>
+      </div>
+      <div style="display:flex;height:660px;">
+        <!-- sidebar -->
+        <div style="width:238px;flex:0 0 auto;background:linear-gradient(180deg,#132520,#0f1d18);color:#fff;display:flex;flex-direction:column;padding:22px 16px;">
+          <div style="display:flex;align-items:center;gap:11px;padding:0 6px 22px;">
+            <div style="width:40px;height:40px;border-radius:12px;background:linear-gradient(160deg,#34c08a,#10a26c);display:flex;align-items:flex-end;justify-content:center;position:relative;overflow:hidden;"><div style="position:absolute;top:7px;left:0;right:0;display:flex;justify-content:center;"><svg width="24" height="11" viewBox="0 0 24 11" fill="none"><path d="M2.5 9.5 12 2l9.5 7.5" stroke="rgba(255,255,255,.95)" stroke-width="2.6" stroke-linecap="round" stroke-linejoin="round"/></svg></div><span style="font-family:'Bricolage Grotesque','Figtree',sans-serif;font-weight:700;letter-spacing:-.015em;font-size:22px;padding-bottom:6px;">25</span></div>
+            <div style="font-family:'Bricolage Grotesque','Figtree',sans-serif;font-weight:700;letter-spacing:-.015em;font-size:22px;">Rioja 25</div>
+          </div>
+          <div style="display:flex;flex-direction:column;gap:3px;">
+            <div style="display:flex;align-items:center;gap:12px;padding:11px 13px;border-radius:11px;background:rgba(52,192,138,.16);color:#fff;font-weight:700;font-size:14px;"><svg width="19" height="19" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.9" stroke-linecap="round" stroke-linejoin="round"><path d="M3 10.5 12 3l9 7.5"/><path d="M5 9.5V21h14V9.5"/></svg>Inicio</div>
+            <div style="display:flex;align-items:center;gap:12px;padding:11px 13px;border-radius:11px;color:rgba(255,255,255,.66);font-weight:500;font-size:14px;"><svg width="19" height="19" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.9" stroke-linecap="round" stroke-linejoin="round"><path d="M12 3 2.5 20h19L12 3Z"/><path d="M12 10v4M12 17.5v.01"/></svg>Incidencias<span style="margin-left:auto;font:700 10px 'Figtree';background:var(--danger);color:#fff;padding:2px 7px;border-radius:999px;">2</span></div>
+            <div style="display:flex;align-items:center;gap:12px;padding:11px 13px;border-radius:11px;color:rgba(255,255,255,.66);font-weight:500;font-size:14px;"><svg width="19" height="19" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.9" stroke-linecap="round" stroke-linejoin="round"><path d="M5 4.5h14v15H5z"/><path d="M9 12l2 2 4-4"/></svg>Votaciones</div>
+            <div style="display:flex;align-items:center;gap:12px;padding:11px 13px;border-radius:11px;color:rgba(255,255,255,.66);font-weight:500;font-size:14px;"><svg width="19" height="19" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.9" stroke-linecap="round" stroke-linejoin="round"><path d="M4 5.5h16v15H4z"/><path d="M4 9.5h16"/><path d="M8 3v4M16 3v4"/></svg>Reservas</div>
+            <div style="display:flex;align-items:center;gap:12px;padding:11px 13px;border-radius:11px;color:rgba(255,255,255,.66);font-weight:500;font-size:14px;"><svg width="19" height="19" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.9" stroke-linecap="round" stroke-linejoin="round"><path d="M5 11.5 6.6 7A2 2 0 0 1 8.5 5.7h7A2 2 0 0 1 17.4 7L19 11.5"/><path d="M5 11.5h14v6H5z"/></svg>Parking</div>
+            <div style="display:flex;align-items:center;gap:12px;padding:11px 13px;border-radius:11px;color:rgba(255,255,255,.66);font-weight:500;font-size:14px;"><svg width="19" height="19" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.9" stroke-linecap="round" stroke-linejoin="round"><path d="M6.5 4h3l1.5 4-2 1.5a12 12 0 0 0 5 5l1.5-2 4 1.5V21a2 2 0 0 1-2 2A16 16 0 0 1 3 6a2 2 0 0 1 2-2Z"/></svg>Contactos</div>
+          </div>
+          <div style="margin-top:auto;display:flex;align-items:center;gap:11px;padding:12px 10px;border-top:1px solid rgba(255,255,255,.1);"><div style="width:38px;height:38px;border-radius:50%;background:#fff;color:var(--primary-700);display:flex;align-items:center;justify-content:center;font:700 14px 'Figtree';">MR</div><div style="flex:1;"><div style="font-weight:700;font-size:13.5px;">Marta Ruiz</div><div style="font-size:11.5px;color:rgba(255,255,255,.5);">2º C Dcha</div></div><span style="font:700 9.5px 'Figtree';letter-spacing:.05em;color:rgba(255,255,255,.6);background:rgba(255,255,255,.12);padding:3px 8px;border-radius:6px;">VECINO</span></div>
+        </div>
+        <!-- main -->
+        <div style="flex:1;background:var(--bg);overflow:hidden;display:flex;flex-direction:column;">
+          <div style="height:70px;flex:0 0 auto;background:var(--surface);border-bottom:1px solid var(--border);display:flex;align-items:center;padding:0 30px;gap:20px;">
+            <div><div style="font-family:'Bricolage Grotesque','Figtree',sans-serif;font-weight:700;letter-spacing:-.015em;font-size:24px;line-height:1;">¡Buenos días, Marta!</div><div style="font-size:12.5px;color:var(--muted);margin-top:3px;">Sábado, 6 de julio · Rioja 25</div></div>
+            <div style="margin-left:auto;height:40px;width:260px;border:1px solid var(--border-strong);border-radius:11px;display:flex;align-items:center;padding:0 14px;gap:9px;color:var(--faint);font-size:13.5px;"><svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><circle cx="11" cy="11" r="7"/><path d="m20 20-3.5-3.5" stroke-linecap="round"/></svg>Buscar…</div>
+            <div style="width:42px;height:42px;border-radius:12px;border:1px solid var(--border);display:flex;align-items:center;justify-content:center;color:var(--muted);position:relative;"><svg width="19" height="19" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.9" stroke-linecap="round"><path d="M6 8a6 6 0 0 1 12 0c0 6 2 7 2 7H4s2-1 2-7"/><path d="M10 19a2 2 0 0 0 4 0"/></svg><span style="position:absolute;top:9px;right:10px;width:8px;height:8px;border-radius:50%;background:var(--accent);border:1.5px solid var(--surface);"></span></div>
+          </div>
+          <div style="flex:1;overflow:hidden;padding:26px 30px;">
+            <div style="font:800 11px 'Figtree';letter-spacing:.12em;text-transform:uppercase;color:var(--faint);margin-bottom:13px;">Hoy en tu comunidad</div>
+            <div style="display:grid;grid-template-columns:1.3fr 1fr 1fr;gap:16px;">
+              <div style="background:linear-gradient(135deg,#10A26C,#0B7E52);border-radius:18px;padding:20px;color:#fff;">
+                <div style="display:flex;align-items:center;gap:10px;color:var(--accent);"><svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.9" stroke-linecap="round" stroke-linejoin="round"><path d="M5 11.5 6.6 7A2 2 0 0 1 8.5 5.7h7A2 2 0 0 1 17.4 7L19 11.5"/><path d="M5 11.5h14v6H5z"/></svg><span style="font:700 11px 'Figtree';letter-spacing:.05em;text-transform:uppercase;">Tu plaza esta quincena</span></div>
+                <div style="font-family:'Bricolage Grotesque','Figtree',sans-serif;font-weight:700;letter-spacing:-.015em;font-size:34px;margin-top:12px;">Plaza P-14</div>
+                <div style="font-size:13px;color:rgba(255,255,255,.65);margin-top:2px;">16–31 jul · nivel −1</div>
+              </div>
+              <div style="background:var(--surface);border:1px solid var(--border);border-radius:18px;padding:20px;"><div style="display:flex;align-items:center;gap:8px;"><span style="width:9px;height:9px;border-radius:50%;background:var(--info);"></span><span style="font:700 11px 'Figtree';color:var(--info);text-transform:uppercase;letter-spacing:.05em;">Votación</span></div><div style="font-weight:700;font-size:16px;margin-top:12px;line-height:1.3;">Horario de la piscina</div><div style="font-size:13px;color:var(--muted);margin-top:6px;">23/40 votos · cierra en 4 días</div></div>
+              <div style="background:var(--surface);border:1px solid var(--border);border-radius:18px;padding:20px;"><div style="display:flex;align-items:center;gap:8px;"><span style="width:9px;height:9px;border-radius:50%;background:var(--accent);"></span><span style="font:700 11px 'Figtree';color:#9C5220;text-transform:uppercase;letter-spacing:.05em;">Junta</span></div><div style="font-weight:700;font-size:16px;margin-top:12px;line-height:1.3;">Reunión anual</div><div style="font-size:13px;color:var(--muted);margin-top:6px;">18 jul · 19:00 · Sala social</div></div>
+            </div>
+            <div style="margin-top:16px;background:var(--accent-soft);border:1px solid #F8CFAF;border-radius:16px;padding:14px 18px;display:flex;align-items:center;gap:14px;">
+              <div style="width:42px;height:42px;border-radius:50%;background:#fff;display:flex;align-items:center;justify-content:center;color:#E2571B;flex:0 0 auto;"><svg width="21" height="21" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.9" stroke-linecap="round" stroke-linejoin="round"><path d="M12 3v2M12 19v2M3 12h2M19 12h2M5.6 5.6l1.4 1.4M17 17l1.4 1.4M5.6 18.4 7 17M17 7l1.4-1.4"/><circle cx="12" cy="12" r="4"/></svg></div>
+              <div style="flex:1;"><div style="font-weight:700;font-size:14.5px;color:#7A3E12;">Cena de vecinos en el patio</div><div style="font-size:13px;color:#9C5220;margin-top:1px;">Sábado 19 · 21:00 · trae algo para compartir</div></div>
+              <span style="font:700 13px 'Figtree';color:#fff;background:var(--accent);padding:9px 18px;border-radius:999px;">Me apunto</span>
+            </div>
+            <div style="font:800 11px 'Figtree';letter-spacing:.12em;text-transform:uppercase;color:var(--faint);margin:22px 0 13px;">¿Qué necesitas?</div>
+            <div style="display:grid;grid-template-columns:repeat(6,1fr);gap:14px;">
+              <div style="background:var(--surface);border:1px solid var(--border);border-radius:16px;padding:18px 12px;display:flex;flex-direction:column;align-items:center;gap:10px;"><div style="width:44px;height:44px;border-radius:14px;background:#FFE4DB;color:#D9542B;display:flex;align-items:center;justify-content:center;"><svg width="22" height="22" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.9" stroke-linecap="round" stroke-linejoin="round"><path d="M12 3 2.5 20h19L12 3Z"/><path d="M12 10v4M12 17.5v.01"/></svg></div><span style="font-weight:600;font-size:12.5px;">Incidencias</span></div>
+              <div style="background:var(--surface);border:1px solid var(--border);border-radius:16px;padding:18px 12px;display:flex;flex-direction:column;align-items:center;gap:10px;"><div style="width:44px;height:44px;border-radius:14px;background:#DFEDFC;color:#2F76C9;display:flex;align-items:center;justify-content:center;"><svg width="22" height="22" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.9" stroke-linecap="round" stroke-linejoin="round"><path d="M5 4.5h14v15H5z"/><path d="M9 12l2 2 4-4"/></svg></div><span style="font-weight:600;font-size:12.5px;">Votaciones</span></div>
+              <div style="background:var(--surface);border:1px solid var(--border);border-radius:16px;padding:18px 12px;display:flex;flex-direction:column;align-items:center;gap:10px;"><div style="width:44px;height:44px;border-radius:14px;background:#DCF5E8;color:#0B7E52;display:flex;align-items:center;justify-content:center;"><svg width="22" height="22" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.9" stroke-linecap="round" stroke-linejoin="round"><path d="M4 5.5h16v15H4z"/><path d="M4 9.5h16"/><path d="M8 3v4M16 3v4"/></svg></div><span style="font-weight:600;font-size:12.5px;">Reservas</span></div>
+              <div style="background:var(--surface);border:1px solid var(--border);border-radius:16px;padding:18px 12px;display:flex;flex-direction:column;align-items:center;gap:10px;"><div style="width:44px;height:44px;border-radius:14px;background:#EAE5FA;color:#7059C9;display:flex;align-items:center;justify-content:center;"><svg width="22" height="22" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.9" stroke-linecap="round" stroke-linejoin="round"><path d="M5 11.5 6.6 7A2 2 0 0 1 8.5 5.7h7A2 2 0 0 1 17.4 7L19 11.5"/><path d="M5 11.5h14v6H5z"/></svg></div><span style="font-weight:600;font-size:12.5px;">Parking</span></div>
+              <div style="background:var(--surface);border:1px solid var(--border);border-radius:16px;padding:18px 12px;display:flex;flex-direction:column;align-items:center;gap:10px;"><div style="width:44px;height:44px;border-radius:14px;background:#FFF0D0;color:#A87414;display:flex;align-items:center;justify-content:center;"><svg width="22" height="22" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.9" stroke-linecap="round" stroke-linejoin="round"><path d="M6.5 4h3l1.5 4-2 1.5a12 12 0 0 0 5 5l1.5-2 4 1.5V21a2 2 0 0 1-2 2A16 16 0 0 1 3 6a2 2 0 0 1 2-2Z"/></svg></div><span style="font-weight:600;font-size:12.5px;">Contactos</span></div>
+              <div style="background:var(--surface);border:1px solid var(--border);border-radius:16px;padding:18px 12px;display:flex;flex-direction:column;align-items:center;gap:10px;"><div style="width:44px;height:44px;border-radius:14px;background:#E5F4D9;color:#58991F;display:flex;align-items:center;justify-content:center;"><svg width="22" height="22" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.9" stroke-linecap="round" stroke-linejoin="round"><path d="M12 3C7.5 7.5 7.5 14 12 21c4.5-7 4.5-13.5 0-18Z"/><path d="M4.5 20.5 12 13"/></svg></div><span style="font-weight:600;font-size:12.5px;">Reciclaje</span></div>
+            </div>
+          </div>
+        </div>
+      </div>
+    </div>
+
+    <!-- ADMIN DESKTOP -->
+    <div style="font:600 13.5px 'Figtree';color:var(--muted);margin:40px 0 14px 4px;display:flex;gap:10px;align-items:center;"><span style="font-weight:800;color:var(--ink);background:var(--surface);border:1px solid var(--border);width:28px;height:28px;border-radius:9px;display:inline-flex;align-items:center;justify-content:center;">D2</span> Panel de administración · escritorio</div>
+    <div style="border-radius:20px;overflow:hidden;box-shadow:0 40px 90px -40px rgba(20,40,30,.5);border:1px solid var(--border);background:var(--surface);">
+      <div style="height:42px;background:#e9ede9;border-bottom:1px solid var(--border);display:flex;align-items:center;padding:0 16px;gap:8px;">
+        <span style="width:12px;height:12px;border-radius:50%;background:#f0645a;"></span><span style="width:12px;height:12px;border-radius:50%;background:#f6be4f;"></span><span style="width:12px;height:12px;border-radius:50%;background:#5cc85c;"></span>
+        <div style="margin:0 auto;background:#fff;border:1px solid var(--border);border-radius:8px;height:26px;width:340px;display:flex;align-items:center;justify-content:center;font-size:12.5px;color:var(--muted);gap:7px;"><svg width="12" height="12" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><rect x="5" y="11" width="14" height="9" rx="2"/><path d="M8 11V8a4 4 0 0 1 8 0v3"/></svg>rioja25.app/admin</div>
+      </div>
+      <div style="display:flex;height:640px;">
+        <div style="width:238px;flex:0 0 auto;background:linear-gradient(180deg,#132520,#0f1d18);color:#fff;display:flex;flex-direction:column;padding:22px 16px;">
+          <div style="display:flex;align-items:center;gap:11px;padding:0 6px 22px;">
+            <div style="width:40px;height:40px;border-radius:12px;background:linear-gradient(160deg,#34c08a,#10a26c);display:flex;align-items:flex-end;justify-content:center;position:relative;overflow:hidden;"><div style="position:absolute;top:7px;left:0;right:0;display:flex;justify-content:center;"><svg width="24" height="11" viewBox="0 0 24 11" fill="none"><path d="M2.5 9.5 12 2l9.5 7.5" stroke="rgba(255,255,255,.95)" stroke-width="2.6" stroke-linecap="round" stroke-linejoin="round"/></svg></div><span style="font-family:'Bricolage Grotesque','Figtree',sans-serif;font-weight:700;letter-spacing:-.015em;font-size:22px;padding-bottom:6px;">25</span></div>
+            <div style="font-family:'Bricolage Grotesque','Figtree',sans-serif;font-weight:700;letter-spacing:-.015em;font-size:22px;">Rioja 25</div>
+          </div>
+          <div style="font:700 10px 'Figtree';letter-spacing:.12em;color:rgba(255,255,255,.4);text-transform:uppercase;padding:4px 13px 8px;">Gestión</div>
+          <div style="display:flex;flex-direction:column;gap:3px;">
+            <div style="display:flex;align-items:center;gap:12px;padding:11px 13px;border-radius:11px;background:rgba(52,192,138,.16);font-weight:700;font-size:14px;"><svg width="19" height="19" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.9" stroke-linecap="round" stroke-linejoin="round"><path d="M16 21v-2a4 4 0 0 0-4-4H6a4 4 0 0 0-4 4v2"/><circle cx="9" cy="7" r="4"/><path d="M19 8v6M22 11h-6"/></svg>Solicitudes<span style="margin-left:auto;font:700 10px 'Figtree';background:var(--danger);color:#fff;padding:2px 7px;border-radius:999px;">3</span></div>
+            <div style="display:flex;align-items:center;gap:12px;padding:11px 13px;border-radius:11px;color:rgba(255,255,255,.66);font-weight:500;font-size:14px;"><svg width="19" height="19" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.9" stroke-linecap="round" stroke-linejoin="round"><path d="M17 21v-2a4 4 0 0 0-4-4H5a4 4 0 0 0-4 4v2"/><circle cx="9" cy="7" r="4"/><path d="M23 21v-2a4 4 0 0 0-3-3.87"/></svg>Vecinos<span style="margin-left:auto;font-size:12px;color:rgba(255,255,255,.4);">38</span></div>
+            <div style="display:flex;align-items:center;gap:12px;padding:11px 13px;border-radius:11px;color:rgba(255,255,255,.66);font-weight:500;font-size:14px;"><svg width="19" height="19" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.9" stroke-linecap="round" stroke-linejoin="round"><circle cx="12" cy="12" r="3"/><path d="M19.4 15a1.7 1.7 0 0 0 .3 1.9l.1.1a2 2 0 1 1-2.8 2.8l-.1-.1a1.7 1.7 0 0 0-2.9 1.2V21a2 2 0 0 1-4 0v-.1A1.7 1.7 0 0 0 7 19.4a1.7 1.7 0 0 0-1.9.3l-.1.1a2 2 0 1 1-2.8-2.8l.1-.1a1.7 1.7 0 0 0-1.2-2.9H1a2 2 0 0 1 0-4h.1A1.7 1.7 0 0 0 3 7"/></svg>Ajustes</div>
+          </div>
+          <div style="margin-top:auto;display:flex;align-items:center;gap:11px;padding:12px 10px;border-top:1px solid rgba(255,255,255,.1);"><div style="width:38px;height:38px;border-radius:50%;background:var(--accent);color:#fff;display:flex;align-items:center;justify-content:center;font:700 14px 'Figtree';">JA</div><div style="flex:1;"><div style="font-weight:700;font-size:13.5px;">Fincas Aguirre</div><div style="font-size:11.5px;color:rgba(255,255,255,.5);">Administrador</div></div><span style="font:700 9.5px 'Figtree';letter-spacing:.05em;color:#132520;background:var(--accent);padding:3px 8px;border-radius:6px;">ADMIN</span></div>
+        </div>
+        <div style="flex:1;background:var(--bg);display:flex;flex-direction:column;overflow:hidden;">
+          <div style="flex:0 0 auto;background:var(--surface);border-bottom:1px solid var(--border);padding:22px 32px 0;">
+            <div style="display:flex;align-items:center;gap:14px;"><div style="font-family:'Bricolage Grotesque','Figtree',sans-serif;font-weight:700;letter-spacing:-.015em;font-size:26px;">Solicitudes de acceso</div><span style="font:700 11px 'Figtree';color:#9C5220;background:var(--warn-soft);padding:5px 12px;border-radius:999px;">3 pendientes</span></div>
+            <div style="display:flex;gap:26px;margin-top:16px;">
+              <div style="padding-bottom:12px;border-bottom:2.5px solid var(--primary);font-weight:700;font-size:14px;color:var(--primary-700);">Pendientes</div>
+              <div style="padding-bottom:12px;font-weight:600;font-size:14px;color:var(--muted);">Aprobadas</div>
+              <div style="padding-bottom:12px;font-weight:600;font-size:14px;color:var(--muted);">Rechazadas</div>
+            </div>
+          </div>
+          <div style="flex:1;overflow:hidden;padding:22px 32px;">
+            <div style="background:var(--surface);border:1px solid var(--border);border-radius:16px;overflow:hidden;">
+              <div style="display:grid;grid-template-columns:1.6fr 1fr 1.4fr .9fr 1.5fr;background:var(--surface-2);font:700 11px 'Figtree';letter-spacing:.05em;text-transform:uppercase;color:var(--faint);padding:13px 20px;">
+                <div>Solicitante</div><div>Piso</div><div>Correo</div><div>Rol</div><div style="text-align:right;">Acciones</div>
+              </div>
+              <div style="display:grid;grid-template-columns:1.6fr 1fr 1.4fr .9fr 1.5fr;padding:15px 20px;border-top:1px solid var(--border);align-items:center;">
+                <div style="display:flex;align-items:center;gap:11px;"><div style="width:38px;height:38px;border-radius:50%;background:var(--accent-soft);color:#9C5220;display:flex;align-items:center;justify-content:center;font:700 13px 'Figtree';">MR</div><div><div style="font-weight:700;font-size:14px;">Marta Ruiz Bel</div><div style="font-size:11.5px;color:var(--faint);">hace 2 h</div></div></div>
+                <div style="font-size:13.5px;font-weight:600;">2º C Dcha</div>
+                <div style="font-size:13px;color:var(--muted);">marta.ruiz@correo.es</div>
+                <div><span style="font:600 12.5px 'Figtree';border:1px solid var(--border-strong);border-radius:9px;padding:6px 11px;display:inline-flex;align-items:center;gap:6px;">Vecino ▾</span></div>
+                <div style="display:flex;gap:8px;justify-content:flex-end;"><button style="height:38px;padding:0 16px;border:none;border-radius:999px;background:var(--primary);color:#fff;font:700 13px 'Figtree';cursor:pointer;">Aprobar</button><button style="height:38px;padding:0 14px;border:1.5px solid var(--border-strong);border-radius:999px;background:#fff;color:var(--danger);font:700 13px 'Figtree';cursor:pointer;">Rechazar</button></div>
+              </div>
+              <div style="display:grid;grid-template-columns:1.6fr 1fr 1.4fr .9fr 1.5fr;padding:15px 20px;border-top:1px solid var(--border);align-items:center;">
+                <div style="display:flex;align-items:center;gap:11px;"><div style="width:38px;height:38px;border-radius:50%;background:var(--surface-2);border:1px solid var(--border);color:var(--muted);display:flex;align-items:center;justify-content:center;font:700 13px 'Figtree';">JL</div><div><div style="font-weight:700;font-size:14px;">Jorge Lama</div><div style="font-size:11.5px;color:var(--faint);">hace 5 h</div></div></div>
+                <div style="font-size:13.5px;font-weight:600;">1º A</div>
+                <div style="font-size:13px;color:var(--muted);">jorge.lama@correo.es</div>
+                <div><span style="font:600 12.5px 'Figtree';border:1px solid var(--border-strong);border-radius:9px;padding:6px 11px;display:inline-flex;align-items:center;gap:6px;">Vecino ▾</span></div>
+                <div style="display:flex;gap:8px;justify-content:flex-end;"><button style="height:38px;padding:0 16px;border:none;border-radius:999px;background:var(--primary);color:#fff;font:700 13px 'Figtree';cursor:pointer;">Aprobar</button><button style="height:38px;padding:0 14px;border:1.5px solid var(--border-strong);border-radius:999px;background:#fff;color:var(--danger);font:700 13px 'Figtree';cursor:pointer;">Rechazar</button></div>
+              </div>
+              <div style="display:grid;grid-template-columns:1.6fr 1fr 1.4fr .9fr 1.5fr;padding:15px 20px;border-top:1px solid var(--border);align-items:center;">
+                <div style="display:flex;align-items:center;gap:11px;"><div style="width:38px;height:38px;border-radius:50%;background:var(--surface-2);border:1px solid var(--border);color:var(--muted);display:flex;align-items:center;justify-content:center;font:700 13px 'Figtree';">CN</div><div><div style="font-weight:700;font-size:14px;">Clara Nogal</div><div style="font-size:11.5px;color:var(--faint);">ayer</div></div></div>
+                <div style="font-size:13.5px;font-weight:600;">4º B</div>
+                <div style="font-size:13px;color:var(--muted);">clara.nogal@correo.es</div>
+                <div><span style="font:600 12.5px 'Figtree';color:#9C5220;background:var(--accent-soft);border:1px solid #F8CFAF;border-radius:9px;padding:6px 11px;display:inline-flex;align-items:center;gap:6px;">Junta ▾</span></div>
+                <div style="display:flex;gap:8px;justify-content:flex-end;"><button style="height:38px;padding:0 16px;border:none;border-radius:999px;background:var(--primary);color:#fff;font:700 13px 'Figtree';cursor:pointer;">Aprobar</button><button style="height:38px;padding:0 14px;border:1.5px solid var(--border-strong);border-radius:999px;background:#fff;color:var(--danger);font:700 13px 'Figtree';cursor:pointer;">Rechazar</button></div>
+              </div>
+            </div>
+          </div>
+        </div>
+      </div>
+    </div>
+
+    <div style="max-width:760px;margin:44px auto 0;text-align:center;color:var(--faint);font-size:13px;line-height:1.6;">
+      <span style="font-family:'Bricolage Grotesque','Figtree',sans-serif;font-weight:700;letter-spacing:-.015em;font-size:24px;color:var(--ink);display:block;margin-bottom:6px;">Rioja 25</span>
+      Sistema de diseño · 16 pantallas móvil + 2 escritorio · claro y oscuro · accesible AA.
+    </div>
+  </section>
+
+  <!--END-->
+</div>
+</x-dc>
+</body>
+</html>

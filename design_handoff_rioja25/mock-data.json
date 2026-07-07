@@ -1,0 +1,88 @@
+{
+  "currentUser": {
+    "id": "u_marta", "nombre": "Marta Ruiz Bel", "piso": "2º C Dcha",
+    "email": "marta.ruiz@correo.es", "rol": "vecino", "estado": "active", "iniciales": "MR"
+  },
+  "accessRequests": [
+    { "id": "r1", "nombre": "Marta Ruiz Bel", "piso": "2º C Dcha", "email": "marta.ruiz@correo.es",
+      "comentario": "Soy propietaria desde marzo del 2º C Dcha.", "creadaEn": "2026-07-06T06:20:00Z",
+      "estado": "pending" },
+    { "id": "r2", "nombre": "Jorge Lama", "piso": "1º A", "email": "jorge.lama@correo.es",
+      "creadaEn": "2026-07-06T03:00:00Z", "estado": "pending" },
+    { "id": "r3", "nombre": "Clara Nogal", "piso": "4º B", "email": "clara.nogal@correo.es",
+      "creadaEn": "2026-07-05T18:00:00Z", "estado": "pending", "rolAsignado": "junta" }
+  ],
+  "incidents": [
+    { "id": "128", "titulo": "Luz fundida en el portal", "categoria": "iluminacion", "estado": "abierta",
+      "ubicacion": "Portal", "descripcion": "La bombilla de la entrada lleva dos días sin funcionar. Por la noche se ve muy poco al entrar. Adjunto fotos.",
+      "fotos": ["/mock/portal1.jpg", "/mock/portal2.jpg"], "reportadoPor": "3º B", "creadaEn": "2026-07-06T08:20:00Z",
+      "comentarios": [ { "id": "c1", "autorId": "u_junta", "autorNombre": "Junta", "autorRol": "junta",
+        "texto": "Avisamos al electricista para mañana.", "creadoEn": "2026-07-06T09:10:00Z" } ] },
+    { "id": "127", "titulo": "Ruido en el ascensor", "categoria": "ascensor", "estado": "en_curso",
+      "ubicacion": "Ascensor A", "descripcion": "Hace un ruido metálico al frenar.", "fotos": [],
+      "reportadoPor": "5º C", "creadaEn": "2026-07-05T10:00:00Z", "comentarios": [] },
+    { "id": "126", "titulo": "Gotera en el garaje", "categoria": "filtraciones", "estado": "abierta",
+      "ubicacion": "Nivel -1", "descripcion": "Filtración junto a la plaza P-02 cuando llueve.", "fotos": [],
+      "reportadoPor": "Bajo Izq", "creadaEn": "2026-07-03T12:00:00Z", "comentarios": [] },
+    { "id": "125", "titulo": "Puerta del trastero", "categoria": "otros", "estado": "resuelta",
+      "ubicacion": "Trasteros", "descripcion": "No cerraba bien.", "fotos": [], "reportadoPor": "2º A",
+      "creadaEn": "2026-06-28T09:00:00Z", "comentarios": [] }
+  ],
+  "proposals": [
+    { "id": "p1", "titulo": "Nuevo horario de la piscina en verano", "tipo": "multiple", "estado": "abierta",
+      "propuestaPor": "Junta", "cierraEn": "2026-07-12T23:59:00Z", "totalViviendas": 40, "votosEmitidos": 23,
+      "miVotoOpcionId": "o2",
+      "opciones": [
+        { "id": "o1", "etiqueta": "10:00 – 20:00", "descripcion": "Horario amplio", "votos": 7 },
+        { "id": "o2", "etiqueta": "11:00 – 21:00", "descripcion": "", "votos": 13 },
+        { "id": "o3", "etiqueta": "Con cierre 14–17 h", "descripcion": "Descanso mediodía", "votos": 3 }
+      ] },
+    { "id": "p2", "titulo": "Instalar punto de recarga para coche eléctrico", "tipo": "si_no", "estado": "abierta",
+      "propuestaPor": "Junta", "cierraEn": "2026-07-20T23:59:00Z", "totalViviendas": 40, "votosEmitidos": 31,
+      "miVotoOpcionId": "si",
+      "opciones": [ { "id": "si", "etiqueta": "Sí", "votos": 24 }, { "id": "no", "etiqueta": "No", "votos": 7 } ] },
+    { "id": "p3", "titulo": "Cambio de empresa de limpieza", "tipo": "si_no", "estado": "cerrada",
+      "propuestaPor": "Junta", "cierraEn": "2026-06-30T23:59:00Z", "totalViviendas": 40, "votosEmitidos": 38,
+      "quorumAlcanzado": true, "resultado": "aprobada",
+      "opciones": [ { "id": "si", "etiqueta": "Sí", "votos": 30 }, { "id": "no", "etiqueta": "No", "votos": 8 } ] }
+  ],
+  "zones": [
+    { "id": "sala_social", "nombre": "Sala social" },
+    { "id": "piscina", "nombre": "Piscina" },
+    { "id": "barbacoa", "nombre": "Barbacoa" },
+    { "id": "sala_reuniones", "nombre": "Sala de reuniones" }
+  ],
+  "availabilitySample": {
+    "zona": "sala_social", "fecha": "2026-07-12",
+    "franjas": [
+      { "inicio": "10:00", "fin": "13:00", "estado": "libre" },
+      { "inicio": "13:00", "fin": "16:00", "estado": "ocupada" },
+      { "inicio": "16:00", "fin": "19:00", "estado": "libre" },
+      { "inicio": "19:00", "fin": "22:00", "estado": "libre" }
+    ]
+  },
+  "reservations": [
+    { "id": "rv1", "zona": "sala_social", "fecha": "2026-07-12", "franja": "16:00-19:00", "usuarioId": "u_marta", "estado": "activa" },
+    { "id": "rv2", "zona": "barbacoa", "fecha": "2026-07-20", "franja": "14:00-18:00", "usuarioId": "u_marta", "estado": "activa" }
+  ],
+  "parking": [
+    { "quincena": "16-31 jul", "plaza": "P-14", "nivel": "-1", "usuarioId": "u_marta", "actual": true },
+    { "quincena": "1-15 ago", "plaza": "P-03", "usuarioId": "u_marta", "actual": false },
+    { "quincena": "16-31 ago", "plaza": "P-09", "usuarioId": "u_marta", "actual": false },
+    { "quincena": "1-15 sep", "plaza": "P-11", "usuarioId": "u_marta", "actual": false }
+  ],
+  "contacts": [
+    { "id": "ct1", "nombre": "Fincas Aguirre", "categoria": "administrador", "subtitulo": "Administrador",
+      "telefono": "+34 941 000 000", "email": "admin@fincasaguirre.es" },
+    { "id": "ct2", "nombre": "Manuel Pérez", "categoria": "conserje", "subtitulo": "Conserje · 8–15 h",
+      "telefono": "+34 600 111 222" },
+    { "id": "ct3", "nombre": "Ascensores Otis", "categoria": "proveedor", "subtitulo": "Mantenimiento 24 h",
+      "telefono": "+34 900 100 100" },
+    { "id": "ct4", "nombre": "Fontanería Ebro", "categoria": "proveedor", "subtitulo": "Urgencias agua",
+      "telefono": "+34 941 222 333" }
+  ],
+  "communityEvents": [
+    { "id": "ev1", "titulo": "Cena de vecinos en el patio", "fecha": "2026-07-19T21:00:00Z", "nota": "Trae algo para compartir" },
+    { "id": "ev2", "titulo": "Reunión anual (Junta)", "fecha": "2026-07-18T19:00:00Z", "lugar": "Sala social" }
+  ]
+}

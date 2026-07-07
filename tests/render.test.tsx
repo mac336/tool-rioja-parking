@@ -1,0 +1,83 @@
+// @vitest-environment jsdom
+// Smoke test de RENDER: monta cada pantalla en un router de memoria y verifica
+// que renderiza sin lanzar (detecta errores de runtime que el typecheck no ve).
+import { describe, it, expect, beforeAll } from 'vitest'
+import { render, cleanup } from '@testing-library/react'
+import { MemoryRouter, Routes, Route } from 'react-router-dom'
+import type { ReactElement } from 'react'
+
+// jsdom no implementa matchMedia; lo stubeamos (lo usa el carrusel de anuncios).
+beforeAll(() => {
+  if (!window.matchMedia) {
+    // @ts-expect-error stub de test
+    window.matchMedia = () => ({ matches: false, addEventListener() {}, removeEventListener() {}, addListener() {}, removeListener() {} })
+  }
+})
+
+import { LoginPage } from '@/features/auth/LoginPage'
+import { RequestAccessPage } from '@/features/auth/RequestAccessPage'
+import { RequestSentPage } from '@/features/auth/RequestSentPage'
+import { NormasPage } from '@/features/auth/NormasPage'
+import { PrivacidadPage } from '@/features/auth/PrivacidadPage'
+import { HomePage } from '@/features/home/HomePage'
+import { MasPage } from '@/features/home/MasPage'
+import { IncidentsListPage } from '@/features/incidents/IncidentsListPage'
+import { IncidentDetailPage } from '@/features/incidents/IncidentDetailPage'
+import { NewIncidentPage } from '@/features/incidents/NewIncidentPage'
+import { EncuestasListPage } from '@/features/encuestas/EncuestasListPage'
+import { VotePage } from '@/features/encuestas/VotePage'
+import { ResultsPage } from '@/features/encuestas/ResultsPage'
+import { AnunciosPage } from '@/features/anuncios/AnunciosPage'
+import { NewAnuncioPage } from '@/features/anuncios/NewAnuncioPage'
+import { BookingsPage } from '@/features/bookings/BookingsPage'
+import { MyBookingsPage } from '@/features/bookings/MyBookingsPage'
+import { ParkingPage } from '@/features/parking/ParkingPage'
+import { ContactsPage } from '@/features/contacts/ContactsPage'
+import { ReciclajePage } from '@/features/misc/ReciclajePage'
+import { SugerenciasPage } from '@/features/misc/SugerenciasPage'
+import { AdminPage } from '@/features/admin/AdminPage'
+
+function renderAt(el: ReactElement, path: string, routePath: string) {
+  const r = render(
+    <MemoryRouter initialEntries={[path]}>
+      <Routes>
+        <Route path={routePath} element={el} />
+      </Routes>
+    </MemoryRouter>,
+  )
+  cleanup()
+  return r
+}
+
+const casos: [string, ReactElement, string, string][] = [
+  ['Login', <LoginPage />, '/login', '/login'],
+  ['RequestAccess', <RequestAccessPage />, '/solicitar-acceso', '/solicitar-acceso'],
+  ['RequestSent', <RequestSentPage />, '/solicitud-enviada', '/solicitud-enviada'],
+  ['Normas', <NormasPage />, '/normas', '/normas'],
+  ['Privacidad', <PrivacidadPage />, '/privacidad', '/privacidad'],
+  ['Home', <HomePage />, '/', '/'],
+  ['Mas', <MasPage />, '/mas', '/mas'],
+  ['IncidentsList', <IncidentsListPage />, '/incidencias', '/incidencias'],
+  ['IncidentDetail', <IncidentDetailPage />, '/incidencias/128', '/incidencias/:id'],
+  ['NewIncident', <NewIncidentPage />, '/incidencias/nueva', '/incidencias/nueva'],
+  ['EncuestasList', <EncuestasListPage />, '/votaciones', '/votaciones'],
+  ['Vote', <VotePage />, '/votaciones/p1', '/votaciones/:id'],
+  ['Results', <ResultsPage />, '/votaciones/p3/resultados', '/votaciones/:id/resultados'],
+  ['Anuncios', <AnunciosPage />, '/anuncios', '/anuncios'],
+  ['NewAnuncio', <NewAnuncioPage />, '/anuncios/nuevo', '/anuncios/nuevo'],
+  ['Bookings', <BookingsPage />, '/reservas', '/reservas'],
+  ['MyBookings', <MyBookingsPage />, '/reservas/mias', '/reservas/mias'],
+  ['Parking', <ParkingPage />, '/parking', '/parking'],
+  ['Contacts', <ContactsPage />, '/contactos', '/contactos'],
+  ['Reciclaje', <ReciclajePage />, '/reciclaje', '/reciclaje'],
+  ['Sugerencias', <SugerenciasPage />, '/sugerencias', '/sugerencias'],
+  ['Admin', <AdminPage />, '/admin', '/admin'],
+]
+
+describe('render sin crash de todas las pantallas', () => {
+  for (const [nombre, el, path, routePath] of casos) {
+    it(`monta ${nombre}`, () => {
+      expect(() => renderAt(el, path, routePath)).not.toThrow()
+    })
+  }
+})

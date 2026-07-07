@@ -1,0 +1,45 @@
+<!DOCTYPE html>
+<html>
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<script src="./support.js"></script>
+</head>
+<body>
+<x-dc>
+<div style="height:100%;background:var(--surface,#fff);border-top:1px solid var(--border,#E3E9E4);display:flex;align-items:flex-start;padding:9px 4px 0;">
+  <sc-for list="{{ items }}" as="it" hint-placeholder-count="5">
+    <div style="flex:1;display:flex;flex-direction:column;align-items:center;gap:5px;padding-top:2px;color:{{ it.color }};">
+      <div style="width:25px;height:25px;display:flex;align-items:center;justify-content:center;">{{ it.icon }}</div>
+      <span style="font-family:'Figtree',sans-serif;font-size:10.5px;font-weight:{{ it.weight }};letter-spacing:.1px;">{{ it.label }}</span>
+    </div>
+  </sc-for>
+</div>
+</x-dc>
+<script type="text/x-dc" data-dc-script data-props="{&quot;$preview&quot;:{&quot;width&quot;:392,&quot;height&quot;:78},&quot;active&quot;:{&quot;editor&quot;:&quot;enum&quot;,&quot;options&quot;:[&quot;inicio&quot;,&quot;incidencias&quot;,&quot;reservas&quot;,&quot;parking&quot;,&quot;mas&quot;],&quot;default&quot;:&quot;inicio&quot;,&quot;tsType&quot;:&quot;string&quot;}}">
+class Component extends DCLogic {
+  renderVals() {
+    const active = this.props.active || 'inicio';
+    const P = 'var(--primary,#0F8A63)';
+    const M = 'var(--faint,#8DA096)';
+    const mk = (d, filled) => React.createElement('svg', { width: 24, height: 24, viewBox: '0 0 24 24', fill: 'none', stroke: 'currentColor', strokeWidth: 1.9, strokeLinecap: 'round', strokeLinejoin: 'round' }, (Array.isArray(d) ? d : [d]).map((p, i) => React.createElement('path', { key: i, d: p })));
+    const defs = [
+      { key: 'inicio', label: 'Inicio', d: ['M3 10.5 12 3l9 7.5', 'M5 9.5V21h14V9.5', 'M9.5 21v-6h5v6'] },
+      { key: 'incidencias', label: 'Incidencias', d: ['M12 3 2.5 20h19L12 3Z', 'M12 10v4', 'M12 17.5v.01'] },
+      { key: 'reservas', label: 'Reservas', d: ['M4 5.5h16v15H4z', 'M4 9.5h16', 'M8 3v4', 'M16 3v4', 'M9 14.5l2 2 4-4'] },
+      { key: 'parking', label: 'Parking', d: ['M5 11.5 6.6 7A2 2 0 0 1 8.5 5.7h7A2 2 0 0 1 17.4 7L19 11.5', 'M5 11.5h14v6H5z', 'M7.5 17.5v2', 'M16.5 17.5v2', 'M8 14.5h.01', 'M16 14.5h.01'] },
+      { key: 'mas', label: 'Más', d: ['M5 6.5h14', 'M5 12h14', 'M5 17.5h14'] }
+    ];
+    return {
+      items: defs.map(x => ({
+        label: x.label,
+        icon: mk(x.d),
+        color: x.key === active ? P : M,
+        weight: x.key === active ? 700 : 500
+      }))
+    };
+  }
+}
+</script>
+</body>
+</html>

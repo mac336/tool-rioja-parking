@@ -3,23 +3,22 @@ import { Link, useNavigate } from 'react-router-dom'
 import { Logo } from '@/components/Logo'
 import { Button, Field, Alert } from '@/components/ui'
 import { usingSupabase } from '@/lib/supabase'
-import { enviarCodigo, verificarCodigo, signInGoogle } from '@/lib/session'
+import { enviarCodigo, verificarCodigo } from '@/lib/session'
 
-type Paso = 'inicio' | 'correo' | 'codigo'
+type Paso = 'correo' | 'codigo'
 
 export function LoginPage() {
   const nav = useNavigate()
-  const [paso, setPaso] = useState<Paso>('inicio')
+  const [paso, setPaso] = useState<Paso>('correo')
   const [email, setEmail] = useState('')
   const [codigo, setCodigo] = useState('')
   const [error, setError] = useState('')
   const [cargando, setCargando] = useState(false)
 
-  const entrarDemo = () => nav('/') // modo mock: acceso directo a la demo
-
   const pedirCodigo = async () => {
     setError('')
     if (!/.+@.+\..+/.test(email)) { setError('Introduce un correo válido.'); return }
+    if (!usingSupabase) { nav('/'); return } // modo demo: acceso directo
     setCargando(true)
     const { error } = await enviarCodigo(email.trim())
     setCargando(false)
@@ -47,16 +46,7 @@ export function LoginPage() {
       </div>
 
       <div className="flex w-full max-w-sm flex-col gap-3">
-        {!usingSupabase ? (
-          /* Modo demo: acceso directo */
-          <>
-            <Button variant="secondary" block size="lg" onClick={entrarDemo}>
-              <span className="inline-block h-5 w-5 rounded-full bg-[conic-gradient(at_50%_50%,#EA4335,#FBBC05,#34A853,#4285F4,#EA4335)]" />
-              Entrar con Google
-            </Button>
-            <Button variant="primary" block size="lg" onClick={entrarDemo}>Recibir código por correo</Button>
-          </>
-        ) : paso === 'codigo' ? (
+        {paso === 'codigo' ? (
           <>
             {error && <Alert tipo="danger">{error}</Alert>}
             <p className="text-center text-[14px] text-muted">Te hemos enviado un <b>código de 6 dígitos</b> a<br /><b>{email}</b></p>
@@ -68,29 +58,23 @@ export function LoginPage() {
             </Button>
             <Button variant="ghost" block onClick={() => { setPaso('correo'); setCodigo(''); setError('') }}>Usar otro correo</Button>
           </>
-        ) : paso === 'correo' ? (
+        ) : (
           <>
             {error && <Alert tipo="danger">{error}</Alert>}
+            <p className="text-center text-[14px] text-muted">Si ya estás registrado, introduce tu correo y te enviaremos un código de acceso.</p>
             <Field label="Tu correo" type="email" value={email} onChange={(e) => setEmail(e.target.value)} placeholder="tucorreo@ejemplo.com" />
             <Button variant="primary" block size="lg" disabled={cargando} onClick={pedirCodigo}>
               {cargando ? 'Enviando…' : 'Enviarme el código'}
             </Button>
-            <Button variant="ghost" block onClick={() => { setPaso('inicio'); setError('') }}>Volver</Button>
-          </>
-        ) : (
-          <>
-            <Button variant="secondary" block size="lg" onClick={() => signInGoogle()}>
-              <span className="inline-block h-5 w-5 rounded-full bg-[conic-gradient(at_50%_50%,#EA4335,#FBBC05,#34A853,#4285F4,#EA4335)]" />
-              Entrar con Google
-            </Button>
-            <Button variant="primary" block size="lg" onClick={() => setPaso('correo')}>Recibir código por correo</Button>
+
+            <div className="my-2 flex items-center gap-3 text-[12px] text-faint">
+              <span className="h-px flex-1 bg-border" />¿aún no tienes acceso?<span className="h-px flex-1 bg-border" />
+            </div>
+            <Link to="/solicitar-acceso">
+              <Button variant="ghost" block size="lg" className="border-[1.5px] border-primary bg-primary-soft">Solicitar acceso al administrador</Button>
+            </Link>
           </>
         )}
-
-        <div className="my-1 text-center text-[13px] text-faint">¿Aún no tienes acceso?</div>
-        <Link to="/solicitar-acceso">
-          <Button variant="ghost" block size="lg" className="border-[1.5px] border-primary bg-primary-soft">Solicitar acceso</Button>
-        </Link>
         <p className="mt-2 text-center text-[12px] text-faint">Solo vecinos verificados. <Link to="/privacidad" className="underline">Privacidad</Link></p>
       </div>
     </div>

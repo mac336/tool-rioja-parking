@@ -1,6 +1,7 @@
-// Autenticación y sesión reales contra Supabase Auth (Google OAuth + enlace
-// mágico). Solo se usa cuando VITE_DATA_SOURCE=supabase; en modo mock la app
-// usa un usuario de demo (ver store.ts). El perfil se lee de la tabla profiles.
+// Autenticación y sesión reales contra Supabase Auth mediante código de un solo
+// uso (OTP de 6 dígitos por correo). Solo se usa cuando VITE_DATA_SOURCE=supabase;
+// en modo mock la app usa un usuario de demo (ver store.ts). El perfil se lee de
+// la tabla profiles.
 import { supabase } from '@/lib/supabase'
 import type { Profile, Role, UserStatus } from '@/types'
 import { iniciales } from '@/lib/format'
@@ -16,11 +17,6 @@ export async function enviarCodigo(email: string) {
 /** Verifica el código de 6 dígitos e inicia la sesión. */
 export async function verificarCodigo(email: string, token: string) {
   return supabase.auth.verifyOtp({ email, token, type: 'email' })
-}
-
-/** Login con Google (requiere el proveedor configurado en Supabase). */
-export async function signInGoogle(redirectTo = window.location.origin) {
-  return supabase.auth.signInWithOAuth({ provider: 'google', options: { redirectTo } })
 }
 
 export async function signOut() {

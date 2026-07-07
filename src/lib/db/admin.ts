@@ -16,21 +16,32 @@ export async function listAccessRequests(): Promise<AccessRequest[]> {
   return (data ?? []) as AccessRequest[]
 }
 
-export async function resolverSolicitud(id: string, aprobar: boolean): Promise<void> {
+export async function resolverSolicitud(id: string, aprobar: boolean, vivienda?: string, rol?: Role): Promise<void> {
   if (aprobar) {
-    // Leer la solicitud para conocer su vivienda; el alta la ejecuta la Edge
-    // Function con service_role (crea/invita usuario + fija profile activo).
-    const { data: solicitud, error: readErr } = await supabase.from('access_requests')
-      .select('vivienda').eq('id', id).single()
-    if (readErr) throw readErr
+    // Vivienda/rol elegidos en el panel; si no vienen, se usa la vivienda de la
+    // solicitud y rol 'vecino'. El alta la ejecuta la Edge Function con
+    // service_role (crea/invita usuario + fija profile activo).
+    let viv = vivienda
+    if (!viv) {
+      const { data: solicitud, error: readErr } = await supabase.from('access_requests')
+        .select('vivienda').eq('id', id).single()
+      if (readErr) throw readErr
+      viv = solicitud.vivienda
+    }
     const { error } = await supabase.functions.invoke('aprobar-solicitud', {
-      body: { requestId: id, vivienda: solicitud.vivienda, rol: 'vecino' },
+      body: { requestId: id, vivienda: viv, rol: rol ?? 'vecino' },
     })
     if (error) throw error
     return
   }
   const { error } = await supabase.from('access_requests')
     .update({ estado: 'rechazada' }).eq('id', id)
+  if (error) throw error
+}
+
+// Alta pública: pasa por la Edge Function (captcha + rate-limit + service_role).
+export async function crearSolicitud(input: { nombre: string; email: string; vivienda: string; comentario?: string }): Promise<void> {
+  const { error } = await supabase.functions.invoke('solicitar-acceso', { body: input })
   if (error) throw error
 }
 

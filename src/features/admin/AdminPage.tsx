@@ -74,10 +74,10 @@ function SolicitudesTab({ canApprove, onToast }: { canApprove: boolean; onToast:
     return <EmptyState titulo="Sin solicitudes" texto="No hay altas pendientes de revisar por ahora." />
   }
 
-  async function resolver(id: string, aprobar: boolean) {
+  async function resolver(id: string, aprobar: boolean, sel?: Seleccion) {
     setPendingId(id)
     try {
-      await resolverSolicitud(id, aprobar)
+      await resolverSolicitud(id, aprobar, sel?.vivienda, sel?.rol)
       onToast(aprobar ? 'Solicitud aprobada' : 'Solicitud rechazada', aprobar ? 'ok' : 'info')
       refetch()
     } catch {
@@ -136,10 +136,10 @@ function SolicitudesTab({ canApprove, onToast }: { canApprove: boolean; onToast:
 
             {canApprove ? (
               <div className="mt-3 flex gap-2">
-                <Button block variant="primary" disabled={busy} onClick={() => resolver(req.id, true)}>
+                <Button block variant="primary" disabled={busy} onClick={() => resolver(req.id, true, seleccion)}>
                   <Check size={18} /> Aprobar
                 </Button>
-                <Button block variant="danger-outline" disabled={busy} onClick={() => resolver(req.id, false)}>
+                <Button block variant="danger-outline" disabled={busy} onClick={() => resolver(req.id, false, seleccion)}>
                   <X size={18} /> Rechazar
                 </Button>
               </div>

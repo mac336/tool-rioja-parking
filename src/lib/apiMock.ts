@@ -329,7 +329,7 @@ export type { ContactCategory }
 
 // ---- Solicitudes de acceso ---------------------------------------------------
 export const listAccessRequests = () => delay(db.requests.filter((r) => r.estado === 'pendiente'))
-export function resolverSolicitud(id: string, aprobar: boolean): Promise<void> {
+export function resolverSolicitud(id: string, aprobar: boolean, _vivienda?: string, _rol?: Role): Promise<void> {
   const r = db.requests.find((r) => r.id === id)
   if (r) r.estado = aprobar ? 'aprobada' : 'rechazada'
   return delay(undefined)

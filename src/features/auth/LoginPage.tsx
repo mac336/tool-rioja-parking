@@ -4,11 +4,13 @@ import { Logo } from '@/components/Logo'
 import { Button, Field, Alert } from '@/components/ui'
 import { usingSupabase } from '@/lib/supabase'
 import { enviarCodigo, verificarCodigo } from '@/lib/session'
+import { useApp } from '@/store'
 
 type Paso = 'correo' | 'codigo'
 
 export function LoginPage() {
   const nav = useNavigate()
+  const refreshAuth = useApp((s) => s.refreshAuth)
   const [paso, setPaso] = useState<Paso>('correo')
   const [email, setEmail] = useState('')
   const [codigo, setCodigo] = useState('')
@@ -31,9 +33,12 @@ export function LoginPage() {
     if (!/^\d{6}$/.test(codigo.trim())) { setError('El código son 6 dígitos.'); return }
     setCargando(true)
     const { error } = await verificarCodigo(email.trim(), codigo.trim())
+    if (error) { setCargando(false); setError('Código incorrecto o caducado. Pide uno nuevo.'); return }
+    // Espera a que el perfil y el estado de sesión estén cargados ANTES de
+    // navegar; si no, el guard vería aún 'anon' y rebotaría de vuelta al login.
+    await refreshAuth()
     setCargando(false)
-    if (error) setError('Código incorrecto o caducado. Pide uno nuevo.')
-    else nav('/')
+    nav('/', { replace: true })
   }
 
   return (

@@ -19,6 +19,8 @@ import { RequestAccessPage } from '@/features/auth/RequestAccessPage'
 import { RequestSentPage } from '@/features/auth/RequestSentPage'
 import { NormasPage } from '@/features/auth/NormasPage'
 import { PrivacidadPage } from '@/features/auth/PrivacidadPage'
+import { PendingPage } from '@/features/auth/PendingPage'
+import { SuspendedPage } from '@/features/auth/SuspendedPage'
 import { HomePage } from '@/features/home/HomePage'
 import { MasPage } from '@/features/home/MasPage'
 import { IncidentsListPage } from '@/features/incidents/IncidentsListPage'
@@ -58,6 +60,8 @@ const casos: [string, ReactElement, string, string][] = [
   ['RequestSent', <RequestSentPage />, '/solicitud-enviada', '/solicitud-enviada'],
   ['Normas', <NormasPage />, '/normas', '/normas'],
   ['Privacidad', <PrivacidadPage />, '/privacidad', '/privacidad'],
+  ['Pending', <PendingPage />, '/pendiente', '/pendiente'],
+  ['Suspended', <SuspendedPage />, '/suspendido', '/suspendido'],
   ['Home', <HomePage />, '/', '/'],
   ['Mas', <MasPage />, '/mas', '/mas'],
   ['IncidentsList', <IncidentsListPage />, '/incidencias', '/incidencias'],

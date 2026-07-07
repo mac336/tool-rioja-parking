@@ -2,12 +2,15 @@ import { createBrowserRouter, Navigate, Outlet } from 'react-router-dom'
 import { AppShell } from '@/components/layout/AppShell'
 import { useApp } from '@/store'
 import { puedeAdmin } from '@/lib/roles'
+import { usingSupabase } from '@/lib/supabase'
 
 import { LoginPage } from '@/features/auth/LoginPage'
 import { RequestAccessPage } from '@/features/auth/RequestAccessPage'
 import { RequestSentPage } from '@/features/auth/RequestSentPage'
 import { NormasPage } from '@/features/auth/NormasPage'
 import { PrivacidadPage } from '@/features/auth/PrivacidadPage'
+import { PendingPage } from '@/features/auth/PendingPage'
+import { SuspendedPage } from '@/features/auth/SuspendedPage'
 import { HomePage } from '@/features/home/HomePage'
 import { MasPage } from '@/features/home/MasPage'
 import { IncidentsListPage } from '@/features/incidents/IncidentsListPage'
@@ -39,6 +42,20 @@ function RequireAdmin() {
   return <Outlet />
 }
 
+/** Gate de sesión (solo con Supabase; en modo demo deja pasar). */
+function RequireActive() {
+  const { authStatus, user } = useApp()
+  if (!usingSupabase) return <Outlet />
+  if (authStatus === 'loading') {
+    return <div className="flex min-h-dvh items-center justify-center bg-bg text-muted">Cargando…</div>
+  }
+  if (authStatus === 'anon') return <Navigate to="/login" replace />
+  if (authStatus === 'suspended') return <Navigate to="/suspendido" replace />
+  if (authStatus === 'pending') return <Navigate to="/pendiente" replace />
+  if (!user.normas_aceptadas_at) return <Navigate to="/normas" replace />
+  return <Outlet />
+}
+
 export const router = createBrowserRouter([
   // Pantallas fuera del shell (auth)
   { path: '/login', element: <LoginPage /> },
@@ -46,9 +63,13 @@ export const router = createBrowserRouter([
   { path: '/solicitud-enviada', element: <RequestSentPage /> },
   { path: '/normas', element: <NormasPage /> },
   { path: '/privacidad', element: <PrivacidadPage /> },
+  { path: '/pendiente', element: <PendingPage /> },
+  { path: '/suspendido', element: <SuspendedPage /> },
 
-  // App con shell
+  // App con shell (protegida por sesión activa)
   {
+    element: <RequireActive />,
+    children: [{
     element: <Shell />,
     children: [
       { path: '/', element: <HomePage /> },
@@ -77,6 +98,7 @@ export const router = createBrowserRouter([
         children: [{ path: '/admin', element: <AdminPage /> }],
       },
     ],
+    }],
   },
   { path: '*', element: <Navigate to="/" replace /> },
 ])

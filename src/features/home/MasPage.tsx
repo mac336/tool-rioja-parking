@@ -4,6 +4,7 @@ import { useApp } from '@/store'
 import { RoleBadge } from '@/components/ui'
 import { roleBadgeKind, ROLE_LABEL, puedeAdmin } from '@/lib/roles'
 import { iniciales } from '@/lib/format'
+import { usingSupabase } from '@/lib/supabase'
 
 const links = [
   { to: '/anuncios', label: 'Tablón de anuncios', Icon: Megaphone },
@@ -45,7 +46,8 @@ export function MasPage() {
         ))}
       </nav>
 
-      {/* Demo: cambiar rol para ver las vistas de gestión (solo mientras no hay login real) */}
+      {/* Demo: cambiar rol para ver las vistas de gestión (solo modo demo, sin login real) */}
+      {!usingSupabase && (
       <div className="mt-4 rounded-[18px] bg-surface-2 p-3 shadow-neu-inset">
         <div className="mb-2 text-[12px] font-bold text-faint">DEMO · ver como rol</div>
         <div className="flex flex-wrap gap-2">
@@ -57,6 +59,7 @@ export function MasPage() {
           ))}
         </div>
       </div>
+      )}
     </div>
   )
 }

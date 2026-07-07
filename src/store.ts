@@ -1,6 +1,9 @@
 import { create } from 'zustand'
 import type { Profile, ThemeMode } from '@/types'
-import { getUser, setUserRole, actualizarNombre } from '@/lib/api'
+import { usingSupabase } from '@/lib/supabase'
+import { getUser as mockGetUser, setUserRole as mockSetRole } from '@/lib/apiMock'
+import { actualizarNombre } from '@/lib/api'
+import { loadProfile, statusFromProfile, onAuthChange, signOut as sbSignOut, type AuthStatus } from '@/lib/session'
 
 export type Palette = 'turquesa' | 'lavanda' | 'coral' | 'bosque'
 export const PALETTES: { id: Palette; nombre: string; color: string }[] = [
@@ -14,11 +17,14 @@ interface Toast { id: number; texto: string; tipo: 'ok' | 'error' | 'info' }
 
 interface AppState {
   user: Profile
+  authStatus: AuthStatus
   theme: ThemeMode
   palette: Palette
   toasts: Toast[]
   setRole: (rol: Profile['rol']) => void
   setName: (nombre: string) => Promise<void>
+  refreshAuth: () => Promise<void>
+  logout: () => Promise<void>
   setTheme: (t: ThemeMode) => void
   setPalette: (p: Palette) => void
   toast: (texto: string, tipo?: Toast['tipo']) => void
@@ -41,18 +47,30 @@ applyPalette(savedPalette)
 
 let toastId = 0
 
-export const useApp = create<AppState>((set) => ({
-  user: getUser(),
+export const useApp = create<AppState>((set, get) => ({
+  user: mockGetUser(), // en modo supabase es solo un placeholder hasta cargar el perfil
+  authStatus: usingSupabase ? 'loading' : 'active',
   theme: savedTheme,
   palette: savedPalette,
   toasts: [],
   setRole: (rol) => {
-    setUserRole(rol)
-    set({ user: { ...getUser() } })
+    // Selector DEMO (solo modo mock).
+    mockSetRole(rol)
+    set({ user: { ...mockGetUser() } })
   },
   setName: async (nombre) => {
     await actualizarNombre(nombre)
-    set({ user: { ...getUser() } })
+    if (usingSupabase) await get().refreshAuth()
+    else set({ user: { ...mockGetUser() } })
+  },
+  refreshAuth: async () => {
+    const p = await loadProfile()
+    if (p) set({ user: p, authStatus: statusFromProfile(p) })
+    else set({ authStatus: 'anon' })
+  },
+  logout: async () => {
+    if (usingSupabase) await sbSignOut()
+    set({ authStatus: 'anon' })
   },
   setTheme: (t) => {
     localStorage.setItem('r25-theme', t)
@@ -71,3 +89,9 @@ export const useApp = create<AppState>((set) => ({
   },
   dismissToast: (id) => set((s) => ({ toasts: s.toasts.filter((t) => t.id !== id) })),
 }))
+
+// Bootstrap de sesión real (solo con Supabase): carga el perfil y escucha cambios.
+if (usingSupabase) {
+  void useApp.getState().refreshAuth()
+  onAuthChange(() => { void useApp.getState().refreshAuth() })
+}

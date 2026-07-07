@@ -30,6 +30,12 @@ alter table reservas                force row level security;
 alter table anuncios                force row level security;
 alter table encuesta_votos          force row level security;
 
+-- El service_role (Edge Functions con privilegios) necesita DML completo en todas
+-- las tablas; bypasea RLS. Sin esto, aprobar-solicitud / gestionar-usuario /
+-- solicitar-acceso fallarían con "permission denied".
+grant all privileges on all tables in schema public to service_role;
+grant all privileges on all sequences in schema public to service_role;
+
 -- Grants base (RLS sigue gateando fila a fila). anon solo lee el catálogo de viviendas.
 grant usage on schema public to anon, authenticated;
 grant select on viviendas to anon, authenticated;

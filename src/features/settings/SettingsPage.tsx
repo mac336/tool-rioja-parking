@@ -20,8 +20,9 @@ const BAJA_MAILTO =
   '&body=' + encodeURIComponent('Hola,\n\nSolicito la baja de mi cuenta y el borrado de mis datos personales de la app de la comunidad.\n\nNombre y vivienda:\n\nGracias.')
 
 export function SettingsPage() {
-  const { user, theme, setTheme, palette, setPalette, setName, toast } = useApp()
+  const { user, theme, setTheme, palette, setPalette, setName, logout, toast } = useApp()
   const nav = useNavigate()
+  const cerrarSesion = async () => { await logout(); nav('/login') }
   const [nombre, setNombre] = useState(user.nombre)
   const [guardando, setGuardando] = useState(false)
   const cambiado = nombre.trim() !== user.nombre && nombre.trim().length > 1
@@ -125,7 +126,7 @@ export function SettingsPage() {
         </Card>
 
         {/* Cerrar sesión */}
-        <button onClick={() => nav('/login')}
+        <button onClick={cerrarSesion}
           className="flex items-center justify-center gap-2 rounded-pill bg-surface py-3 text-[14px] font-bold text-danger shadow-neu-sm active:shadow-neu-inset">
           <LogOut size={18} /> Cerrar sesión
         </button>

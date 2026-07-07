@@ -1,94 +1,98 @@
 :root {
-  /* Modo claro */
-  --bg: #F1F5F2;
-  --surface: #FFFFFF;
-  --surface-2: #F6F9F6;
-  --ink: #132520;
-  --muted: #5C6E66;
-  --faint: #8DA096;
+  /* ---- Paleta de marca (por defecto: Turquesa). Conmutine con [data-palette] ---- */
+  --primary: #2BB0C0;
+  --primary-700: #1E8D9B;
+  --brand-from: #2BB0C0;
+  --brand-to: #1E8D9B;
+  --accent: #F5B417;
+  --accent-ink: #8A5A0F;
 
-  --primary: #10A26C;
-  --primary-700: #0B7E52;
-  --primary-soft: #DCF5E8;
+  /* Degradados "hero" derivados del tono OSCURO de marca → texto blanco pasa
+     AA en todas las paletas y modos. */
+  --grad-hero: linear-gradient(160deg, var(--primary-700), color-mix(in srgb, var(--primary-700) 68%, #001217));
+  --grad-sidebar: linear-gradient(180deg, var(--primary-700), #0D1618);
 
-  --accent: #F2793B;        /* naranja cálido */
-  --accent-soft: #FFE8D6;
-  --accent-ink: #9C5220;
+  /* ---- Neutros — base neumórfica pastel (modo claro) ---- */
+  --bg: #E7EDF3;
+  --surface: #EAF0F5;
+  --surface-2: #DFE7EF;
+  --ink: #26363F;
+  --muted: #5C7180;
+  --faint: #8B9DAA;
+  --border: #D2DBE4;
+  --border-strong: #BFCAD6;
 
-  --border: #E3E9E4;
-  --border-strong: #CBD6CE;
+  /* ---- Semánticos + su "tinta" de texto legible (claro) ---- */
+  --success: #1B9E5A;  --success-ink: #0F6B3F;
+  --warn: #CF8A17;     --warn-ink: #8A5A0F;
+  --danger: #D2453E;   --danger-ink: #A3341F;
+  --info: #2F76C9;     --info-ink: #1F5AA3;
 
-  --success: #1B9E5A;  --success-soft: #E1F3E7;
-  --warn: #CF8A17;     --warn-soft: #FBEED2;
-  --danger: #D2453E;   --danger-soft: #FBE4E3;
-  --info: #2F76C9;     --info-soft: #E3EEFA;
+  /* ---- Fondos "soft": se derivan del color + la superficie → se adaptan solos
+          al modo (claro/oscuro) y a la paleta activa (color-mix) ---- */
+  --primary-soft: color-mix(in srgb, var(--primary) 15%, var(--surface));
+  --accent-soft:  color-mix(in srgb, var(--accent) 22%, var(--surface));
+  --success-soft: color-mix(in srgb, var(--success) 15%, var(--surface));
+  --warn-soft:    color-mix(in srgb, var(--warn) 18%, var(--surface));
+  --danger-soft:  color-mix(in srgb, var(--danger) 14%, var(--surface));
+  --info-soft:    color-mix(in srgb, var(--info) 14%, var(--surface));
 
-  /* Radios */
-  --r-sm: 8px;
-  --r-md: 14px;
-  --r-lg: 20px;
-  --r-pill: 999px;
+  /* ---- Radios ---- */
+  --r-sm: 10px;  --r-md: 16px;  --r-lg: 22px;  --r-pill: 999px;
 
-  /* Sombras */
-  --shadow-sm: 0 2px 5px -2px rgba(20,40,30,.25);
-  --shadow-md: 0 10px 24px -12px rgba(20,40,30,.4);
-  --shadow-lg: 0 24px 50px -20px rgba(20,40,30,.5);
-  --shadow-primary: 0 12px 24px -10px rgba(16,162,108,.65);
+  /* ---- Neumorfismo: luz arriba-izquierda, sombra abajo-derecha ---- */
+  --neu-light: #FFFFFF;
+  --neu-dark: #C4CFDB;
+  --shadow-neu: -5px -5px 11px var(--neu-light), 5px 5px 13px var(--neu-dark);
+  --shadow-neu-sm: -3px -3px 7px var(--neu-light), 3px 3px 8px var(--neu-dark);
+  --shadow-neu-inset: inset 2px 2px 5px var(--neu-dark), inset -3px -3px 6px var(--neu-light);
 
-  /* Foco accesible */
-  --focus-ring: 0 0 0 4px rgba(16,162,108,.18);
+  /* Sombras normales (para overlays/toasts que flotan sobre todo) */
+  --shadow-sm: 0 2px 6px -2px rgba(30,50,60,.18);
+  --shadow-md: 0 12px 26px -14px rgba(30,50,60,.35);
+  --shadow-lg: 0 24px 50px -20px rgba(30,50,60,.45);
+  --shadow-primary: 5px 5px 13px color-mix(in srgb, var(--primary) 40%, transparent), -4px -4px 10px var(--neu-light);
+  --focus-ring: 0 0 0 4px color-mix(in srgb, var(--primary) 28%, transparent);
 
-  /* Tipografía */
   --font-display: "Bricolage Grotesque", "Figtree", sans-serif;
   --font-ui: "Figtree", system-ui, sans-serif;
 }
 
-/* Modo oscuro: aplica en <html data-theme="dark"> o @media */
+/* ===== Modo oscuro (neumorfismo suave sobre fondo carbón, no negro puro) ===== */
 [data-theme="dark"] {
-  --bg: #0E1714;
-  --surface: #16221D;
-  --surface-2: #1B2A24;
-  --ink: #EAF2EE;
-  --muted: #9DB0A7;
-  --faint: #6E837A;
-
-  --primary: #34C08A;
-  --primary-700: #48D49E;
-  --primary-soft: #143028;
-
-  --accent: #FF9D66;
-  --accent-soft: #33241B;
-  --accent-ink: #FFB98C;
-
-  --border: #26332D;
-  --border-strong: #33443B;
-
-  --success-soft: #16281E;
-  --warn-soft: #2C2413;
-  --danger-soft: #2E1B1A;
-  --info-soft: #16233A;
+  --bg: #20272E;
+  --surface: #232B33;
+  --surface-2: #1A2027;
+  --ink: #E7EEF4;
+  --muted: #9FB1BD;
+  --faint: #6E808C;
+  --border: #2C353E;
+  --border-strong: #3A454F;
+  --accent-ink: #FFD97A;
+  --success-ink: #7FD3A2;  --warn-ink: #F1C97A;  --danger-ink: #F2A9A2;  --info-ink: #9EC2F0;
+  --neu-light: #2A333B;
+  --neu-dark: #161B21;
 }
-
-/* Respeta la preferencia del sistema cuando no hay override manual (data-theme) */
 @media (prefers-color-scheme: dark) {
   :root:not([data-theme="light"]) {
-    --bg: #0E1714;
-    --surface: #16221D;
-    --surface-2: #1B2A24;
-    --ink: #EAF2EE;
-    --muted: #9DB0A7;
-    --faint: #6E837A;
-    --primary: #34C08A;
-    --primary-700: #48D49E;
-    --primary-soft: #143028;
-    --accent: #FF9D66;
-    --accent-soft: #33241B;
-    --accent-ink: #FFB98C;
-    --border: #26332D;
-    --border-strong: #33443B;
-    --success-soft: #16281E;
-    --warn-soft: #2C2413;
-    --danger-soft: #2E1B1A;
-    --info-soft: #16233A;
+    --bg: #20272E;
+    --surface: #232B33;
+    --surface-2: #1A2027;
+    --ink: #E7EEF4;
+    --muted: #9FB1BD;
+    --faint: #6E808C;
+    --border: #2C353E;
+    --border-strong: #3A454F;
+    --accent-ink: #FFD97A;
+    --success-ink: #7FD3A2;  --warn-ink: #F1C97A;  --danger-ink: #F2A9A2;  --info-ink: #9EC2F0;
+    --neu-light: #2A333B;
+    --neu-dark: #161B21;
   }
 }
+
+/* ===== Paletas conmutables (solo cambian el matiz de marca; los soft y el modo
+         claro/oscuro se recalculan solos) ===== */
+[data-palette="turquesa"] { --primary:#2BB0C0; --primary-700:#177E8B; --brand-from:#2BB0C0; --brand-to:#177E8B; }
+[data-palette="lavanda"]  { --primary:#7C83DB; --primary-700:#5158B8; --brand-from:#8A90E0; --brand-to:#5158B8; }
+[data-palette="coral"]    { --primary:#EE7A61; --primary-700:#C24A34; --brand-from:#F0836B; --brand-to:#C24A34; }
+[data-palette="bosque"]   { --primary:#35B07E; --primary-700:#1C8560; --brand-from:#3FB985; --brand-to:#1C8560; }

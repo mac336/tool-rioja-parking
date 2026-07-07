@@ -2,7 +2,7 @@ import { useEffect, useRef, useState } from 'react'
 import { useNavigate } from 'react-router-dom'
 import type { Anuncio } from '@/types'
 import { cx } from '@/components/ui'
-import { fechaCorta } from '@/lib/format'
+import { AnuncioIlustrado } from './anuncioStyle'
 
 const prefiereReducir = () =>
   typeof window !== 'undefined' && window.matchMedia?.('(prefers-reduced-motion: reduce)').matches
@@ -28,22 +28,15 @@ export function AnuncioCarousel({ anuncios, compact }: { anuncios: Anuncio[]; co
     <section aria-roledescription="carrusel" aria-label="Tablón principal"
       onMouseEnter={() => setPausado(true)} onMouseLeave={() => setPausado(false)}
       onFocusCapture={() => setPausado(true)} onBlurCapture={() => setPausado(false)}>
-      <button onClick={() => nav('/anuncios')}
-        className="block w-full overflow-hidden rounded-[16px] text-left"
-        style={{ background: 'linear-gradient(135deg,#FFE8D6,#DCF5E8)' }}>
-        <div className={cx('rounded-[16px] border border-accent/20', compact ? 'p-4' : 'p-5')}>
-          <div className="overline mb-1 text-accent-ink">📌 Tablón · destacado</div>
-          <h3 className={cx('font-display font-bold text-ink', compact ? 'text-[17px]' : 'text-[20px]')}>{a.titulo}</h3>
-          {!compact && <p className="mt-1 line-clamp-2 text-[14px] text-muted">{a.cuerpo.replace(/[*_#]/g, '')}</p>}
-          <div className="mt-2 text-[12px] text-accent-ink/80">{a.autor_nombre} · hasta {fechaCorta(a.fecha_fin)}</div>
-        </div>
+      <button onClick={() => nav('/anuncios')} className="block w-full text-left" aria-label={`Ver anuncio: ${a.titulo}`}>
+        <AnuncioIlustrado a={a} compact={compact} destacado />
       </button>
       {anuncios.length > 1 && (
         <div className="mt-2 flex items-center justify-center gap-2" role="tablist" aria-label="Anuncios destacados">
           {anuncios.map((_, k) => (
             <button key={k} role="tab" aria-selected={k === i} aria-label={`Anuncio ${k + 1}`}
               onClick={() => setI(k)}
-              className={cx('h-2.5 rounded-full transition-all', k === i ? 'w-6 bg-accent' : 'w-2.5 bg-border-strong')} />
+              className={cx('h-2.5 rounded-full transition-all', k === i ? 'w-6 bg-primary' : 'w-2.5 bg-border-strong')} />
           ))}
         </div>
       )}

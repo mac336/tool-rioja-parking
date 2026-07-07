@@ -10,8 +10,8 @@ export function AppShell({ children }: { children: ReactNode }) {
   return (
     <div className="flex min-h-dvh bg-bg">
       <Sidebar />
-      <div className="flex min-h-dvh flex-1 flex-col">
-        <main className="mx-auto w-full max-w-[720px] flex-1 pb-[90px] md:pb-8">{children}</main>
+      <div className="flex min-h-dvh min-w-0 flex-1 flex-col">
+        <main className="mx-auto w-full min-w-0 max-w-[720px] flex-1 pb-[90px] md:pb-8">{children}</main>
       </div>
       <TabBar />
       <Toaster />

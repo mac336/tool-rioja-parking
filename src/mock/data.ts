@@ -64,36 +64,65 @@ export const MOCK_INCIDENTS: Incident[] = [
 const cierraEn = (dias: number) => new Date(Date.now() + dias * 86_400_000).toISOString()
 
 export const MOCK_ENCUESTAS: Encuesta[] = [
+  // Votación simple (una pregunta)
   {
     id: 'p1', titulo: 'Nuevo horario de la piscina en verano', descripcion: 'Elige el horario que prefieres.',
-    tipo: 'opcion_unica', apertura: '2026-07-01T00:00:00Z', cierre: cierraEn(4), estado: 'abierta',
-    mostrar_participacion: true, creada_por_nombre: 'Junta',
-    opciones: [
-      { id: 'o1', texto: '10:00 – 20:00', orden: 1, votos: 7 },
-      { id: 'o2', texto: '11:00 – 21:00', orden: 2, votos: 13 },
-      { id: 'o3', texto: 'Con cierre 14–17 h', orden: 3, votos: 3 },
+    formato: 'unica', apertura: '2026-07-01T00:00:00Z', cierre: cierraEn(4), estado: 'abierta',
+    creada_por_nombre: 'Junta', total_viviendas: 41, viviendas_votantes: 23,
+    preguntas: [
+      {
+        id: 'q1', texto: 'Nuevo horario de la piscina en verano', tipo: 'opcion_unica',
+        mi_voto_opcion_ids: ['o2'],
+        opciones: [
+          { id: 'o1', texto: '10:00 – 20:00', votos: 7 },
+          { id: 'o2', texto: '11:00 – 21:00', votos: 13 },
+          { id: 'o3', texto: 'Con cierre 14–17 h', votos: 3 },
+        ],
+      },
     ],
-    total_viviendas: 41, viviendas_votantes: 23, mi_voto_opcion_ids: ['o2'],
   },
+  // Encuesta multi-pregunta
   {
-    id: 'p2', titulo: 'Instalar punto de recarga para coche eléctrico', tipo: 'opcion_unica',
-    apertura: '2026-07-01T00:00:00Z', cierre: cierraEn(12), estado: 'abierta', mostrar_participacion: true,
-    creada_por_nombre: 'Junta',
-    opciones: [
-      { id: 'si', texto: 'Sí', orden: 1, votos: 24 },
-      { id: 'no', texto: 'No', orden: 2, votos: 7 },
+    id: 'p2', titulo: 'Mejoras para la comunidad 2026', descripcion: 'Vota cada propuesta.',
+    formato: 'multi', apertura: '2026-07-01T00:00:00Z', cierre: cierraEn(12), estado: 'abierta',
+    creada_por_nombre: 'Junta', total_viviendas: 41, viviendas_votantes: 31,
+    preguntas: [
+      {
+        id: 'q1', texto: 'Instalar punto de recarga para coche eléctrico', tipo: 'opcion_unica',
+        mi_voto_opcion_ids: [],
+        opciones: [{ id: 'a', texto: 'Sí', votos: 24 }, { id: 'b', texto: 'No', votos: 7 }],
+      },
+      {
+        id: 'q2', texto: '¿Qué zona común mejoramos primero?', tipo: 'opcion_unica',
+        mi_voto_opcion_ids: [],
+        opciones: [
+          { id: 'c', texto: 'Jardín', votos: 12 },
+          { id: 'd', texto: 'Piscina', votos: 9 },
+          { id: 'e', texto: 'Sala comunidad', votos: 6 },
+        ],
+      },
+      {
+        id: 'q3', texto: 'Días para la fiesta de vecinos', tipo: 'opcion_multiple',
+        mi_voto_opcion_ids: [],
+        opciones: [
+          { id: 'f', texto: 'Viernes', votos: 10 },
+          { id: 'g', texto: 'Sábado', votos: 18 },
+          { id: 'h', texto: 'Domingo', votos: 5 },
+        ],
+      },
     ],
-    total_viviendas: 41, viviendas_votantes: 31, mi_voto_opcion_ids: [],
   },
+  // Cerrada
   {
-    id: 'p3', titulo: 'Cambio de empresa de limpieza', tipo: 'opcion_unica',
-    apertura: '2026-06-01T00:00:00Z', cierre: '2026-06-30T23:59:00Z', estado: 'cerrada', mostrar_participacion: true,
-    creada_por_nombre: 'Junta',
-    opciones: [
-      { id: 'si', texto: 'Sí', orden: 1, votos: 30 },
-      { id: 'no', texto: 'No', orden: 2, votos: 8 },
+    id: 'p3', titulo: 'Cambio de empresa de limpieza', formato: 'unica',
+    apertura: '2026-06-01T00:00:00Z', cierre: '2026-06-30T23:59:00Z', estado: 'cerrada',
+    creada_por_nombre: 'Junta', total_viviendas: 41, viviendas_votantes: 38,
+    preguntas: [
+      {
+        id: 'q1', texto: 'Cambio de empresa de limpieza', tipo: 'opcion_unica', mi_voto_opcion_ids: ['si'],
+        opciones: [{ id: 'si', texto: 'Sí', votos: 30 }, { id: 'no', texto: 'No', votos: 8 }],
+      },
     ],
-    total_viviendas: 41, viviendas_votantes: 38, mi_voto_opcion_ids: ['si'],
   },
 ]
 

@@ -8,7 +8,7 @@ export function Toaster() {
       {toasts.map((t) => (
         <button key={t.id} onClick={() => dismissToast(t.id)}
           className={cx('pointer-events-auto flex max-w-sm items-center gap-2 rounded-[14px] px-4 py-3 text-[14px] font-medium text-white shadow-lg',
-            t.tipo === 'error' ? 'bg-danger' : t.tipo === 'info' ? 'bg-info' : 'bg-[#132520]')}>
+            t.tipo === 'error' ? 'bg-danger' : t.tipo === 'info' ? 'bg-info' : 'bg-[#14262B]')}>
           <span>{t.tipo === 'error' ? '⚠️' : t.tipo === 'info' ? 'ℹ️' : '✓'}</span>
           {t.texto}
         </button>

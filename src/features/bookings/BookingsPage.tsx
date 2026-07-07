@@ -3,7 +3,7 @@ import { Link, useNavigate } from 'react-router-dom'
 import { CalendarDays, Check, Clock, Users, X } from 'lucide-react'
 import { useApp } from '@/store'
 import { useAsync } from '@/lib/useAsync'
-import { fechaHora, hora, rangoFechas } from '@/lib/format'
+import { fechaHora, hora } from '@/lib/format'
 import { puedeAprobarReservas } from '@/lib/roles'
 import {
   listZonas, reservaVigente, ocupacionZonaDia, crearReserva,
@@ -66,9 +66,9 @@ function estadoDeFranja(
 // ---- Pill de estado de reserva -----------------------------------------------
 
 const PILL: Record<ReservaEstado, { label: string; cls: string }> = {
-  pendiente: { label: 'Pendiente de aprobar', cls: 'bg-warn-soft text-[#8a5a0f]' },
-  aprobada: { label: 'Aprobada', cls: 'bg-success-soft text-[#0f6b3f]' },
-  rechazada: { label: 'Rechazada', cls: 'bg-danger-soft text-[#a3341f]' },
+  pendiente: { label: 'Pendiente de aprobar', cls: 'bg-warn-soft text-warn-ink' },
+  aprobada: { label: 'Aprobada', cls: 'bg-success-soft text-success-ink' },
+  rechazada: { label: 'Rechazada', cls: 'bg-danger-soft text-danger-ink' },
   cancelada: { label: 'Cancelada', cls: 'bg-surface-2 text-muted' },
 }
 function EstadoPill({ estado }: { estado: ReservaEstado }) {
@@ -235,7 +235,7 @@ export function BookingsPage() {
                         className={cx('flex flex-col items-start gap-0.5 rounded-[14px] border px-3 py-2.5 text-left transition-colors',
                           !libre && 'cursor-not-allowed',
                           est === 'ocupada' && 'border-border bg-surface-2 text-faint',
-                          est === 'pendiente' && 'border-warn/40 bg-warn-soft text-[#8a5a0f]',
+                          est === 'pendiente' && 'border-warn/40 bg-warn-soft text-warn-ink',
                           libre && sel && 'border-primary bg-primary text-white',
                           libre && !sel && 'border-border-strong bg-surface text-ink hover:border-primary')}>
                         <span className="text-[15px] font-bold">{f.desde}–{f.hasta}</span>

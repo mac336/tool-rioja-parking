@@ -10,6 +10,12 @@ export default defineConfig({
   resolve: {
     alias: { '@': path.resolve(__dirname, 'src') },
   },
+  // El proyecto vive en /mnt/c (disco Windows montado en WSL): los eventos de
+  // cambio de archivo no cruzan esa frontera, así que HMR no se entera. Con
+  // polling Vite detecta los cambios y recarga en caliente.
+  server: {
+    watch: { usePolling: true, interval: 300 },
+  },
   plugins: [
     react(),
     VitePWA({
@@ -20,8 +26,8 @@ export default defineConfig({
         short_name: 'Rioja 25',
         description: 'App de la comunidad de vecinos Rioja 25',
         lang: 'es-ES',
-        theme_color: '#10A26C',
-        background_color: '#F1F5F2',
+        theme_color: '#2BB0C0',
+        background_color: '#F1F4F5',
         display: 'standalone',
         start_url: '/',
         icons: [

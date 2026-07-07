@@ -8,7 +8,7 @@ export function LoginPage() {
   const entrar = () => nav('/')
   return (
     <div className="flex min-h-dvh flex-col items-center justify-between px-6 py-12"
-      style={{ background: 'linear-gradient(180deg,#DFF6EA,#F1F5F2)' }}>
+      style={{ background: 'linear-gradient(180deg,var(--primary-soft),var(--bg))' }}>
       <div className="flex flex-1 flex-col items-center justify-center text-center">
         <Logo size={88} />
         <h1 className="mt-6 font-display text-[34px] font-extrabold leading-tight text-ink">Bienvenido a<br />Rioja 25</h1>

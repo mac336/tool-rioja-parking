@@ -23,7 +23,7 @@ export function AdminPage() {
   return (
     <div>
       {/* Cabecera oscura — zona de gestión */}
-      <header className="px-4 pb-5 pt-6 text-white" style={{ background: '#132520' }}>
+      <header className="px-4 pb-5 pt-6 text-white" style={{ background: '#14262B' }}>
         <div className="flex items-center gap-2">
           <span className="flex h-9 w-9 items-center justify-center rounded-[12px] bg-white/10">
             <Shield size={20} className="text-accent" />
@@ -44,7 +44,7 @@ export function AdminPage() {
               onClick={() => setTab(key)}
               className={cx(
                 'rounded-pill px-4 py-1.5 text-[13px] font-bold transition-colors',
-                tab === key ? 'bg-white text-[#132520]' : 'text-white/70 hover:text-white',
+                tab === key ? 'bg-white text-[#14262B]' : 'text-white/70 hover:text-white',
               )}
             >
               {label}
@@ -102,7 +102,7 @@ function SolicitudesTab({ canApprove, onToast }: { canApprove: boolean; onToast:
               <div className="min-w-0 flex-1">
                 <div className="flex items-center gap-2">
                   <span className="truncate font-semibold text-ink">{req.nombre}</span>
-                  <span className="shrink-0 rounded-pill bg-warn-soft px-2 py-0.5 text-[11.5px] font-bold text-[#8a5a0f]">Pendiente</span>
+                  <span className="shrink-0 rounded-pill bg-warn-soft px-2 py-0.5 text-[11.5px] font-bold text-warn-ink">Pendiente</span>
                 </div>
                 <div className="truncate text-[13px] text-muted">{req.email}</div>
                 <div className="mt-0.5 text-[12px] text-faint">Solicitó el {fechaCorta(req.created_at)}</div>

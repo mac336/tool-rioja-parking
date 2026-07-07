@@ -3,7 +3,7 @@ export function Logo({ size = 44 }: { size?: number }) {
   return (
     <span
       className="relative inline-flex items-center justify-center rounded-[22%] text-white shadow-md"
-      style={{ width: size, height: size, background: 'linear-gradient(160deg,#16B478,#0B7E52)' }}
+      style={{ width: size, height: size, background: 'linear-gradient(160deg,var(--brand-from),var(--brand-to))' }}
       aria-label="Rioja 25"
     >
       <svg viewBox="0 0 48 20" width={size * 0.62} height={size * 0.26}

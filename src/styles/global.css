@@ -12,6 +12,7 @@
   }
   body {
     margin: 0;
+    overflow-x: hidden; /* la página nunca hace scroll horizontal; el contenido ancho scrollea dentro de su propio contenedor */
     background: var(--bg);
     color: var(--ink);
     font-family: var(--font-ui);
@@ -49,6 +50,10 @@
     letter-spacing: 0.14em;
     color: var(--faint);
   }
+  /* Neumorfismo: superficie extruida del fondo (misma tinta + doble sombra) */
+  .neu { background: var(--surface); box-shadow: var(--shadow-neu); }
+  .neu-sm { background: var(--surface); box-shadow: var(--shadow-neu-sm); }
+  .neu-inset { background: var(--surface); box-shadow: var(--shadow-neu-inset); }
   .safe-bottom { padding-bottom: env(safe-area-inset-bottom); }
   .safe-top { padding-top: env(safe-area-inset-top); }
   .no-scrollbar::-webkit-scrollbar { display: none; }

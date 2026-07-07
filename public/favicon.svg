@@ -2,8 +2,8 @@
   <rect width="48" height="48" rx="11" fill="url(#g)"/>
   <defs>
     <linearGradient id="g" x1="0" y1="0" x2="1" y2="1">
-      <stop offset="0" stop-color="#16B478"/>
-      <stop offset="1" stop-color="#0B7E52"/>
+      <stop offset="0" stop-color="#3FC6D6"/>
+      <stop offset="1" stop-color="#1E8D9B"/>
     </linearGradient>
   </defs>
   <path d="M11 24 24 13.5 37 24" fill="none" stroke="#fff" stroke-width="3.2" stroke-linecap="round" stroke-linejoin="round"/>

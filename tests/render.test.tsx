@@ -25,6 +25,7 @@ import { IncidentsListPage } from '@/features/incidents/IncidentsListPage'
 import { IncidentDetailPage } from '@/features/incidents/IncidentDetailPage'
 import { NewIncidentPage } from '@/features/incidents/NewIncidentPage'
 import { EncuestasListPage } from '@/features/encuestas/EncuestasListPage'
+import { CreateEncuestaPage } from '@/features/encuestas/CreateEncuestaPage'
 import { VotePage } from '@/features/encuestas/VotePage'
 import { ResultsPage } from '@/features/encuestas/ResultsPage'
 import { AnunciosPage } from '@/features/anuncios/AnunciosPage'
@@ -33,6 +34,7 @@ import { BookingsPage } from '@/features/bookings/BookingsPage'
 import { MyBookingsPage } from '@/features/bookings/MyBookingsPage'
 import { ParkingPage } from '@/features/parking/ParkingPage'
 import { ContactsPage } from '@/features/contacts/ContactsPage'
+import { SettingsPage } from '@/features/settings/SettingsPage'
 import { ReciclajePage } from '@/features/misc/ReciclajePage'
 import { SugerenciasPage } from '@/features/misc/SugerenciasPage'
 import { AdminPage } from '@/features/admin/AdminPage'
@@ -61,6 +63,7 @@ const casos: [string, ReactElement, string, string][] = [
   ['IncidentDetail', <IncidentDetailPage />, '/incidencias/128', '/incidencias/:id'],
   ['NewIncident', <NewIncidentPage />, '/incidencias/nueva', '/incidencias/nueva'],
   ['EncuestasList', <EncuestasListPage />, '/votaciones', '/votaciones'],
+  ['CreateEncuesta', <CreateEncuestaPage />, '/votaciones/nueva', '/votaciones/nueva'],
   ['Vote', <VotePage />, '/votaciones/p1', '/votaciones/:id'],
   ['Results', <ResultsPage />, '/votaciones/p3/resultados', '/votaciones/:id/resultados'],
   ['Anuncios', <AnunciosPage />, '/anuncios', '/anuncios'],
@@ -69,6 +72,7 @@ const casos: [string, ReactElement, string, string][] = [
   ['MyBookings', <MyBookingsPage />, '/reservas/mias', '/reservas/mias'],
   ['Parking', <ParkingPage />, '/parking', '/parking'],
   ['Contacts', <ContactsPage />, '/contactos', '/contactos'],
+  ['Settings', <SettingsPage />, '/ajustes', '/ajustes'],
   ['Reciclaje', <ReciclajePage />, '/reciclaje', '/reciclaje'],
   ['Sugerencias', <SugerenciasPage />, '/sugerencias', '/sugerencias'],
   ['Admin', <AdminPage />, '/admin', '/admin'],

@@ -14,6 +14,7 @@ import { IncidentsListPage } from '@/features/incidents/IncidentsListPage'
 import { IncidentDetailPage } from '@/features/incidents/IncidentDetailPage'
 import { NewIncidentPage } from '@/features/incidents/NewIncidentPage'
 import { EncuestasListPage } from '@/features/encuestas/EncuestasListPage'
+import { CreateEncuestaPage } from '@/features/encuestas/CreateEncuestaPage'
 import { VotePage } from '@/features/encuestas/VotePage'
 import { ResultsPage } from '@/features/encuestas/ResultsPage'
 import { AnunciosPage } from '@/features/anuncios/AnunciosPage'
@@ -22,6 +23,7 @@ import { BookingsPage } from '@/features/bookings/BookingsPage'
 import { MyBookingsPage } from '@/features/bookings/MyBookingsPage'
 import { ParkingPage } from '@/features/parking/ParkingPage'
 import { ContactsPage } from '@/features/contacts/ContactsPage'
+import { SettingsPage } from '@/features/settings/SettingsPage'
 import { ReciclajePage } from '@/features/misc/ReciclajePage'
 import { SugerenciasPage } from '@/features/misc/SugerenciasPage'
 import { AdminPage } from '@/features/admin/AdminPage'
@@ -54,6 +56,7 @@ export const router = createBrowserRouter([
       { path: '/incidencias/nueva', element: <NewIncidentPage /> },
       { path: '/incidencias/:id', element: <IncidentDetailPage /> },
       { path: '/votaciones', element: <EncuestasListPage /> },
+      { path: '/votaciones/nueva', element: <CreateEncuestaPage /> },
       { path: '/votaciones/:id', element: <VotePage /> },
       { path: '/votaciones/:id/resultados', element: <ResultsPage /> },
       { path: '/anuncios', element: <AnunciosPage /> },
@@ -62,6 +65,7 @@ export const router = createBrowserRouter([
       { path: '/reservas/mias', element: <MyBookingsPage /> },
       { path: '/parking', element: <ParkingPage /> },
       { path: '/contactos', element: <ContactsPage /> },
+      { path: '/ajustes', element: <SettingsPage /> },
       { path: '/reciclaje', element: <ReciclajePage /> },
       { path: '/sugerencias', element: <SugerenciasPage /> },
       {

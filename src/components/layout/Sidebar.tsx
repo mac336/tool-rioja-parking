@@ -1,10 +1,9 @@
 import { NavLink } from 'react-router-dom'
-import { Home, TriangleAlert, SquareCheckBig, CalendarDays, SquareParking, Phone, Megaphone, Shield } from 'lucide-react'
+import { Home, TriangleAlert, SquareCheckBig, CalendarDays, SquareParking, Phone, Megaphone, Shield, Settings } from 'lucide-react'
 import { Logo } from '@/components/Logo'
-import { RoleBadge } from '@/components/ui'
 import { cx } from '@/components/ui'
 import { useApp } from '@/store'
-import { roleBadgeKind, puedeAdmin } from '@/lib/roles'
+import { puedeAdmin } from '@/lib/roles'
 import { iniciales } from '@/lib/format'
 
 const nav = [
@@ -21,7 +20,7 @@ export function Sidebar() {
   const { user } = useApp()
   return (
     <aside className="hidden w-[238px] shrink-0 flex-col justify-between p-4 text-white md:flex"
-      style={{ background: 'linear-gradient(180deg,#0B7E52,#0E1714)' }}>
+      style={{ background: 'var(--grad-sidebar)' }}>
       <div>
         <div className="mb-6 flex items-center gap-2.5 px-1">
           <Logo size={38} />
@@ -44,16 +43,18 @@ export function Sidebar() {
           )}
         </nav>
       </div>
-      <div className="flex items-center gap-2.5 rounded-[12px] bg-white/10 p-2.5">
+      <NavLink to="/ajustes"
+        className={({ isActive }) => cx('flex items-center gap-2.5 rounded-[14px] p-2.5 transition-colors',
+          isActive ? 'bg-white/20' : 'bg-white/10 hover:bg-white/15')}>
         <span className="flex h-9 w-9 items-center justify-center rounded-full bg-white/20 text-[13px] font-bold">
           {iniciales(user.nombre)}
         </span>
         <div className="min-w-0 flex-1">
           <div className="truncate text-[13px] font-semibold">{user.nombre}</div>
-          <div className="text-[11px] text-white/60">{user.vivienda}</div>
+          <div className="text-[11px] text-white/60">Perfil y ajustes</div>
         </div>
-        <RoleBadge kind={roleBadgeKind(user.rol)} />
-      </div>
+        <Settings size={18} className="text-white/70" />
+      </NavLink>
     </aside>
   )
 }

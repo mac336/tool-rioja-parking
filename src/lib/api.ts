@@ -34,6 +34,13 @@ let currentUser: Profile = structuredClone(mock.MOCK_USER)
 export function getUser(): Profile { return currentUser }
 export function setUserRole(rol: Profile['rol']) { currentUser = { ...currentUser, rol } }
 
+/** Editar el nombre visible (único campo del perfil que el usuario puede cambiar;
+ *  piso/rol/estado los gestiona la aprobación). En real → update a profiles(nombre). */
+export function actualizarNombre(nombre: string): Promise<Profile> {
+  currentUser = { ...currentUser, nombre, iniciales: iniciales(nombre) }
+  return delay(currentUser)
+}
+
 // ---- Viviendas ---------------------------------------------------------------
 export const listViviendas = () => delay(PISOS)
 
@@ -77,15 +84,49 @@ export function cambiarEstadoIncidencia(id: string, estado: IncidentStatus): Pro
 export const listEncuestas = () => delay(db.encuestas.slice())
 export const getEncuesta = (id: string) => delay(db.encuestas.find((e) => e.id === id) ?? null)
 
-export function votar(encuestaId: string, opcionIds: string[]): Promise<Encuesta> {
+/** Emite/actualiza el voto de la vivienda en UNA pregunta (recuenta opciones). */
+export function votarPregunta(encuestaId: string, preguntaId: string, opcionIds: string[]): Promise<Encuesta> {
   const e = db.encuestas.find((x) => x.id === encuestaId)!
-  const antes = e.mi_voto_opcion_ids
-  // recuenta: quita voto anterior, añade nuevo
-  antes.forEach((oid) => { const o = e.opciones.find((o) => o.id === oid); if (o) o.votos-- })
-  if (antes.length === 0) e.viviendas_votantes++
-  opcionIds.forEach((oid) => { const o = e.opciones.find((o) => o.id === oid); if (o) o.votos++ })
-  if (opcionIds.length === 0 && antes.length > 0) e.viviendas_votantes--
-  e.mi_voto_opcion_ids = opcionIds
+  const q = e.preguntas.find((p) => p.id === preguntaId)!
+  const antesTotal = e.preguntas.reduce((n, p) => n + p.mi_voto_opcion_ids.length, 0)
+  q.mi_voto_opcion_ids.forEach((oid) => { const o = q.opciones.find((o) => o.id === oid); if (o) o.votos-- })
+  opcionIds.forEach((oid) => { const o = q.opciones.find((o) => o.id === oid); if (o) o.votos++ })
+  q.mi_voto_opcion_ids = opcionIds
+  // participación: la vivienda cuenta si ha votado al menos una pregunta
+  const despuesTotal = e.preguntas.reduce((n, p) => n + p.mi_voto_opcion_ids.length, 0)
+  if (antesTotal === 0 && despuesTotal > 0) e.viviendas_votantes++
+  if (antesTotal > 0 && despuesTotal === 0) e.viviendas_votantes--
+  return delay(e)
+}
+
+/** Crea una encuesta (formato 'unica' o 'multi'). Solo gestión (gateado en UI/RLS). */
+export function crearEncuesta(input: {
+  titulo: string
+  descripcion?: string
+  cierre: string // ISO
+  formato: import('@/types').EncuestaFormato
+  preguntas: { texto: string; tipo: import('@/types').EncuestaTipo; opciones: string[] }[]
+}): Promise<Encuesta> {
+  const e: Encuesta = {
+    id: uid(),
+    titulo: input.titulo,
+    descripcion: input.descripcion,
+    formato: input.formato,
+    apertura: new Date().toISOString(),
+    cierre: input.cierre,
+    estado: 'abierta',
+    creada_por_nombre: currentUser.nombre,
+    total_viviendas: 41,
+    viviendas_votantes: 0,
+    preguntas: input.preguntas.map((p) => ({
+      id: uid(),
+      texto: p.texto,
+      tipo: p.tipo,
+      mi_voto_opcion_ids: [],
+      opciones: p.opciones.map((t) => ({ id: uid(), texto: t, votos: 0 })),
+    })),
+  }
+  db.encuestas.unshift(e)
   return delay(e)
 }
 

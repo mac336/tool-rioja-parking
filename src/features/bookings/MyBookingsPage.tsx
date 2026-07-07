@@ -10,9 +10,9 @@ import type { Reserva, ReservaEstado } from '@/types'
 const TZ = 'Europe/Madrid'
 
 const PILL: Record<ReservaEstado, { label: string; cls: string }> = {
-  pendiente: { label: 'Pendiente de aprobar', cls: 'bg-warn-soft text-[#8a5a0f]' },
-  aprobada: { label: 'Aprobada', cls: 'bg-success-soft text-[#0f6b3f]' },
-  rechazada: { label: 'Rechazada', cls: 'bg-danger-soft text-[#a3341f]' },
+  pendiente: { label: 'Pendiente de aprobar', cls: 'bg-warn-soft text-warn-ink' },
+  aprobada: { label: 'Aprobada', cls: 'bg-success-soft text-success-ink' },
+  rechazada: { label: 'Rechazada', cls: 'bg-danger-soft text-danger-ink' },
   cancelada: { label: 'Cancelada', cls: 'bg-surface-2 text-muted' },
 }
 function EstadoPill({ estado }: { estado: ReservaEstado }) {

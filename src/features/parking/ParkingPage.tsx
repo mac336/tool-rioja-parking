@@ -53,7 +53,7 @@ export function ParkingPage() {
 
       <Page className="flex flex-col gap-5">
         {/* Plaza de esta quincena */}
-        <div className="rounded-[16px] p-5 text-white" style={{ background: 'linear-gradient(160deg,#10A26C,#0B7E52)' }}>
+        <div className="rounded-[18px] p-5 text-white shadow-neu" style={{ background: 'var(--grad-hero)' }}>
           <div className="flex items-start justify-between gap-3">
             <div>
               {actual ? (
@@ -94,7 +94,7 @@ export function ParkingPage() {
         {/* Próximas quincenas · 6 plazas */}
         <section>
           <h2 className="overline mb-2">Próximas quincenas · 6 plazas</h2>
-          <div className="overflow-x-auto rounded-[16px] border border-border bg-surface">
+          <div className="min-w-0 max-w-full overflow-x-auto rounded-[16px] border border-border bg-surface">
             <table className="w-full border-collapse text-[13px]">
               <thead>
                 <tr className="border-b border-border text-left text-muted">

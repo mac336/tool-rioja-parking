@@ -7,14 +7,16 @@ import { parkingMisTurnos, listEncuestas, anunciosPrincipales } from '@/lib/api'
 import { AnuncioCarousel } from '@/features/anuncios/AnuncioCarousel'
 import { Card } from '@/components/ui'
 
+// Tiles "sólido ilustrado": color pleno por módulo (colores de categoría, fijos —
+// no siguen la paleta). Icono arriba-izq + marca de agua vectorial abajo-dcha.
 const tiles = [
-  { to: '/anuncios', label: 'Anuncios', Icon: Megaphone, bg: '#FFE4DB', fg: '#D9542B' },
-  { to: '/incidencias', label: 'Incidencias', Icon: TriangleAlert, bg: '#FFE4DB', fg: '#D9542B' },
-  { to: '/votaciones', label: 'Votaciones', Icon: SquareCheckBig, bg: '#DFEDFC', fg: '#2F76C9' },
-  { to: '/reservas', label: 'Reservas', Icon: CalendarDays, bg: '#DCF5E8', fg: '#0B7E52' },
-  { to: '/parking', label: 'Parking', Icon: SquareParking, bg: '#EAE5FA', fg: '#7059C9' },
-  { to: '/contactos', label: 'Contactos', Icon: Phone, bg: '#FFF0D0', fg: '#A87414' },
-  { to: '/reciclaje', label: 'Reciclaje', Icon: Leaf, bg: '#E5F4D9', fg: '#58991F' },
+  { to: '/anuncios', label: 'Anuncios', Icon: Megaphone, color: '#E0A22E' },
+  { to: '/incidencias', label: 'Incidencias', Icon: TriangleAlert, color: '#E0555F' },
+  { to: '/votaciones', label: 'Votaciones', Icon: SquareCheckBig, color: '#5B7FD4' },
+  { to: '/reservas', label: 'Reservas', Icon: CalendarDays, color: '#2E8E79' },
+  { to: '/parking', label: 'Parking', Icon: SquareParking, color: '#8A6FD1' },
+  { to: '/contactos', label: 'Contactos', Icon: Phone, color: '#D98A3D' },
+  { to: '/reciclaje', label: 'Reciclaje', Icon: Leaf, color: '#6BAA4E' },
 ]
 
 export function HomePage() {
@@ -29,7 +31,7 @@ export function HomePage() {
   return (
     <div>
       {/* Header con degradado */}
-      <header className="px-4 pb-6 pt-6 text-white" style={{ background: 'linear-gradient(160deg,#10A26C,#0B7E52)' }}>
+      <header className="px-4 pb-6 pt-6 text-white" style={{ background: 'var(--grad-hero)' }}>
         <div className="flex items-center justify-between">
           <div>
             <div className="text-[13px] text-white/80">{fechaCorta(new Date().toISOString())}</div>
@@ -50,12 +52,14 @@ export function HomePage() {
 
         {/* Parking (tarjeta oscura) */}
         <Link to="/parking" className="block">
-          <div className="relative overflow-hidden rounded-[16px] bg-[#132520] p-4 text-white">
-            <Car size={92} className="absolute -right-3 -top-2 text-accent/25" />
-            <div className="overline text-white/60">Tu parking</div>
-            {miPlaza
-              ? <div className="mt-1 text-[15px]">Esta quincena aparcas en la <b className="text-[19px]">Plaza {miPlaza.plaza}</b></div>
-              : <div className="mt-1 text-[15px] text-white/80">Esta quincena no te toca plaza. Mira tus próximos turnos.</div>}
+          <div className="relative overflow-hidden rounded-[18px] p-4 text-white shadow-neu" style={{ background: 'var(--grad-hero)' }}>
+            <Car size={88} strokeWidth={1.6} className="pointer-events-none absolute -right-3 top-1/2 -translate-y-1/2 text-white/15" />
+            <div className="relative z-10 pr-24">
+              <div className="overline text-white/60">Tu parking</div>
+              {miPlaza
+                ? <div className="mt-1 text-[15px]">Esta quincena aparcas en la <b className="text-[19px]">Plaza {miPlaza.plaza}</b></div>
+                : <div className="mt-1 text-[15px] text-white/80">Esta quincena no te toca plaza. Mira tus próximos turnos.</div>}
+            </div>
           </div>
         </Link>
 
@@ -77,13 +81,21 @@ export function HomePage() {
 
         {/* Tiles */}
         <h2 className="overline mb-2 mt-6">¿Qué necesitas?</h2>
-        <div className="grid grid-cols-3 gap-3 pb-4">
-          {tiles.map(({ to, label, Icon, bg, fg }) => (
-            <Link key={to} to={to} className="flex flex-col items-center gap-2 rounded-[16px] border border-border bg-surface p-3 text-center">
-              <span className="flex h-12 w-12 items-center justify-center rounded-[14px]" style={{ background: bg, color: fg }}>
-                <Icon size={24} strokeWidth={1.9} />
+        <div className="grid grid-cols-2 gap-3 pb-4 sm:grid-cols-3">
+          {tiles.map(({ to, label, Icon, color }) => (
+            <Link key={to} to={to}
+              className="relative flex min-h-[108px] flex-col justify-between overflow-hidden rounded-[18px] p-3.5 text-white shadow-neu-sm transition-shadow active:shadow-neu-inset"
+              style={{ background: color }}>
+              {/* marca de agua vectorial (mismo icono, grande y translúcido) */}
+              <Icon size={82} strokeWidth={1.5} className="pointer-events-none absolute -bottom-3 -right-3 text-white/20" />
+              {/* velo inferior para asegurar contraste del texto blanco */}
+              <span className="pointer-events-none absolute inset-x-0 bottom-0 h-1/2"
+                style={{ background: 'linear-gradient(to top, rgba(0,0,0,.28), transparent)' }} />
+              {/* icono */}
+              <span className="relative flex h-9 w-9 items-center justify-center rounded-[12px] bg-white/25">
+                <Icon size={20} strokeWidth={2} />
               </span>
-              <span className="text-[12px] font-semibold text-ink">{label}</span>
+              <span className="relative z-10 text-[14px] font-bold">{label}</span>
             </Link>
           ))}
         </div>

@@ -17,11 +17,11 @@ export function Button({ variant = 'primary', block, size = 'md', className, chi
   const base = 'inline-flex items-center justify-center gap-2 rounded-pill font-bold transition-colors disabled:cursor-not-allowed disabled:bg-surface-2 disabled:text-faint disabled:shadow-none'
   const sizes = size === 'lg' ? 'min-h-[52px] px-6 text-[16px]' : 'min-h-[46px] px-5 text-[15px]'
   const variants: Record<BtnVariant, string> = {
-    primary: 'bg-primary text-white shadow-primary hover:bg-primary-700',
-    secondary: 'bg-surface text-ink border-[1.5px] border-border-strong hover:bg-surface-2',
+    primary: 'bg-primary text-white shadow-primary hover:bg-primary-700 active:shadow-neu-inset',
+    secondary: 'bg-surface text-ink shadow-neu-sm hover:brightness-[0.98] active:shadow-neu-inset',
     ghost: 'bg-transparent text-primary hover:bg-primary-soft',
-    danger: 'bg-danger text-white hover:brightness-95',
-    'danger-outline': 'bg-surface text-danger border-[1.5px] border-danger hover:bg-danger-soft',
+    danger: 'bg-danger text-white shadow-neu-sm hover:brightness-95 active:shadow-neu-inset',
+    'danger-outline': 'bg-surface text-danger shadow-neu-sm hover:bg-danger-soft active:shadow-neu-inset',
   }
   return (
     <button className={cx(base, sizes, variants[variant], block && 'w-full', className)} {...rest}>
@@ -32,7 +32,7 @@ export function Button({ variant = 'primary', block, size = 'md', className, chi
 
 // ---- Card --------------------------------------------------------------------
 export function Card({ className, children, ...rest }: { className?: string; children: ReactNode } & React.HTMLAttributes<HTMLDivElement>) {
-  return <div className={cx('rounded-[16px] border border-border bg-surface p-4', className)} {...rest}>{children}</div>
+  return <div className={cx('rounded-[18px] bg-surface p-4 shadow-neu', className)} {...rest}>{children}</div>
 }
 
 // ---- Field / Input -----------------------------------------------------------
@@ -47,8 +47,8 @@ export const Field = forwardRef<HTMLInputElement, FieldProps>(function Field({ l
     <div className="flex flex-col gap-1.5">
       <label htmlFor={fid} className="text-[13px] font-semibold text-muted">{label}</label>
       <input ref={ref} id={fid}
-        className={cx('min-h-[48px] rounded-[12px] border-[1.5px] bg-surface px-3.5 text-[15px] text-ink placeholder:text-faint',
-          error ? 'border-danger bg-danger-soft' : 'border-border-strong', className)}
+        className={cx('min-h-[48px] rounded-[14px] border bg-surface px-3.5 text-[15px] text-ink placeholder:text-faint shadow-neu-inset focus:outline-none',
+          error ? 'border-danger' : 'border-border focus:border-primary', className)}
         {...rest} />
       {error && <span className="text-[12px] text-danger">{error}</span>}
       {hint && !error && <span className="text-[12px] text-faint">{hint}</span>}
@@ -67,8 +67,8 @@ export function Textarea({ label, error, hint, id, className, ...rest }: Textare
     <div className="flex flex-col gap-1.5">
       <label htmlFor={fid} className="text-[13px] font-semibold text-muted">{label}</label>
       <textarea ref={undefined} id={fid} rows={4}
-        className={cx('rounded-[12px] border-[1.5px] bg-surface px-3.5 py-2.5 text-[15px] text-ink placeholder:text-faint',
-          error ? 'border-danger bg-danger-soft' : 'border-border-strong', className)}
+        className={cx('rounded-[14px] border bg-surface px-3.5 py-2.5 text-[15px] text-ink placeholder:text-faint shadow-neu-inset focus:outline-none',
+          error ? 'border-danger' : 'border-border focus:border-primary', className)}
         {...rest} />
       {error && <span className="text-[12px] text-danger">{error}</span>}
       {hint && !error && <span className="text-[12px] text-faint">{hint}</span>}
@@ -88,8 +88,8 @@ export function SelectField({ label, error, id, className, children, ...rest }: 
       <label htmlFor={fid} className="text-[13px] font-semibold text-muted">{label}</label>
       <div className="relative">
         <select ref={undefined} id={fid}
-          className={cx('min-h-[48px] w-full appearance-none rounded-[12px] border-[1.5px] bg-surface px-3.5 pr-10 text-[15px] text-ink',
-            error ? 'border-danger' : 'border-border-strong', className)}
+          className={cx('min-h-[48px] w-full appearance-none rounded-[14px] border bg-surface px-3.5 pr-10 text-[15px] text-ink shadow-neu-inset focus:outline-none',
+            error ? 'border-danger' : 'border-border focus:border-primary', className)}
           {...rest}>
           {children}
         </select>
@@ -102,9 +102,9 @@ export function SelectField({ label, error, id, className, children, ...rest }: 
 
 // ---- StatusChip (incidencias) ------------------------------------------------
 const STATUS: Record<IncidentStatus, { label: string; dot: string; cls: string }> = {
-  abierta: { label: 'Abierta', dot: 'var(--danger)', cls: 'bg-danger-soft text-[#a3341f]' },
-  en_curso: { label: 'En curso', dot: 'var(--info)', cls: 'bg-info-soft text-[#1f5aa3]' },
-  resuelta: { label: 'Resuelta', dot: 'var(--success)', cls: 'bg-success-soft text-[#0f6b3f]' },
+  abierta: { label: 'Abierta', dot: 'var(--danger)', cls: 'bg-danger-soft text-danger-ink' },
+  en_curso: { label: 'En curso', dot: 'var(--info)', cls: 'bg-info-soft text-info-ink' },
+  resuelta: { label: 'Resuelta', dot: 'var(--success)', cls: 'bg-success-soft text-success-ink' },
   cerrada: { label: 'Cerrada', dot: 'var(--faint)', cls: 'bg-surface-2 text-muted' },
 }
 export function StatusChip({ status }: { status: IncidentStatus }) {
@@ -151,12 +151,12 @@ export function Avatar({ text, size = 40, className }: { text: string; size?: nu
 // ---- Alert -------------------------------------------------------------------
 export function Alert({ tipo = 'info', children }: { tipo?: 'info' | 'warn' | 'success' | 'danger'; children: ReactNode }) {
   const cls = {
-    info: 'bg-info-soft border-info/30 text-[#1f5aa3]',
-    warn: 'bg-warn-soft border-warn/30 text-[#8a5a0f]',
-    success: 'bg-success-soft border-success/30 text-[#0f6b3f]',
-    danger: 'bg-danger-soft border-danger/30 text-[#a3341f]',
+    info: 'bg-info-soft text-info-ink',
+    warn: 'bg-warn-soft text-warn-ink',
+    success: 'bg-success-soft text-success-ink',
+    danger: 'bg-danger-soft text-danger-ink',
   }[tipo]
-  return <div className={cx('rounded-[12px] border px-3.5 py-3 text-[14px]', cls)}>{children}</div>
+  return <div className={cx('rounded-[14px] px-3.5 py-3 text-[14px]', cls)}>{children}</div>
 }
 
 // ---- ProgressBar -------------------------------------------------------------

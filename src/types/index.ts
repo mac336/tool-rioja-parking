@@ -86,27 +86,35 @@ export interface Incident {
 export type EncuestaTipo = 'opcion_unica' | 'opcion_multiple'
 export type EncuestaEstado = 'programada' | 'abierta' | 'cerrada'
 
+/** Formato de la encuesta: una sola pregunta (votación simple) o varias. */
+export type EncuestaFormato = 'unica' | 'multi'
+
 export interface EncuestaOpcion {
   id: string
   texto: string
-  orden: number
   votos: number
+}
+
+export interface EncuestaPregunta {
+  id: string
+  texto: string
+  tipo: EncuestaTipo // opción única o múltiple, por pregunta
+  opciones: EncuestaOpcion[] // 2 a 5
+  mi_voto_opcion_ids: string[] // opciones marcadas por la vivienda del usuario en ESTA pregunta
 }
 
 export interface Encuesta {
   id: string
   titulo: string
   descripcion?: string
-  tipo: EncuestaTipo
+  formato: EncuestaFormato
   apertura: string
   cierre: string
   estado: EncuestaEstado
-  mostrar_participacion: boolean
   creada_por_nombre: string
-  opciones: EncuestaOpcion[]
   total_viviendas: number
-  viviendas_votantes: number
-  mi_voto_opcion_ids: string[] // opciones marcadas por la vivienda del usuario
+  viviendas_votantes: number // nº de viviendas que han participado (votado ≥1 pregunta)
+  preguntas: EncuestaPregunta[] // 1 si formato='unica'; varias si 'multi'
 }
 
 export type ReservaEstado = 'pendiente' | 'aprobada' | 'rechazada' | 'cancelada'

@@ -10,6 +10,7 @@ import {
   anunciosPendientesGestion, resolverAnuncio,
 } from '@/lib/api'
 import { AnuncioCarousel } from '@/features/anuncios/AnuncioCarousel'
+import { AnuncioIlustrado } from '@/features/anuncios/anuncioStyle'
 import {
   Button, Card, Alert, EmptyState, ErrorState, SkeletonList, cx,
 } from '@/components/ui'
@@ -19,26 +20,14 @@ import type { Anuncio, AnuncioEstado } from '@/types'
 const extracto = (cuerpo: string) => cuerpo.replace(/[*_#>`]/g, '').replace(/\s+/g, ' ').trim()
 
 const ESTADO_PILL: Record<AnuncioEstado, { label: string; cls: string }> = {
-  pendiente: { label: 'Pendiente', cls: 'bg-warn-soft text-[#8a5a0f]' },
-  publicado: { label: 'Publicado', cls: 'bg-success-soft text-[#0f6b3f]' },
-  rechazado: { label: 'Rechazado', cls: 'bg-danger-soft text-[#a3341f]' },
+  pendiente: { label: 'Pendiente', cls: 'bg-warn-soft text-warn-ink' },
+  publicado: { label: 'Publicado', cls: 'bg-success-soft text-success-ink' },
+  rechazado: { label: 'Rechazado', cls: 'bg-danger-soft text-danger-ink' },
   archivado: { label: 'Archivado', cls: 'bg-surface-2 text-muted' },
 }
 function EstadoPill({ estado }: { estado: AnuncioEstado }) {
   const s = ESTADO_PILL[estado]
   return <span className={cx('rounded-pill px-2.5 py-1 text-[12px] font-bold', s.cls)}>{s.label}</span>
-}
-
-function AnuncioCard({ a }: { a: Anuncio }) {
-  return (
-    <Card>
-      <h3 className="font-display text-[17px] font-bold text-ink">{a.titulo}</h3>
-      <p className="mt-1 line-clamp-2 text-[14px] text-muted">{extracto(a.cuerpo)}</p>
-      <div className="mt-2 text-[12px] text-faint">
-        {a.autor_nombre} · {a.vivienda} · hasta {fechaCorta(a.fecha_fin)}
-      </div>
-    </Card>
-  )
 }
 
 type Tab = 'tablon' | 'mios' | 'moderacion'
@@ -105,8 +94,10 @@ export function AnunciosPage() {
                 <EmptyState titulo="Nada por aquí todavía" texto="Sé el primero en publicar un anuncio para la comunidad." />
               )}
               {listado.state === 'ready' && listado.data && (
-                <div className="flex flex-col gap-3">
-                  {listado.data.map((a) => <AnuncioCard key={a.id} a={a} />)}
+                <div className="grid grid-cols-1 gap-3 sm:grid-cols-2">
+                  {listado.data.map((a) => (
+                    <AnuncioIlustrado key={a.id} a={a} destacado={a.nivel === 'principal'} />
+                  ))}
                 </div>
               )}
             </section>

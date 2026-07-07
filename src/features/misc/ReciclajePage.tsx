@@ -46,7 +46,7 @@ export function ReciclajePage() {
           <Alert tipo="info">
             <div className="flex flex-col gap-2">
               <span>Punto limpio y citas: 010 · Línea Madrid.</span>
-              <a href="tel:010" className="inline-flex w-fit items-center gap-2 rounded-pill bg-white/70 px-3 py-1.5 text-[13px] font-bold text-[#1f5aa3]">
+              <a href="tel:010" className="inline-flex w-fit items-center gap-2 rounded-pill bg-white/70 px-3 py-1.5 text-[13px] font-bold text-info-ink">
                 <Phone size={15} /> Llamar al 010
               </a>
             </div>

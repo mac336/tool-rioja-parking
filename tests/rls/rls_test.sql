@@ -43,7 +43,8 @@ delete from reservas where solicitada_por in (:'uidA',:'uidB',:'uidP',:'uidX');
 delete from incidencias where autor_id in (:'uidA',:'uidB',:'uidP',:'uidX');
 delete from anuncios where autor_id in (:'uidA',:'uidB',:'uidP',:'uidX');
 delete from parking_cesiones where vivienda in ('Bajo A','1º A Dcha','2º A Dcha','3º A Dcha');
-delete from encuesta_opciones where encuesta_id in (select id from encuestas where titulo in ('__test__','__test2__','__e1__','__e2__'));
+delete from encuesta_opciones where pregunta_id in (select id from encuesta_preguntas where encuesta_id in (select id from encuestas where titulo in ('__test__','__test2__','__e1__','__e2__')));
+delete from encuesta_preguntas where encuesta_id in (select id from encuestas where titulo in ('__test__','__test2__','__e1__','__e2__'));
 delete from encuestas where titulo in ('__test__','__test2__','__e1__','__e2__');
 delete from auth.users where id in (
   :'uidA',:'uidB',:'uidP',:'uidX',
@@ -62,15 +63,14 @@ update profiles set vivienda='1º A Dcha', rol='vecino',     estado='activo', no
 update profiles set vivienda='2º A Dcha', rol='presidente', estado='activo', normas_aceptadas_at=now() where id=:'uidP';
 update profiles set vivienda='3º A Dcha', rol='app_admin',  estado='activo', normas_aceptadas_at=now() where id=:'uidX';
 
--- Encuesta abierta con 2 opciones + zona para reservas.
-delete from encuestas where titulo='__test__';
-with e as (
-  insert into encuestas (titulo, tipo, apertura, cierre, creada_por)
-  values ('__test__','opcion_unica', now()-interval '1 day', now()+interval '7 days', :'uidP')
-  returning id
-)
-insert into encuesta_opciones (encuesta_id, texto, orden)
-select id, 'Opción 1', 1 from e union all select id, 'Opción 2', 2 from e;
+-- Encuesta abierta (formato única) con 1 pregunta y 2 opciones.
+insert into encuestas (id, titulo, formato, apertura, cierre, creada_por)
+  values ('dddddddd-0000-0000-0000-000000000001','__test__','unica', now()-interval '1 day', now()+interval '7 days', :'uidP');
+insert into encuesta_preguntas (id, encuesta_id, texto, tipo, orden)
+  values ('cccccccc-0000-0000-0000-000000000009','dddddddd-0000-0000-0000-000000000001','P1','opcion_unica',1);
+insert into encuesta_opciones (pregunta_id, texto, orden) values
+  ('cccccccc-0000-0000-0000-000000000009','Opción 1',1),
+  ('cccccccc-0000-0000-0000-000000000009','Opción 2',2);
 
 -- ===========================================================================
 -- TESTS COMO VECINO A
@@ -90,15 +90,14 @@ select assert_igual((select count(*) from directorio), 4, 'vecino A ve directori
 -- 4) A NO puede leer audit_log (0 filas por RLS)
 select assert_igual((select count(*) from audit_log), 0, 'vecino A no lee audit_log');
 
--- 5) A vota una vez → OK; segundo voto (opción distinta, opción_única) → FALLA
-insert into encuesta_votos (encuesta_id, vivienda, opcion_id, emitido_por)
-select e.id, 'Bajo A', o.id, :'uidA'
-from encuestas e join encuesta_opciones o on o.encuesta_id=e.id
-where e.titulo='__test__' and o.orden=1;
+-- 5) A vota una vez en la pregunta → OK; segundo voto (opción distinta, opción_única) → FALLA
+insert into encuesta_votos (pregunta_id, vivienda, opcion_id, emitido_por)
+select 'cccccccc-0000-0000-0000-000000000009', 'Bajo A', o.id, :'uidA'
+from encuesta_opciones o where o.pregunta_id='cccccccc-0000-0000-0000-000000000009' and o.orden=1;
 select assert_falla(
-  format($f$insert into encuesta_votos (encuesta_id, vivienda, opcion_id, emitido_por)
-    select e.id, 'Bajo A', o.id, '%s' from encuestas e join encuesta_opciones o on o.encuesta_id=e.id
-    where e.titulo='__test__' and o.orden=2$f$, :'uidA'),
+  format($f$insert into encuesta_votos (pregunta_id, vivienda, opcion_id, emitido_por)
+    select 'cccccccc-0000-0000-0000-000000000009', 'Bajo A', o.id, '%s' from encuesta_opciones o
+    where o.pregunta_id='cccccccc-0000-0000-0000-000000000009' and o.orden=2$f$, :'uidA'),
   'doble voto misma vivienda (opción única)');
 
 -- 6) A crea reserva 10-12h en la zona Jardín → OK
@@ -148,8 +147,8 @@ update reservas set estado='aprobada', aprobada_por=:'uidP' where vivienda='Bajo
 select assert_igual((select count(*) from reservas where vivienda='Bajo A' and estado='aprobada'), 1, 'presidente aprueba reserva');
 
 -- 13) Presidente crea una encuesta → OK (es gestión)
-insert into encuestas (titulo, tipo, cierre, creada_por)
-values ('__test2__','opcion_unica', now()+interval '3 day', :'uidP');
+insert into encuestas (titulo, formato, cierre, creada_por)
+values ('__test2__','unica', now()+interval '3 day', :'uidP');
 select assert_igual((select count(*) from encuestas where titulo='__test2__'), 1, 'presidente crea encuesta');
 
 -- ===========================================================================
@@ -198,15 +197,18 @@ select assert_falla(
 -- REGRESIÓN DE LA REVISIÓN DE SEGURIDAD (SECURITY_REVIEW.md)
 -- ===========================================================================
 
--- Fixtures extra para el finding 4 (dos encuestas con una opción cada una)
+-- Fixtures extra para el finding 4 (dos encuestas, cada una con 1 pregunta y 1 opción)
 reset role;
 select set_config('request.jwt.claims', '', false);
-insert into encuestas (id, titulo, tipo, cierre, creada_por) values
-  ('aaaaaaaa-0000-0000-0000-000000000001','__e1__','opcion_multiple', now()+interval '5 day', :'uidP'),
-  ('aaaaaaaa-0000-0000-0000-000000000002','__e2__','opcion_multiple', now()+interval '5 day', :'uidP');
-insert into encuesta_opciones (id, encuesta_id, texto, orden) values
-  ('bbbbbbbb-0000-0000-0000-000000000001','aaaaaaaa-0000-0000-0000-000000000001','E1 opt',1),
-  ('bbbbbbbb-0000-0000-0000-000000000002','aaaaaaaa-0000-0000-0000-000000000002','E2 opt',1);
+insert into encuestas (id, titulo, formato, cierre, creada_por) values
+  ('aaaaaaaa-0000-0000-0000-000000000001','__e1__','multi', now()+interval '5 day', :'uidP'),
+  ('aaaaaaaa-0000-0000-0000-000000000002','__e2__','multi', now()+interval '5 day', :'uidP');
+insert into encuesta_preguntas (id, encuesta_id, texto, tipo, orden) values
+  ('cccccccc-0000-0000-0000-000000000001','aaaaaaaa-0000-0000-0000-000000000001','E1 q','opcion_multiple',1),
+  ('cccccccc-0000-0000-0000-000000000002','aaaaaaaa-0000-0000-0000-000000000002','E2 q','opcion_multiple',1);
+insert into encuesta_opciones (id, pregunta_id, texto, orden) values
+  ('bbbbbbbb-0000-0000-0000-000000000001','cccccccc-0000-0000-0000-000000000001','E1 opt',1),
+  ('bbbbbbbb-0000-0000-0000-000000000002','cccccccc-0000-0000-0000-000000000002','E2 opt',1);
 
 set role authenticated;
 select set_config('request.jwt.claims', json_build_object('sub',:'uidA','role','authenticated')::text, false);
@@ -234,11 +236,11 @@ select assert_igual(
   (select count(*) from incidencias where titulo='__inc guard' and estado='abierta' and not comentarios_bloqueados),
   1, 'MEDIO3: autor NO cambia estado/moderación de su incidencia');
 
--- 19) BAJO 4: no se puede votar con una opción que es de OTRA encuesta
+-- 19) BAJO 4: no se puede votar en una pregunta con una opción de OTRA pregunta
 select assert_falla(
-  format($f$insert into encuesta_votos (encuesta_id, vivienda, opcion_id, emitido_por)
-    values ('aaaaaaaa-0000-0000-0000-000000000001','Bajo A','bbbbbbbb-0000-0000-0000-000000000002','%s')$f$, :'uidA'),
-  'BAJO4: voto con opción de otra encuesta');
+  format($f$insert into encuesta_votos (pregunta_id, vivienda, opcion_id, emitido_por)
+    values ('cccccccc-0000-0000-0000-000000000001','Bajo A','bbbbbbbb-0000-0000-0000-000000000002','%s')$f$, :'uidA'),
+  'BAJO4: voto con opción de otra pregunta');
 
 -- ===========================================================================
 -- FUNCIONAL 5: el presidente PUEDE bloquear anuncios de una vivienda; un vecino NO

@@ -13,6 +13,7 @@ alter table incidencia_adjuntos     enable row level security;
 alter table incidencia_comentarios  enable row level security;
 alter table incidencia_eventos      enable row level security;
 alter table encuestas               enable row level security;
+alter table encuesta_preguntas      enable row level security;
 alter table encuesta_opciones       enable row level security;
 alter table encuesta_votos          enable row level security;
 alter table zonas_comunes           enable row level security;
@@ -34,7 +35,7 @@ grant usage on schema public to anon, authenticated;
 grant select on viviendas to anon, authenticated;
 grant select, insert, update, delete on
   incidencias, incidencia_adjuntos, incidencia_comentarios,
-  encuestas, encuesta_opciones, encuesta_votos,
+  encuestas, encuesta_preguntas, encuesta_opciones, encuesta_votos,
   zonas_comunes, reservas, parking_cesiones, anuncios, contactos, reportes
   to authenticated;
 grant select on incidencia_eventos, audit_log to authenticated;
@@ -121,6 +122,9 @@ create policy evt_sel on incidencia_eventos for select using (es_activo());
 -- ---------------------------------------------------------------------------
 create policy enc_sel on encuestas for select using (es_activo());
 create policy enc_all on encuestas for all using (es_gestion()) with check (es_gestion());
+
+create policy preg_sel on encuesta_preguntas for select using (es_activo());
+create policy preg_all on encuesta_preguntas for all using (es_gestion()) with check (es_gestion());
 
 create policy opt_sel on encuesta_opciones for select using (es_activo());
 create policy opt_all on encuesta_opciones for all using (es_gestion()) with check (es_gestion());

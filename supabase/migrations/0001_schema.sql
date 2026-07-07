@@ -18,6 +18,7 @@ create type incident_categoria as enum
   ('limpieza','ascensor','garaje','jardin','piscina','ruido','otros');
 create type incident_prioridad as enum ('baja','media','alta');
 create type encuesta_tipo as enum ('opcion_unica','opcion_multiple');
+create type encuesta_formato as enum ('unica','multi');
 create type encuesta_estado as enum ('programada','abierta','cerrada');
 create type reserva_estado as enum ('pendiente','aprobada','rechazada','cancelada');
 create type cesion_tipo as enum ('cede','no_necesita','necesita');
@@ -121,37 +122,48 @@ create index idx_eventos_incidencia on incidencia_eventos(incidencia_id);
 -- ---------------------------------------------------------------------------
 -- Encuestas
 -- ---------------------------------------------------------------------------
+-- Una encuesta = varias PREGUNTAS (formato 'unica' = 1 pregunta, 'multi' = varias).
+-- Cada pregunta tiene sus opciones y su propio recuento de votos (1 voto/vivienda
+-- por pregunta). Ver módulo 06 y src/types.
 create table encuestas (
   id uuid primary key default gen_random_uuid(),
   titulo text not null,
   descripcion text,
-  tipo encuesta_tipo not null default 'opcion_unica',
+  formato encuesta_formato not null default 'unica',
   apertura timestamptz not null default now(),
   cierre timestamptz not null,
-  mostrar_participacion boolean not null default true,
   creada_por uuid not null references profiles(id),
   created_at timestamptz not null default now()
 );
 
-create table encuesta_opciones (
+create table encuesta_preguntas (
   id uuid primary key default gen_random_uuid(),
   encuesta_id uuid not null references encuestas(id) on delete cascade,
   texto text not null,
+  tipo encuesta_tipo not null default 'opcion_unica',
   orden int not null default 0
 );
-create index idx_opciones_encuesta on encuesta_opciones(encuesta_id);
+create index idx_preguntas_encuesta on encuesta_preguntas(encuesta_id);
+
+create table encuesta_opciones (
+  id uuid primary key default gen_random_uuid(),
+  pregunta_id uuid not null references encuesta_preguntas(id) on delete cascade,
+  texto text not null,
+  orden int not null default 0
+);
+create index idx_opciones_pregunta on encuesta_opciones(pregunta_id);
 
 create table encuesta_votos (
   id uuid primary key default gen_random_uuid(),
-  encuesta_id uuid not null references encuestas(id) on delete cascade,
+  pregunta_id uuid not null references encuesta_preguntas(id) on delete cascade,
   vivienda text not null references viviendas(codigo),
   opcion_id uuid not null references encuesta_opciones(id) on delete cascade,
   emitido_por uuid not null references profiles(id),
   created_at timestamptz not null default now(),
-  unique (encuesta_id, vivienda, opcion_id)  -- no repetir la misma opción
+  unique (pregunta_id, vivienda, opcion_id)  -- no repetir la misma opción en una pregunta
 );
-create index idx_votos_encuesta on encuesta_votos(encuesta_id);
-create index idx_votos_vivienda on encuesta_votos(encuesta_id, vivienda);
+create index idx_votos_pregunta on encuesta_votos(pregunta_id);
+create index idx_votos_vivienda on encuesta_votos(pregunta_id, vivienda);
 
 -- ---------------------------------------------------------------------------
 -- Zonas comunes y reservas

@@ -1,24 +1,54 @@
+import { useState } from 'react'
 import { Link } from 'react-router-dom'
-import { Plus, ListChecks, CheckCircle2 } from 'lucide-react'
+import { Plus, ListChecks, CheckCircle2, Lock, Trash2 } from 'lucide-react'
 import { Page } from '@/components/layout/AppShell'
 import { Button, Card, ProgressBar, Alert, EmptyState, ErrorState, SkeletonList, cx } from '@/components/ui'
 import { useAsync } from '@/lib/useAsync'
 import { diasRestantes } from '@/lib/format'
 import { esGestion } from '@/lib/roles'
 import { useApp } from '@/store'
-import { listEncuestas } from '@/lib/api'
+import { listEncuestas, cerrarEncuesta, borrarEncuesta } from '@/lib/api'
 import type { Encuesta } from '@/types'
 
 const haVotado = (e: Encuesta) => e.preguntas.some((p) => p.mi_voto_opcion_ids.length > 0)
 const votadaEntera = (e: Encuesta) => e.preguntas.every((p) => p.mi_voto_opcion_ids.length > 0)
 
 export function EncuestasListPage() {
-  const { user } = useApp()
+  const { user, toast } = useApp()
   const { data, state, refetch } = useAsync(listEncuestas, [])
   const gestion = esGestion(user.rol)
+  const [busyId, setBusyId] = useState<string | null>(null)
 
   const abiertas = data?.filter((e) => e.estado === 'abierta') ?? []
   const cerradas = data?.filter((e) => e.estado === 'cerrada') ?? []
+
+  const cerrar = async (e: Encuesta) => {
+    if (!window.confirm(`¿Cerrar la votación "${e.titulo}"? No se admitirán más votos.`)) return
+    setBusyId(e.id)
+    try {
+      await cerrarEncuesta(e.id)
+      await refetch()
+      toast('Votación cerrada')
+    } catch {
+      toast('No se pudo cerrar la votación', 'error')
+    } finally {
+      setBusyId(null)
+    }
+  }
+
+  const borrar = async (e: Encuesta) => {
+    if (!window.confirm(`¿Eliminar la votación "${e.titulo}"? Esta acción no se puede deshacer.`)) return
+    setBusyId(e.id)
+    try {
+      await borrarEncuesta(e.id)
+      await refetch()
+      toast('Votación eliminada')
+    } catch {
+      toast('No se pudo eliminar la votación', 'error')
+    } finally {
+      setBusyId(null)
+    }
+  }
 
   return (
     <div>
@@ -61,6 +91,19 @@ export function EncuestasListPage() {
                 </Link>
                 <Link to={`/votaciones/${e.id}/resultados`}><Button variant="ghost">Resultados</Button></Link>
               </div>
+              {gestion && (
+                <div className="mt-3 flex items-center gap-1 border-t border-border pt-2 text-[13px]">
+                  <span className="mr-auto font-semibold text-faint">Gestión</span>
+                  <button type="button" onClick={() => cerrar(e)} disabled={busyId === e.id}
+                    className="inline-flex items-center gap-1.5 rounded-pill px-3 py-1.5 font-semibold text-muted transition-colors hover:bg-surface-2 disabled:opacity-50">
+                    <Lock size={14} /> Cerrar
+                  </button>
+                  <button type="button" onClick={() => borrar(e)} disabled={busyId === e.id}
+                    className="inline-flex items-center gap-1.5 rounded-pill px-3 py-1.5 font-semibold text-danger transition-colors hover:bg-danger-soft disabled:opacity-50">
+                    <Trash2 size={14} /> Borrar
+                  </button>
+                </div>
+              )}
             </Card>
           )
         })}
@@ -70,15 +113,21 @@ export function EncuestasListPage() {
             <h2 className="overline mb-2 flex items-center gap-1.5"><ListChecks size={14} /> Cerradas</h2>
             <div className="flex flex-col gap-3">
               {cerradas.map((e) => (
-                <Link key={e.id} to={`/votaciones/${e.id}/resultados`} className="block">
-                  <Card className="flex items-center justify-between">
-                    <div>
-                      <div className="font-semibold text-ink">{e.titulo}</div>
-                      <div className="text-[12px] text-muted">Cerrada · {e.viviendas_votantes}/{e.total_viviendas} viviendas</div>
-                    </div>
-                    <span className="text-[13px] font-semibold text-primary-700">Ver resultados →</span>
-                  </Card>
-                </Link>
+                <Card key={e.id} className="flex items-center justify-between gap-2">
+                  <Link to={`/votaciones/${e.id}/resultados`} className="min-w-0 flex-1">
+                    <div className="truncate font-semibold text-ink">{e.titulo}</div>
+                    <div className="text-[12px] text-muted">Cerrada · {e.viviendas_votantes}/{e.total_viviendas} viviendas</div>
+                  </Link>
+                  {gestion ? (
+                    <button type="button" onClick={() => borrar(e)} disabled={busyId === e.id}
+                      aria-label="Borrar votación"
+                      className="inline-flex shrink-0 items-center gap-1.5 rounded-pill px-3 py-1.5 text-[13px] font-semibold text-danger transition-colors hover:bg-danger-soft disabled:opacity-50">
+                      <Trash2 size={14} /> Borrar
+                    </button>
+                  ) : (
+                    <span className="shrink-0 text-[13px] font-semibold text-primary-700">Ver resultados →</span>
+                  )}
+                </Card>
               ))}
             </div>
           </section>

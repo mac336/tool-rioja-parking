@@ -1,16 +1,16 @@
 import { useState } from 'react'
 import { useNavigate } from 'react-router-dom'
-import { Shield, Check, X, Megaphone, CalendarDays, Settings, ChevronRight } from 'lucide-react'
-import { Avatar, Button, Card, SelectField, Alert, EmptyState, ErrorState, SkeletonList, cx } from '@/components/ui'
+import { Shield, Check, X, Megaphone, CalendarDays, Settings, ChevronRight, UserX, UserCheck } from 'lucide-react'
+import { Avatar, Button, Card, RoleBadge, SelectField, Alert, EmptyState, ErrorState, SkeletonList, cx } from '@/components/ui'
 import { useAsync } from '@/lib/useAsync'
 import { fechaCorta, iniciales } from '@/lib/format'
-import { ROLE_LABEL, puedeAprobarAltas } from '@/lib/roles'
-import type { Role } from '@/types'
+import { ROLE_LABEL, puedeAprobarAltas, roleBadgeKind } from '@/lib/roles'
+import type { Profile, Role } from '@/types'
 import { PISOS } from '@/lib/parking'
 import { useApp } from '@/store'
-import { listAccessRequests, resolverSolicitud } from '@/lib/api'
+import { listAccessRequests, resolverSolicitud, listVecinos, suspenderVecino, cambiarRolVecino } from '@/lib/api'
 
-type TabKey = 'solicitudes' | 'info'
+type TabKey = 'solicitudes' | 'vecinos' | 'info'
 type Seleccion = { vivienda: string; rol: Role }
 
 const ROLES = Object.keys(ROLE_LABEL) as Role[]
@@ -37,7 +37,7 @@ export function AdminPage() {
 
         {/* Control segmentado */}
         <div className="mt-4 inline-flex rounded-pill bg-white/10 p-1">
-          {([['solicitudes', 'Solicitudes'], ['info', 'Info']] as const).map(([key, label]) => (
+          {([['solicitudes', 'Solicitudes'], ['vecinos', 'Vecinos'], ['info', 'Info']] as const).map(([key, label]) => (
             <button
               key={key}
               type="button"
@@ -54,9 +54,9 @@ export function AdminPage() {
       </header>
 
       <div className="px-4 py-4">
-        {tab === 'solicitudes'
-          ? <SolicitudesTab canApprove={puedeAprobarAltas(user.rol)} onToast={toast} />
-          : <InfoTab onNavigate={navigate} />}
+        {tab === 'solicitudes' && <SolicitudesTab canApprove={puedeAprobarAltas(user.rol)} onToast={toast} />}
+        {tab === 'vecinos' && <VecinosTab canManage={puedeAprobarAltas(user.rol)} currentUserId={user.id} onToast={toast} />}
+        {tab === 'info' && <InfoTab onNavigate={navigate} />}
       </div>
     </div>
   )
@@ -146,6 +146,103 @@ function SolicitudesTab({ canApprove, onToast }: { canApprove: boolean; onToast:
             ) : (
               <div className="mt-3">
                 <Alert tipo="warn">No tienes permiso para aprobar altas.</Alert>
+              </div>
+            )}
+          </Card>
+        )
+      })}
+    </div>
+  )
+}
+
+// ---- Pestaña Vecinos ---------------------------------------------------------
+function VecinosTab({ canManage, currentUserId, onToast }: {
+  canManage: boolean
+  currentUserId: string
+  onToast: (t: string, tipo?: 'ok' | 'error' | 'info') => void
+}) {
+  const { data, state, refetch } = useAsync(listVecinos, [])
+  const [pendingId, setPendingId] = useState<string | null>(null)
+
+  if (state === 'loading') return <SkeletonList n={4} />
+  if (state === 'error') return <ErrorState onRetry={refetch} />
+  if (state === 'empty' || !data || data.length === 0) {
+    return <EmptyState titulo="Sin vecinos" texto="Todavía no hay vecinos dados de alta." />
+  }
+
+  async function cambiarRol(vecino: Profile, rol: Role) {
+    if (rol === vecino.rol) return
+    setPendingId(vecino.id)
+    try {
+      await cambiarRolVecino(vecino.id, rol)
+      onToast(`Rol de ${vecino.nombre} actualizado a ${ROLE_LABEL[rol]}`, 'ok')
+      refetch()
+    } catch {
+      onToast('No se ha podido cambiar el rol', 'error')
+    } finally {
+      setPendingId(null)
+    }
+  }
+
+  async function alternarSuspension(vecino: Profile) {
+    const suspender = vecino.estado !== 'suspendido'
+    setPendingId(vecino.id)
+    try {
+      await suspenderVecino(vecino.id, suspender)
+      onToast(suspender ? `${vecino.nombre} suspendido` : `${vecino.nombre} reactivado`, suspender ? 'info' : 'ok')
+      refetch()
+    } catch {
+      onToast('No se ha podido completar la acción', 'error')
+    } finally {
+      setPendingId(null)
+    }
+  }
+
+  return (
+    <div className="flex flex-col gap-3">
+      {data.map((vecino) => {
+        const busy = pendingId === vecino.id
+        const suspendido = vecino.estado === 'suspendido'
+        const esYo = vecino.id === currentUserId
+
+        return (
+          <Card key={vecino.id} className={cx(suspendido && 'opacity-60')}>
+            <div className="flex items-start gap-3">
+              <Avatar text={vecino.iniciales || iniciales(vecino.nombre)} />
+              <div className="min-w-0 flex-1">
+                <div className="flex flex-wrap items-center gap-2">
+                  <span className="truncate font-semibold text-ink">{vecino.nombre}</span>
+                  <RoleBadge kind={roleBadgeKind(vecino.rol)} />
+                  {suspendido && (
+                    <span className="shrink-0 rounded-pill bg-danger-soft px-2 py-0.5 text-[11.5px] font-bold text-danger-ink">Suspendido</span>
+                  )}
+                </div>
+                <div className="truncate text-[13px] text-muted">{vecino.vivienda}</div>
+                <div className="truncate text-[12px] text-faint">{vecino.email}</div>
+              </div>
+            </div>
+
+            {canManage && (
+              <div className="mt-3 flex flex-col gap-3">
+                <SelectField
+                  label="Rol"
+                  value={vecino.rol}
+                  onChange={(e) => cambiarRol(vecino, e.target.value as Role)}
+                  disabled={busy}
+                >
+                  {ROLES.map((r) => <option key={r} value={r}>{ROLE_LABEL[r]}</option>)}
+                </SelectField>
+                {!esYo && (
+                  suspendido ? (
+                    <Button block variant="secondary" disabled={busy} onClick={() => alternarSuspension(vecino)}>
+                      <UserCheck size={18} /> Reactivar
+                    </Button>
+                  ) : (
+                    <Button block variant="danger-outline" disabled={busy} onClick={() => alternarSuspension(vecino)}>
+                      <UserX size={18} /> Suspender
+                    </Button>
+                  )
+                )}
               </div>
             )}
           </Card>

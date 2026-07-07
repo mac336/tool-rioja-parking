@@ -139,14 +139,13 @@ const diaISO = (dias: number, hora: number) => {
   return d.toISOString()
 }
 
+// Una sola lista de reservas (de todas las viviendas). La cola del presidente
+// filtra las pendientes; "Mis reservas" filtra por la vivienda del usuario.
 export const MOCK_RESERVAS: Reserva[] = [
   {
     id: 'rv1', zona_id: 'z3', zona_nombre: 'Sala comunidad', vivienda: '2º C Dcha', solicitada_por: 'u_marta',
     inicio: diaISO(5, 16), fin: diaISO(5, 19), num_invitados: 8, estado: 'aprobada', created_at: '2026-07-05T00:00:00Z',
   },
-]
-
-export const MOCK_RESERVAS_PENDIENTES_GESTION: Reserva[] = [
   {
     id: 'rv9', zona_id: 'z2', zona_nombre: 'Piscina', vivienda: '1º D Dcha', solicitada_por: 'u_o',
     inicio: diaISO(8, 12), fin: diaISO(8, 15), num_invitados: 10, estado: 'pendiente', created_at: '2026-07-06T00:00:00Z',
@@ -174,6 +173,7 @@ export const MOCK_ANUNCIOS: Anuncio[] = [
   },
 ]
 
+// Anuncio pendiente de moderar (va en la misma lista MOCK_ANUNCIOS al sembrar).
 export const MOCK_ANUNCIOS_PENDIENTES: Anuncio[] = [
   {
     id: 'a9', autor_id: 'u_q', autor_nombre: 'Sara (2º E Izqda)', vivienda: '2º E Izqda',
@@ -181,6 +181,16 @@ export const MOCK_ANUNCIOS_PENDIENTES: Anuncio[] = [
     fecha_inicio: '2026-07-10', fecha_fin: '2026-09-10', revision_larga: false,
     nivel_solicitado: 'principal', nivel: null, estado: 'pendiente', created_at: '2026-07-06T15:00:00Z',
   },
+]
+
+// Vecinos de la comunidad (para la gestión de usuarios del panel admin).
+export const MOCK_VECINOS: Profile[] = [
+  MOCK_USER,
+  { id: 'u_o', email: 'ana.lopez@correo.es', nombre: 'Ana López', vivienda: '1º D Dcha', rol: 'vecino', estado: 'activo', normas_aceptadas_at: '2026-02-01T00:00:00Z', iniciales: 'AL' },
+  { id: 'u_p', email: 'david.seco@correo.es', nombre: 'David Seco', vivienda: '1º F Dcha', rol: 'presidente', estado: 'activo', normas_aceptadas_at: '2026-01-10T00:00:00Z', iniciales: 'DS' },
+  { id: 'u_q', email: 'sara.gil@correo.es', nombre: 'Sara Gil', vivienda: '2º E Izqda', rol: 'vecino', estado: 'activo', normas_aceptadas_at: '2026-03-15T00:00:00Z', iniciales: 'SG' },
+  { id: 'u_r', email: 'luis.mora@correo.es', nombre: 'Luis Mora', vivienda: '3º B Dcha', rol: 'junta', estado: 'activo', normas_aceptadas_at: '2026-02-20T00:00:00Z', iniciales: 'LM' },
+  { id: 'u_s', email: 'carmen.ruiz@correo.es', nombre: 'Carmen Ruiz', vivienda: 'Bajo A', rol: 'vecino', estado: 'suspendido', normas_aceptadas_at: '2026-01-05T00:00:00Z', iniciales: 'CR' },
 ]
 
 export const MOCK_CONTACTS: Contact[] = [

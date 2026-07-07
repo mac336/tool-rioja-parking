@@ -141,6 +141,7 @@ export interface Reserva {
   fin: string // ISO
   num_invitados: number
   estado: ReservaEstado
+  aprobada_por?: string
   motivo_rechazo?: string
   created_at: string
 }
@@ -165,6 +166,7 @@ export interface ParkingCesion {
   nota?: string
   estado: CesionEstado
   reasignada_a?: string
+  gestionada_por?: string
   created_at: string
 }
 
@@ -199,6 +201,7 @@ export interface Anuncio {
   nivel_solicitado: AnuncioNivel
   nivel: AnuncioNivel | null
   estado: AnuncioEstado
+  aprobado_por?: string
   motivo_rechazo?: string
   publicado_at?: string
   created_at: string

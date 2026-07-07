@@ -21,17 +21,20 @@ grant select on ocupacion_reservas to authenticated;
 
 -- Participación de una encuesta: nº de viviendas que han votado (sin desglose
 -- por opción). Visible durante la votación para el "X de Y".
+-- Participación de una encuesta: nº de viviendas que han votado (en cualquier
+-- pregunta), sin desglose por opción. Para el "X de Y" durante la votación.
 create or replace view encuesta_participacion as
-  select encuesta_id, count(distinct vivienda) as viviendas_votantes
-  from encuesta_votos
+  select p.encuesta_id, count(distinct v.vivienda) as viviendas_votantes
+  from encuesta_votos v
+  join encuesta_preguntas p on p.id = v.pregunta_id
   where es_activo()
-  group by encuesta_id;
+  group by p.encuesta_id;
 grant select on encuesta_participacion to authenticated;
 
--- Resultados por opción: SOLO si la encuesta está cerrada o el que consulta es
--- gestión (evita influir en el voto en curso). Cómputo en BD, no en el cliente.
+-- Resultados por PREGUNTA y opción: SOLO si la encuesta está cerrada o el que
+-- consulta es gestión (evita influir en el voto en curso). Cómputo en BD.
 create or replace function encuesta_resultados(p_encuesta uuid)
-  returns table(opcion_id uuid, texto text, votos bigint)
+  returns table(pregunta_id uuid, pregunta_texto text, opcion_id uuid, opcion_texto text, votos bigint)
   language plpgsql stable security definer set search_path = public as $$
 declare v_cerrada boolean;
 begin
@@ -44,11 +47,12 @@ begin
       using errcode = 'insufficient_privilege';
   end if;
   return query
-    select o.id, o.texto, count(v.id) as votos
-    from encuesta_opciones o
+    select pr.id, pr.texto, o.id, o.texto, count(v.id) as votos
+    from encuesta_preguntas pr
+    join encuesta_opciones o on o.pregunta_id = pr.id
     left join encuesta_votos v on v.opcion_id = o.id
-    where o.encuesta_id = p_encuesta
-    group by o.id, o.texto, o.orden
-    order by o.orden;
+    where pr.encuesta_id = p_encuesta
+    group by pr.id, pr.texto, pr.orden, o.id, o.texto, o.orden
+    order by pr.orden, o.orden;
 end; $$;
 grant execute on function encuesta_resultados(uuid) to authenticated;

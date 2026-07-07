@@ -1,13 +1,16 @@
 import { useState } from 'react'
-import { useParams } from 'react-router-dom'
-import { Send, ImageIcon } from 'lucide-react'
+import { Link, useNavigate, useParams } from 'react-router-dom'
+import { Send, ImageIcon, Pencil, Trash2 } from 'lucide-react'
 import { SubHeader, Page } from '@/components/layout/AppShell'
 import { Button, Card, StatusChip, CategoryChip, Avatar, Alert, ErrorState, SkeletonList, Stepper, cx } from '@/components/ui'
 import { useAsync } from '@/lib/useAsync'
 import { fechaHora, iniciales } from '@/lib/format'
 import { esGestion, ROLE_LABEL } from '@/lib/roles'
 import { useApp } from '@/store'
-import { getIncidencia, comentarIncidencia, cambiarEstadoIncidencia } from '@/lib/api'
+import {
+  getIncidencia, comentarIncidencia, cambiarEstadoIncidencia,
+  borrarIncidencia, ocultarComentario, bloquearComentarios,
+} from '@/lib/api'
 import type { Incident, IncidentStatus, IncidentComment } from '@/types'
 
 const CAT_LABEL: Record<Incident['categoria'], string> = {
@@ -22,19 +25,37 @@ const ESTADOS: { key: IncidentStatus; label: string }[] = [
   { key: 'cerrada', label: 'Cerrada' },
 ]
 
-function Comentario({ c }: { c: IncidentComment }) {
+function Comentario({ c, puedeModerar, moderando, onToggle }: {
+  c: IncidentComment
+  puedeModerar: boolean
+  moderando: boolean
+  onToggle: () => void
+}) {
   return (
-    <div className="flex gap-2.5">
+    <div className={cx('flex gap-2.5', c.oculto && 'opacity-50')}>
       <Avatar text={iniciales(c.autor_nombre)} size={36} />
       <div className="flex-1">
         <div className="rounded-[14px] rounded-tl-sm border border-border bg-surface-2 px-3 py-2">
           <div className="flex flex-wrap items-baseline gap-x-2">
             <span className="text-[13px] font-semibold text-ink">{c.autor_nombre}</span>
             <span className="text-[11.5px] font-semibold text-muted">{ROLE_LABEL[c.autor_rol]}</span>
+            {c.oculto && <span className="text-[11.5px] font-semibold text-danger">(oculto)</span>}
           </div>
           <p className="mt-0.5 text-[14px] text-ink">{c.texto}</p>
         </div>
-        <div className="mt-1 pl-1 text-[11.5px] text-faint">{fechaHora(c.created_at)}</div>
+        <div className="mt-1 flex items-center gap-3 pl-1">
+          <span className="text-[11.5px] text-faint">{fechaHora(c.created_at)}</span>
+          {puedeModerar && (
+            <button
+              type="button"
+              onClick={onToggle}
+              disabled={moderando}
+              className="text-[11.5px] font-semibold text-primary hover:underline disabled:opacity-50"
+            >
+              {c.oculto ? 'Mostrar' : 'Ocultar'}
+            </button>
+          )}
+        </div>
       </div>
     </div>
   )
@@ -42,11 +63,19 @@ function Comentario({ c }: { c: IncidentComment }) {
 
 export function IncidentDetailPage() {
   const { id = '' } = useParams()
+  const nav = useNavigate()
   const { user, toast } = useApp()
   const { data: inc, state, refetch } = useAsync(() => getIncidencia(id), [id])
   const [texto, setTexto] = useState('')
   const [enviando, setEnviando] = useState(false)
   const [cambiando, setCambiando] = useState(false)
+  const [borrando, setBorrando] = useState(false)
+  const [bloqueando, setBloqueando] = useState(false)
+  const [moderandoId, setModerandoId] = useState<string | null>(null)
+
+  const puedeModerar = esGestion(user.rol)
+  const esAutor = inc ? inc.autor_id === user.id : false
+  const puedeVerOcultos = puedeModerar || esAutor
 
   const enviarComentario = async () => {
     const t = texto.trim()
@@ -72,6 +101,46 @@ export function IncidentDetailPage() {
     }
   }
 
+  const borrar = async () => {
+    if (!window.confirm('¿Seguro que quieres borrar esta incidencia? Esta acción no se puede deshacer.')) return
+    setBorrando(true)
+    try {
+      await borrarIncidencia(id)
+      toast('Incidencia borrada')
+      nav('/incidencias')
+    } finally {
+      setBorrando(false)
+    }
+  }
+
+  const toggleComentario = async (c: IncidentComment) => {
+    setModerandoId(c.id)
+    try {
+      await ocultarComentario(id, c.id, !c.oculto)
+      toast(c.oculto ? 'Comentario visible' : 'Comentario oculto')
+      refetch()
+    } finally {
+      setModerandoId(null)
+    }
+  }
+
+  const toggleBloqueo = async () => {
+    if (!inc) return
+    const bloquear = !inc.comentarios_bloqueados
+    setBloqueando(true)
+    try {
+      await bloquearComentarios(id, bloquear)
+      toast(bloquear ? 'Hilo bloqueado' : 'Hilo desbloqueado')
+      refetch()
+    } finally {
+      setBloqueando(false)
+    }
+  }
+
+  const comentariosVisibles = inc
+    ? inc.comentarios.filter((c) => !c.oculto || puedeVerOcultos)
+    : []
+
   return (
     <div>
       <SubHeader titulo="Incidencia" />
@@ -94,11 +163,26 @@ export function IncidentDetailPage() {
               <CategoryChip active>{CAT_LABEL[inc.categoria]}</CategoryChip>
             </div>
 
+            {/* Acciones del autor (solo mientras esté abierta) */}
+            {esAutor && inc.estado === 'abierta' && (
+              <div className="mt-4 flex gap-2">
+                <Link
+                  to={`/incidencias/${inc.id}/editar`}
+                  className="inline-flex min-h-[46px] items-center justify-center gap-2 rounded-pill bg-surface px-5 text-[15px] font-bold text-ink shadow-neu-sm transition-colors hover:brightness-[0.98] active:shadow-neu-inset"
+                >
+                  <Pencil size={16} /> Editar
+                </Link>
+                <Button variant="danger-outline" onClick={borrar} disabled={borrando}>
+                  <Trash2 size={16} /> {borrando ? 'Borrando…' : 'Borrar'}
+                </Button>
+              </div>
+            )}
+
             <div className="mt-5">
               <Stepper actual={inc.estado} />
             </div>
 
-            {esGestion(user.rol) && (
+            {puedeModerar && (
               <Card className="mt-5">
                 <div className="mb-2 text-[13px] font-semibold text-muted">Cambiar estado</div>
                 <div className="flex flex-wrap gap-2">
@@ -142,12 +226,32 @@ export function IncidentDetailPage() {
 
             {/* Comentarios */}
             <div className="mt-6">
-              <h2 className="overline mb-3">Comentarios</h2>
-              {inc.comentarios.length === 0 ? (
+              <div className="mb-3 flex items-center justify-between gap-2">
+                <h2 className="overline">Comentarios</h2>
+                {puedeModerar && (
+                  <button
+                    type="button"
+                    onClick={toggleBloqueo}
+                    disabled={bloqueando}
+                    className="text-[12px] font-semibold text-primary hover:underline disabled:opacity-50"
+                  >
+                    {inc.comentarios_bloqueados ? 'Desbloquear hilo' : 'Bloquear hilo'}
+                  </button>
+                )}
+              </div>
+              {comentariosVisibles.length === 0 ? (
                 <p className="text-[14px] text-muted">Aún no hay comentarios.</p>
               ) : (
                 <div className="flex flex-col gap-4">
-                  {inc.comentarios.map((c) => <Comentario key={c.id} c={c} />)}
+                  {comentariosVisibles.map((c) => (
+                    <Comentario
+                      key={c.id}
+                      c={c}
+                      puedeModerar={puedeModerar}
+                      moderando={moderandoId === c.id}
+                      onToggle={() => toggleComentario(c)}
+                    />
+                  ))}
                 </div>
               )}
             </div>
@@ -159,7 +263,7 @@ export function IncidentDetailPage() {
             'mx-auto w-full max-w-[720px]',
           )}>
             {inc.comentarios_bloqueados ? (
-              <Alert tipo="warn">Comentarios cerrados</Alert>
+              <Alert tipo="warn">Hilo bloqueado por la gestión</Alert>
             ) : (
               <form
                 className="flex items-center gap-2"

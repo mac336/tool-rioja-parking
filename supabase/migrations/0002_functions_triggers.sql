@@ -195,21 +195,26 @@ create or replace function voto_before_insert() returns trigger
   language plpgsql security definer set search_path = public as $$
 declare v_tipo encuesta_tipo; v_ap timestamptz; v_ci timestamptz; n int;
 begin
-  select tipo, apertura, cierre into v_tipo, v_ap, v_ci from encuestas where id = new.encuesta_id;
+  -- La pregunta pertenece a una encuesta; leemos su tipo y la ventana de la encuesta.
+  select p.tipo, e.apertura, e.cierre into v_tipo, v_ap, v_ci
+    from encuesta_preguntas p join encuestas e on e.id = p.encuesta_id
+    where p.id = new.pregunta_id;
+  if v_ap is null then
+    raise exception 'Pregunta no encontrada.' using errcode = 'check_violation';
+  end if;
   if now() < v_ap or now() > v_ci then
     raise exception 'La encuesta no está abierta.' using errcode = 'check_violation';
   end if;
-  -- SEGURIDAD (finding BAJO 4): la opción debe pertenecer a ESTA encuesta
-  -- (la FK solo garantiza que la opción existe, no que sea de esta encuesta).
+  -- La opción debe pertenecer a ESTA pregunta (la FK solo garantiza que existe).
   if not exists (select 1 from encuesta_opciones
-                 where id = new.opcion_id and encuesta_id = new.encuesta_id) then
-    raise exception 'La opción no pertenece a la encuesta.' using errcode = 'check_violation';
+                 where id = new.opcion_id and pregunta_id = new.pregunta_id) then
+    raise exception 'La opción no pertenece a la pregunta.' using errcode = 'check_violation';
   end if;
   if v_tipo = 'opcion_unica' then
     select count(*) into n from encuesta_votos
-      where encuesta_id = new.encuesta_id and vivienda = new.vivienda;
+      where pregunta_id = new.pregunta_id and vivienda = new.vivienda;
     if n >= 1 then
-      raise exception 'En una encuesta de opción única solo se puede marcar una opción por vivienda.'
+      raise exception 'En una pregunta de opción única solo se puede marcar una opción por vivienda.'
         using errcode = 'check_violation';
     end if;
   end if;
@@ -219,13 +224,14 @@ end; $$;
 create trigger trg_voto_before_insert before insert on encuesta_votos
   for each row execute function voto_before_insert();
 
--- SEGURIDAD (finding BAJO 4): no se puede borrar el voto una vez cerrada la
--- encuesta (cambiar el voto solo hasta el cierre).
+-- No se puede borrar el voto una vez cerrada la encuesta (cambiar el voto solo
+-- hasta el cierre).
 create or replace function voto_before_delete() returns trigger
   language plpgsql security definer set search_path = public as $$
 declare v_ci timestamptz;
 begin
-  select cierre into v_ci from encuestas where id = old.encuesta_id;
+  select e.cierre into v_ci from encuesta_preguntas p join encuestas e on e.id = p.encuesta_id
+    where p.id = old.pregunta_id;
   if v_ci is not null and now() > v_ci then
     raise exception 'La encuesta está cerrada; el voto no se puede modificar.'
       using errcode = 'check_violation';

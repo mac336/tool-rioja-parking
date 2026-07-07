@@ -26,6 +26,7 @@ import { ContactsPage } from '@/features/contacts/ContactsPage'
 import { SettingsPage } from '@/features/settings/SettingsPage'
 import { ReciclajePage } from '@/features/misc/ReciclajePage'
 import { SugerenciasPage } from '@/features/misc/SugerenciasPage'
+import { AvisosPage } from '@/features/misc/AvisosPage'
 import { AdminPage } from '@/features/admin/AdminPage'
 
 function Shell() {
@@ -54,6 +55,7 @@ export const router = createBrowserRouter([
       { path: '/mas', element: <MasPage /> },
       { path: '/incidencias', element: <IncidentsListPage /> },
       { path: '/incidencias/nueva', element: <NewIncidentPage /> },
+      { path: '/incidencias/:id/editar', element: <NewIncidentPage /> },
       { path: '/incidencias/:id', element: <IncidentDetailPage /> },
       { path: '/votaciones', element: <EncuestasListPage /> },
       { path: '/votaciones/nueva', element: <CreateEncuestaPage /> },
@@ -61,6 +63,7 @@ export const router = createBrowserRouter([
       { path: '/votaciones/:id/resultados', element: <ResultsPage /> },
       { path: '/anuncios', element: <AnunciosPage /> },
       { path: '/anuncios/nuevo', element: <NewAnuncioPage /> },
+      { path: '/anuncios/:id/editar', element: <NewAnuncioPage /> },
       { path: '/reservas', element: <BookingsPage /> },
       { path: '/reservas/mias', element: <MyBookingsPage /> },
       { path: '/parking', element: <ParkingPage /> },
@@ -68,6 +71,7 @@ export const router = createBrowserRouter([
       { path: '/ajustes', element: <SettingsPage /> },
       { path: '/reciclaje', element: <ReciclajePage /> },
       { path: '/sugerencias', element: <SugerenciasPage /> },
+      { path: '/avisos', element: <AvisosPage /> },
       {
         element: <RequireAdmin />,
         children: [{ path: '/admin', element: <AdminPage /> }],

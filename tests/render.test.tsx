@@ -37,6 +37,7 @@ import { ContactsPage } from '@/features/contacts/ContactsPage'
 import { SettingsPage } from '@/features/settings/SettingsPage'
 import { ReciclajePage } from '@/features/misc/ReciclajePage'
 import { SugerenciasPage } from '@/features/misc/SugerenciasPage'
+import { AvisosPage } from '@/features/misc/AvisosPage'
 import { AdminPage } from '@/features/admin/AdminPage'
 
 function renderAt(el: ReactElement, path: string, routePath: string) {
@@ -75,6 +76,7 @@ const casos: [string, ReactElement, string, string][] = [
   ['Settings', <SettingsPage />, '/ajustes', '/ajustes'],
   ['Reciclaje', <ReciclajePage />, '/reciclaje', '/reciclaje'],
   ['Sugerencias', <SugerenciasPage />, '/sugerencias', '/sugerencias'],
+  ['Avisos', <AvisosPage />, '/avisos', '/avisos'],
   ['Admin', <AdminPage />, '/admin', '/admin'],
 ]
 

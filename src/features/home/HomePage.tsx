@@ -38,10 +38,10 @@ export function HomePage() {
             <h1 className="font-display text-[26px] font-extrabold">{saludo()}, {user.nombre.split(' ')[0]} 👋</h1>
           </div>
           <div className="flex items-center gap-2">
-            <button aria-label="Avisos" className="relative flex h-10 w-10 items-center justify-center rounded-full bg-white/15">
+            <Link to="/avisos" aria-label="Avisos" className="relative flex h-10 w-10 items-center justify-center rounded-full bg-white/15">
               <Bell size={20} />
               <span className="absolute right-2 top-2 h-2 w-2 rounded-full bg-accent" />
-            </button>
+            </Link>
             <span className="flex h-10 w-10 items-center justify-center rounded-full bg-white/20 text-[14px] font-bold">{iniciales(user.nombre)}</span>
           </div>
         </div>

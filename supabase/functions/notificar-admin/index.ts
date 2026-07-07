@@ -2,7 +2,7 @@
 // Avisa por correo (Gmail SMTP) a los administradores de una nueva solicitud de
 // acceso. Usa una contraseña de aplicación de Gmail en variables de entorno del
 // servidor (nunca en el cliente). Ver specs/02 y specs/03.
-import { SMTPClient } from 'jsr:@denomailer/mod.ts@1'
+import { SMTPClient } from 'https://deno.land/x/denomailer@1.6.0/mod.ts'
 import { createClient } from 'jsr:@supabase/supabase-js@2'
 import { corsHeaders, json } from '../_shared/cors.ts'
 

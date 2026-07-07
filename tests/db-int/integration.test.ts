@@ -9,6 +9,7 @@ import * as contactos from '@/lib/db/contactos'
 import * as reservas from '@/lib/db/reservas'
 import * as encuestas from '@/lib/db/encuestas'
 import * as incidencias from '@/lib/db/incidencias'
+import * as storage from '@/lib/db/storage'
 
 const URL = 'http://127.0.0.1:54321'
 const SERVICE = 'eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJzdXBhYmFzZS1kZW1vIiwicm9sZSI6InNlcnZpY2Vfcm9sZSIsImV4cCI6MTk4MzgxMjk5Nn0.EGIM96RAZx35lJzdJsyH-qQwv8Hdp7fsn3W0YpN81IU'
@@ -63,6 +64,16 @@ describe.skipIf(!process.env.SUPA_ITEST)('capa de datos real (Supabase local)', 
     await incidencias.comentarIncidencia(inc.id, 'un comentario')
     const full = await incidencias.getIncidencia(inc.id)
     expect(full?.comentarios.length).toBeGreaterThanOrEqual(1)
+  })
+
+  it('vecino: sube una foto de incidencia al Storage y la lee con URL firmada', async () => {
+    await supabase.auth.signInWithPassword({ email: V_EMAIL, password: PASS })
+    const inc = await incidencias.crearIncidencia({ titulo: 'ITEST foto', descripcion: 'con adjunto', categoria: 'otros' })
+    const file = new File([new Uint8Array([137, 80, 78, 71])], 'foto.png', { type: 'image/png' })
+    await storage.subirAdjuntosIncidencia(inc.id, [file])
+    const full = await incidencias.getIncidencia(inc.id)
+    expect(full?.fotos.length).toBe(1)
+    expect(full?.fotos[0]).toContain('token=') // URL firmada
   })
 
   it('gestión: crea encuesta multi-pregunta, vecino vota, resultados', async () => {

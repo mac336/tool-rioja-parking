@@ -33,3 +33,4 @@ export {
   listAccessRequests, resolverSolicitud, listVecinos, suspenderVecino, cambiarRolVecino, listAvisos,
 } from './db/admin'
 export { actualizarNombre } from './db/perfil'
+export { subirAdjuntosIncidencia, urlFirmada } from './db/storage'

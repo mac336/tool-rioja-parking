@@ -371,4 +371,8 @@ export function listAvisos(): Promise<Aviso[]> {
   return delay(avisos)
 }
 
+// ---- Storage (mock: no sube nada; las fotos ya son data-URLs de preview) ----
+export async function subirAdjuntosIncidencia(_incidenciaId: string, _files: File[]): Promise<void> {}
+export function urlFirmada(path: string): Promise<string> { return delay(path) }
+
 export { iniciales }

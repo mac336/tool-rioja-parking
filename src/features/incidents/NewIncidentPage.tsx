@@ -5,7 +5,7 @@ import { SubHeader, Page } from '@/components/layout/AppShell'
 import { Field, Textarea, Button, CategoryChip, SkeletonList, ErrorState } from '@/components/ui'
 import { useAsync } from '@/lib/useAsync'
 import { useApp } from '@/store'
-import { crearIncidencia, editarIncidencia, getIncidencia } from '@/lib/api'
+import { crearIncidencia, editarIncidencia, getIncidencia, subirAdjuntosIncidencia } from '@/lib/api'
 import type { IncidentCategory } from '@/types'
 
 const CATEGORIAS: { key: IncidentCategory; label: string }[] = [
@@ -35,6 +35,7 @@ export function NewIncidentPage() {
   const [descripcion, setDescripcion] = useState('')
   const [ubicacion, setUbicacion] = useState('')
   const [foto, setFoto] = useState<string | null>(null)
+  const [fotoFile, setFotoFile] = useState<File | null>(null)
   const [enviando, setEnviando] = useState(false)
 
   // Precarga de campos cuando llega la incidencia a editar.
@@ -51,7 +52,7 @@ export function NewIncidentPage() {
 
   const onFoto = (e: React.ChangeEvent<HTMLInputElement>) => {
     const file = e.target.files?.[0]
-    if (file) setFoto(URL.createObjectURL(file))
+    if (file) { setFotoFile(file); setFoto(URL.createObjectURL(file)) }
   }
 
   const guardar = async () => {
@@ -75,6 +76,8 @@ export function NewIncidentPage() {
           ubicacion: ubicacion.trim() || undefined,
           fotos: foto ? [foto] : undefined,
         })
+        // Sube el fichero real al Storage privado (no-op en modo demo).
+        if (fotoFile) await subirAdjuntosIncidencia(creada.id, [fotoFile])
         toast('Incidencia creada')
         nav(`/incidencias/${creada.id}`)
       }

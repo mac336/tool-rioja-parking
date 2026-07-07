@@ -8,6 +8,7 @@
 // desde ahí. Los comentarios ocultos ya vienen filtrados por RLS; `oculto` se
 // mapea tal cual (gestión sí los ve).
 import { supabase } from '@/lib/supabase'
+import { urlFirmada } from './storage'
 import type {
   Incident, IncidentComment, IncidentEvent, IncidentStatus, IncidentCategory, Role,
 } from '@/types'
@@ -142,7 +143,9 @@ export async function getIncidencia(id: string): Promise<Incident | null> {
 
   const comentarios = ((comRes.data ?? []) as ComentarioRow[]).map((r) => mapComentario(r, dir))
   const eventos = ((evRes.data ?? []) as EventoRow[]).map((r) => mapEvento(r, dir))
-  const fotos = ((adjRes.data ?? []) as { path: string }[]).map((r) => r.path)
+  const paths = ((adjRes.data ?? []) as { path: string }[]).map((r) => r.path)
+  // Sirve los adjuntos privados con URL firmada (caducidad corta).
+  const fotos = (await Promise.all(paths.map((p) => urlFirmada(p)))).filter(Boolean)
 
   return mapIncidencia(incRow as IncidenciaRow, dir, comentarios, eventos, fotos)
 }

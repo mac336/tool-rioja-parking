@@ -29,22 +29,31 @@ Abre lo que indique la terminal (normalmente **http://localhost:5173**).
 
 > Es una PWA: en el móvil o en Chrome puedes "Instalar app".
 
-### Ver con el backend real (opcional, ya probado)
-El backend (Postgres + RLS) está aplicado en Supabase local. Para arrancarlo:
+### Ver con el backend real (ya CABLEADO y probado)
+El backend (Postgres + RLS + Auth) está aplicado en Supabase local y la app ya
+está conectada a él (auth real + capa de datos vía supabase-js).
 ```bash
-npx supabase start      # levanta Postgres, Auth, Storage… (Docker)
+npx supabase start      # levanta Postgres, Auth, Storage, Mailpit… (Docker)
 npx supabase db reset   # aplica migraciones + seed (41 viviendas, contactos…)
 ```
-Studio (ver la BD): **http://127.0.0.1:54323**.
-Para que la web use este backend en vez del mock, crea `.env.local`:
-```
-VITE_SUPABASE_URL=http://127.0.0.1:54321
-VITE_SUPABASE_ANON_KEY=<la ANON_KEY que imprime `supabase start`>
-VITE_DATA_SOURCE=supabase
-```
-> Nota: las **pantallas** consumen hoy la capa mock interactiva. El wiring
-> pantalla-por-pantalla a Supabase es el siguiente paso (ver `todo.md`). El
-> esquema, la seguridad (RLS) y las Edge Functions ya están hechos y probados.
+Studio (ver la BD): **http://127.0.0.1:54323** · Correos locales (Mailpit): **http://127.0.0.1:54324**.
+Para que la web use el backend real, en `.env.local` pon `VITE_DATA_SOURCE=supabase`
+(la URL y la ANON_KEY locales ya están puestas). Reinicia `npm run dev`.
+
+**Flujo de acceso real (en local):**
+1. En Login → "Recibir enlace por correo" → escribe un correo → el enlace mágico
+   aparece en **Mailpit** (http://127.0.0.1:54324). Ábrelo → entras (estado "pendiente").
+2. Aprueba la cuenta: en Studio o por SQL, pon `estado='activo'` y una `vivienda`
+   en tu fila de `profiles` (o usa el panel de admin desde una cuenta ya activa).
+3. Para que funcionen aprobar-alta y gestión de usuarios en local, sirve las
+   funciones: `npx supabase functions serve` (usan service_role).
+
+> **Ya está cableado**: auth (enlace mágico/Google), guard de sesión, pantallas
+> pendiente/suspendido, y todos los módulos (incidencias, encuestas multi-pregunta,
+> reservas, parking, anuncios, contactos, admin) leen/escriben en Supabase con RLS.
+> Verificado con `tests/db-int/integration.test.ts` (`SUPA_ITEST=1 npx vitest run tests/db-int`).
+> **Falta para producción**: credenciales Google OAuth, `supabase functions deploy`,
+> y un bucket de Storage privado para las imágenes de incidencias/anuncios.
 
 ---
 

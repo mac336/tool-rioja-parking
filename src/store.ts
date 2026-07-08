@@ -2,7 +2,8 @@ import { create } from 'zustand'
 import type { Profile, ThemeMode } from '@/types'
 import { usingSupabase } from '@/lib/supabase'
 import { getUser as mockGetUser, setUserRole as mockSetRole } from '@/lib/apiMock'
-import { actualizarNombre } from '@/lib/api'
+import { actualizarNombre, listRolePermisos } from '@/lib/api'
+import { setPermisosActuales, CATALOGO_PERMISOS } from '@/lib/roles'
 import { loadProfile, statusFromProfile, onAuthChange, signOut as sbSignOut, type AuthStatus } from '@/lib/session'
 
 export type Palette = 'turquesa' | 'lavanda' | 'coral' | 'bosque'
@@ -65,8 +66,20 @@ export const useApp = create<AppState>((set, get) => ({
   },
   refreshAuth: async () => {
     const p = await loadProfile()
-    if (p) set({ user: p, authStatus: statusFromProfile(p) })
-    else set({ authStatus: 'anon' })
+    if (p) {
+      set({ user: p, authStatus: statusFromProfile(p) })
+      // Permisos efectivos del rol (app_admin = todos) para adaptar la interfaz.
+      try {
+        const matriz = await listRolePermisos()
+        const keys = p.rol === 'app_admin'
+          ? CATALOGO_PERMISOS.map((c) => c.key)
+          : matriz.filter((m) => m.rol === p.rol).map((m) => m.permiso)
+        setPermisosActuales(keys)
+      } catch { setPermisosActuales(null) }
+    } else {
+      set({ authStatus: 'anon' })
+      setPermisosActuales(null)
+    }
   },
   logout: async () => {
     if (usingSupabase) await sbSignOut()

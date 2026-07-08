@@ -34,5 +34,6 @@ export {
   listAccessRequests, resolverSolicitud, crearSolicitud, listVecinos, suspenderVecino, cambiarRolVecino,
   editarVecino, darDeBajaVecino, listAvisos,
 } from './db/admin'
+export { listRolePermisos, setRolePermiso } from './db/permisos'
 export { actualizarNombre } from './db/perfil'
 export { subirAdjuntosIncidencia, urlFirmada } from './db/storage'

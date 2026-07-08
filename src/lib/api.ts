@@ -27,6 +27,7 @@ export const {
   listContactos, crearContacto, editarContacto, borrarContacto,
   listAccessRequests, resolverSolicitud, crearSolicitud,
   listVecinos, suspenderVecino, cambiarRolVecino, editarVecino, darDeBajaVecino,
+  listRolePermisos, setRolePermiso,
   listAvisos,
   subirAdjuntosIncidencia, urlFirmada,
 } = A

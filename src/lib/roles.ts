@@ -30,32 +30,80 @@ export const BADGE_LABEL: Record<RoleBadgeKind, string> = {
   vecino: 'Vecino',
 }
 
-/** Roles que forman el grupo de gestión (ven colas de moderación/aprobación). */
+// ---- Permisos personalizables ------------------------------------------------
+// La verdad la tiene la BD (tabla role_permissions + RLS). En el cliente cacheamos
+// los permisos del USUARIO ACTUAL para adaptar la interfaz; app_admin = SUPERADMIN
+// (siempre todo). En modo demo (sin backend) no hay caché → se usan los defaults.
+export type Permiso = 'panel' | 'aprobar_altas' | 'aprobar_reservas' | 'aprobar_anuncios' | 'bloquear_anuncios'
+
+export const CATALOGO_PERMISOS: { key: Permiso; label: string; desc: string }[] = [
+  { key: 'panel', label: 'Panel de gestión', desc: 'Acceder al panel y moderar incidencias y comentarios' },
+  { key: 'aprobar_altas', label: 'Aprobar altas y gestionar vecinos', desc: 'Aprobar solicitudes, editar, suspender y dar de baja' },
+  { key: 'aprobar_reservas', label: 'Aprobar reservas', desc: 'Aprobar o rechazar reservas de zonas comunes' },
+  { key: 'aprobar_anuncios', label: 'Aprobar anuncios', desc: 'Publicar o rechazar anuncios del tablón' },
+  { key: 'bloquear_anuncios', label: 'Bloquear anuncios de una vivienda', desc: 'Impedir que una vivienda publique anuncios' },
+]
+
+// Defaults (deben coincidir con la semilla de la migración 0010) — solo se usan
+// como respaldo en modo demo o mientras no ha cargado la matriz real.
+const DEFAULTS: Record<Permiso, Role[]> = {
+  panel: ['app_admin', 'presidente', 'vicepresidente', 'administrador_finca', 'junta'],
+  aprobar_altas: ['app_admin', 'presidente', 'administrador_finca'],
+  aprobar_reservas: ['app_admin', 'presidente'],
+  aprobar_anuncios: ['app_admin', 'presidente', 'vicepresidente', 'administrador_finca', 'junta'],
+  bloquear_anuncios: ['app_admin', 'presidente', 'administrador_finca'],
+}
+
+/** Matriz de permisos por defecto (para el modo demo / semilla del mock). */
+export function permisosPorDefecto(): { rol: Role; permiso: Permiso }[] {
+  const out: { rol: Role; permiso: Permiso }[] = []
+  for (const { key } of CATALOGO_PERMISOS) for (const rol of DEFAULTS[key]) out.push({ rol, permiso: key })
+  return out
+}
+
+// Caché de los permisos del usuario actual (null = usar defaults por rol).
+let permisosActuales: Set<string> | null = null
+export function setPermisosActuales(p: string[] | null) {
+  permisosActuales = p ? new Set(p) : null
+}
+
+function tienePermiso(rol: Role, key: Permiso): boolean {
+  if (rol === 'app_admin') return true // SUPERADMIN
+  if (permisosActuales) return permisosActuales.has(key)
+  return DEFAULTS[key].includes(rol)
+}
+
+/** Roles con acceso a gestión (panel + moderación). */
 export function esGestion(rol: Role): boolean {
-  return rol !== 'vecino'
+  return tienePermiso(rol, 'panel')
 }
 
-/** Puede aprobar/publicar anuncios (toda la gestión). */
+/** Puede aprobar/publicar anuncios. */
 export function puedeAprobarAnuncios(rol: Role): boolean {
-  return esGestion(rol)
+  return tienePermiso(rol, 'aprobar_anuncios')
 }
 
-/** Puede aprobar/rechazar reservas (presidente + app_admin). */
+/** Puede aprobar/rechazar reservas. */
 export function puedeAprobarReservas(rol: Role): boolean {
-  return rol === 'presidente' || rol === 'app_admin'
+  return tienePermiso(rol, 'aprobar_reservas')
 }
 
-/** Puede aprobar altas de acceso. */
+/** Puede aprobar altas de acceso y gestionar vecinos. */
 export function puedeAprobarAltas(rol: Role): boolean {
-  return rol === 'app_admin' || rol === 'presidente' || rol === 'administrador_finca'
+  return tienePermiso(rol, 'aprobar_altas')
 }
 
-/** Acceso al panel de administración. */
+/** Puede bloquear anuncios de una vivienda. */
+export function puedeBloquearAnuncios(rol: Role): boolean {
+  return tienePermiso(rol, 'bloquear_anuncios')
+}
+
+/** Acceso al panel de administración (= tiene panel de gestión). */
 export function puedeAdmin(rol: Role): boolean {
   return esGestion(rol)
 }
 
-/** Configuración de la app (zonas, roles): solo app_admin. */
+/** Configuración de la app y de permisos: solo app_admin (SUPERADMIN). */
 export function esAppAdmin(rol: Role): boolean {
   return rol === 'app_admin'
 }

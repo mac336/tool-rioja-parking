@@ -11,6 +11,7 @@ import type {
 import * as mock from '@/mock/data'
 import { PISOS, proximasQuincenas, proximosTurnos } from '@/lib/parking'
 import { iniciales, fechaCorta } from '@/lib/format'
+import { permisosPorDefecto } from '@/lib/roles'
 
 const delay = <T>(v: T, ms = 160): Promise<T> => new Promise((r) => setTimeout(() => r(v), ms))
 const uid = (() => { let n = 1000; return () => `gen_${n++}` })()
@@ -450,6 +451,17 @@ export function editarVecino(id: string, patch: { nombre?: string; vivienda?: st
 export function darDeBajaVecino(id: string): Promise<void> {
   const p = db.profiles.find((p) => p.id === id)
   if (p) p.estado = 'baja'
+  return delay(undefined)
+}
+
+// ---- Permisos por rol (personalizables) --------------------------------------
+const permisosSet = new Set<string>(permisosPorDefecto().map((x) => `${x.rol}|${x.permiso}`))
+export function listRolePermisos(): Promise<{ rol: Role; permiso: string }[]> {
+  return delay([...permisosSet].map((k) => { const [rol, permiso] = k.split('|'); return { rol: rol as Role, permiso } }))
+}
+export function setRolePermiso(rol: Role, permiso: string, on: boolean): Promise<void> {
+  const k = `${rol}|${permiso}`
+  if (on) permisosSet.add(k); else permisosSet.delete(k)
   return delay(undefined)
 }
 

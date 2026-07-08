@@ -9,7 +9,6 @@ const SUPABASE_URL = Deno.env.get('SUPABASE_URL')!
 const SERVICE_ROLE = Deno.env.get('SUPABASE_SERVICE_ROLE_KEY')!
 const ANON = Deno.env.get('SUPABASE_ANON_KEY')!
 
-const ROLES_GESTION = ['app_admin', 'presidente', 'administrador_finca']
 const ROLES_VALIDOS = ['app_admin', 'presidente', 'vicepresidente', 'administrador_finca', 'junta', 'vecino']
 
 Deno.serve(async (req) => {
@@ -24,8 +23,12 @@ Deno.serve(async (req) => {
 
     const admin = createClient(SUPABASE_URL, SERVICE_ROLE)
     const { data: perfil } = await admin.from('profiles').select('rol, estado').eq('id', user.id).single()
-    if (!perfil || perfil.estado !== 'activo' || !ROLES_GESTION.includes(perfil.rol)) {
-      return json({ error: 'Sin permiso para gestionar usuarios.' }, 403)
+    if (!perfil || perfil.estado !== 'activo') return json({ error: 'Sin permiso para gestionar usuarios.' }, 403)
+    // Permiso 'aprobar_altas' (personalizable). app_admin siempre puede.
+    if (perfil.rol !== 'app_admin') {
+      const { data: perm } = await admin.from('role_permissions')
+        .select('permiso').eq('rol', perfil.rol).eq('permiso', 'aprobar_altas').maybeSingle()
+      if (!perm) return json({ error: 'Sin permiso para gestionar usuarios.' }, 403)
     }
 
     const { accion, userId, rol, nombre, vivienda } = await req.json()

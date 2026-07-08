@@ -11,7 +11,7 @@ import {
 import { useAsync } from '@/lib/useAsync'
 import { fechaCorta, fechaHora, hora, iniciales } from '@/lib/format'
 import {
-  ROLE_LABEL, roleBadgeKind, esGestion, esAppAdmin,
+  ROLE_LABEL, roleBadgeKind, esGestion, esAppAdmin, CATALOGO_PERMISOS,
   puedeAprobarAltas, puedeAprobarAnuncios, puedeAprobarReservas,
 } from '@/lib/roles'
 import type { Profile, Role, Incident, Anuncio, ReservaGrupo } from '@/types'
@@ -23,6 +23,7 @@ import {
   incidenciasPendientesGestion, aprobarIncidencia,
   anunciosPendientesGestion, resolverAnuncio,
   reservasPendientesGestion, resolverReserva,
+  listRolePermisos, setRolePermiso,
 } from '@/lib/api'
 
 type TabKey = 'cuentas' | 'incidencias' | 'anuncios' | 'reservas' | 'vecinos' | 'permisos'
@@ -95,7 +96,7 @@ export function AdminPage() {
         {tab === 'anuncios' && <AnunciosTab onToast={toast} onChanged={refrescar} />}
         {tab === 'reservas' && <ReservasTab onToast={toast} onChanged={refrescar} />}
         {tab === 'vecinos' && <VecinosTab canManage={puedeAprobarAltas(rol)} currentUserId={user.id} onToast={toast} />}
-        {tab === 'permisos' && <PermisosTab />}
+        {tab === 'permisos' && <PermisosTab canEdit={esAppAdmin(rol)} onToast={toast} />}
       </div>
     </div>
   )
@@ -449,47 +450,81 @@ function VecinosTab({ canManage, currentUserId, onToast }: { canManage: boolean;
   )
 }
 
-// ---- Permisos (qué puede hacer cada rol) -------------------------------------
-const CAPS: { label: string; can: (r: Role) => boolean }[] = [
-  { label: 'Ver la comunidad y participar', can: () => true },
-  { label: 'Abrir incidencias y comentar', can: () => true },
-  { label: 'Solicitar publicar anuncios', can: () => true },
-  { label: 'Reservar zonas comunes', can: () => true },
-  { label: 'Aprobar y moderar incidencias', can: esGestion },
-  { label: 'Aprobar y publicar anuncios', can: puedeAprobarAnuncios },
-  { label: 'Aprobar reservas de zonas comunes', can: puedeAprobarReservas },
-  { label: 'Aprobar altas de nuevos vecinos', can: puedeAprobarAltas },
-  { label: 'Gestionar roles y suspender cuentas', can: puedeAprobarAltas },
-  { label: 'Configurar la app (zonas, ajustes)', can: esAppAdmin },
-]
+// ---- Permisos (editor: qué puede hacer cada rol) -----------------------------
+// El app_admin (SUPERADMIN) puede activar/desactivar permisos por rol. app_admin
+// siempre los tiene todos y no es editable. El vecino base no tiene gestión.
+function PermisosTab({ canEdit, onToast }: { canEdit: boolean; onToast: Toast }) {
+  const { data, state, refetch } = useAsync(listRolePermisos, [])
+  const [set, setSet] = useState<Set<string> | null>(null)
+  const [busy, setBusy] = useState<string | null>(null)
 
-function PermisosTab() {
+  const efectivo = set ?? new Set((data ?? []).map((x) => `${x.rol}|${x.permiso}`))
+  // Roles configurables (app_admin va aparte, siempre todo).
+  const rolesEditables = ROLES.filter((r) => r !== 'app_admin')
+
+  if (state === 'loading') return <SkeletonList n={4} />
+  if (state === 'error') return <ErrorState onRetry={refetch} />
+
+  async function toggle(rol: Role, permiso: string, on: boolean) {
+    const key = `${rol}|${permiso}`
+    const next = new Set(efectivo); on ? next.add(key) : next.delete(key)
+    setSet(next); setBusy(key)
+    try {
+      await setRolePermiso(rol, permiso, on)
+    } catch {
+      onToast('No se pudo cambiar el permiso', 'error')
+      const revert = new Set(efectivo); on ? revert.delete(key) : revert.add(key); setSet(revert)
+    } finally {
+      setBusy(null)
+    }
+  }
+
   return (
     <div className="flex flex-col gap-3">
-      <p className="text-[13px] text-muted">Qué puede hacer cada rol. Los permisos son fijos por rol; cambiar el rol de un vecino cambia lo que puede hacer.</p>
-      {ROLES.map((r) => {
-        const caps = CAPS.filter((c) => c.can(r))
-        return (
-          <Card key={r}>
-            <div className="flex items-center gap-2">
-              <RoleBadge kind={roleBadgeKind(r)} />
-              <span className="font-display text-[16px] font-bold text-ink">{ROLE_LABEL[r]}</span>
-            </div>
-            <ul className="mt-2 flex flex-col gap-1.5">
-              {CAPS.map((c) => {
-                const ok = c.can(r)
-                return (
-                  <li key={c.label} className={cx('flex items-center gap-2 text-[13px]', ok ? 'text-ink' : 'text-faint')}>
-                    {ok ? <Check size={15} className="shrink-0 text-success" /> : <X size={15} className="shrink-0 text-faint" />}
-                    {c.label}
-                  </li>
-                )
-              })}
-            </ul>
-            {caps.length === 0 && <p className="mt-2 text-[13px] text-faint">Sin permisos de gestión.</p>}
-          </Card>
-        )
-      })}
+      <p className="text-[13px] text-muted">
+        {canEdit
+          ? 'Activa o desactiva lo que puede hacer cada rol. Los cambios se aplican de inmediato (también en la seguridad del servidor).'
+          : 'Qué puede hacer cada rol. Solo el administrador de la app puede modificarlo.'}
+      </p>
+
+      <Card>
+        <div className="flex items-center gap-2">
+          <RoleBadge kind="admin" />
+          <span className="font-display text-[16px] font-bold text-ink">{ROLE_LABEL.app_admin}</span>
+          <span className="rounded-pill bg-primary-soft px-2 py-0.5 text-[11px] font-extrabold uppercase text-primary-700">Superadmin</span>
+        </div>
+        <p className="mt-1 text-[13px] text-muted">Tiene todos los permisos siempre. No se puede limitar.</p>
+      </Card>
+
+      {rolesEditables.map((r) => (
+        <Card key={r}>
+          <div className="flex items-center gap-2">
+            <RoleBadge kind={roleBadgeKind(r)} />
+            <span className="font-display text-[16px] font-bold text-ink">{ROLE_LABEL[r]}</span>
+          </div>
+          <ul className="mt-2 flex flex-col divide-y divide-border">
+            {CATALOGO_PERMISOS.map((c) => {
+              const key = `${r}|${c.key}`
+              const on = efectivo.has(key)
+              return (
+                <li key={c.key} className="flex items-center justify-between gap-3 py-2">
+                  <div className="min-w-0">
+                    <div className="text-[14px] font-semibold text-ink">{c.label}</div>
+                    <div className="text-[12px] text-muted">{c.desc}</div>
+                  </div>
+                  <button type="button" role="switch" aria-checked={on} disabled={!canEdit || busy === key}
+                    onClick={() => toggle(r, c.key, !on)}
+                    className={cx('relative h-6 w-11 shrink-0 rounded-full transition-colors',
+                      on ? 'bg-primary' : 'bg-surface-2 border border-border',
+                      (!canEdit || busy === key) && 'opacity-60')}>
+                    <span className={cx('absolute top-0.5 h-5 w-5 rounded-full bg-white shadow transition-all', on ? 'left-[22px]' : 'left-0.5')} />
+                  </button>
+                </li>
+              )
+            })}
+          </ul>
+        </Card>
+      ))}
     </div>
   )
 }

@@ -11,8 +11,6 @@ const SERVICE_ROLE = Deno.env.get('SUPABASE_SERVICE_ROLE_KEY')!
 const ANON = Deno.env.get('SUPABASE_ANON_KEY')!
 const APP_ORIGIN = Deno.env.get('APP_ORIGIN') ?? ''
 
-const ROLES_APROBAR = ['app_admin', 'presidente', 'administrador_finca']
-
 Deno.serve(async (req) => {
   if (req.method === 'OPTIONS') return new Response('ok', { headers: corsHeaders })
   if (req.method !== 'POST') return json({ error: 'Método no permitido' }, 405)
@@ -26,8 +24,11 @@ Deno.serve(async (req) => {
 
     const admin = createClient(SUPABASE_URL, SERVICE_ROLE)
     const { data: perfil } = await admin.from('profiles').select('rol, estado').eq('id', user.id).single()
-    if (!perfil || perfil.estado !== 'activo' || !ROLES_APROBAR.includes(perfil.rol)) {
-      return json({ error: 'Sin permiso para aprobar altas.' }, 403)
+    if (!perfil || perfil.estado !== 'activo') return json({ error: 'Sin permiso para aprobar altas.' }, 403)
+    if (perfil.rol !== 'app_admin') {
+      const { data: perm } = await admin.from('role_permissions')
+        .select('permiso').eq('rol', perfil.rol).eq('permiso', 'aprobar_altas').maybeSingle()
+      if (!perm) return json({ error: 'Sin permiso para aprobar altas.' }, 403)
     }
 
     // 2) Datos de la solicitud

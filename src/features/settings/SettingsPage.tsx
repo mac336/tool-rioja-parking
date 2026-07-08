@@ -1,12 +1,13 @@
-import { useState } from 'react'
+import { useEffect, useState } from 'react'
 import { Link, useNavigate } from 'react-router-dom'
-import { Sun, Moon, Monitor, Mail, FileText, LogOut, Check, KeyRound, Trash2 } from 'lucide-react'
+import { Sun, Moon, Monitor, Mail, FileText, LogOut, Check, KeyRound, Trash2, Bell, BellOff, Smartphone } from 'lucide-react'
 import { SubHeader, Page } from '@/components/layout/AppShell'
 import { Button, Card, Field, RoleBadge, Avatar, cx } from '@/components/ui'
 import { useApp, PALETTES } from '@/store'
 import type { ThemeMode } from '@/types'
 import { roleBadgeKind, ROLE_LABEL } from '@/lib/roles'
 import { iniciales } from '@/lib/format'
+import { estadoPush, activarNotificaciones, desactivarNotificaciones, type EstadoPush } from '@/lib/pushClient'
 
 const THEMES: [ThemeMode, string, typeof Sun][] = [
   ['system', 'Auto', Monitor],
@@ -50,7 +51,7 @@ export function SettingsPage() {
             <RoleBadge kind={roleBadgeKind(user.rol)} />
           </div>
 
-          <Field label="Nombre y apellidos" value={nombre} onChange={(e) => setNombre(e.target.value)} />
+          <Field label="Nombre o alias" value={nombre} maxLength={80} onChange={(e) => setNombre(e.target.value)} />
           <Button variant="primary" disabled={!cambiado || guardando} onClick={guardarNombre}>
             {guardando ? 'Guardando…' : 'Guardar nombre'}
           </Button>
@@ -67,10 +68,12 @@ export function SettingsPage() {
           <span className="mt-0.5 text-primary"><KeyRound size={20} /></span>
           <div className="text-[13px] text-muted">
             <div className="font-semibold text-ink">Cómo accedes</div>
-            Entras con <b>Google</b> o con un <b>enlace mágico por correo</b>. La app no usa contraseñas,
+            Entras con un <b>código de un solo uso</b> que te enviamos por correo. La app no usa contraseñas,
             así que no hay ninguna que cambiar ni que te puedan robar.
           </div>
         </Card>
+
+        <Notificaciones />
 
         {/* Apariencia: tema */}
         <Card>
@@ -132,6 +135,60 @@ export function SettingsPage() {
         </button>
       </Page>
     </div>
+  )
+}
+
+function Notificaciones() {
+  const { toast } = useApp()
+  const [estado, setEstado] = useState<EstadoPush | null>(null)
+  const [busy, setBusy] = useState(false)
+
+  useEffect(() => { estadoPush().then(setEstado) }, [])
+
+  const activar = async () => {
+    setBusy(true)
+    try {
+      const e = await activarNotificaciones()
+      setEstado(e)
+      if (e === 'activas') toast('Notificaciones activadas', 'ok')
+      else if (e === 'denegado') toast('Permiso de notificaciones bloqueado', 'error')
+    } catch { toast('No se pudieron activar', 'error') } finally { setBusy(false) }
+  }
+  const desactivar = async () => {
+    setBusy(true)
+    try { setEstado(await desactivarNotificaciones()); toast('Notificaciones desactivadas', 'info') }
+    finally { setBusy(false) }
+  }
+
+  return (
+    <Card className="flex flex-col gap-3">
+      <div className="flex items-start gap-3">
+        <span className="mt-0.5 text-primary"><Bell size={20} /></span>
+        <div className="text-[13px] text-muted">
+          <div className="font-semibold text-ink">Notificaciones</div>
+          Recibe un aviso en el móvil cuando aprueben tu reserva u otras novedades de la comunidad.
+        </div>
+      </div>
+
+      {estado === 'activas' && (
+        <Button variant="secondary" disabled={busy} onClick={desactivar}><BellOff size={18} /> Desactivar notificaciones</Button>
+      )}
+      {estado === 'inactivas' && (
+        <Button disabled={busy} onClick={activar}><Bell size={18} /> {busy ? 'Activando…' : 'Activar notificaciones'}</Button>
+      )}
+      {estado === 'requiere-instalar' && (
+        <div className="flex items-center gap-2 rounded-[14px] bg-surface-2 p-3 text-[13px] text-muted">
+          <Smartphone size={18} className="shrink-0 text-primary" />
+          Para recibir notificaciones en el iPhone, primero <b>añade la app a tu pantalla de inicio</b> (desde Safari: Compartir → Añadir a pantalla de inicio) y abre la app desde ese icono.
+        </div>
+      )}
+      {estado === 'denegado' && (
+        <p className="text-[13px] text-muted">Has bloqueado las notificaciones. Actívalas desde los ajustes del navegador para este sitio.</p>
+      )}
+      {estado === 'no-soportado' && (
+        <p className="text-[13px] text-faint">Este navegador no admite notificaciones push.</p>
+      )}
+    </Card>
   )
 }
 

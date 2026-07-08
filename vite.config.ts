@@ -38,6 +38,8 @@ export default defineConfig({
       },
       workbox: {
         globPatterns: ['**/*.{js,css,html,svg,png,woff2}'],
+        // El SW generado importa nuestro handler de notificaciones push.
+        importScripts: ['push-sw.js'],
         // Datos sensibles: NO cachear las respuestas de Supabase.
         navigateFallbackDenylist: [/^\/api/, /supabase/],
         runtimeCaching: [

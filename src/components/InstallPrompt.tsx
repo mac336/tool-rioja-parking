@@ -50,8 +50,8 @@ export function InstallPrompt() {
             <Smartphone size={22} strokeWidth={1.9} />
           </span>
           <div className="min-w-0 flex-1">
-            <h3 className="font-display text-[16px] font-bold text-ink">Añade Rioja 25 a tu pantalla de inicio</h3>
-            <p className="mt-0.5 text-[13px] text-muted">Ábrela como una app, a un toque, sin buscar en el navegador.</p>
+            <h3 className="font-display text-[16px] font-bold text-ink">Añade Rioja 25 a tu móvil</h3>
+            <p className="mt-0.5 text-[13px] text-muted">Ábrela como una app y recibe <b>notificaciones</b> cuando aprueben tu reserva u otras novedades.</p>
           </div>
           <button onClick={cerrar} aria-label="Cerrar" className="flex h-8 w-8 shrink-0 items-center justify-center rounded-full text-faint hover:bg-surface-2">
             <X size={18} />

@@ -470,6 +470,14 @@ export function enviarSugerencia(_texto: string): Promise<void> {
   return delay(undefined)
 }
 
+// ---- Push (demo: no persiste nada) -------------------------------------------
+export function guardarSuscripcionPush(_sub: PushSubscriptionJSON, _ua: string): Promise<void> {
+  return delay(undefined)
+}
+export function quitarSuscripcionPush(_endpoint: string): Promise<void> {
+  return delay(undefined)
+}
+
 // ---- Avisos (feed para la campana) -------------------------------------------
 export interface Aviso { id: string; texto: string; cuando: string; to: string }
 export function listAvisos(): Promise<Aviso[]> {

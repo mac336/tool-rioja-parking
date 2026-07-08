@@ -4,6 +4,7 @@ import { ChevronLeft } from 'lucide-react'
 import { TabBar } from './TabBar'
 import { Sidebar } from './Sidebar'
 import { Toaster } from './Toaster'
+import { InstallPrompt } from '@/components/InstallPrompt'
 
 /** Layout de nivel superior: sidebar (escritorio) + TabBar (móvil). */
 export function AppShell({ children }: { children: ReactNode }) {
@@ -14,6 +15,7 @@ export function AppShell({ children }: { children: ReactNode }) {
         <main className="mx-auto w-full min-w-0 max-w-[720px] flex-1 pb-[90px] md:pb-8">{children}</main>
       </div>
       <TabBar />
+      <InstallPrompt />
       <Toaster />
     </div>
   )

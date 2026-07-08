@@ -5,7 +5,7 @@ import { fechaHora, hora } from '@/lib/format'
 import { misReservas, cancelarReserva } from '@/lib/api'
 import { SubHeader, Page } from '@/components/layout/AppShell'
 import { Button, Card, EmptyState, ErrorState, SkeletonList, cx } from '@/components/ui'
-import type { Reserva, ReservaEstado } from '@/types'
+import type { ReservaGrupo, ReservaEstado } from '@/types'
 
 const TZ = 'Europe/Madrid'
 
@@ -36,8 +36,8 @@ export function MyBookingsPage() {
   const { toast } = useApp()
   const { data, state, refetch } = useAsync(misReservas, [])
 
-  async function anular(id: string) {
-    await cancelarReserva(id)
+  async function anular(grupoId: string) {
+    await cancelarReserva(grupoId)
     refetch()
     toast('Reserva anulada')
   }
@@ -57,16 +57,16 @@ export function MyBookingsPage() {
 
         {state === 'ready' && (
           <div className="flex flex-col gap-3">
-            {reservas.map((r: Reserva) => {
+            {reservas.map((r: ReservaGrupo) => {
               const futura = new Date(r.fin).getTime() > ahora
               const anulable = futura && (r.estado === 'pendiente' || r.estado === 'aprobada')
               return (
-                <Card key={r.id}>
+                <Card key={r.grupo_id}>
                   <div className="flex items-start gap-3">
                     <CuadroFecha iso={r.inicio} />
                     <div className="min-w-0 flex-1">
                       <div className="flex items-center justify-between gap-2">
-                        <h3 className="truncate font-display text-[16px] font-bold text-ink">{r.zona_nombre}</h3>
+                        <h3 className="truncate font-display text-[16px] font-bold text-ink">{r.zonas.map((z) => z.nombre).join(' + ')}</h3>
                         <EstadoPill estado={r.estado} />
                       </div>
                       <p className="mt-1 flex items-center gap-1.5 text-[13px] text-muted"><Clock size={14} /> {fechaHora(r.inicio)}–{hora(r.fin)}</p>
@@ -80,7 +80,7 @@ export function MyBookingsPage() {
                   </div>
                   {anulable && (
                     <div className="mt-3">
-                      <Button variant="danger-outline" block onClick={() => anular(r.id)}>Anular</Button>
+                      <Button variant="danger-outline" block onClick={() => anular(r.grupo_id)}>Anular</Button>
                     </div>
                   )}
                 </Card>

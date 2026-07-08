@@ -133,6 +133,7 @@ export interface ZonaComun {
 
 export interface Reserva {
   id: string
+  grupo_id?: string | null // varias zonas del mismo evento comparten grupo
   zona_id: string
   zona_nombre: string
   vivienda: string
@@ -144,6 +145,30 @@ export interface Reserva {
   aprobada_por?: string
   motivo_rechazo?: string
   created_at: string
+}
+
+/** Reserva agrupada: un mismo horario que abarca una o varias zonas comunes. */
+export interface ReservaGrupo {
+  grupo_id: string
+  ids: string[] // ids de las filas `reservas` que componen el grupo
+  zonas: { id: string; nombre: string }[]
+  vivienda: string
+  solicitada_por: string
+  inicio: string // ISO
+  fin: string // ISO
+  num_invitados: number
+  estado: ReservaEstado
+  motivo_rechazo?: string
+  created_at: string
+  nombre?: string // solicitante (para la cola de gestión)
+}
+
+/** Datos para crear una reserva (una o varias zonas en el mismo horario). */
+export interface CrearReservaInput {
+  zonaIds: string[]
+  inicio: string // ISO
+  fin: string // ISO
+  numInvitados: number
 }
 
 /** Vista de ocupación sin identidad (para vecinos): solo franja + estado. */

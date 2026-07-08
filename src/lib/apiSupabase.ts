@@ -13,7 +13,7 @@ export {
   listEncuestas, getEncuesta, votarPregunta, crearEncuesta, cerrarEncuesta, borrarEncuesta,
 } from './db/encuestas'
 export {
-  listZonas, misReservas, reservaVigente, ocupacionZonaDia, crearReserva, cancelarReserva,
+  listZonas, misReservas, reservaVigente, ocupacionZonaDia, ocupacionDia, crearReserva, cancelarReserva,
   reservasPendientesGestion, resolverReserva,
 } from './db/reservas'
 export {

@@ -1,18 +1,18 @@
 import { useEffect, useMemo, useState } from 'react'
 import { Link, useNavigate } from 'react-router-dom'
-import { CalendarDays, Check, Clock, Users, X } from 'lucide-react'
+import { CalendarDays, Check, Clock, MapPin, Users, X } from 'lucide-react'
 import { useApp } from '@/store'
 import { useAsync } from '@/lib/useAsync'
 import { fechaHora, hora } from '@/lib/format'
 import { puedeAprobarReservas } from '@/lib/roles'
 import {
-  listZonas, reservaVigente, ocupacionZonaDia, crearReserva,
+  listZonas, reservaVigente, ocupacionDia, crearReserva,
   cancelarReserva, reservasPendientesGestion, resolverReserva,
 } from '@/lib/api'
 import { Button, Card, Field, Alert, ErrorState, SkeletonList, cx } from '@/components/ui'
-import type { Reserva, ReservaEstado, ZonaComun } from '@/types'
+import type { ReservaGrupo, ReservaEstado, ZonaComun } from '@/types'
 
-// ---- Utilidades de franjas horarias -----------------------------------------
+// ---- Utilidades de fecha/hora ------------------------------------------------
 
 const pad = (n: number) => String(n).padStart(2, '0')
 /** Clave de día local "YYYY-MM-DD" (sin desfase UTC de toISOString). */
@@ -25,42 +25,25 @@ function slotISO(dia: string, hhmm: string): string {
   d.setHours(h, m ?? 0, 0, 0)
   return d.toISOString()
 }
+const aMin = (hhmm: string) => { const [h, m] = hhmm.split(':').map(Number); return h * 60 + (m || 0) }
+const solapa = (aIni: string, aFin: string, bIni: string, bFin: string) =>
+  new Date(aIni).getTime() < new Date(bFin).getTime() && new Date(bIni).getTime() < new Date(aFin).getTime()
 
-/** Genera bloques consecutivos de hasta 3h dentro de franja_min..franja_max. */
-function generarFranjas(zona: ZonaComun): { desde: string; hasta: string }[] {
-  const min = zona.franja_min ?? '09:00'
-  const max = zona.franja_max ?? '22:00'
-  const toMin = (s: string) => { const [h, m] = s.split(':').map(Number); return h * 60 + (m || 0) }
-  const toHHMM = (t: number) => `${pad(Math.floor(t / 60))}:${pad(t % 60)}`
-  const fin = toMin(max)
-  const out: { desde: string; hasta: string }[] = []
-  let cur = toMin(min)
-  while (cur + 60 <= fin) {
-    const next = Math.min(cur + 180, fin)
-    out.push({ desde: toHHMM(cur), hasta: toHHMM(next) })
-    cur = next
-  }
-  return out
-}
+type Ocup = { zona_id: string; inicio: string; fin: string; estado: 'pendiente' | 'aprobada' }
+type DispZona = { zona: ZonaComun; ok: boolean; motivo?: string }
 
-type EstadoFranja = 'libre' | 'pendiente' | 'ocupada'
-/** Cruza una franja con la ocupación del día para etiquetarla. */
-function estadoDeFranja(
-  iniISO: string, finISO: string,
-  ocup: { inicio: string; fin: string; estado: 'pendiente' | 'aprobada' }[],
-): EstadoFranja {
-  const ini = new Date(iniISO).getTime()
-  const fin = new Date(finISO).getTime()
-  let estado: EstadoFranja = 'libre'
-  for (const o of ocup) {
-    const oi = new Date(o.inicio).getTime()
-    const of = new Date(o.fin).getTime()
-    const solapa = oi < fin && of > ini
-    if (!solapa) continue
-    if (o.estado === 'aprobada') return 'ocupada'
-    estado = 'pendiente'
+/** Evalúa si una zona está disponible en la ventana elegida. */
+function evaluarZona(zona: ZonaComun, dia: string, desde: string, hasta: string, ocup: Ocup[]): DispZona {
+  const min = zona.franja_min ?? '00:00'
+  const max = zona.franja_max ?? '23:59'
+  if (desde < min || hasta > max) return { zona, ok: false, motivo: `Horario permitido ${min}–${max}` }
+  if (zona.duracion_max_min && aMin(hasta) - aMin(desde) > zona.duracion_max_min) {
+    return { zona, ok: false, motivo: `Máx. ${Math.floor(zona.duracion_max_min / 60)}h por reserva` }
   }
-  return estado
+  const ini = slotISO(dia, desde), fin = slotISO(dia, hasta)
+  const choca = ocup.some((o) => o.zona_id === zona.id && solapa(ini, fin, o.inicio, o.fin))
+  if (choca) return { zona, ok: false, motivo: 'Ocupada en ese horario' }
+  return { zona, ok: true }
 }
 
 // ---- Pill de estado de reserva -----------------------------------------------
@@ -86,65 +69,73 @@ export function BookingsPage() {
   const zonas = useAsync(listZonas, [])
   const gestion = useAsync(reservasPendientesGestion, [])
 
-  const [zonaId, setZonaId] = useState<string | null>(null)
-  const [dia, setDia] = useState<string>(claveDia(new Date()))
-  const [franja, setFranja] = useState<{ desde: string; hasta: string } | null>(null)
+  const hoy = useMemo(() => claveDia(new Date()), [])
+  const maxDia = useMemo(() => { const d = new Date(); d.setMonth(d.getMonth() + 6); return claveDia(d) }, [])
+
+  const [sel, setSel] = useState<Set<string>>(new Set())
+  const [dia, setDia] = useState<string>(hoy)
+  const [desde, setDesde] = useState('10:00')
+  const [hasta, setHasta] = useState('12:00')
   const [invitados, setInvitados] = useState('')
   const [saving, setSaving] = useState(false)
+  const [err, setErr] = useState('')
 
-  // Selecciona la primera zona cuando cargan.
-  useEffect(() => {
-    if (zonaId === null && zonas.data && zonas.data.length > 0) setZonaId(zonas.data[0].id)
-  }, [zonaId, zonas.data])
+  const ocupacion = useAsync(() => ocupacionDia(dia), [dia])
 
-  const ocupacion = useAsync(
-    () => (zonaId ? ocupacionZonaDia(zonaId, dia) : Promise.resolve([])),
-    [zonaId, dia],
+  const zonasSel = useMemo(
+    () => (zonas.data ?? []).filter((z) => sel.has(z.id)),
+    [zonas.data, sel],
   )
+  const rangoOk = desde < hasta
+  const disponibilidad = useMemo<DispZona[]>(
+    () => (rangoOk ? zonasSel.map((z) => evaluarZona(z, dia, desde, hasta, ocupacion.data ?? [])) : []),
+    [zonasSel, dia, desde, hasta, ocupacion.data, rangoOk],
+  )
+  const todasOk = disponibilidad.length > 0 && disponibilidad.every((d) => d.ok)
+  const needInv = zonasSel.some((z) => z.requiere_invitados)
+  const invitadosOk = !needInv || (invitados !== '' && Number(invitados) >= 0)
+  const puedeSolicitar = sel.size > 0 && rangoOk && todasOk && invitadosOk && !saving
 
-  const zona = useMemo(() => zonas.data?.find((z) => z.id === zonaId) ?? null, [zonas.data, zonaId])
-  const franjas = useMemo(() => (zona ? generarFranjas(zona) : []), [zona])
+  function toggleZona(id: string) {
+    setSel((prev) => {
+      const next = new Set(prev)
+      next.has(id) ? next.delete(id) : next.add(id)
+      return next
+    })
+  }
 
-  const dias = useMemo(() => Array.from({ length: 10 }, (_, i) => {
-    const d = new Date(); d.setHours(0, 0, 0, 0); d.setDate(d.getDate() + i); return d
-  }), [])
-
-  async function anular(id: string) {
-    await cancelarReserva(id)
-    setFranja(null); setInvitados('')
+  async function anular(grupoId: string) {
+    await cancelarReserva(grupoId)
     vigente.refetch()
     toast('Reserva anulada')
   }
 
   async function solicitar() {
-    if (!zona || !franja) return
-    const needInv = zona.requiere_invitados
-    const num = Number(invitados)
-    if (needInv && (!invitados || Number.isNaN(num) || num < 0)) return
-    setSaving(true)
+    if (!puedeSolicitar) return
+    setErr(''); setSaving(true)
     try {
       await crearReserva({
-        zonaId: zona.id,
-        inicio: slotISO(dia, franja.desde),
-        fin: slotISO(dia, franja.hasta),
-        numInvitados: needInv ? num : 0,
+        zonaIds: [...sel],
+        inicio: slotISO(dia, desde),
+        fin: slotISO(dia, hasta),
+        numInvitados: needInv ? Number(invitados) : 0,
       })
       toast('Reserva solicitada, pendiente de aprobación', 'info')
       nav('/reservas/mias')
+    } catch (e) {
+      setErr(e instanceof Error ? e.message : 'No se pudo crear la reserva.')
     } finally {
       setSaving(false)
     }
   }
 
-  async function resolver(id: string, aprobar: boolean) {
-    await resolverReserva(id, aprobar)
+  async function resolver(grupoId: string, aprobar: boolean) {
+    await resolverReserva(grupoId, aprobar)
     gestion.refetch()
     toast(aprobar ? 'Reserva aprobada' : 'Reserva rechazada')
   }
 
   const cargando = vigente.state === 'loading' || zonas.state === 'loading'
-  const invitadosOk = !zona?.requiere_invitados || (invitados !== '' && Number(invitados) >= 0)
-  const puedeSolicitar = !!franja && invitadosOk && !saving
 
   return (
     <div>
@@ -153,7 +144,7 @@ export function BookingsPage() {
         <Link to="/reservas/mias" className="text-[14px] font-bold text-primary hover:underline">Mis reservas</Link>
       </header>
 
-      <div className="px-4 py-4">
+      <div className="px-4 py-4 pb-8">
         {cargando && <SkeletonList />}
         {!cargando && (vigente.state === 'error' || zonas.state === 'error') && <ErrorState onRetry={() => { vigente.refetch(); zonas.refetch() }} />}
 
@@ -163,7 +154,9 @@ export function BookingsPage() {
             <div className="flex items-start justify-between gap-3">
               <div>
                 <div className="overline text-primary">Ya tienes una reserva vigente</div>
-                <h2 className="mt-1 font-display text-[19px] font-bold text-ink">{vigente.data.zona_nombre}</h2>
+                <h2 className="mt-1 font-display text-[19px] font-bold text-ink">
+                  {vigente.data.zonas.map((z) => z.nombre).join(' + ')}
+                </h2>
                 <p className="mt-1 flex items-center gap-1.5 text-[14px] text-muted">
                   <Clock size={15} /> {fechaHora(vigente.data.inicio)}–{hora(vigente.data.fin)}
                 </p>
@@ -171,47 +164,27 @@ export function BookingsPage() {
               <EstadoPill estado={vigente.data.estado} />
             </div>
             <p className="mt-3 text-[13px] text-muted">
-              Solo se permite una reserva por vivienda a la vez. Anula esta para poder solicitar otra.
+              Solo se permite una reserva por vivienda a la vez (puede incluir varias zonas). Anúlala para poder solicitar otra.
             </p>
             <div className="mt-3">
-              <Button variant="danger-outline" block onClick={() => anular(vigente.data!.id)}>Anular reserva</Button>
+              <Button variant="danger-outline" block onClick={() => anular(vigente.data!.grupo_id)}>Anular reserva</Button>
             </div>
           </Card>
         )}
 
         {/* Caso 2: sin reserva vigente → flujo de nueva reserva */}
         {!cargando && !vigente.data && zonas.state !== 'error' && (
-          <div className="flex flex-col gap-5 pb-4">
+          <div className="flex flex-col gap-5">
             <section>
-              <h2 className="overline mb-2">Elige una zona</h2>
+              <h2 className="overline mb-2">Elige una o varias zonas</h2>
               <div className="flex flex-wrap gap-2">
-                {(zonas.data ?? []).map((z) => (
-                  <button key={z.id} type="button"
-                    onClick={() => { setZonaId(z.id); setFranja(null) }}
-                    className={cx('rounded-pill border px-3.5 py-2 text-[13px] font-semibold transition-colors',
-                      z.id === zonaId ? 'border-primary bg-primary text-white' : 'border-border bg-surface-2 text-muted hover:border-border-strong')}>
-                    {z.nombre}
-                  </button>
-                ))}
-              </div>
-              {zona?.descripcion && <p className="mt-2 text-[13px] text-muted">{zona.descripcion}</p>}
-            </section>
-
-            <section>
-              <h2 className="overline mb-2">Elige un día</h2>
-              <div className="-mx-4 flex gap-2 overflow-x-auto px-4 pb-1">
-                {dias.map((d) => {
-                  const clave = claveDia(d)
-                  const sel = clave === dia
-                  const dow = new Intl.DateTimeFormat('es-ES', { weekday: 'short' }).format(d).replace('.', '')
-                  const dm = new Intl.DateTimeFormat('es-ES', { day: 'numeric' }).format(d)
+                {(zonas.data ?? []).map((z) => {
+                  const on = sel.has(z.id)
                   return (
-                    <button key={clave} type="button"
-                      onClick={() => { setDia(clave); setFranja(null) }}
-                      className={cx('flex min-w-[54px] shrink-0 flex-col items-center gap-0.5 rounded-[14px] border px-2 py-2 transition-colors',
-                        sel ? 'border-primary bg-primary text-white' : 'border-border bg-surface text-ink hover:bg-surface-2')}>
-                      <span className={cx('text-[11px] font-semibold uppercase', sel ? 'text-white/80' : 'text-faint')}>{dow}</span>
-                      <span className="text-[18px] font-bold leading-none">{dm}</span>
+                    <button key={z.id} type="button" onClick={() => toggleZona(z.id)}
+                      className={cx('inline-flex items-center gap-1.5 rounded-pill border px-3.5 py-2 text-[13px] font-semibold transition-colors',
+                        on ? 'border-primary bg-primary text-white' : 'border-border bg-surface-2 text-muted hover:border-border-strong')}>
+                      {on && <Check size={15} />}{z.nombre}
                     </button>
                   )
                 })}
@@ -219,43 +192,52 @@ export function BookingsPage() {
             </section>
 
             <section>
-              <h2 className="overline mb-2">Elige una franja</h2>
-              {ocupacion.state === 'loading' && <SkeletonList n={2} />}
-              {ocupacion.state !== 'loading' && (
-                <div className="grid grid-cols-2 gap-2.5">
-                  {franjas.map((f) => {
-                    const iniISO = slotISO(dia, f.desde)
-                    const finISO = slotISO(dia, f.hasta)
-                    const est = estadoDeFranja(iniISO, finISO, ocupacion.data ?? [])
-                    const sel = franja?.desde === f.desde && franja?.hasta === f.hasta
-                    const libre = est === 'libre'
-                    return (
-                      <button key={f.desde} type="button" disabled={!libre}
-                        onClick={() => setFranja({ desde: f.desde, hasta: f.hasta })}
-                        className={cx('flex flex-col items-start gap-0.5 rounded-[14px] border px-3 py-2.5 text-left transition-colors',
-                          !libre && 'cursor-not-allowed',
-                          est === 'ocupada' && 'border-border bg-surface-2 text-faint',
-                          est === 'pendiente' && 'border-warn/40 bg-warn-soft text-warn-ink',
-                          libre && sel && 'border-primary bg-primary text-white',
-                          libre && !sel && 'border-border-strong bg-surface text-ink hover:border-primary')}>
-                        <span className="text-[15px] font-bold">{f.desde}–{f.hasta}</span>
-                        <span className="text-[12px] font-semibold">
-                          {est === 'libre' ? 'Libre' : est === 'pendiente' ? 'Pendiente de aprobar' : 'Ocupada'}
-                        </span>
-                      </button>
-                    )
-                  })}
-                </div>
-              )}
+              <h2 className="overline mb-2">Elige el día</h2>
+              <Field type="date" min={hoy} max={maxDia} value={dia}
+                onChange={(e) => setDia(e.target.value || hoy)} />
+              <p className="mt-1 text-[12px] text-faint">Puedes reservar hasta 6 meses vista.</p>
             </section>
 
-            {zona?.requiere_invitados && (
-              <Field label="Nº de invitados" type="number" inputMode="numeric" min={0}
-                value={invitados} onChange={(e) => setInvitados(e.target.value)}
-                placeholder="0" />
+            <section>
+              <h2 className="overline mb-2">Elige la hora</h2>
+              <div className="grid grid-cols-2 gap-3">
+                <Field label="Desde" type="time" value={desde} onChange={(e) => setDesde(e.target.value)} />
+                <Field label="Hasta" type="time" value={hasta} onChange={(e) => setHasta(e.target.value)} />
+              </div>
+              {!rangoOk && <p className="mt-1 text-[13px] text-danger">La hora de fin debe ser posterior a la de inicio.</p>}
+            </section>
+
+            {/* Disponibilidad por zona seleccionada */}
+            {sel.size > 0 && rangoOk && (
+              <section>
+                <h2 className="overline mb-2">Disponibilidad</h2>
+                {ocupacion.state === 'loading' && <SkeletonList n={1} />}
+                {ocupacion.state !== 'loading' && (
+                  <div className="flex flex-col gap-2">
+                    {disponibilidad.map((d) => (
+                      <div key={d.zona.id}
+                        className={cx('flex items-center justify-between gap-2 rounded-[14px] border px-3 py-2.5 text-[14px]',
+                          d.ok ? 'border-success/40 bg-success-soft text-success-ink' : 'border-danger/40 bg-danger-soft text-danger-ink')}>
+                        <span className="flex items-center gap-1.5 font-semibold"><MapPin size={15} /> {d.zona.nombre}</span>
+                        <span className="text-[12px] font-bold">{d.ok ? 'Libre' : d.motivo}</span>
+                      </div>
+                    ))}
+                  </div>
+                )}
+              </section>
             )}
 
+            {needInv && (
+              <Field label="Nº de invitados" type="number" inputMode="numeric" min={0}
+                value={invitados} onChange={(e) => setInvitados(e.target.value)} placeholder="0" />
+            )}
+
+            {err && <Alert tipo="danger">{err}</Alert>}
             <Alert tipo="info">Tu reserva quedará pendiente de que el presidente la apruebe.</Alert>
+
+            <Button block size="lg" disabled={!puedeSolicitar} onClick={solicitar}>
+              <CalendarDays size={18} /> {saving ? 'Solicitando…' : 'Solicitar reserva'}
+            </Button>
           </div>
         )}
 
@@ -268,18 +250,20 @@ export function BookingsPage() {
             {gestion.state === 'empty' && <p className="text-[14px] text-muted">No hay reservas pendientes de aprobar.</p>}
             {gestion.state === 'ready' && (
               <div className="flex flex-col gap-3">
-                {(gestion.data ?? []).map((r: Reserva) => (
-                  <Card key={r.id}>
+                {(gestion.data ?? []).map((g: ReservaGrupo) => (
+                  <Card key={g.grupo_id}>
                     <div className="flex items-center justify-between gap-2">
-                      <div className="font-display text-[16px] font-bold text-ink">{r.zona_nombre}</div>
-                      <EstadoPill estado={r.estado} />
+                      <div className="font-display text-[16px] font-bold text-ink">{g.zonas.map((z) => z.nombre).join(' + ')}</div>
+                      <EstadoPill estado={g.estado} />
                     </div>
-                    <p className="mt-1 text-[13px] text-muted">Vivienda {r.vivienda}</p>
-                    <p className="mt-0.5 flex items-center gap-1.5 text-[13px] text-muted"><Clock size={14} /> {fechaHora(r.inicio)}–{hora(r.fin)}</p>
-                    <p className="mt-0.5 flex items-center gap-1.5 text-[13px] text-muted"><Users size={14} /> {r.num_invitados} invitados</p>
+                    <p className="mt-1 text-[13px] text-muted">{g.nombre ? `${g.nombre} · ` : ''}Vivienda {g.vivienda}</p>
+                    <p className="mt-0.5 flex items-center gap-1.5 text-[13px] text-muted"><Clock size={14} /> {fechaHora(g.inicio)}–{hora(g.fin)}</p>
+                    {g.num_invitados > 0 && (
+                      <p className="mt-0.5 flex items-center gap-1.5 text-[13px] text-muted"><Users size={14} /> {g.num_invitados} invitados</p>
+                    )}
                     <div className="mt-3 flex gap-2">
-                      <Button block onClick={() => resolver(r.id, true)}><Check size={17} /> Aprobar</Button>
-                      <Button variant="danger-outline" block onClick={() => resolver(r.id, false)}><X size={17} /> Rechazar</Button>
+                      <Button block onClick={() => resolver(g.grupo_id, true)}><Check size={17} /> Aprobar</Button>
+                      <Button variant="danger-outline" block onClick={() => resolver(g.grupo_id, false)}><X size={17} /> Rechazar</Button>
                     </div>
                   </Card>
                 ))}
@@ -288,20 +272,6 @@ export function BookingsPage() {
           </section>
         )}
       </div>
-
-      {/* Barra inferior de acción (solo en el flujo de nueva reserva) */}
-      {!cargando && !vigente.data && franja && (
-        <>
-          <div className="h-[84px]" aria-hidden />
-          <div className="fixed inset-x-0 bottom-[78px] z-20 md:bottom-0">
-            <div className="mx-auto max-w-[720px] border-t border-border bg-surface/95 p-3 backdrop-blur safe-bottom">
-              <Button block size="lg" disabled={!puedeSolicitar} onClick={solicitar}>
-                <CalendarDays size={18} /> {saving ? 'Solicitando…' : 'Solicitar reserva'}
-              </Button>
-            </div>
-          </div>
-        </>
-      )}
     </div>
   )
 }

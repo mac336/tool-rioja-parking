@@ -15,7 +15,7 @@ export const {
   listIncidencias, getIncidencia, crearIncidencia, editarIncidencia, borrarIncidencia,
   comentarIncidencia, ocultarComentario, bloquearComentarios, cambiarEstadoIncidencia,
   listEncuestas, getEncuesta, votarPregunta, crearEncuesta, cerrarEncuesta, borrarEncuesta,
-  listZonas, misReservas, reservaVigente, ocupacionZonaDia, crearReserva, cancelarReserva,
+  listZonas, misReservas, reservaVigente, ocupacionZonaDia, ocupacionDia, crearReserva, cancelarReserva,
   reservasPendientesGestion, resolverReserva,
   parkingProximas, parkingMisTurnos, listCesiones, misCesiones, cesionesActivas,
   crearCesion, cancelarCesion, reasignarCesion, demandaParking,

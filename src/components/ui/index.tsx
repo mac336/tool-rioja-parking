@@ -37,15 +37,15 @@ export function Card({ className, children, ...rest }: { className?: string; chi
 
 // ---- Field / Input -----------------------------------------------------------
 interface FieldProps extends InputHTMLAttributes<HTMLInputElement> {
-  label: string
+  label?: string
   error?: string
   hint?: string
 }
 export const Field = forwardRef<HTMLInputElement, FieldProps>(function Field({ label, error, hint, id, className, ...rest }, ref) {
-  const fid = id || `f_${label.replace(/\s+/g, '_')}`
+  const fid = id || `f_${(label ?? 'campo').replace(/\s+/g, '_')}`
   return (
     <div className="flex flex-col gap-1.5">
-      <label htmlFor={fid} className="text-[13px] font-semibold text-muted">{label}</label>
+      {label && <label htmlFor={fid} className="text-[13px] font-semibold text-muted">{label}</label>}
       <input ref={ref} id={fid}
         className={cx('min-h-[48px] rounded-[14px] border bg-surface px-3.5 text-[15px] text-ink placeholder:text-faint shadow-neu-inset focus:outline-none',
           error ? 'border-danger' : 'border-border focus:border-primary', className)}

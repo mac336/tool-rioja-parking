@@ -5,7 +5,7 @@
 
 import type {
   Profile, Role, Incident, IncidentComment, IncidentStatus, IncidentCategory,
-  Encuesta, EncuestaFormato, EncuestaTipo, ZonaComun, Reserva, Anuncio, AnuncioNivel,
+  Encuesta, EncuestaFormato, EncuestaTipo, ZonaComun, Reserva, ReservaGrupo, CrearReservaInput, Anuncio, AnuncioNivel,
   Contact, ContactCategory, AccessRequest, ParkingCesion, CesionTipo, ParkingQuincena,
 } from '@/types'
 import * as mock from '@/mock/data'
@@ -150,15 +150,50 @@ export function borrarEncuesta(id: string): Promise<void> {
   return delay(undefined)
 }
 
-// ---- Zonas y reservas (UNA sola lista: crear → aprobar conectado) ------------
+// ---- Zonas y reservas (multi-zona: N filas comparten grupo_id) ---------------
 export const listZonas = () => delay(db.zonas.filter((z) => z.activa))
-export const misReservas = () => delay(db.reservas.filter((r) => r.solicitada_por === currentUser.id))
 
-export function reservaVigente(): Promise<Reserva | null> {
+const claveGrupo = (r: Reserva) => r.grupo_id ?? r.id
+const solapa = (aIni: string, aFin: string, bIni: string, bFin: string) =>
+  new Date(aIni).getTime() < new Date(bFin).getTime() && new Date(bIni).getTime() < new Date(aFin).getTime()
+
+/** Colapsa filas de reservas en grupos (un grupo = un horario, 1..n zonas). */
+function agrupar(rows: Reserva[]): ReservaGrupo[] {
+  const porGrupo = new Map<string, Reserva[]>()
+  for (const r of rows) {
+    const k = claveGrupo(r)
+    if (!porGrupo.has(k)) porGrupo.set(k, [])
+    porGrupo.get(k)!.push(r)
+  }
+  return [...porGrupo.entries()].map(([grupo_id, rs]) => {
+    const base = rs[0]
+    return {
+      grupo_id,
+      ids: rs.map((r) => r.id),
+      zonas: rs.map((r) => ({ id: r.zona_id, nombre: r.zona_nombre })),
+      vivienda: base.vivienda,
+      solicitada_por: base.solicitada_por,
+      inicio: base.inicio,
+      fin: base.fin,
+      num_invitados: base.num_invitados,
+      estado: base.estado,
+      motivo_rechazo: base.motivo_rechazo,
+      created_at: base.created_at,
+    } as ReservaGrupo
+  })
+}
+
+export const misReservas = (): Promise<ReservaGrupo[]> =>
+  delay(agrupar(db.reservas.filter((r) => r.solicitada_por === currentUser.id))
+    .sort((a, b) => b.inicio.localeCompare(a.inicio)))
+
+/** Grupo de reserva vigente de la vivienda (pendiente/aprobada, fin>=ahora). */
+export function reservaVigente(): Promise<ReservaGrupo | null> {
   const t = Date.now()
-  const r = db.reservas.find((r) => r.vivienda === currentUser.vivienda
+  const vivas = db.reservas.filter((r) => r.vivienda === currentUser.vivienda
     && (r.estado === 'pendiente' || r.estado === 'aprobada') && new Date(r.fin).getTime() >= t)
-  return delay(r ?? null)
+  const grupos = agrupar(vivas).sort((a, b) => a.inicio.localeCompare(b.inicio))
+  return delay(grupos[0] ?? null)
 }
 
 export function ocupacionZonaDia(zonaId: string, fechaISO: string): Promise<{ inicio: string; fin: string; estado: 'pendiente' | 'aprobada' }[]> {
@@ -169,29 +204,61 @@ export function ocupacionZonaDia(zonaId: string, fechaISO: string): Promise<{ in
   return delay(franjas)
 }
 
-export function crearReserva(input: { zonaId: string; inicio: string; fin: string; numInvitados: number }): Promise<Reserva> {
-  const zona = db.zonas.find((z) => z.id === input.zonaId)!
-  const r: Reserva = {
-    id: uid(), zona_id: input.zonaId, zona_nombre: zona.nombre, vivienda: currentUser.vivienda,
-    solicitada_por: currentUser.id, inicio: input.inicio, fin: input.fin, num_invitados: input.numInvitados,
-    estado: 'pendiente', created_at: now(),
-  }
-  db.reservas.push(r)
-  return delay(r)
+/** Ocupación de TODAS las zonas en un día (para validar varias zonas a la vez). */
+export function ocupacionDia(fechaISO: string): Promise<{ zona_id: string; inicio: string; fin: string; estado: 'pendiente' | 'aprobada' }[]> {
+  const dia = fechaISO.slice(0, 10)
+  const franjas = db.reservas
+    .filter((r) => (r.estado === 'pendiente' || r.estado === 'aprobada') && r.inicio.slice(0, 10) === dia)
+    .map((r) => ({ zona_id: r.zona_id, inicio: r.inicio, fin: r.fin, estado: r.estado as 'pendiente' | 'aprobada' }))
+  return delay(franjas)
 }
 
-export function cancelarReserva(id: string): Promise<void> {
-  const r = db.reservas.find((r) => r.id === id)
-  if (r) r.estado = 'cancelada'
+export function crearReserva(input: CrearReservaInput): Promise<ReservaGrupo> {
+  if (input.zonaIds.length === 0) return Promise.reject(new Error('Selecciona al menos una zona.'))
+  // Valida solape por zona (emula el constraint reservas_no_solapan de la BD).
+  const ocupadas: string[] = []
+  for (const zonaId of input.zonaIds) {
+    const choca = db.reservas.some((r) => r.zona_id === zonaId
+      && (r.estado === 'pendiente' || r.estado === 'aprobada')
+      && solapa(input.inicio, input.fin, r.inicio, r.fin))
+    if (choca) ocupadas.push(db.zonas.find((z) => z.id === zonaId)?.nombre ?? zonaId)
+  }
+  if (ocupadas.length > 0) {
+    return Promise.reject(new Error(`Ese horario ya está ocupado en: ${ocupadas.join(', ')}.`))
+  }
+  const grupo_id = uid()
+  const filas = input.zonaIds.map((zonaId) => {
+    const zona = db.zonas.find((z) => z.id === zonaId)!
+    const r: Reserva = {
+      id: uid(), grupo_id, zona_id: zonaId, zona_nombre: zona.nombre, vivienda: currentUser.vivienda,
+      solicitada_por: currentUser.id, inicio: input.inicio, fin: input.fin, num_invitados: input.numInvitados,
+      estado: 'pendiente', created_at: now(),
+    }
+    db.reservas.push(r)
+    return r
+  })
+  return delay(agrupar(filas)[0])
+}
+
+/** Cancela un grupo entero (todas sus zonas). */
+export function cancelarReserva(grupoId: string): Promise<void> {
+  for (const r of db.reservas) if (claveGrupo(r) === grupoId) r.estado = 'cancelada'
   return delay(undefined)
 }
 
-// La cola del presidente ve las pendientes REALES; resolver se refleja en Mis reservas.
-export const reservasPendientesGestion = () =>
-  delay(db.reservas.filter((r) => r.estado === 'pendiente').map((r) => ({ ...r, nombre: nombreDe(r.solicitada_por) })))
-export function resolverReserva(id: string, aprobar: boolean, motivo?: string): Promise<void> {
-  const r = db.reservas.find((r) => r.id === id)
-  if (r) { r.estado = aprobar ? 'aprobada' : 'rechazada'; r.motivo_rechazo = motivo; r.aprobada_por = currentUser.id }
+// La cola del presidente ve los grupos pendientes; resolver afecta al grupo entero.
+export const reservasPendientesGestion = (): Promise<ReservaGrupo[]> =>
+  delay(agrupar(db.reservas.filter((r) => r.estado === 'pendiente'))
+    .map((g) => ({ ...g, nombre: nombreDe(g.solicitada_por) }))
+    .sort((a, b) => a.inicio.localeCompare(b.inicio)))
+
+export function resolverReserva(grupoId: string, aprobar: boolean, motivo?: string): Promise<void> {
+  for (const r of db.reservas) {
+    if (claveGrupo(r) !== grupoId) continue
+    r.estado = aprobar ? 'aprobada' : 'rechazada'
+    r.motivo_rechazo = motivo
+    r.aprobada_por = currentUser.id
+  }
   return delay(undefined)
 }
 const nombreDe = (id: string) => db.profiles.find((p) => p.id === id)?.nombre ?? '—'

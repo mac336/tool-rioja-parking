@@ -14,6 +14,7 @@ export const {
   listViviendas,
   listIncidencias, getIncidencia, crearIncidencia, editarIncidencia, borrarIncidencia,
   comentarIncidencia, ocultarComentario, bloquearComentarios, cambiarEstadoIncidencia,
+  incidenciasPendientesGestion, aprobarIncidencia,
   listEncuestas, getEncuesta, votarPregunta, crearEncuesta, cerrarEncuesta, borrarEncuesta,
   listZonas, misReservas, reservaVigente, ocupacionZonaDia, ocupacionDia, crearReserva, cancelarReserva,
   reservasPendientesGestion, resolverReserva,

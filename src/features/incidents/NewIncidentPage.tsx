@@ -78,7 +78,7 @@ export function NewIncidentPage() {
         })
         // Sube el fichero real al Storage privado (no-op en modo demo).
         if (fotoFile) await subirAdjuntosIncidencia(creada.id, [fotoFile])
-        toast('Incidencia creada')
+        toast('Incidencia enviada, pendiente de aprobación', 'info')
         nav(`/incidencias/${creada.id}`)
       }
     } finally {

@@ -95,10 +95,15 @@ function mapIncidencia(
 
 // ---- Listado -----------------------------------------------------------------
 export async function listIncidencias(): Promise<Incident[]> {
-  const { data: incRows, error } = await supabase
-    .from('incidencias')
-    .select('*')
-    .order('created_at', { ascending: false })
+  // Feed compartido: solo las incidencias ya moderadas + las propias del autor
+  // (para que vea el estado de las suyas, incluidas pendiente/rechazada). La RLS
+  // ya oculta las pendientes ajenas; este filtro además las quita de la lista de
+  // gestión para que la moderación viva en su cola, no mezclada en el feed.
+  const { data: { user } } = await supabase.auth.getUser()
+  let query = supabase.from('incidencias').select('*').order('created_at', { ascending: false })
+  const publicas = 'estado.in.(abierta,en_curso,resuelta,cerrada)'
+  query = user ? query.or(`${publicas},autor_id.eq.${user.id}`) : query.or(publicas)
+  const { data: incRows, error } = await query
   if (error) throw error
   const incidencias = (incRows ?? []) as IncidenciaRow[]
   if (incidencias.length === 0) return []
@@ -220,4 +225,24 @@ export async function cambiarEstadoIncidencia(id: string, estado: IncidentStatus
   const inc = await getIncidencia(id)
   if (!inc) throw new Error('Incidencia no encontrada tras cambiar estado.')
   return inc
+}
+
+// ---- Moderación (cola de aprobación de gestión) ------------------------------
+/** Incidencias pendientes de aprobar (solo las ve la gestión, vía RLS). */
+export async function incidenciasPendientesGestion(): Promise<Incident[]> {
+  const { data: incRows, error } = await supabase
+    .from('incidencias').select('*').eq('estado', 'pendiente')
+    .order('created_at', { ascending: false })
+  if (error) throw error
+  const incidencias = (incRows ?? []) as IncidenciaRow[]
+  if (incidencias.length === 0) return []
+  const dir = await cargarDirectorio()
+  return incidencias.map((row) => mapIncidencia(row, dir, [], [], []))
+}
+
+/** Aprueba (→abierta) o rechaza (→rechazada) una incidencia pendiente. */
+export async function aprobarIncidencia(id: string, aprobar: boolean): Promise<void> {
+  const { error } = await supabase.from('incidencias')
+    .update({ estado: aprobar ? 'abierta' : 'rechazada' }).eq('id', id)
+  if (error) throw error
 }

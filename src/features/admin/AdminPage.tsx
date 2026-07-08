@@ -1,69 +1,107 @@
 import { useState } from 'react'
-import { useNavigate } from 'react-router-dom'
-import { Shield, Check, X, Megaphone, CalendarDays, Settings, ChevronRight, UserX, UserCheck } from 'lucide-react'
-import { Avatar, Button, Card, RoleBadge, SelectField, Alert, EmptyState, ErrorState, SkeletonList, cx } from '@/components/ui'
+import { Link } from 'react-router-dom'
+import {
+  Shield, Check, X, Clock, Users, MapPin, AlertTriangle, ChevronRight,
+  UserX, UserCheck,
+} from 'lucide-react'
+import {
+  Avatar, Button, Card, RoleBadge, SelectField, Alert,
+  EmptyState, ErrorState, SkeletonList, cx,
+} from '@/components/ui'
 import { useAsync } from '@/lib/useAsync'
-import { fechaCorta, iniciales } from '@/lib/format'
-import { ROLE_LABEL, puedeAprobarAltas, roleBadgeKind } from '@/lib/roles'
-import type { Profile, Role } from '@/types'
+import { fechaCorta, fechaHora, hora, iniciales } from '@/lib/format'
+import {
+  ROLE_LABEL, roleBadgeKind, esGestion, esAppAdmin,
+  puedeAprobarAltas, puedeAprobarAnuncios, puedeAprobarReservas,
+} from '@/lib/roles'
+import type { Profile, Role, Incident, Anuncio, ReservaGrupo } from '@/types'
 import { PISOS } from '@/lib/parking'
 import { useApp } from '@/store'
-import { listAccessRequests, resolverSolicitud, listVecinos, suspenderVecino, cambiarRolVecino } from '@/lib/api'
+import {
+  listAccessRequests, resolverSolicitud, listVecinos, suspenderVecino, cambiarRolVecino,
+  incidenciasPendientesGestion, aprobarIncidencia,
+  anunciosPendientesGestion, resolverAnuncio,
+  reservasPendientesGestion, resolverReserva,
+} from '@/lib/api'
 
-type TabKey = 'solicitudes' | 'vecinos' | 'info'
+type TabKey = 'cuentas' | 'incidencias' | 'anuncios' | 'reservas' | 'vecinos' | 'permisos'
 type Seleccion = { vivienda: string; rol: Role }
+type Toast = (t: string, tipo?: 'ok' | 'error' | 'info') => void
 
 const ROLES = Object.keys(ROLE_LABEL) as Role[]
 
 export function AdminPage() {
   const { user, toast } = useApp()
-  const navigate = useNavigate()
-  const [tab, setTab] = useState<TabKey>('solicitudes')
+  const rol = user.rol
+
+  // Conteos de cada cola (para las pastillas del selector). Se recalcula tras cada acción.
+  const conteos = useAsync(async () => {
+    const [c, i, a, r] = await Promise.all([
+      puedeAprobarAltas(rol) ? listAccessRequests() : Promise.resolve([]),
+      esGestion(rol) ? incidenciasPendientesGestion() : Promise.resolve([]),
+      puedeAprobarAnuncios(rol) ? anunciosPendientesGestion() : Promise.resolve([]),
+      puedeAprobarReservas(rol) ? reservasPendientesGestion() : Promise.resolve([]),
+    ])
+    return { cuentas: c.length, incidencias: i.length, anuncios: a.length, reservas: r.length }
+  }, [])
+  const n = conteos.data ?? { cuentas: 0, incidencias: 0, anuncios: 0, reservas: 0 }
+  const refrescar = () => conteos.refetch()
+
+  const tabs = ([
+    { key: 'cuentas', label: 'Cuentas', show: puedeAprobarAltas(rol), count: n.cuentas },
+    { key: 'incidencias', label: 'Incidencias', show: esGestion(rol), count: n.incidencias },
+    { key: 'anuncios', label: 'Anuncios', show: puedeAprobarAnuncios(rol), count: n.anuncios },
+    { key: 'reservas', label: 'Reservas', show: puedeAprobarReservas(rol), count: n.reservas },
+    { key: 'vecinos', label: 'Vecinos', show: puedeAprobarAltas(rol), count: 0 },
+    { key: 'permisos', label: 'Permisos', show: true, count: 0 },
+  ] as { key: TabKey; label: string; show: boolean; count: number }[]).filter((t) => t.show)
+
+  const [tab, setTab] = useState<TabKey>(tabs[0]?.key ?? 'permisos')
 
   return (
     <div>
-      {/* Cabecera oscura — zona de gestión */}
-      <header className="px-4 pb-5 pt-6 text-white" style={{ background: '#14262B' }}>
+      <header className="px-4 pb-4 pt-6 text-white" style={{ background: '#14262B' }}>
         <div className="flex items-center gap-2">
           <span className="flex h-9 w-9 items-center justify-center rounded-[12px] bg-white/10">
             <Shield size={20} className="text-accent" />
           </span>
           <span className="rounded-pill bg-accent px-2.5 py-1 text-[11px] font-extrabold uppercase tracking-wide text-accent-ink">
-            Gestión
+            {esAppAdmin(rol) ? 'Administración' : 'Gestión'}
           </span>
         </div>
         <h1 className="mt-3 font-display text-[26px] font-extrabold">Panel de gestión</h1>
-        <p className="mt-1 text-[13px] text-white/70">Altas de vecinos y accesos a la moderación de la comunidad.</p>
+        <p className="mt-1 text-[13px] text-white/70">Aprueba cuentas, incidencias, anuncios y reservas, y gestiona roles.</p>
 
-        {/* Control segmentado */}
-        <div className="mt-4 inline-flex rounded-pill bg-white/10 p-1">
-          {([['solicitudes', 'Solicitudes'], ['vecinos', 'Vecinos'], ['info', 'Info']] as const).map(([key, label]) => (
-            <button
-              key={key}
-              type="button"
-              onClick={() => setTab(key)}
-              className={cx(
-                'rounded-pill px-4 py-1.5 text-[13px] font-bold transition-colors',
-                tab === key ? 'bg-white text-[#14262B]' : 'text-white/70 hover:text-white',
+        {/* Selector de secciones (scroll horizontal en móvil) */}
+        <div className="-mx-4 mt-4 flex gap-2 overflow-x-auto px-4 pb-1">
+          {tabs.map((t) => (
+            <button key={t.key} type="button" onClick={() => setTab(t.key)}
+              className={cx('inline-flex shrink-0 items-center gap-1.5 rounded-pill px-4 py-1.5 text-[13px] font-bold transition-colors',
+                tab === t.key ? 'bg-white text-[#14262B]' : 'bg-white/10 text-white/70 hover:text-white')}>
+              {t.label}
+              {t.count > 0 && (
+                <span className={cx('inline-flex h-5 min-w-[20px] items-center justify-center rounded-full px-1 text-[11px] font-extrabold',
+                  tab === t.key ? 'bg-accent text-accent-ink' : 'bg-accent text-accent-ink')}>{t.count}</span>
               )}
-            >
-              {label}
             </button>
           ))}
         </div>
       </header>
 
       <div className="px-4 py-4">
-        {tab === 'solicitudes' && <SolicitudesTab canApprove={puedeAprobarAltas(user.rol)} onToast={toast} />}
-        {tab === 'vecinos' && <VecinosTab canManage={puedeAprobarAltas(user.rol)} currentUserId={user.id} onToast={toast} />}
-        {tab === 'info' && <InfoTab onNavigate={navigate} />}
+        {tab === 'cuentas' && <CuentasTab canApprove={puedeAprobarAltas(rol)} onToast={toast} onChanged={refrescar} />}
+        {tab === 'incidencias' && <IncidenciasTab onToast={toast} onChanged={refrescar} />}
+        {tab === 'anuncios' && <AnunciosTab onToast={toast} onChanged={refrescar} />}
+        {tab === 'reservas' && <ReservasTab onToast={toast} onChanged={refrescar} />}
+        {tab === 'vecinos' && <VecinosTab canManage={puedeAprobarAltas(rol)} currentUserId={user.id} onToast={toast} />}
+        {tab === 'permisos' && <PermisosTab />}
       </div>
     </div>
   )
 }
 
-// ---- Pestaña Solicitudes -----------------------------------------------------
-function SolicitudesTab({ canApprove, onToast }: { canApprove: boolean; onToast: (t: string, tipo?: 'ok' | 'error' | 'info') => void }) {
+// ---- Cuentas (altas de acceso) -----------------------------------------------
+function CuentasTab({ canApprove, onToast, onChanged }: { canApprove: boolean; onToast: Toast; onChanged: () => void }) {
   const { data, state, refetch } = useAsync(listAccessRequests, [])
   const [sel, setSel] = useState<Record<string, Seleccion>>({})
   const [pendingId, setPendingId] = useState<string | null>(null)
@@ -74,12 +112,12 @@ function SolicitudesTab({ canApprove, onToast }: { canApprove: boolean; onToast:
     return <EmptyState titulo="Sin solicitudes" texto="No hay altas pendientes de revisar por ahora." />
   }
 
-  async function resolver(id: string, aprobar: boolean, sel?: Seleccion) {
+  async function resolver(id: string, aprobar: boolean, s?: Seleccion) {
     setPendingId(id)
     try {
-      await resolverSolicitud(id, aprobar, sel?.vivienda, sel?.rol)
+      await resolverSolicitud(id, aprobar, s?.vivienda, s?.rol)
       onToast(aprobar ? 'Solicitud aprobada' : 'Solicitud rechazada', aprobar ? 'ok' : 'info')
-      refetch()
+      refetch(); onChanged()
     } catch {
       onToast('No se ha podido completar la acción', 'error')
     } finally {
@@ -91,10 +129,8 @@ function SolicitudesTab({ canApprove, onToast }: { canApprove: boolean; onToast:
     <div className="flex flex-col gap-3">
       {data.map((req) => {
         const seleccion = sel[req.id] ?? { vivienda: req.vivienda, rol: 'vecino' as Role }
-        const setField = (patch: Partial<Seleccion>) =>
-          setSel((s) => ({ ...s, [req.id]: { ...seleccion, ...patch } }))
+        const setField = (patch: Partial<Seleccion>) => setSel((s) => ({ ...s, [req.id]: { ...seleccion, ...patch } }))
         const busy = pendingId === req.id
-
         return (
           <Card key={req.id}>
             <div className="flex items-start gap-3">
@@ -108,45 +144,24 @@ function SolicitudesTab({ canApprove, onToast }: { canApprove: boolean; onToast:
                 <div className="mt-0.5 text-[12px] text-faint">Solicitó el {fechaCorta(req.created_at)}</div>
               </div>
             </div>
-
             {req.comentario && (
-              <blockquote className="mt-3 border-l-2 border-border-strong pl-3 text-[13px] italic text-muted">
-                “{req.comentario}”
-              </blockquote>
+              <blockquote className="mt-3 border-l-2 border-border-strong pl-3 text-[13px] italic text-muted">“{req.comentario}”</blockquote>
             )}
-
             <div className="mt-3 grid grid-cols-1 gap-3 sm:grid-cols-2">
-              <SelectField
-                label="Vivienda"
-                value={seleccion.vivienda}
-                onChange={(e) => setField({ vivienda: e.target.value })}
-                disabled={!canApprove || busy}
-              >
+              <SelectField label="Vivienda" value={seleccion.vivienda} onChange={(e) => setField({ vivienda: e.target.value })} disabled={!canApprove || busy}>
                 {PISOS.map((p) => <option key={p} value={p}>{p}</option>)}
               </SelectField>
-              <SelectField
-                label="Rol"
-                value={seleccion.rol}
-                onChange={(e) => setField({ rol: e.target.value as Role })}
-                disabled={!canApprove || busy}
-              >
+              <SelectField label="Rol" value={seleccion.rol} onChange={(e) => setField({ rol: e.target.value as Role })} disabled={!canApprove || busy}>
                 {ROLES.map((r) => <option key={r} value={r}>{ROLE_LABEL[r]}</option>)}
               </SelectField>
             </div>
-
             {canApprove ? (
               <div className="mt-3 flex gap-2">
-                <Button block variant="primary" disabled={busy} onClick={() => resolver(req.id, true, seleccion)}>
-                  <Check size={18} /> Aprobar
-                </Button>
-                <Button block variant="danger-outline" disabled={busy} onClick={() => resolver(req.id, false, seleccion)}>
-                  <X size={18} /> Rechazar
-                </Button>
+                <Button block variant="primary" disabled={busy} onClick={() => resolver(req.id, true, seleccion)}><Check size={18} /> Aprobar</Button>
+                <Button block variant="danger-outline" disabled={busy} onClick={() => resolver(req.id, false, seleccion)}><X size={18} /> Rechazar</Button>
               </div>
             ) : (
-              <div className="mt-3">
-                <Alert tipo="warn">No tienes permiso para aprobar altas.</Alert>
-              </div>
+              <div className="mt-3"><Alert tipo="warn">No tienes permiso para aprobar altas.</Alert></div>
             )}
           </Card>
         )
@@ -155,12 +170,156 @@ function SolicitudesTab({ canApprove, onToast }: { canApprove: boolean; onToast:
   )
 }
 
-// ---- Pestaña Vecinos ---------------------------------------------------------
-function VecinosTab({ canManage, currentUserId, onToast }: {
-  canManage: boolean
-  currentUserId: string
-  onToast: (t: string, tipo?: 'ok' | 'error' | 'info') => void
-}) {
+// ---- Incidencias (aprobación previa) -----------------------------------------
+function IncidenciasTab({ onToast, onChanged }: { onToast: Toast; onChanged: () => void }) {
+  const { data, state, refetch } = useAsync(incidenciasPendientesGestion, [])
+  const [busy, setBusy] = useState<string | null>(null)
+
+  if (state === 'loading') return <SkeletonList n={3} />
+  if (state === 'error') return <ErrorState onRetry={refetch} />
+  if (state === 'empty' || !data || data.length === 0) {
+    return <EmptyState titulo="Nada pendiente" texto="No hay incidencias esperando aprobación." />
+  }
+
+  async function resolver(inc: Incident, aprobar: boolean) {
+    setBusy(inc.id)
+    try {
+      await aprobarIncidencia(inc.id, aprobar)
+      onToast(aprobar ? 'Incidencia publicada' : 'Incidencia rechazada', aprobar ? 'ok' : 'info')
+      refetch(); onChanged()
+    } catch {
+      onToast('No se ha podido completar la acción', 'error')
+    } finally {
+      setBusy(null)
+    }
+  }
+
+  return (
+    <div className="flex flex-col gap-3">
+      <p className="text-[13px] text-muted">Los vecinos no ven estas incidencias hasta que las apruebas.</p>
+      {data.map((inc: Incident) => {
+        const b = busy === inc.id
+        return (
+          <Card key={inc.id}>
+            <div className="flex items-start gap-3">
+              <span className="mt-0.5 flex h-9 w-9 shrink-0 items-center justify-center rounded-[12px] bg-warn-soft text-warn-ink"><AlertTriangle size={18} /></span>
+              <div className="min-w-0 flex-1">
+                <h3 className="font-display text-[16px] font-bold text-ink">{inc.titulo}</h3>
+                <p className="mt-0.5 text-[13px] text-muted">{inc.autor_nombre}</p>
+                <p className="mt-1 line-clamp-3 text-[13px] text-muted">{inc.descripcion}</p>
+                <Link to={`/incidencias/${inc.id}`} className="mt-1 inline-flex items-center gap-1 text-[13px] font-bold text-primary">Ver ficha <ChevronRight size={15} /></Link>
+              </div>
+            </div>
+            <div className="mt-3 flex gap-2">
+              <Button block disabled={b} onClick={() => resolver(inc, true)}><Check size={17} /> Aprobar</Button>
+              <Button block variant="danger-outline" disabled={b} onClick={() => resolver(inc, false)}><X size={17} /> Rechazar</Button>
+            </div>
+          </Card>
+        )
+      })}
+    </div>
+  )
+}
+
+// ---- Anuncios (moderación) ---------------------------------------------------
+function AnunciosTab({ onToast, onChanged }: { onToast: Toast; onChanged: () => void }) {
+  const { data, state, refetch } = useAsync(anunciosPendientesGestion, [])
+  const [busy, setBusy] = useState<string | null>(null)
+
+  if (state === 'loading') return <SkeletonList n={3} />
+  if (state === 'error') return <ErrorState onRetry={refetch} />
+  if (state === 'empty' || !data || data.length === 0) {
+    return <EmptyState titulo="Nada pendiente" texto="No hay anuncios esperando revisión." />
+  }
+
+  async function resolver(a: Anuncio, accion: 'publicar' | 'rechazar', nivel?: 'principal' | 'secundario') {
+    setBusy(a.id)
+    try {
+      await resolverAnuncio(a.id, accion, nivel)
+      onToast(accion === 'publicar' ? 'Anuncio publicado' : 'Anuncio rechazado', accion === 'publicar' ? 'ok' : 'info')
+      refetch(); onChanged()
+    } catch {
+      onToast('No se ha podido completar la acción', 'error')
+    } finally {
+      setBusy(null)
+    }
+  }
+
+  return (
+    <div className="flex flex-col gap-3">
+      {data.map((a: Anuncio) => {
+        const b = busy === a.id
+        return (
+          <Card key={a.id}>
+            <div className="flex items-center justify-between gap-2">
+              <h3 className="font-display text-[16px] font-bold text-ink">{a.titulo}</h3>
+              <span className="shrink-0 rounded-pill bg-warn-soft px-2 py-0.5 text-[11.5px] font-bold text-warn-ink">Pendiente</span>
+            </div>
+            <p className="mt-0.5 text-[13px] text-muted">{a.autor_nombre} · {a.vivienda}</p>
+            <p className="mt-1 line-clamp-4 whitespace-pre-wrap text-[13px] text-muted">{a.cuerpo}</p>
+            <p className="mt-2 text-[12px] text-faint">Pide: {a.nivel_solicitado === 'principal' ? 'Tablón principal' : 'Listado'} · {fechaCorta(a.fecha_inicio)}–{fechaCorta(a.fecha_fin)}</p>
+            <div className="mt-3 flex flex-col gap-2">
+              <Button block disabled={b} onClick={() => resolver(a, 'publicar', 'principal')}>Publicar en principal</Button>
+              <Button block variant="secondary" disabled={b} onClick={() => resolver(a, 'publicar', 'secundario')}>Publicar en listado</Button>
+              <Button block variant="danger-outline" disabled={b} onClick={() => resolver(a, 'rechazar')}><X size={17} /> Rechazar</Button>
+            </div>
+          </Card>
+        )
+      })}
+    </div>
+  )
+}
+
+// ---- Reservas (aprobación) ---------------------------------------------------
+function ReservasTab({ onToast, onChanged }: { onToast: Toast; onChanged: () => void }) {
+  const { data, state, refetch } = useAsync(reservasPendientesGestion, [])
+  const [busy, setBusy] = useState<string | null>(null)
+
+  if (state === 'loading') return <SkeletonList n={2} />
+  if (state === 'error') return <ErrorState onRetry={refetch} />
+  if (state === 'empty' || !data || data.length === 0) {
+    return <EmptyState titulo="Nada pendiente" texto="No hay reservas esperando aprobación." />
+  }
+
+  async function resolver(g: ReservaGrupo, aprobar: boolean) {
+    setBusy(g.grupo_id)
+    try {
+      await resolverReserva(g.grupo_id, aprobar)
+      onToast(aprobar ? 'Reserva aprobada' : 'Reserva rechazada', aprobar ? 'ok' : 'info')
+      refetch(); onChanged()
+    } catch {
+      onToast('No se ha podido completar la acción', 'error')
+    } finally {
+      setBusy(null)
+    }
+  }
+
+  return (
+    <div className="flex flex-col gap-3">
+      {data.map((g: ReservaGrupo) => {
+        const b = busy === g.grupo_id
+        return (
+          <Card key={g.grupo_id}>
+            <div className="flex items-center gap-2">
+              <MapPin size={16} className="text-primary" />
+              <div className="font-display text-[16px] font-bold text-ink">{g.zonas.map((z) => z.nombre).join(' + ')}</div>
+            </div>
+            <p className="mt-1 text-[13px] text-muted">{g.nombre ? `${g.nombre} · ` : ''}Vivienda {g.vivienda}</p>
+            <p className="mt-0.5 flex items-center gap-1.5 text-[13px] text-muted"><Clock size={14} /> {fechaHora(g.inicio)}–{hora(g.fin)}</p>
+            {g.num_invitados > 0 && <p className="mt-0.5 flex items-center gap-1.5 text-[13px] text-muted"><Users size={14} /> {g.num_invitados} invitados</p>}
+            <div className="mt-3 flex gap-2">
+              <Button block disabled={b} onClick={() => resolver(g, true)}><Check size={17} /> Aprobar</Button>
+              <Button block variant="danger-outline" disabled={b} onClick={() => resolver(g, false)}><X size={17} /> Rechazar</Button>
+            </div>
+          </Card>
+        )
+      })}
+    </div>
+  )
+}
+
+// ---- Vecinos (roles y suspensión) --------------------------------------------
+function VecinosTab({ canManage, currentUserId, onToast }: { canManage: boolean; currentUserId: string; onToast: Toast }) {
   const { data, state, refetch } = useAsync(listVecinos, [])
   const [pendingId, setPendingId] = useState<string | null>(null)
 
@@ -204,7 +363,6 @@ function VecinosTab({ canManage, currentUserId, onToast }: {
         const busy = pendingId === vecino.id
         const suspendido = vecino.estado === 'suspendido'
         const esYo = vecino.id === currentUserId
-
         return (
           <Card key={vecino.id} className={cx(suspendido && 'opacity-60')}>
             <div className="flex items-start gap-3">
@@ -213,36 +371,22 @@ function VecinosTab({ canManage, currentUserId, onToast }: {
                 <div className="flex flex-wrap items-center gap-2">
                   <span className="truncate font-semibold text-ink">{vecino.nombre}</span>
                   <RoleBadge kind={roleBadgeKind(vecino.rol)} />
-                  {suspendido && (
-                    <span className="shrink-0 rounded-pill bg-danger-soft px-2 py-0.5 text-[11.5px] font-bold text-danger-ink">Suspendido</span>
-                  )}
+                  {suspendido && <span className="shrink-0 rounded-pill bg-danger-soft px-2 py-0.5 text-[11.5px] font-bold text-danger-ink">Suspendido</span>}
                 </div>
                 <div className="truncate text-[13px] text-muted">{vecino.vivienda}</div>
                 <div className="truncate text-[12px] text-faint">{vecino.email}</div>
               </div>
             </div>
-
             {canManage && (
               <div className="mt-3 flex flex-col gap-3">
-                <SelectField
-                  label="Rol"
-                  value={vecino.rol}
-                  onChange={(e) => cambiarRol(vecino, e.target.value as Role)}
-                  disabled={busy}
-                >
+                <SelectField label="Rol" value={vecino.rol} onChange={(e) => cambiarRol(vecino, e.target.value as Role)} disabled={busy}>
                   {ROLES.map((r) => <option key={r} value={r}>{ROLE_LABEL[r]}</option>)}
                 </SelectField>
-                {!esYo && (
-                  suspendido ? (
-                    <Button block variant="secondary" disabled={busy} onClick={() => alternarSuspension(vecino)}>
-                      <UserCheck size={18} /> Reactivar
-                    </Button>
-                  ) : (
-                    <Button block variant="danger-outline" disabled={busy} onClick={() => alternarSuspension(vecino)}>
-                      <UserX size={18} /> Suspender
-                    </Button>
-                  )
-                )}
+                {!esYo && (suspendido ? (
+                  <Button block variant="secondary" disabled={busy} onClick={() => alternarSuspension(vecino)}><UserCheck size={18} /> Reactivar</Button>
+                ) : (
+                  <Button block variant="danger-outline" disabled={busy} onClick={() => alternarSuspension(vecino)}><UserX size={18} /> Suspender</Button>
+                ))}
               </div>
             )}
           </Card>
@@ -252,48 +396,44 @@ function VecinosTab({ canManage, currentUserId, onToast }: {
   )
 }
 
-// ---- Pestaña Info ------------------------------------------------------------
-function InfoTab({ onNavigate }: { onNavigate: (to: string) => void }) {
-  const items: { titulo: string; texto: string; Icon: typeof Megaphone; to?: string }[] = [
-    {
-      titulo: 'Moderación de anuncios',
-      texto: 'Revisa y publica anuncios del tablón desde la sección Anuncios.',
-      Icon: Megaphone,
-      to: '/anuncios',
-    },
-    {
-      titulo: 'Aprobación de reservas',
-      texto: 'La presidencia aprueba o rechaza reservas de zonas comunes desde Reservas.',
-      Icon: CalendarDays,
-      to: '/reservas',
-    },
-    {
-      titulo: 'Zonas comunes y bloqueos',
-      texto: 'Configurables por el administrador de la app. Próximamente en este panel.',
-      Icon: Settings,
-    },
-  ]
+// ---- Permisos (qué puede hacer cada rol) -------------------------------------
+const CAPS: { label: string; can: (r: Role) => boolean }[] = [
+  { label: 'Ver la comunidad y participar', can: () => true },
+  { label: 'Abrir incidencias y comentar', can: () => true },
+  { label: 'Solicitar publicar anuncios', can: () => true },
+  { label: 'Reservar zonas comunes', can: () => true },
+  { label: 'Aprobar y moderar incidencias', can: esGestion },
+  { label: 'Aprobar y publicar anuncios', can: puedeAprobarAnuncios },
+  { label: 'Aprobar reservas de zonas comunes', can: puedeAprobarReservas },
+  { label: 'Aprobar altas de nuevos vecinos', can: puedeAprobarAltas },
+  { label: 'Gestionar roles y suspender cuentas', can: puedeAprobarAltas },
+  { label: 'Configurar la app (zonas, ajustes)', can: esAppAdmin },
+]
 
+function PermisosTab() {
   return (
     <div className="flex flex-col gap-3">
-      {items.map(({ titulo, texto, Icon, to }) => {
-        const clickable = Boolean(to)
+      <p className="text-[13px] text-muted">Qué puede hacer cada rol. Los permisos son fijos por rol; cambiar el rol de un vecino cambia lo que puede hacer.</p>
+      {ROLES.map((r) => {
+        const caps = CAPS.filter((c) => c.can(r))
         return (
-          <Card
-            key={titulo}
-            role={clickable ? 'button' : undefined}
-            tabIndex={clickable ? 0 : undefined}
-            onClick={clickable ? () => onNavigate(to as string) : undefined}
-            className={cx('flex items-center gap-3', clickable && 'cursor-pointer hover:bg-surface-2')}
-          >
-            <span className="flex h-11 w-11 shrink-0 items-center justify-center rounded-[14px] bg-primary-soft text-primary-700">
-              <Icon size={22} strokeWidth={1.9} />
-            </span>
-            <div className="min-w-0 flex-1">
-              <div className="font-semibold text-ink">{titulo}</div>
-              <div className="text-[13px] text-muted">{texto}</div>
+          <Card key={r}>
+            <div className="flex items-center gap-2">
+              <RoleBadge kind={roleBadgeKind(r)} />
+              <span className="font-display text-[16px] font-bold text-ink">{ROLE_LABEL[r]}</span>
             </div>
-            {clickable && <ChevronRight size={20} className="shrink-0 text-faint" />}
+            <ul className="mt-2 flex flex-col gap-1.5">
+              {CAPS.map((c) => {
+                const ok = c.can(r)
+                return (
+                  <li key={c.label} className={cx('flex items-center gap-2 text-[13px]', ok ? 'text-ink' : 'text-faint')}>
+                    {ok ? <Check size={15} className="shrink-0 text-success" /> : <X size={15} className="shrink-0 text-faint" />}
+                    {c.label}
+                  </li>
+                )
+              })}
+            </ul>
+            {caps.length === 0 && <p className="mt-2 text-[13px] text-faint">Sin permisos de gestión.</p>}
           </Card>
         )
       })}

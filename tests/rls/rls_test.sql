@@ -242,11 +242,11 @@ select assert_falla(
   'MEDIO2: vecino auto-reasigna su cesión de parking');
 
 -- 18) MEDIO 3: el autor NO puede cambiar el estado/moderación de su incidencia
---     (el guard lo revierte silenciosamente → sigue 'abierta' y sin bloquear).
+--     (el guard lo revierte → sigue 'pendiente' —estado de alta— y sin bloquear).
 insert into incidencias (titulo, descripcion) values ('__inc guard', 'x');
 update incidencias set estado='resuelta', comentarios_bloqueados=true where titulo='__inc guard';
 select assert_igual(
-  (select count(*) from incidencias where titulo='__inc guard' and estado='abierta' and not comentarios_bloqueados),
+  (select count(*) from incidencias where titulo='__inc guard' and estado='pendiente' and not comentarios_bloqueados),
   1, 'MEDIO3: autor NO cambia estado/moderación de su incidencia');
 
 -- 19) BAJO 4: no se puede votar en una pregunta con una opción de OTRA pregunta

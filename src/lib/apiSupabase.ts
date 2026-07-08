@@ -8,6 +8,7 @@ export * from './apiMock'
 export {
   listIncidencias, getIncidencia, crearIncidencia, editarIncidencia, borrarIncidencia,
   comentarIncidencia, ocultarComentario, bloquearComentarios, cambiarEstadoIncidencia,
+  incidenciasPendientesGestion, aprobarIncidencia,
 } from './db/incidencias'
 export {
   listEncuestas, getEncuesta, votarPregunta, crearEncuesta, cerrarEncuesta, borrarEncuesta,

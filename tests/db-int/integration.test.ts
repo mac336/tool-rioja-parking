@@ -56,13 +56,19 @@ describe.skipIf(!process.env.SUPA_ITEST)('capa de datos real (Supabase local)', 
     expect(cts.length).toBeGreaterThanOrEqual(14)
   })
 
-  it('vecino: crea incidencia y comenta', async () => {
+  it('vecino: crea incidencia (pendiente), gestión aprueba y comenta', async () => {
     await supabase.auth.signInWithPassword({ email: V_EMAIL, password: PASS })
     const inc = await incidencias.crearIncidencia({ titulo: 'ITEST luz', descripcion: 'prueba', categoria: 'otros' })
     expect(inc.id).toBeTruthy()
-    expect(inc.estado).toBe('abierta')
+    expect(inc.estado).toBe('pendiente') // moderación previa: nace pendiente
     await incidencias.comentarIncidencia(inc.id, 'un comentario')
+    // Presidente la ve en la cola y la aprueba → pasa a 'abierta'.
+    await supabase.auth.signInWithPassword({ email: P_EMAIL, password: PASS })
+    const cola = await incidencias.incidenciasPendientesGestion()
+    expect(cola.find((x) => x.id === inc.id)).toBeTruthy()
+    await incidencias.aprobarIncidencia(inc.id, true)
     const full = await incidencias.getIncidencia(inc.id)
+    expect(full?.estado).toBe('abierta')
     expect(full?.comentarios.length).toBeGreaterThanOrEqual(1)
   })
 
@@ -104,12 +110,15 @@ describe.skipIf(!process.env.SUPA_ITEST)('capa de datos real (Supabase local)', 
     // limpia reserva vigente previa de la vivienda
     const vig = await reservas.reservaVigente()
     if (vig) await reservas.cancelarReserva(vig.grupo_id)
-    const r = await reservas.crearReserva({ zonaIds: [zonas[0].id], inicio: ini.toISOString(), fin: fin.toISOString(), numInvitados: 2 })
+    // Multi-zona: dos zonas en el MISMO horario → un solo grupo (2 filas).
+    const r = await reservas.crearReserva({ zonaIds: [zonas[0].id, zonas[1].id], inicio: ini.toISOString(), fin: fin.toISOString(), numInvitados: 2 })
     expect(r.estado).toBe('pendiente')
-    expect(r.zonas.length).toBe(1)
+    expect(r.zonas.length).toBe(2)
+    expect(r.ids.length).toBe(2)
     await supabase.auth.signInWithPassword({ email: P_EMAIL, password: PASS })
     const pend = await reservas.reservasPendientesGestion()
-    expect(pend.find((x) => x.grupo_id === r.grupo_id)).toBeTruthy()
-    await reservas.resolverReserva(r.grupo_id, true)
+    const grupo = pend.find((x) => x.grupo_id === r.grupo_id)
+    expect(grupo?.zonas.length).toBe(2)
+    await reservas.resolverReserva(r.grupo_id, true) // aprueba las 2 zonas a la vez
   })
 })

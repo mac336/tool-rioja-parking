@@ -42,7 +42,7 @@ export interface AccessRequest {
   created_at: string
 }
 
-export type IncidentStatus = 'abierta' | 'en_curso' | 'resuelta' | 'cerrada'
+export type IncidentStatus = 'pendiente' | 'abierta' | 'en_curso' | 'resuelta' | 'cerrada' | 'rechazada'
 export type IncidentCategory =
   | 'limpieza' | 'ascensor' | 'garaje' | 'jardin' | 'piscina' | 'ruido' | 'otros'
 export type IncidentPriority = 'baja' | 'media' | 'alta'

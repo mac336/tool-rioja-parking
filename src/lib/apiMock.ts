@@ -45,8 +45,29 @@ const esGestionActual = () => currentUser.rol !== 'vecino'
 export const listViviendas = () => delay(PISOS)
 
 // ---- Incidencias -------------------------------------------------------------
-export const listIncidencias = () => delay(db.incidencias.slice())
-export const getIncidencia = (id: string) => delay(db.incidencias.find((i) => i.id === id) ?? null)
+// Visibilidad: gestión ve todo; el resto ve las moderadas + las suyas propias.
+const puedeVerIncidencia = (i: Incident) =>
+  esGestionActual() || i.autor_id === currentUser.id || (i.estado !== 'pendiente' && i.estado !== 'rechazada')
+export const listIncidencias = () => delay(db.incidencias.filter(puedeVerIncidencia))
+export const getIncidencia = (id: string) => {
+  const i = db.incidencias.find((i) => i.id === id)
+  return delay(i && puedeVerIncidencia(i) ? i : null)
+}
+
+/** Cola de aprobación de incidencias (gestión): las que están 'pendiente'. */
+export const incidenciasPendientesGestion = () =>
+  delay(db.incidencias.filter((i) => i.estado === 'pendiente'))
+
+/** Aprueba (→abierta) o rechaza (→rechazada) una incidencia pendiente. */
+export function aprobarIncidencia(id: string, aprobar: boolean): Promise<void> {
+  const inc = db.incidencias.find((i) => i.id === id)
+  if (inc) {
+    const estado: IncidentStatus = aprobar ? 'abierta' : 'rechazada'
+    inc.eventos.push({ id: uid(), estado_anterior: inc.estado, estado_nuevo: estado, actor_nombre: currentUser.nombre, created_at: now() })
+    inc.estado = estado
+  }
+  return delay(undefined)
+}
 
 export function crearIncidencia(input: {
   titulo: string; descripcion: string; categoria: IncidentCategory; ubicacion?: string; fotos?: string[]
@@ -54,9 +75,9 @@ export function crearIncidencia(input: {
   const inc: Incident = {
     id: uid(), autor_id: currentUser.id, autor_nombre: `${currentUser.nombre} (${currentUser.vivienda})`,
     autor_vivienda: currentUser.vivienda, titulo: input.titulo, descripcion: input.descripcion,
-    categoria: input.categoria, ubicacion: input.ubicacion, estado: 'abierta', comentarios_bloqueados: false,
+    categoria: input.categoria, ubicacion: input.ubicacion, estado: 'pendiente', comentarios_bloqueados: false,
     fotos: input.fotos ?? [], comentarios: [],
-    eventos: [{ id: uid(), estado_anterior: null, estado_nuevo: 'abierta', actor_nombre: currentUser.nombre, created_at: now() }],
+    eventos: [{ id: uid(), estado_anterior: null, estado_nuevo: 'pendiente', actor_nombre: currentUser.nombre, created_at: now() }],
     created_at: now(),
   }
   db.incidencias.unshift(inc)

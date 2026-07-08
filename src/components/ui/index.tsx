@@ -102,10 +102,12 @@ export function SelectField({ label, error, id, className, children, ...rest }: 
 
 // ---- StatusChip (incidencias) ------------------------------------------------
 const STATUS: Record<IncidentStatus, { label: string; dot: string; cls: string }> = {
+  pendiente: { label: 'Pendiente de aprobar', dot: 'var(--warn)', cls: 'bg-warn-soft text-warn-ink' },
   abierta: { label: 'Abierta', dot: 'var(--danger)', cls: 'bg-danger-soft text-danger-ink' },
   en_curso: { label: 'En curso', dot: 'var(--info)', cls: 'bg-info-soft text-info-ink' },
   resuelta: { label: 'Resuelta', dot: 'var(--success)', cls: 'bg-success-soft text-success-ink' },
   cerrada: { label: 'Cerrada', dot: 'var(--faint)', cls: 'bg-surface-2 text-muted' },
+  rechazada: { label: 'Rechazada', dot: 'var(--faint)', cls: 'bg-surface-2 text-muted' },
 }
 export function StatusChip({ status }: { status: IncidentStatus }) {
   const s = STATUS[status]

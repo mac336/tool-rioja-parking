@@ -1,5 +1,5 @@
 import { Link } from 'react-router-dom'
-import { Bell, Car, SquareCheckBig, TriangleAlert, CalendarDays, SquareParking, Phone, Leaf, Megaphone } from 'lucide-react'
+import { Bell, Car, SquareCheckBig, TriangleAlert, CalendarDays, SquareParking, Phone, Leaf, Megaphone, Lightbulb } from 'lucide-react'
 import { useApp } from '@/store'
 import { useAsync } from '@/lib/useAsync'
 import { saludo, iniciales, fechaCorta, diasRestantes } from '@/lib/format'
@@ -17,6 +17,7 @@ const tiles = [
   { to: '/parking', label: 'Parking', Icon: SquareParking, color: '#8A6FD1' },
   { to: '/contactos', label: 'Contactos', Icon: Phone, color: '#D98A3D' },
   { to: '/reciclaje', label: 'Reciclaje', Icon: Leaf, color: '#6BAA4E' },
+  { to: '/sugerencias', label: 'Sugerencias', Icon: Lightbulb, color: '#C879A9' },
 ]
 
 export function HomePage() {

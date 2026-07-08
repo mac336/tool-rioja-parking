@@ -38,7 +38,7 @@ export function SugerenciasPage() {
             </span>
             <div>
               <h2 className="font-display text-[20px] font-bold text-ink">¡Sugerencia enviada!</h2>
-              <p className="mx-auto mt-2 max-w-sm text-[14px] text-muted">Gracias por ayudarnos a mejorar la app. La comunidad ha recibido tu mensaje.</p>
+              <p className="mx-auto mt-2 max-w-sm text-[14px] text-muted">Gracias por ayudar a mejorar la app. El vecino que la desarrolla ha recibido tu mensaje.</p>
             </div>
             <Button variant="secondary" onClick={() => setEnviada(false)}>Enviar otra</Button>
           </Card>
@@ -51,7 +51,7 @@ export function SugerenciasPage() {
               <div>
                 <h2 className="font-display text-[20px] font-bold text-ink">¿Se te ocurre una mejora?</h2>
                 <p className="mx-auto mt-2 max-w-sm text-[14px] text-muted">
-                  Cuéntanos tus ideas sobre la app Rioja 25: qué te gustaría ver, qué echas en falta o qué podríamos mejorar. Se envía directamente a la comunidad.
+                  Esta app la desarrolla un vecino del Bajo C de forma voluntaria. Cuéntale qué te gustaría ver, qué echas en falta o qué mejorarías: tu sugerencia le llega directamente para seguir mejorándola.
                 </p>
               </div>
             </div>
@@ -69,7 +69,7 @@ export function SugerenciasPage() {
               <Send size={19} /> {enviando ? 'Enviando…' : 'Enviar sugerencia'}
             </Button>
 
-            <Alert tipo="info">Tu sugerencia se enviará junto a tu nombre ({user.nombre}) y vivienda para que la comunidad pueda responderte.</Alert>
+            <Alert tipo="info">Tu sugerencia llega al vecino que desarrolla la app, junto a tu nombre ({user.nombre}) y vivienda por si necesita responderte.</Alert>
           </Card>
         )}
       </Page>

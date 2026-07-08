@@ -35,6 +35,14 @@ export function NormasPage() {
       <SubHeader titulo="Normas de uso" />
       <Page className="mx-auto max-w-[560px]">
         <p className="mb-4 text-[14px] text-muted">Antes de empezar, revisa y acepta las normas de convivencia de la comunidad.</p>
+        <Card className="mb-3 border border-primary/30 bg-primary-soft">
+          <h3 className="text-[15px] font-bold text-ink">Sobre esta app</h3>
+          <p className="mt-1 text-[13px] text-muted">
+            La creó un <b>vecino del Bajo C</b> de forma voluntaria y sin ánimo de lucro, para centralizar las gestiones
+            de la comunidad y que estén al alcance de todos. Si tienes ideas para mejorarla, mándalas desde
+            <b> Sugerencias</b>: llegan directamente a ese vecino para que siga desarrollándola.
+          </p>
+        </Card>
         <div className="flex flex-col gap-3">
           {NORMAS.map(([t, d]) => (
             <Card key={t}>

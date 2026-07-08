@@ -14,6 +14,7 @@ export function PrivacidadPage() {
         <p className="mt-3"><b>Ubicación:</b> los datos se alojan en servidores de la Unión Europea (Supabase).</p>
         <p className="mt-3"><b>Tus derechos:</b> acceso, rectificación, supresión y oposición. Escribe a <a className="text-primary underline" href="mailto:cdelarioja25@gmail.com">cdelarioja25@gmail.com</a>.</p>
         <p className="mt-3"><b>Sin terceros de tracking:</b> no usamos analítica invasiva ni cookies de terceros.</p>
+        <p className="mt-3"><b>Sobre la app:</b> desarrollada y mantenida de forma voluntaria y sin ánimo de lucro por un vecino de la comunidad (Bajo C), con el fin de centralizar las gestiones y ponerlas al alcance de todos. Las sugerencias sobre la app se envían a ese vecino desarrollador (<a className="text-primary underline" href="mailto:cdelarioja25@gmail.com">cdelarioja25@gmail.com</a>) para mejorarla.</p>
       </Page>
     </div>
   )

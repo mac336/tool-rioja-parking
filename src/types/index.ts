@@ -9,7 +9,7 @@ export type Role =
   | 'junta'
   | 'vecino'
 
-export type UserStatus = 'pendiente' | 'activo' | 'suspendido'
+export type UserStatus = 'pendiente' | 'activo' | 'suspendido' | 'baja'
 
 /** Agrupación visual de los 6 roles en 3 badges (design handoff: vecino/junta/admin). */
 export type RoleBadgeKind = 'vecino' | 'junta' | 'admin'

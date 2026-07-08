@@ -42,7 +42,8 @@ export async function loadProfile(): Promise<Profile | null> {
 /** Deriva el estado de acceso a partir del profile. */
 export function statusFromProfile(p: Profile | null): AuthStatus {
   if (!p) return 'anon'
-  if (p.estado === 'suspendido') return 'suspended'
+  // Suspendido (temporal) y baja (definitiva) bloquean el acceso por igual.
+  if (p.estado === 'suspendido' || p.estado === 'baja') return 'suspended'
   if (p.estado !== 'activo') return 'pending'
   return 'active'
 }

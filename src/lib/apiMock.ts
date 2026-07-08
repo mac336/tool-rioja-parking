@@ -439,6 +439,19 @@ export function cambiarRolVecino(id: string, rol: Role): Promise<void> {
   if (p) p.rol = rol
   return delay(undefined)
 }
+export function editarVecino(id: string, patch: { nombre?: string; vivienda?: string }): Promise<void> {
+  const p = db.profiles.find((p) => p.id === id)
+  if (p) {
+    if (patch.nombre !== undefined) { p.nombre = patch.nombre; p.iniciales = iniciales(patch.nombre) }
+    if (patch.vivienda !== undefined) p.vivienda = patch.vivienda
+  }
+  return delay(undefined)
+}
+export function darDeBajaVecino(id: string): Promise<void> {
+  const p = db.profiles.find((p) => p.id === id)
+  if (p) p.estado = 'baja'
+  return delay(undefined)
+}
 
 // ---- Avisos (feed para la campana) -------------------------------------------
 export interface Aviso { id: string; texto: string; cuando: string; to: string }

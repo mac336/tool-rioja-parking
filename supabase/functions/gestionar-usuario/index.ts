@@ -28,16 +28,34 @@ Deno.serve(async (req) => {
       return json({ error: 'Sin permiso para gestionar usuarios.' }, 403)
     }
 
-    const { accion, userId, rol } = await req.json()
+    const { accion, userId, rol, nombre, vivienda } = await req.json()
     if (!userId || userId === user.id) return json({ error: 'Objetivo no válido.' }, 400)
 
     if (accion === 'suspender') {
       await admin.from('profiles').update({ estado: 'suspendido' }).eq('id', userId)
+    } else if (accion === 'baja') {
+      // Baja reversible: bloquea el acceso y libera la plaza, conserva el historial.
+      await admin.from('profiles').update({ estado: 'baja' }).eq('id', userId)
     } else if (accion === 'reactivar') {
       await admin.from('profiles').update({ estado: 'activo' }).eq('id', userId)
     } else if (accion === 'rol') {
       if (!ROLES_VALIDOS.includes(rol)) return json({ error: 'Rol no válido.' }, 400)
       await admin.from('profiles').update({ rol }).eq('id', userId)
+    } else if (accion === 'editar') {
+      // Corrige datos del vecino (nombre/alias y/o vivienda).
+      const patch: Record<string, string> = {}
+      if (typeof nombre === 'string') {
+        const n = nombre.trim()
+        if (n.length < 1 || n.length > 80) return json({ error: 'Nombre no válido.' }, 400)
+        patch.nombre = n
+      }
+      if (typeof vivienda === 'string') {
+        const { data: viv } = await admin.from('viviendas').select('codigo').eq('codigo', vivienda).maybeSingle()
+        if (!viv) return json({ error: 'Vivienda no válida.' }, 400)
+        patch.vivienda = vivienda
+      }
+      if (Object.keys(patch).length === 0) return json({ error: 'Nada que actualizar.' }, 400)
+      await admin.from('profiles').update(patch).eq('id', userId)
     } else {
       return json({ error: 'Acción no reconocida.' }, 400)
     }

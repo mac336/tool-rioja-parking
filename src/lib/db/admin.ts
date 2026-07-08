@@ -68,6 +68,20 @@ export async function cambiarRolVecino(id: string, rol: Role): Promise<void> {
   if (error) throw error
 }
 
+export async function editarVecino(id: string, patch: { nombre?: string; vivienda?: string }): Promise<void> {
+  const { error } = await supabase.functions.invoke('gestionar-usuario', {
+    body: { accion: 'editar', userId: id, ...patch },
+  })
+  if (error) throw error
+}
+
+export async function darDeBajaVecino(id: string): Promise<void> {
+  const { error } = await supabase.functions.invoke('gestionar-usuario', {
+    body: { accion: 'baja', userId: id },
+  })
+  if (error) throw error
+}
+
 // ---- Avisos (feed para la campana) -------------------------------------------
 export interface Aviso { id: string; texto: string; cuando: string; to: string }
 

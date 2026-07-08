@@ -2,10 +2,10 @@ import { useState } from 'react'
 import { Link } from 'react-router-dom'
 import {
   Shield, Check, X, Clock, Users, MapPin, AlertTriangle, ChevronRight,
-  UserX, UserCheck,
+  UserX, UserCheck, UserMinus, Pencil,
 } from 'lucide-react'
 import {
-  Avatar, Button, Card, RoleBadge, SelectField, Alert,
+  Avatar, Button, Card, Field, RoleBadge, SelectField, Alert,
   EmptyState, ErrorState, SkeletonList, cx,
 } from '@/components/ui'
 import { useAsync } from '@/lib/useAsync'
@@ -19,6 +19,7 @@ import { PISOS } from '@/lib/parking'
 import { useApp } from '@/store'
 import {
   listAccessRequests, resolverSolicitud, listVecinos, suspenderVecino, cambiarRolVecino,
+  editarVecino, darDeBajaVecino,
   incidenciasPendientesGestion, aprobarIncidencia,
   anunciosPendientesGestion, resolverAnuncio,
   reservasPendientesGestion, resolverReserva,
@@ -318,15 +319,36 @@ function ReservasTab({ onToast, onChanged }: { onToast: Toast; onChanged: () => 
   )
 }
 
-// ---- Vecinos (roles y suspensión) --------------------------------------------
+// ---- Vecinos (editar, roles, suspensión y baja) ------------------------------
 function VecinosTab({ canManage, currentUserId, onToast }: { canManage: boolean; currentUserId: string; onToast: Toast }) {
   const { data, state, refetch } = useAsync(listVecinos, [])
   const [pendingId, setPendingId] = useState<string | null>(null)
+  const [editId, setEditId] = useState<string | null>(null)
+  const [form, setForm] = useState<{ nombre: string; vivienda: string }>({ nombre: '', vivienda: '' })
 
   if (state === 'loading') return <SkeletonList n={4} />
   if (state === 'error') return <ErrorState onRetry={refetch} />
   if (state === 'empty' || !data || data.length === 0) {
     return <EmptyState titulo="Sin vecinos" texto="Todavía no hay vecinos dados de alta." />
+  }
+
+  function abrirEdicion(v: Profile) {
+    setEditId(v.id); setForm({ nombre: v.nombre, vivienda: v.vivienda })
+  }
+
+  async function guardarEdicion(v: Profile) {
+    const nombre = form.nombre.trim()
+    if (nombre.length < 1) { onToast('El nombre no puede estar vacío', 'error'); return }
+    setPendingId(v.id)
+    try {
+      await editarVecino(v.id, { nombre, vivienda: form.vivienda })
+      onToast('Datos del vecino actualizados', 'ok')
+      setEditId(null); refetch()
+    } catch {
+      onToast('No se han podido guardar los cambios', 'error')
+    } finally {
+      setPendingId(null)
+    }
   }
 
   async function cambiarRol(vecino: Profile, rol: Role) {
@@ -343,12 +365,16 @@ function VecinosTab({ canManage, currentUserId, onToast }: { canManage: boolean;
     }
   }
 
-  async function alternarSuspension(vecino: Profile) {
-    const suspender = vecino.estado !== 'suspendido'
+  async function accionEstado(vecino: Profile, accion: 'suspender' | 'reactivar' | 'baja') {
+    if (accion === 'baja' && !window.confirm(`¿Dar de baja a ${vecino.nombre}? No podrá acceder y saldrá del directorio. Podrás reactivarlo más adelante.`)) return
     setPendingId(vecino.id)
     try {
-      await suspenderVecino(vecino.id, suspender)
-      onToast(suspender ? `${vecino.nombre} suspendido` : `${vecino.nombre} reactivado`, suspender ? 'info' : 'ok')
+      if (accion === 'suspender') await suspenderVecino(vecino.id, true)
+      else if (accion === 'reactivar') await suspenderVecino(vecino.id, false)
+      else await darDeBajaVecino(vecino.id)
+      const msg = accion === 'suspender' ? `${vecino.nombre} suspendido`
+        : accion === 'baja' ? `${vecino.nombre} dado de baja` : `${vecino.nombre} reactivado`
+      onToast(msg, accion === 'reactivar' ? 'ok' : 'info')
       refetch()
     } catch {
       onToast('No se ha podido completar la acción', 'error')
@@ -362,9 +388,11 @@ function VecinosTab({ canManage, currentUserId, onToast }: { canManage: boolean;
       {data.map((vecino) => {
         const busy = pendingId === vecino.id
         const suspendido = vecino.estado === 'suspendido'
+        const baja = vecino.estado === 'baja'
         const esYo = vecino.id === currentUserId
+        const editando = editId === vecino.id
         return (
-          <Card key={vecino.id} className={cx(suspendido && 'opacity-60')}>
+          <Card key={vecino.id} className={cx((suspendido || baja) && 'opacity-60')}>
             <div className="flex items-start gap-3">
               <Avatar text={vecino.iniciales || iniciales(vecino.nombre)} />
               <div className="min-w-0 flex-1">
@@ -372,21 +400,46 @@ function VecinosTab({ canManage, currentUserId, onToast }: { canManage: boolean;
                   <span className="truncate font-semibold text-ink">{vecino.nombre}</span>
                   <RoleBadge kind={roleBadgeKind(vecino.rol)} />
                   {suspendido && <span className="shrink-0 rounded-pill bg-danger-soft px-2 py-0.5 text-[11.5px] font-bold text-danger-ink">Suspendido</span>}
+                  {baja && <span className="shrink-0 rounded-pill bg-surface-2 px-2 py-0.5 text-[11.5px] font-bold text-muted">De baja</span>}
                 </div>
                 <div className="truncate text-[13px] text-muted">{vecino.vivienda}</div>
                 <div className="truncate text-[12px] text-faint">{vecino.email}</div>
               </div>
             </div>
-            {canManage && (
+
+            {canManage && editando && (
+              <div className="mt-3 flex flex-col gap-3 rounded-[14px] bg-surface-2 p-3">
+                <Field label="Nombre o alias" value={form.nombre} maxLength={80}
+                  onChange={(e) => setForm((f) => ({ ...f, nombre: e.target.value }))} placeholder="Ej. Nico" />
+                <SelectField label="Vivienda" value={form.vivienda} onChange={(e) => setForm((f) => ({ ...f, vivienda: e.target.value }))} disabled={busy}>
+                  {PISOS.map((p) => <option key={p} value={p}>{p}</option>)}
+                </SelectField>
+                <div className="flex gap-2">
+                  <Button block disabled={busy} onClick={() => guardarEdicion(vecino)}><Check size={17} /> Guardar</Button>
+                  <Button block variant="ghost" disabled={busy} onClick={() => setEditId(null)}>Cancelar</Button>
+                </div>
+              </div>
+            )}
+
+            {canManage && !editando && (
               <div className="mt-3 flex flex-col gap-3">
-                <SelectField label="Rol" value={vecino.rol} onChange={(e) => cambiarRol(vecino, e.target.value as Role)} disabled={busy}>
+                <SelectField label="Rol" value={vecino.rol} onChange={(e) => cambiarRol(vecino, e.target.value as Role)} disabled={busy || baja}>
                   {ROLES.map((r) => <option key={r} value={r}>{ROLE_LABEL[r]}</option>)}
                 </SelectField>
-                {!esYo && (suspendido ? (
-                  <Button block variant="secondary" disabled={busy} onClick={() => alternarSuspension(vecino)}><UserCheck size={18} /> Reactivar</Button>
-                ) : (
-                  <Button block variant="danger-outline" disabled={busy} onClick={() => alternarSuspension(vecino)}><UserX size={18} /> Suspender</Button>
-                ))}
+                <div className="flex flex-wrap gap-2">
+                  <Button variant="secondary" className="flex-1" disabled={busy} onClick={() => abrirEdicion(vecino)}><Pencil size={16} /> Editar</Button>
+                  {!esYo && !baja && !suspendido && (
+                    <Button variant="secondary" className="flex-1" disabled={busy} onClick={() => accionEstado(vecino, 'suspender')}><UserX size={16} /> Suspender</Button>
+                  )}
+                  {!esYo && suspendido && (
+                    <Button variant="secondary" className="flex-1" disabled={busy} onClick={() => accionEstado(vecino, 'reactivar')}><UserCheck size={16} /> Reactivar</Button>
+                  )}
+                  {!esYo && baja ? (
+                    <Button variant="primary" className="flex-1" disabled={busy} onClick={() => accionEstado(vecino, 'reactivar')}><UserCheck size={16} /> Reactivar</Button>
+                  ) : !esYo && (
+                    <Button variant="danger-outline" className="flex-1" disabled={busy} onClick={() => accionEstado(vecino, 'baja')}><UserMinus size={16} /> Dar de baja</Button>
+                  )}
+                </div>
               </div>
             )}
           </Card>

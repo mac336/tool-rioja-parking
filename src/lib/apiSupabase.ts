@@ -31,7 +31,8 @@ export {
   listContactos, crearContacto, editarContacto, borrarContacto,
 } from './db/contactos'
 export {
-  listAccessRequests, resolverSolicitud, crearSolicitud, listVecinos, suspenderVecino, cambiarRolVecino, listAvisos,
+  listAccessRequests, resolverSolicitud, crearSolicitud, listVecinos, suspenderVecino, cambiarRolVecino,
+  editarVecino, darDeBajaVecino, listAvisos,
 } from './db/admin'
 export { actualizarNombre } from './db/perfil'
 export { subirAdjuntosIncidencia, urlFirmada } from './db/storage'

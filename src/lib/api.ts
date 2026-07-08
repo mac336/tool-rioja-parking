@@ -26,7 +26,7 @@ export const {
   listViviendasBloqueadas, bloquearVivienda,
   listContactos, crearContacto, editarContacto, borrarContacto,
   listAccessRequests, resolverSolicitud, crearSolicitud,
-  listVecinos, suspenderVecino, cambiarRolVecino,
+  listVecinos, suspenderVecino, cambiarRolVecino, editarVecino, darDeBajaVecino,
   listAvisos,
   subirAdjuntosIncidencia, urlFirmada,
 } = A

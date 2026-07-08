@@ -35,5 +35,6 @@ export {
   editarVecino, darDeBajaVecino, listAvisos,
 } from './db/admin'
 export { listRolePermisos, setRolePermiso } from './db/permisos'
+export { enviarSugerencia } from './db/sugerencias'
 export { actualizarNombre } from './db/perfil'
 export { subirAdjuntosIncidencia, urlFirmada } from './db/storage'

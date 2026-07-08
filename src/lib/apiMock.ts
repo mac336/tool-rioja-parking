@@ -465,6 +465,11 @@ export function setRolePermiso(rol: Role, permiso: string, on: boolean): Promise
   return delay(undefined)
 }
 
+// ---- Sugerencias (demo: no envía correo, solo simula) ------------------------
+export function enviarSugerencia(_texto: string): Promise<void> {
+  return delay(undefined)
+}
+
 // ---- Avisos (feed para la campana) -------------------------------------------
 export interface Aviso { id: string; texto: string; cuando: string; to: string }
 export function listAvisos(): Promise<Aviso[]> {

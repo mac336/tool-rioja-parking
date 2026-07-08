@@ -1,45 +1,77 @@
-import { Lightbulb, Mail } from 'lucide-react'
+import { useState } from 'react'
+import { Lightbulb, Send, CheckCircle2 } from 'lucide-react'
 import { SubHeader, Page } from '@/components/layout/AppShell'
-import { Card } from '@/components/ui'
+import { Card, Textarea, Button, Alert } from '@/components/ui'
 import { useApp } from '@/store'
-
-const EMAIL = 'cdelarioja25@gmail.com'
-const ASUNTO = 'Sugerencia para la app Rioja 25'
+import { enviarSugerencia } from '@/lib/api'
 
 export function SugerenciasPage() {
-  const { user } = useApp()
-  const cuerpo = [
-    'Hola:',
-    '',
-    'Me gustaría sugerir lo siguiente para la app de la comunidad:',
-    '',
-    '(escribe aquí tu idea)',
-    '',
-    '—',
-    `${user.nombre} · ${user.vivienda}`,
-  ].join('\n')
-  const mailto = `mailto:${EMAIL}?subject=${encodeURIComponent(ASUNTO)}&body=${encodeURIComponent(cuerpo)}`
+  const { user, toast } = useApp()
+  const [texto, setTexto] = useState('')
+  const [enviando, setEnviando] = useState(false)
+  const [enviada, setEnviada] = useState(false)
+  const valido = texto.trim().length >= 3
+
+  const enviar = async () => {
+    if (!valido) return
+    setEnviando(true)
+    try {
+      await enviarSugerencia(texto.trim())
+      setEnviada(true)
+      setTexto('')
+      toast('¡Gracias! Tu sugerencia se ha enviado', 'ok')
+    } catch {
+      toast('No se pudo enviar la sugerencia. Inténtalo de nuevo.', 'error')
+    } finally {
+      setEnviando(false)
+    }
+  }
 
   return (
     <div className="min-h-dvh bg-bg">
       <SubHeader titulo="Sugerencias" />
       <Page>
-        <Card className="flex flex-col items-center gap-4 text-center">
-          <span className="flex h-16 w-16 items-center justify-center rounded-[18px] bg-primary-soft text-primary-700">
-            <Lightbulb size={30} strokeWidth={1.9} />
-          </span>
-          <div>
-            <h2 className="font-display text-[20px] font-bold text-ink">¿Se te ocurre una mejora?</h2>
-            <p className="mx-auto mt-2 max-w-sm text-[14px] text-muted">
-              Este espacio es para tus ideas y comentarios sobre la app Rioja 25: qué te gustaría ver, qué echas en falta o qué podríamos mejorar. Toda sugerencia es bienvenida.
-            </p>
-          </div>
-          <a href={mailto}
-            className="inline-flex min-h-[52px] w-full items-center justify-center gap-2 rounded-pill bg-primary px-6 text-[16px] font-bold text-white shadow-primary transition-colors hover:bg-primary-700">
-            <Mail size={20} /> Enviar sugerencia
-          </a>
-          <p className="text-[12px] text-faint">Se abrirá tu correo con un mensaje a {EMAIL}.</p>
-        </Card>
+        {enviada ? (
+          <Card className="flex flex-col items-center gap-4 text-center">
+            <span className="flex h-16 w-16 items-center justify-center rounded-[18px] bg-success-soft text-success-ink">
+              <CheckCircle2 size={30} strokeWidth={1.9} />
+            </span>
+            <div>
+              <h2 className="font-display text-[20px] font-bold text-ink">¡Sugerencia enviada!</h2>
+              <p className="mx-auto mt-2 max-w-sm text-[14px] text-muted">Gracias por ayudarnos a mejorar la app. La comunidad ha recibido tu mensaje.</p>
+            </div>
+            <Button variant="secondary" onClick={() => setEnviada(false)}>Enviar otra</Button>
+          </Card>
+        ) : (
+          <Card className="flex flex-col gap-4">
+            <div className="flex flex-col items-center gap-3 text-center">
+              <span className="flex h-16 w-16 items-center justify-center rounded-[18px] bg-primary-soft text-primary-700">
+                <Lightbulb size={30} strokeWidth={1.9} />
+              </span>
+              <div>
+                <h2 className="font-display text-[20px] font-bold text-ink">¿Se te ocurre una mejora?</h2>
+                <p className="mx-auto mt-2 max-w-sm text-[14px] text-muted">
+                  Cuéntanos tus ideas sobre la app Rioja 25: qué te gustaría ver, qué echas en falta o qué podríamos mejorar. Se envía directamente a la comunidad.
+                </p>
+              </div>
+            </div>
+
+            <Textarea
+              label="Tu sugerencia"
+              value={texto}
+              onChange={(e) => setTexto(e.target.value)}
+              maxLength={4000}
+              rows={6}
+              placeholder="Escribe aquí tu idea…"
+            />
+
+            <Button block size="lg" disabled={!valido || enviando} onClick={enviar}>
+              <Send size={19} /> {enviando ? 'Enviando…' : 'Enviar sugerencia'}
+            </Button>
+
+            <Alert tipo="info">Tu sugerencia se enviará junto a tu nombre ({user.nombre}) y vivienda para que la comunidad pueda responderte.</Alert>
+          </Card>
+        )}
       </Page>
     </div>
   )

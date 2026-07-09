@@ -100,7 +100,7 @@ export function ParkingPage() {
   return (
     <div>
       <header className="border-b border-border bg-surface px-4 pb-3 pt-5">
-        <h1 className="font-display text-[26px] font-extrabold text-ink">Parking</h1>
+        <h1 className="font-display text-[26px] font-extrabold text-ink">Parking Exterior</h1>
       </header>
 
       <Page className="flex flex-col gap-5">

@@ -27,7 +27,7 @@ const db = {
   contactos: structuredClone(mock.MOCK_CONTACTS) as Contact[],
   requests: structuredClone(mock.MOCK_ACCESS_REQUESTS) as AccessRequest[],
   mensajes: [
-    { id: 'msg-1', tipo: 'aviso', titulo: 'Corte de agua el martes', cuerpo: 'El martes de 9:00 a 13:00 habrá corte de agua por mantenimiento. Llena garrafas por si acaso.', activo: true, created_at: now() },
+    { id: 'msg-1', tipo: 'aviso', titulo: 'Corte de agua el martes', cuerpo: 'El martes de 9:00 a 13:00 habrá corte de agua por mantenimiento. Llena garrafas por si acaso.', activo: true, expira_at: new Date(Date.now() + 3 * 864e5).toISOString(), created_at: now() },
     { id: 'msg-2', tipo: 'anuncio', titulo: 'Piscina abierta', cuerpo: 'Ya ha abierto la temporada de piscina. Recuerda ducharte antes de entrar.', activo: true, created_at: now() },
     { id: 'msg-3', tipo: 'incidencia', titulo: 'Ascensor B averiado', cuerpo: 'El ascensor del portal B está averiado. El técnico viene mañana.', activo: true, created_at: now() },
   ] as Mensaje[],
@@ -321,14 +321,15 @@ export function quitarSuscripcionPush(_endpoint: string): Promise<void> {
 
 // ---- Mensajes públicos (demo) ------------------------------------------------
 export const listMensajes = () => delay(db.mensajes.filter((m) => m.activo).slice().sort((a, b) => b.created_at.localeCompare(a.created_at)))
-export function crearMensaje(input: { tipo: MensajeTipo; titulo: string; cuerpo: string }): Promise<Mensaje> {
-  const m: Mensaje = { id: uid(), tipo: input.tipo, titulo: input.titulo, cuerpo: input.cuerpo, created_by: currentUser.id, activo: true, created_at: now() }
+type MensajeInput = { tipo: MensajeTipo; titulo: string; cuerpo: string; expira_at?: string | null }
+export function crearMensaje(input: MensajeInput): Promise<Mensaje> {
+  const m: Mensaje = { id: uid(), tipo: input.tipo, titulo: input.titulo, cuerpo: input.cuerpo, expira_at: input.expira_at ?? null, created_by: currentUser.id, activo: true, created_at: now() }
   db.mensajes.unshift(m)
   return delay(m)
 }
-export function editarMensaje(id: string, input: { tipo: MensajeTipo; titulo: string; cuerpo: string }): Promise<void> {
+export function editarMensaje(id: string, input: MensajeInput): Promise<void> {
   const m = db.mensajes.find((x) => x.id === id)
-  if (m) Object.assign(m, input)
+  if (m) Object.assign(m, { ...input, expira_at: input.expira_at ?? null })
   return delay(undefined)
 }
 export function borrarMensaje(id: string): Promise<void> {

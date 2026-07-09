@@ -14,7 +14,7 @@ const tiles = [
   { to: '/buzon', label: 'Buzón', Icon: MessageSquare, color: '#3E7CB1' },
   { to: '/votaciones', label: 'Votaciones', Icon: SquareCheckBig, color: '#5B7FD4' },
   { to: '/reservas', label: 'Reservas', Icon: CalendarDays, color: '#2E8E79' },
-  { to: '/parking', label: 'Parking', Icon: SquareParking, color: '#8A6FD1' },
+  { to: '/parking', label: 'Parking Exterior', Icon: SquareParking, color: '#8A6FD1' },
   { to: '/contactos', label: 'Contactos', Icon: Phone, color: '#D98A3D' },
   { to: '/reciclaje', label: 'Reciclaje', Icon: Leaf, color: '#6BAA4E' },
   { to: '/sugerencias', label: 'Sugerencias', Icon: Lightbulb, color: '#C879A9' },
@@ -28,7 +28,15 @@ export function HomePage() {
 
   const miPlaza = turnos.data?.find((t) => t.actual)
   const abierta = encuestas.data?.find((e) => e.estado === 'abierta')
-  const msgs = mensajes.data ?? []
+  // Actividad reciente: incidencias mientras estén abiertas (activas); avisos con
+  // fecha de expiración aún vigente; anuncios de los últimos 2 días.
+  const ahora = Date.now()
+  const DOS_DIAS = 2 * 864e5
+  const actividad = (mensajes.data ?? []).filter((m) => {
+    if (m.tipo === 'incidencia') return true
+    if (m.tipo === 'aviso') return !!m.expira_at && new Date(m.expira_at).getTime() >= ahora
+    return ahora - new Date(m.created_at).getTime() <= DOS_DIAS // anuncio
+  })
 
   return (
     <div>
@@ -57,7 +65,7 @@ export function HomePage() {
           <div className="relative overflow-hidden rounded-[18px] p-4 text-white shadow-neu" style={{ background: 'var(--grad-hero)' }}>
             <Car size={88} strokeWidth={1.6} className="pointer-events-none absolute -right-3 top-1/2 -translate-y-1/2 text-white/15" />
             <div className="relative z-10 pr-24">
-              <div className="overline text-white/60">Tu parking</div>
+              <div className="overline text-white/60">Tu parking exterior</div>
               {miPlaza
                 ? <div className="mt-1 text-[15px]">Esta quincena aparcas en la <b className="text-[19px]">Plaza {miPlaza.plaza}</b></div>
                 : <div className="mt-1 text-[15px] text-white/80">Esta quincena no te toca plaza. Mira tus próximos turnos.</div>}
@@ -65,15 +73,18 @@ export function HomePage() {
           </div>
         </Link>
 
-        {/* Mensajes de la comunidad en carrusel horizontal (desliza para ver más) */}
-        {msgs.length > 0 && (
-          <div className="-mx-4 mt-3 flex snap-x snap-mandatory gap-3 overflow-x-auto overscroll-x-contain px-4 pb-2 no-scrollbar">
-            {msgs.map((m) => (
-              <Link key={m.id} to="/mensajes" className="w-[86%] shrink-0 snap-center sm:w-[380px]">
-                <MensajeCard m={m} color={msgColors[m.tipo]} />
-              </Link>
-            ))}
-          </div>
+        {/* Actividad reciente: carrusel horizontal (desliza para ver más) */}
+        {actividad.length > 0 && (
+          <>
+            <h2 className="overline mb-2 mt-5">Actividad reciente</h2>
+            <div className="-mx-4 flex snap-x snap-mandatory gap-3 overflow-x-auto overscroll-x-contain px-4 pb-2 no-scrollbar">
+              {actividad.map((m) => (
+                <Link key={m.id} to="/mensajes" className="w-[86%] shrink-0 snap-center sm:w-[380px]">
+                  <MensajeCard m={m} color={msgColors[m.tipo]} clamp />
+                </Link>
+              ))}
+            </div>
+          </>
         )}
 
         {/* Votación abierta */}

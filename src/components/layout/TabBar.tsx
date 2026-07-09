@@ -6,7 +6,7 @@ const tabs = [
   { to: '/', label: 'Inicio', Icon: Home, end: true },
   { to: '/mensajes', label: 'Mensajes', Icon: Megaphone },
   { to: '/reservas', label: 'Reservas', Icon: CalendarDays },
-  { to: '/parking', label: 'Parking', Icon: SquareParking },
+  { to: '/parking', label: 'Parking Exterior', Icon: SquareParking },
   { to: '/mas', label: 'Más', Icon: Menu },
 ]
 
@@ -16,10 +16,10 @@ export function TabBar() {
       aria-label="Navegación principal">
       {tabs.map(({ to, label, Icon, end }) => (
         <NavLink key={to} to={to} end={end}
-          className={({ isActive }) => cx('flex flex-1 flex-col items-center justify-center gap-1 pt-1 text-[11px] font-medium',
+          className={({ isActive }) => cx('flex flex-1 flex-col items-center justify-center gap-1 px-1 pt-1 text-[11px] font-medium',
             isActive ? 'text-primary font-bold' : 'text-faint')}>
           <Icon size={24} strokeWidth={1.9} />
-          {label}
+          <span className="text-center leading-[1.05]">{label}</span>
         </NavLink>
       ))}
     </nav>

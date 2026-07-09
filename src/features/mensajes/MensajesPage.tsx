@@ -1,7 +1,7 @@
 import { useState } from 'react'
 import { Plus, X, Send } from 'lucide-react'
 import { Page } from '@/components/layout/AppShell'
-import { Button, Card, Field, Textarea, SelectField, EmptyState, ErrorState, SkeletonList } from '@/components/ui'
+import { Button, Field, Textarea, SelectField, EmptyState, ErrorState, SkeletonList, cx } from '@/components/ui'
 import { useAsync } from '@/lib/useAsync'
 import { useApp } from '@/store'
 import { puedePublicarMensajes } from '@/lib/roles'
@@ -12,22 +12,28 @@ import { MensajeCard, TIPO_META } from './MensajeCard'
 const ORDEN: MensajeTipo[] = ['aviso', 'anuncio', 'incidencia']
 const SECCION: Record<MensajeTipo, string> = { aviso: 'Avisos', anuncio: 'Anuncios', incidencia: 'Incidencias' }
 
+type FormState = { id?: string; tipo: MensajeTipo; titulo: string; cuerpo: string; expira: string }
+
 export function MensajesPage() {
   const { user, msgColors, toast } = useApp()
   const puede = puedePublicarMensajes(user.rol)
   const { data, state, refetch } = useAsync(listMensajes, [])
 
-  const [form, setForm] = useState<null | { id?: string; tipo: MensajeTipo; titulo: string; cuerpo: string }>(null)
+  const [tab, setTab] = useState<MensajeTipo>('aviso')
+  const [form, setForm] = useState<FormState | null>(null)
   const [saving, setSaving] = useState(false)
 
-  const abrirNuevo = () => setForm({ tipo: 'aviso', titulo: '', cuerpo: '' })
-  const abrirEditar = (m: Mensaje) => setForm({ id: m.id, tipo: m.tipo, titulo: m.titulo, cuerpo: m.cuerpo })
+  const abrirNuevo = () => setForm({ tipo: tab, titulo: '', cuerpo: '', expira: '' })
+  const abrirEditar = (m: Mensaje) => setForm({ id: m.id, tipo: m.tipo, titulo: m.titulo, cuerpo: m.cuerpo, expira: m.expira_at ? m.expira_at.slice(0, 10) : '' })
 
   const guardar = async () => {
     if (!form || form.titulo.trim().length < 1 || form.cuerpo.trim().length < 1) return
     setSaving(true)
     try {
-      const payload = { tipo: form.tipo, titulo: form.titulo.trim(), cuerpo: form.cuerpo.trim() }
+      const payload = {
+        tipo: form.tipo, titulo: form.titulo.trim(), cuerpo: form.cuerpo.trim(),
+        expira_at: form.expira ? new Date(`${form.expira}T23:59:59`).toISOString() : null,
+      }
       if (form.id) { await editarMensaje(form.id, payload); toast('Mensaje actualizado') }
       else { await crearMensaje(payload); toast('Mensaje publicado y notificado', 'ok') }
       setForm(null); refetch()
@@ -39,40 +45,44 @@ export function MensajesPage() {
     await borrarMensaje(m.id); toast('Mensaje borrado', 'info'); refetch()
   }
 
-  const porTipo = (t: MensajeTipo) => (data ?? []).filter((m) => m.tipo === t)
+  const conteo = (t: MensajeTipo) => (data ?? []).filter((m) => m.tipo === t).length
+  const items = (data ?? []).filter((m) => m.tipo === tab)
 
   return (
     <div className="min-h-full bg-bg">
-      <header className="sticky top-0 z-10 flex items-center justify-between gap-2 border-b border-border bg-surface/95 px-4 py-3.5 backdrop-blur safe-top">
-        <h1 className="font-display text-[22px] font-extrabold text-ink">Mensajes</h1>
-        {puede && (
-          <button onClick={abrirNuevo} className="flex h-10 items-center gap-1.5 rounded-pill bg-primary px-3.5 text-[14px] font-bold text-white shadow-primary">
-            <Plus size={18} /> Nuevo
-          </button>
-        )}
+      <header className="sticky top-0 z-10 border-b border-border bg-surface/95 backdrop-blur safe-top">
+        <div className="flex items-center justify-between gap-2 px-4 pb-2 pt-3.5">
+          <h1 className="font-display text-[22px] font-extrabold text-ink">Mensajes</h1>
+          {puede && (
+            <button onClick={abrirNuevo} className="flex h-10 items-center gap-1.5 rounded-pill bg-primary px-3.5 text-[14px] font-bold text-white shadow-primary">
+              <Plus size={18} /> Nuevo
+            </button>
+          )}
+        </div>
+        {/* Pestañas por tipo con contador */}
+        <div className="flex gap-2 px-4 pb-2.5">
+          {ORDEN.map((t) => (
+            <button key={t} onClick={() => setTab(t)}
+              className={cx('inline-flex items-center gap-1.5 rounded-pill px-3.5 py-1.5 text-[13px] font-bold transition-colors',
+                tab === t ? 'bg-primary text-white' : 'bg-surface-2 text-muted')}>
+              {SECCION[t]}
+              <span className={cx('inline-flex h-5 min-w-[20px] items-center justify-center rounded-full px-1 text-[11px] font-extrabold',
+                tab === t ? 'bg-white/25 text-white' : 'bg-black/10 text-muted')}>{conteo(t)}</span>
+            </button>
+          ))}
+        </div>
       </header>
-      <Page className="flex flex-col gap-5">
+
+      <Page className="flex flex-col gap-2.5">
         {state === 'loading' && <SkeletonList n={3} />}
         {state === 'error' && <ErrorState onRetry={refetch} />}
-        {(state === 'empty' || (state === 'ready' && (data ?? []).length === 0)) && (
-          <EmptyState titulo="Sin mensajes" texto={puede ? 'Aún no has publicado ningún mensaje. Pulsa “Nuevo”.' : 'No hay avisos, anuncios ni incidencias por ahora.'} />
+        {state !== 'loading' && state !== 'error' && items.length === 0 && (
+          <EmptyState titulo={`Sin ${SECCION[tab].toLowerCase()}`} texto={puede ? 'Pulsa “Nuevo” para publicar uno.' : 'No hay nada por ahora.'} />
         )}
-
-        {state === 'ready' && ORDEN.map((t) => {
-          const items = porTipo(t)
-          if (items.length === 0) return null
-          return (
-            <section key={t}>
-              <h2 className="overline mb-2">{SECCION[t]}</h2>
-              <div className="flex flex-col gap-2.5">
-                {items.map((m) => (
-                  <MensajeCard key={m.id} m={m} color={msgColors[t]}
-                    onEdit={puede ? abrirEditar : undefined} onDelete={puede ? borrar : undefined} />
-                ))}
-              </div>
-            </section>
-          )
-        })}
+        {items.map((m) => (
+          <MensajeCard key={m.id} m={m} color={msgColors[m.tipo]}
+            onEdit={puede ? abrirEditar : undefined} onDelete={puede ? borrar : undefined} />
+        ))}
       </Page>
 
       {/* Formulario de alta/edición (solo gestión) */}
@@ -89,6 +99,8 @@ export function MensajesPage() {
               </SelectField>
               <Field label="Título" value={form.titulo} maxLength={140} onChange={(e) => setForm({ ...form, titulo: e.target.value })} placeholder="Ej. Corte de agua el martes" />
               <Textarea label="Mensaje" value={form.cuerpo} maxLength={4000} rows={5} onChange={(e) => setForm({ ...form, cuerpo: e.target.value })} placeholder="Escribe el mensaje para la comunidad…" />
+              <Field label="Caduca el (opcional)" type="date" value={form.expira} onChange={(e) => setForm({ ...form, expira: e.target.value })}
+                hint="Los avisos con fecha de caducidad aparecen en “Actividad reciente” de Inicio hasta ese día." />
               <Button block size="lg" disabled={saving || !form.titulo.trim() || !form.cuerpo.trim()} onClick={guardar}>
                 <Send size={18} /> {saving ? 'Guardando…' : form.id ? 'Guardar cambios' : 'Publicar y notificar'}
               </Button>

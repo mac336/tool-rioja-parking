@@ -12,7 +12,7 @@ const nav = [
   { to: '/buzon', label: 'Buzón', Icon: MessageSquare },
   { to: '/votaciones', label: 'Votaciones', Icon: SquareCheckBig },
   { to: '/reservas', label: 'Reservas', Icon: CalendarDays },
-  { to: '/parking', label: 'Parking', Icon: SquareParking },
+  { to: '/parking', label: 'Parking Exterior', Icon: SquareParking },
   { to: '/contactos', label: 'Contactos', Icon: Phone },
 ]
 

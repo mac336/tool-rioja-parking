@@ -86,6 +86,7 @@ export interface Mensaje {
   created_by?: string | null
   autor_nombre?: string
   activo: boolean
+  expira_at?: string | null // fecha de expiración (usada sobre todo por avisos)
   created_at: string
 }
 

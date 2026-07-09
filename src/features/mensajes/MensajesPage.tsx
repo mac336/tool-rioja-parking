@@ -1,6 +1,6 @@
 import { useState } from 'react'
 import { Plus, X, Send } from 'lucide-react'
-import { SubHeader, Page } from '@/components/layout/AppShell'
+import { Page } from '@/components/layout/AppShell'
 import { Button, Card, Field, Textarea, SelectField, EmptyState, ErrorState, SkeletonList } from '@/components/ui'
 import { useAsync } from '@/lib/useAsync'
 import { useApp } from '@/store'
@@ -42,12 +42,15 @@ export function MensajesPage() {
   const porTipo = (t: MensajeTipo) => (data ?? []).filter((m) => m.tipo === t)
 
   return (
-    <div className="min-h-dvh bg-bg">
-      <SubHeader titulo="Mensajes" right={puede ? (
-        <button onClick={abrirNuevo} className="flex h-10 items-center gap-1.5 rounded-pill bg-primary px-3.5 text-[14px] font-bold text-white shadow-primary">
-          <Plus size={18} /> Nuevo
-        </button>
-      ) : undefined} />
+    <div className="min-h-full bg-bg">
+      <header className="sticky top-0 z-10 flex items-center justify-between gap-2 border-b border-border bg-surface/95 px-4 py-3.5 backdrop-blur safe-top">
+        <h1 className="font-display text-[22px] font-extrabold text-ink">Mensajes</h1>
+        {puede && (
+          <button onClick={abrirNuevo} className="flex h-10 items-center gap-1.5 rounded-pill bg-primary px-3.5 text-[14px] font-bold text-white shadow-primary">
+            <Plus size={18} /> Nuevo
+          </button>
+        )}
+      </header>
       <Page className="flex flex-col gap-5">
         {state === 'loading' && <SkeletonList n={3} />}
         {state === 'error' && <ErrorState onRetry={refetch} />}

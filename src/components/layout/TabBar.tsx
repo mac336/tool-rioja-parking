@@ -12,7 +12,7 @@ const tabs = [
 
 export function TabBar() {
   return (
-    <nav className="fixed inset-x-0 bottom-0 z-20 flex h-[78px] items-stretch border-t border-border bg-surface safe-bottom md:hidden"
+    <nav className="z-20 flex h-[78px] shrink-0 items-stretch border-t border-border bg-surface safe-bottom md:hidden"
       aria-label="Navegación principal">
       {tabs.map(({ to, label, Icon, end }) => (
         <NavLink key={to} to={to} end={end}

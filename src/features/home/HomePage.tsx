@@ -65,15 +65,14 @@ export function HomePage() {
           </div>
         </Link>
 
-        {/* Mensajes de la comunidad (avisos/anuncios/incidencias) */}
+        {/* Mensajes de la comunidad en carrusel horizontal (desliza para ver más) */}
         {msgs.length > 0 && (
-          <div className="mt-3 flex flex-col gap-2.5">
-            {msgs.slice(0, 5).map((m) => (
-              <Link key={m.id} to="/mensajes" className="block"><MensajeCard m={m} color={msgColors[m.tipo]} /></Link>
+          <div className="-mx-4 mt-3 flex snap-x snap-mandatory gap-3 overflow-x-auto overscroll-x-contain px-4 pb-2 no-scrollbar">
+            {msgs.map((m) => (
+              <Link key={m.id} to="/mensajes" className="w-[86%] shrink-0 snap-center sm:w-[380px]">
+                <MensajeCard m={m} color={msgColors[m.tipo]} />
+              </Link>
             ))}
-            {msgs.length > 5 && (
-              <Link to="/mensajes" className="py-1 text-center text-[13px] font-bold text-primary">Ver todos los mensajes</Link>
-            )}
           </div>
         )}
 

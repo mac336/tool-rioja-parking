@@ -38,7 +38,7 @@ export function SettingsPage() {
   }
 
   return (
-    <div className="min-h-dvh bg-bg">
+    <div className="min-h-full bg-bg">
       <SubHeader titulo="Perfil y ajustes" />
       <Page className="mx-auto flex max-w-[640px] flex-col gap-4">
 

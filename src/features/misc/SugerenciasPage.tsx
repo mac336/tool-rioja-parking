@@ -28,7 +28,7 @@ export function SugerenciasPage() {
   }
 
   return (
-    <div className="min-h-dvh bg-bg">
+    <div className="min-h-full bg-bg">
       <SubHeader titulo="Sugerencias" />
       <Page>
         {enviada ? (

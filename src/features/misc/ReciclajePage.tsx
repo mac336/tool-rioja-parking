@@ -21,7 +21,7 @@ const RESIDUOS: Residuo[] = [
 
 export function ReciclajePage() {
   return (
-    <div className="min-h-dvh bg-bg">
+    <div className="min-h-full bg-bg">
       <SubHeader titulo="Reciclaje" />
       <Page>
         <p className="mb-4 text-[14px] text-muted">

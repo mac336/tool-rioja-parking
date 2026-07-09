@@ -35,7 +35,7 @@ function Bandeja({ gestor, onOpen, onToast }: { gestor: boolean; onOpen: (id: st
   }
 
   return (
-    <div className="min-h-dvh bg-bg">
+    <div className="min-h-full bg-bg">
       <SubHeader titulo={gestor ? 'Buzón de administración' : 'Contactar con administración'}
         right={!gestor ? (
           <button onClick={() => setNuevo({ asunto: '', texto: '' })} className="flex h-10 items-center gap-1.5 rounded-pill bg-primary px-3.5 text-[14px] font-bold text-white shadow-primary">
@@ -125,7 +125,7 @@ function HiloVista({ id, gestor, onBack }: { id: string; gestor: boolean; onBack
   }
 
   return (
-    <div className="flex min-h-dvh flex-col bg-bg">
+    <div className="flex min-h-full flex-col bg-bg">
       <header className="sticky top-0 z-10 flex items-center gap-2 border-b border-border bg-surface/95 px-3 py-3 backdrop-blur safe-top">
         <button onClick={onBack} aria-label="Atrás" className="flex h-10 w-10 items-center justify-center rounded-full hover:bg-surface-2"><ChevronLeft size={24} /></button>
         <h1 className="flex-1 truncate font-display text-[17px] font-bold text-ink">{hilo?.asunto ?? 'Conversación'}</h1>

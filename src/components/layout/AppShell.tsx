@@ -6,15 +6,17 @@ import { Sidebar } from './Sidebar'
 import { Toaster } from './Toaster'
 import { InstallPrompt } from '@/components/InstallPrompt'
 
-/** Layout de nivel superior: sidebar (escritorio) + TabBar (móvil). */
+/** Layout de nivel superior: altura fija de ventana; SOLO el contenido (main)
+ *  scrollea. La cabecera (sticky dentro de main) y el menú (Sidebar/TabBar, fuera
+ *  de main) no se mueven. */
 export function AppShell({ children }: { children: ReactNode }) {
   return (
-    <div className="flex min-h-dvh bg-bg">
+    <div className="flex h-dvh overflow-hidden bg-bg">
       <Sidebar />
-      <div className="flex min-h-dvh min-w-0 flex-1 flex-col">
-        <main className="mx-auto w-full min-w-0 max-w-[720px] flex-1 pb-[90px] md:pb-8">{children}</main>
+      <div className="flex min-w-0 flex-1 flex-col overflow-hidden">
+        <main className="mx-auto w-full min-w-0 max-w-[720px] flex-1 overflow-y-auto overscroll-contain">{children}</main>
+        <TabBar />
       </div>
-      <TabBar />
       <InstallPrompt />
       <Toaster />
     </div>

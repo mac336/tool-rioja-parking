@@ -26,7 +26,7 @@ export function CreateEncuestaPage() {
   // Solo gestión crea encuestas (specs). Vecino → aviso.
   if (!esGestion(user.rol)) {
     return (
-      <div className="min-h-dvh bg-bg">
+      <div className="min-h-full bg-bg">
         <SubHeader titulo="Crear votación" />
         <Page className="mx-auto max-w-[560px]">
           <Alert tipo="warn">Solo la gestión (presidente, junta o administración) puede crear votaciones.</Alert>
@@ -76,7 +76,7 @@ export function CreateEncuestaPage() {
   }
 
   return (
-    <div className="min-h-dvh bg-bg">
+    <div className="min-h-full bg-bg">
       <SubHeader titulo="Crear votación" />
       <Page className="mx-auto flex max-w-[640px] flex-col gap-4">
         {/* Formato */}

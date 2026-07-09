@@ -9,7 +9,7 @@ export function AvisosPage() {
   const { data, state, refetch } = useAsync(listAvisos, [])
 
   return (
-    <div className="min-h-dvh bg-bg">
+    <div className="min-h-full bg-bg">
       <SubHeader titulo="Avisos" />
       <Page>
         {state === 'loading' && <SkeletonList n={4} />}

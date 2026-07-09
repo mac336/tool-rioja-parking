@@ -1,7 +1,6 @@
 import { useState } from 'react'
-import { Link } from 'react-router-dom'
 import {
-  Shield, Check, X, Clock, Users, MapPin, AlertTriangle, ChevronRight,
+  Shield, Check, X, Clock, Users, MapPin,
   UserX, UserCheck, UserMinus, Pencil,
 } from 'lucide-react'
 import {
@@ -11,22 +10,20 @@ import {
 import { useAsync } from '@/lib/useAsync'
 import { fechaCorta, fechaHora, hora, iniciales } from '@/lib/format'
 import {
-  ROLE_LABEL, roleBadgeKind, esGestion, esAppAdmin, CATALOGO_PERMISOS,
-  puedeAprobarAltas, puedeAprobarAnuncios, puedeAprobarReservas,
+  ROLE_LABEL, roleBadgeKind, esAppAdmin, CATALOGO_PERMISOS,
+  puedeAprobarAltas, puedeAprobarReservas,
 } from '@/lib/roles'
-import type { Profile, Role, Incident, Anuncio, ReservaGrupo } from '@/types'
+import type { Profile, Role, ReservaGrupo } from '@/types'
 import { PISOS } from '@/lib/parking'
 import { useApp } from '@/store'
 import {
   listAccessRequests, resolverSolicitud, listVecinos, suspenderVecino, cambiarRolVecino,
   editarVecino, darDeBajaVecino,
-  incidenciasPendientesGestion, aprobarIncidencia,
-  anunciosPendientesGestion, resolverAnuncio,
   reservasPendientesGestion, resolverReserva,
   listRolePermisos, setRolePermiso,
 } from '@/lib/api'
 
-type TabKey = 'cuentas' | 'incidencias' | 'anuncios' | 'reservas' | 'vecinos' | 'permisos'
+type TabKey = 'cuentas' | 'reservas' | 'vecinos' | 'permisos'
 type Seleccion = { vivienda: string; rol: Role }
 type Toast = (t: string, tipo?: 'ok' | 'error' | 'info') => void
 
@@ -38,21 +35,17 @@ export function AdminPage() {
 
   // Conteos de cada cola (para las pastillas del selector). Se recalcula tras cada acción.
   const conteos = useAsync(async () => {
-    const [c, i, a, r] = await Promise.all([
+    const [c, r] = await Promise.all([
       puedeAprobarAltas(rol) ? listAccessRequests() : Promise.resolve([]),
-      esGestion(rol) ? incidenciasPendientesGestion() : Promise.resolve([]),
-      puedeAprobarAnuncios(rol) ? anunciosPendientesGestion() : Promise.resolve([]),
       puedeAprobarReservas(rol) ? reservasPendientesGestion() : Promise.resolve([]),
     ])
-    return { cuentas: c.length, incidencias: i.length, anuncios: a.length, reservas: r.length }
+    return { cuentas: c.length, reservas: r.length }
   }, [])
-  const n = conteos.data ?? { cuentas: 0, incidencias: 0, anuncios: 0, reservas: 0 }
+  const n = conteos.data ?? { cuentas: 0, reservas: 0 }
   const refrescar = () => conteos.refetch()
 
   const tabs = ([
     { key: 'cuentas', label: 'Cuentas', show: puedeAprobarAltas(rol), count: n.cuentas },
-    { key: 'incidencias', label: 'Incidencias', show: esGestion(rol), count: n.incidencias },
-    { key: 'anuncios', label: 'Anuncios', show: puedeAprobarAnuncios(rol), count: n.anuncios },
     { key: 'reservas', label: 'Reservas', show: puedeAprobarReservas(rol), count: n.reservas },
     { key: 'vecinos', label: 'Vecinos', show: puedeAprobarAltas(rol), count: 0 },
     { key: 'permisos', label: 'Permisos', show: true, count: 0 },
@@ -72,7 +65,7 @@ export function AdminPage() {
           </span>
         </div>
         <h1 className="mt-3 font-display text-[26px] font-extrabold">Panel de gestión</h1>
-        <p className="mt-1 text-[13px] text-white/70">Aprueba cuentas, incidencias, anuncios y reservas, y gestiona roles.</p>
+        <p className="mt-1 text-[13px] text-white/70">Aprueba cuentas y reservas, gestiona vecinos y permisos.</p>
 
         {/* Selector de secciones (scroll horizontal en móvil) */}
         <div className="-mx-4 mt-4 flex gap-2 overflow-x-auto px-4 pb-1">
@@ -92,8 +85,6 @@ export function AdminPage() {
 
       <div className="px-4 py-4">
         {tab === 'cuentas' && <CuentasTab canApprove={puedeAprobarAltas(rol)} onToast={toast} onChanged={refrescar} />}
-        {tab === 'incidencias' && <IncidenciasTab onToast={toast} onChanged={refrescar} />}
-        {tab === 'anuncios' && <AnunciosTab onToast={toast} onChanged={refrescar} />}
         {tab === 'reservas' && <ReservasTab onToast={toast} onChanged={refrescar} />}
         {tab === 'vecinos' && <VecinosTab canManage={puedeAprobarAltas(rol)} currentUserId={user.id} onToast={toast} />}
         {tab === 'permisos' && <PermisosTab canEdit={esAppAdmin(rol)} onToast={toast} />}
@@ -165,106 +156,6 @@ function CuentasTab({ canApprove, onToast, onChanged }: { canApprove: boolean; o
             ) : (
               <div className="mt-3"><Alert tipo="warn">No tienes permiso para aprobar altas.</Alert></div>
             )}
-          </Card>
-        )
-      })}
-    </div>
-  )
-}
-
-// ---- Incidencias (aprobación previa) -----------------------------------------
-function IncidenciasTab({ onToast, onChanged }: { onToast: Toast; onChanged: () => void }) {
-  const { data, state, refetch } = useAsync(incidenciasPendientesGestion, [])
-  const [busy, setBusy] = useState<string | null>(null)
-
-  if (state === 'loading') return <SkeletonList n={3} />
-  if (state === 'error') return <ErrorState onRetry={refetch} />
-  if (state === 'empty' || !data || data.length === 0) {
-    return <EmptyState titulo="Nada pendiente" texto="No hay incidencias esperando aprobación." />
-  }
-
-  async function resolver(inc: Incident, aprobar: boolean) {
-    setBusy(inc.id)
-    try {
-      await aprobarIncidencia(inc.id, aprobar)
-      onToast(aprobar ? 'Incidencia publicada' : 'Incidencia rechazada', aprobar ? 'ok' : 'info')
-      refetch(); onChanged()
-    } catch {
-      onToast('No se ha podido completar la acción', 'error')
-    } finally {
-      setBusy(null)
-    }
-  }
-
-  return (
-    <div className="flex flex-col gap-3">
-      <p className="text-[13px] text-muted">Los vecinos no ven estas incidencias hasta que las apruebas.</p>
-      {data.map((inc: Incident) => {
-        const b = busy === inc.id
-        return (
-          <Card key={inc.id}>
-            <div className="flex items-start gap-3">
-              <span className="mt-0.5 flex h-9 w-9 shrink-0 items-center justify-center rounded-[12px] bg-warn-soft text-warn-ink"><AlertTriangle size={18} /></span>
-              <div className="min-w-0 flex-1">
-                <h3 className="font-display text-[16px] font-bold text-ink">{inc.titulo}</h3>
-                <p className="mt-0.5 text-[13px] text-muted">{inc.autor_nombre}</p>
-                <p className="mt-1 line-clamp-3 text-[13px] text-muted">{inc.descripcion}</p>
-                <Link to={`/incidencias/${inc.id}`} className="mt-1 inline-flex items-center gap-1 text-[13px] font-bold text-primary">Ver ficha <ChevronRight size={15} /></Link>
-              </div>
-            </div>
-            <div className="mt-3 flex gap-2">
-              <Button block disabled={b} onClick={() => resolver(inc, true)}><Check size={17} /> Aprobar</Button>
-              <Button block variant="danger-outline" disabled={b} onClick={() => resolver(inc, false)}><X size={17} /> Rechazar</Button>
-            </div>
-          </Card>
-        )
-      })}
-    </div>
-  )
-}
-
-// ---- Anuncios (moderación) ---------------------------------------------------
-function AnunciosTab({ onToast, onChanged }: { onToast: Toast; onChanged: () => void }) {
-  const { data, state, refetch } = useAsync(anunciosPendientesGestion, [])
-  const [busy, setBusy] = useState<string | null>(null)
-
-  if (state === 'loading') return <SkeletonList n={3} />
-  if (state === 'error') return <ErrorState onRetry={refetch} />
-  if (state === 'empty' || !data || data.length === 0) {
-    return <EmptyState titulo="Nada pendiente" texto="No hay anuncios esperando revisión." />
-  }
-
-  async function resolver(a: Anuncio, accion: 'publicar' | 'rechazar', nivel?: 'principal' | 'secundario') {
-    setBusy(a.id)
-    try {
-      await resolverAnuncio(a.id, accion, nivel)
-      onToast(accion === 'publicar' ? 'Anuncio publicado' : 'Anuncio rechazado', accion === 'publicar' ? 'ok' : 'info')
-      refetch(); onChanged()
-    } catch {
-      onToast('No se ha podido completar la acción', 'error')
-    } finally {
-      setBusy(null)
-    }
-  }
-
-  return (
-    <div className="flex flex-col gap-3">
-      {data.map((a: Anuncio) => {
-        const b = busy === a.id
-        return (
-          <Card key={a.id}>
-            <div className="flex items-center justify-between gap-2">
-              <h3 className="font-display text-[16px] font-bold text-ink">{a.titulo}</h3>
-              <span className="shrink-0 rounded-pill bg-warn-soft px-2 py-0.5 text-[11.5px] font-bold text-warn-ink">Pendiente</span>
-            </div>
-            <p className="mt-0.5 text-[13px] text-muted">{a.autor_nombre} · {a.vivienda}</p>
-            <p className="mt-1 line-clamp-4 whitespace-pre-wrap text-[13px] text-muted">{a.cuerpo}</p>
-            <p className="mt-2 text-[12px] text-faint">Pide: {a.nivel_solicitado === 'principal' ? 'Tablón principal' : 'Listado'} · {fechaCorta(a.fecha_inicio)}–{fechaCorta(a.fecha_fin)}</p>
-            <div className="mt-3 flex flex-col gap-2">
-              <Button block disabled={b} onClick={() => resolver(a, 'publicar', 'principal')}>Publicar en principal</Button>
-              <Button block variant="secondary" disabled={b} onClick={() => resolver(a, 'publicar', 'secundario')}>Publicar en listado</Button>
-              <Button block variant="danger-outline" disabled={b} onClick={() => resolver(a, 'rechazar')}><X size={17} /> Rechazar</Button>
-            </div>
           </Card>
         )
       })}

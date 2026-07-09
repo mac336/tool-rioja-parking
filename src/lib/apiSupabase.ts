@@ -4,12 +4,7 @@
 // Así se cablea de forma incremental sin romper el build.
 export * from './apiMock'
 
-// Overrides reales por dominio (se añaden conforme se implementan en src/lib/db/*):
-export {
-  listIncidencias, getIncidencia, crearIncidencia, editarIncidencia, borrarIncidencia,
-  comentarIncidencia, ocultarComentario, bloquearComentarios, cambiarEstadoIncidencia,
-  incidenciasPendientesGestion, aprobarIncidencia,
-} from './db/incidencias'
+// Overrides reales por dominio:
 export {
   listEncuestas, getEncuesta, votarPregunta, crearEncuesta, cerrarEncuesta, borrarEncuesta,
 } from './db/encuestas'
@@ -21,12 +16,6 @@ export {
   parkingMisTurnos, listCesiones, misCesiones, cesionesActivas,
   crearCesion, cancelarCesion, reasignarCesion, demandaParking,
 } from './db/parking'
-export {
-  anunciosPrincipales, anunciosListado, misAnuncios, viviendaPuedePublicar,
-  crearAnuncio, editarAnuncio, borrarAnuncio, anunciosPendientesGestion, resolverAnuncio,
-  moverNivelAnuncio, despublicarAnuncio, reportarAnuncio, listReportes, descartarReporte,
-  listViviendasBloqueadas, bloquearVivienda,
-} from './db/anuncios'
 export {
   listContactos, crearContacto, editarContacto, borrarContacto,
 } from './db/contactos'
@@ -40,4 +29,3 @@ export { guardarSuscripcionPush, quitarSuscripcionPush } from './db/push'
 export { listMensajes, crearMensaje, editarMensaje, borrarMensaje } from './db/mensajes'
 export { misHilos, hilosGestion, getHilo, crearHilo, responderHilo, cerrarHilo, convertirEnMensaje } from './db/buzon'
 export { actualizarNombre } from './db/perfil'
-export { subirAdjuntosIncidencia, urlFirmada } from './db/storage'

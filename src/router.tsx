@@ -15,15 +15,10 @@ import { HomePage } from '@/features/home/HomePage'
 import { MensajesPage } from '@/features/mensajes/MensajesPage'
 import { BuzonPage } from '@/features/buzon/BuzonPage'
 import { MasPage } from '@/features/home/MasPage'
-import { IncidentsListPage } from '@/features/incidents/IncidentsListPage'
-import { IncidentDetailPage } from '@/features/incidents/IncidentDetailPage'
-import { NewIncidentPage } from '@/features/incidents/NewIncidentPage'
 import { EncuestasListPage } from '@/features/encuestas/EncuestasListPage'
 import { CreateEncuestaPage } from '@/features/encuestas/CreateEncuestaPage'
 import { VotePage } from '@/features/encuestas/VotePage'
 import { ResultsPage } from '@/features/encuestas/ResultsPage'
-import { AnunciosPage } from '@/features/anuncios/AnunciosPage'
-import { NewAnuncioPage } from '@/features/anuncios/NewAnuncioPage'
 import { BookingsPage } from '@/features/bookings/BookingsPage'
 import { MyBookingsPage } from '@/features/bookings/MyBookingsPage'
 import { ParkingPage } from '@/features/parking/ParkingPage'
@@ -78,17 +73,10 @@ export const router = createBrowserRouter([
       { path: '/mas', element: <MasPage /> },
       { path: '/mensajes', element: <MensajesPage /> },
       { path: '/buzon', element: <BuzonPage /> },
-      { path: '/incidencias', element: <IncidentsListPage /> },
-      { path: '/incidencias/nueva', element: <NewIncidentPage /> },
-      { path: '/incidencias/:id/editar', element: <NewIncidentPage /> },
-      { path: '/incidencias/:id', element: <IncidentDetailPage /> },
       { path: '/votaciones', element: <EncuestasListPage /> },
       { path: '/votaciones/nueva', element: <CreateEncuestaPage /> },
       { path: '/votaciones/:id', element: <VotePage /> },
       { path: '/votaciones/:id/resultados', element: <ResultsPage /> },
-      { path: '/anuncios', element: <AnunciosPage /> },
-      { path: '/anuncios/nuevo', element: <NewAnuncioPage /> },
-      { path: '/anuncios/:id/editar', element: <NewAnuncioPage /> },
       { path: '/reservas', element: <BookingsPage /> },
       { path: '/reservas/mias', element: <MyBookingsPage /> },
       { path: '/parking', element: <ParkingPage /> },

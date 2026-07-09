@@ -8,8 +8,8 @@ import { useApp } from '@/store'
 
 const NORMAS = [
   ['Respeto y convivencia', 'La app sustituye avisos en papel: úsala con respeto. Sin ataques personales, insultos ni contenido discriminatorio.'],
-  ['Incidencias', 'Describen problemas de la comunidad, no señalan a vecinos concretos. Máx. 5 al día por vivienda. Fotos sin personas ni matrículas.'],
-  ['Anuncios', 'Los revisa la gestión antes de publicarse. Un anuncio pendiente por vivienda; fechas de inicio y fin obligatorias.'],
+  ['Mensajes', 'Los avisos, anuncios e incidencias los publica la administración. Todos los vecinos los ven en el tablón, pero no pueden crearlos.'],
+  ['Buzón', 'Para reportar una avería o consultar algo, escribe a la administración desde el Buzón. Es privado: solo lo ve la gestión.'],
   ['Reservas', 'Una reserva vigente por vivienda. Las aprueba el presidente. Anula la tuya si no vas a usarla.'],
   ['Votaciones', 'Son sondeos informales, sin valor oficial. Un voto por vivienda.'],
   ['Datos', 'Tratamos datos personales conforme al RGPD. Consulta el aviso de privacidad.'],

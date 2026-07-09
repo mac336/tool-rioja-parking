@@ -88,7 +88,6 @@ export interface Aviso { id: string; texto: string; cuando: string; to: string }
 export async function listAvisos(): Promise<Aviso[]> {
   const avisos: Aviso[] = []
   const nowISO = new Date().toISOString()
-  const hoyISO = nowISO.slice(0, 10)
 
   const { data: { user } } = await supabase.auth.getUser()
   if (!user) return avisos
@@ -128,20 +127,6 @@ export async function listAvisos(): Promise<Aviso[]> {
     avisos.push({ id: 'av-enc', texto: `Votación abierta: ${abierta.titulo}`, cuando: 'Ahora', to: `/votaciones/${abierta.id}` })
   }
 
-  // Anuncio publicado, vigente y de nivel principal.
-  const { data: anuncios } = await supabase.from('anuncios')
-    .select('id, titulo, publicado_at, created_at')
-    .eq('estado', 'publicado')
-    .eq('nivel', 'principal')
-    .lte('fecha_inicio', hoyISO)
-    .gte('fecha_fin', hoyISO)
-    .order('publicado_at', { ascending: false })
-    .limit(1)
-  const principal = (anuncios ?? [])[0]
-  if (principal) {
-    avisos.push({ id: 'av-anun', texto: `Nuevo anuncio destacado: ${principal.titulo}`, cuando: fechaCorta(principal.publicado_at ?? principal.created_at), to: '/anuncios' })
-  }
-
   // Reserva propia aprobada.
   const { data: reservas } = await supabase.from('reservas')
     .select('id, inicio, zona:zonas_comunes(nombre)')
@@ -155,12 +140,8 @@ export async function listAvisos(): Promise<Aviso[]> {
     avisos.push({ id: 'av-res', texto: `Tu reserva de ${z?.nombre ?? ''} está aprobada`, cuando: fechaCorta(miReserva.inicio), to: '/reservas/mias' })
   }
 
-  // Colas de moderación (solo gestión).
+  // Cola de reservas por aprobar (solo gestión).
   if (esGestion) {
-    const { count: pend } = await supabase.from('anuncios')
-      .select('*', { count: 'exact', head: true }).eq('estado', 'pendiente')
-    if (pend) avisos.push({ id: 'av-mod', texto: `${pend} anuncio(s) esperando moderación`, cuando: 'Pendiente', to: '/anuncios' })
-
     const { count: pendRes } = await supabase.from('reservas')
       .select('*', { count: 'exact', head: true }).eq('estado', 'pendiente')
     if (pendRes) avisos.push({ id: 'av-modres', texto: `${pendRes} reserva(s) por aprobar`, cuando: 'Pendiente', to: '/reservas' })

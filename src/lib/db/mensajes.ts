@@ -17,8 +17,8 @@ export async function crearMensaje(input: { tipo: MensajeTipo; titulo: string; c
     .insert({ tipo: input.tipo, titulo: input.titulo, cuerpo: input.cuerpo, created_by: user?.id ?? null })
     .select('*').single()
   if (error) throw error
-  // Aviso push a todos (no bloquea si falla).
-  await supabase.functions.invoke('notificar', { body: { kind: 'mensaje', id: data.id } }).catch(() => undefined)
+  // Aviso push a todos en segundo plano: no bloquea la publicación.
+  void supabase.functions.invoke('notificar', { body: { kind: 'mensaje', id: data.id } }).catch(() => undefined)
   return data as Mensaje
 }
 

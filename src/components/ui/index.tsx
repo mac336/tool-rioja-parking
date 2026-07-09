@@ -1,7 +1,7 @@
 // Primitivos del design system Rioja 25. Basados en design_handoff (tokens.css).
 // Todos usan variables CSS de tokens.css → modo claro/oscuro automático.
 import { type ReactNode, type ButtonHTMLAttributes, type InputHTMLAttributes, type SelectHTMLAttributes, type TextareaHTMLAttributes, forwardRef } from 'react'
-import type { IncidentStatus, RoleBadgeKind } from '@/types'
+import type { RoleBadgeKind } from '@/types'
 import { BADGE_LABEL } from '@/lib/roles'
 
 const cx = (...c: (string | false | undefined)[]) => c.filter(Boolean).join(' ')
@@ -100,25 +100,6 @@ export function SelectField({ label, error, id, className, children, ...rest }: 
   )
 }
 
-// ---- StatusChip (incidencias) ------------------------------------------------
-const STATUS: Record<IncidentStatus, { label: string; dot: string; cls: string }> = {
-  pendiente: { label: 'Pendiente de aprobar', dot: 'var(--warn)', cls: 'bg-warn-soft text-warn-ink' },
-  abierta: { label: 'Abierta', dot: 'var(--danger)', cls: 'bg-danger-soft text-danger-ink' },
-  en_curso: { label: 'En curso', dot: 'var(--info)', cls: 'bg-info-soft text-info-ink' },
-  resuelta: { label: 'Resuelta', dot: 'var(--success)', cls: 'bg-success-soft text-success-ink' },
-  cerrada: { label: 'Cerrada', dot: 'var(--faint)', cls: 'bg-surface-2 text-muted' },
-  rechazada: { label: 'Rechazada', dot: 'var(--faint)', cls: 'bg-surface-2 text-muted' },
-}
-export function StatusChip({ status }: { status: IncidentStatus }) {
-  const s = STATUS[status]
-  return (
-    <span className={cx('inline-flex items-center gap-1.5 rounded-pill px-2.5 py-1 text-[12px] font-bold', s.cls)}>
-      <span className="h-[7px] w-[7px] rounded-full" style={{ background: s.dot }} />
-      {s.label}
-    </span>
-  )
-}
-
 // ---- RoleBadge ---------------------------------------------------------------
 export function RoleBadge({ kind }: { kind: RoleBadgeKind }) {
   const cls: Record<RoleBadgeKind, string> = {
@@ -127,17 +108,6 @@ export function RoleBadge({ kind }: { kind: RoleBadgeKind }) {
     admin: 'bg-primary text-white',
   }
   return <span className={cx('rounded-[8px] px-2 py-0.5 text-[11.5px] font-bold', cls[kind])}>{BADGE_LABEL[kind]}</span>
-}
-
-// ---- CategoryChip ------------------------------------------------------------
-export function CategoryChip({ children, active, onClick }: { children: ReactNode; active?: boolean; onClick?: () => void }) {
-  return (
-    <button type="button" onClick={onClick}
-      className={cx('rounded-pill border px-3 py-1.5 text-[12px] font-semibold transition-colors',
-        active ? 'border-primary bg-primary text-white' : 'border-border bg-surface-2 text-muted hover:border-border-strong')}>
-      {children}
-    </button>
-  )
 }
 
 // ---- Avatar ------------------------------------------------------------------
@@ -205,36 +175,6 @@ export function SkeletonList({ n = 4 }: { n?: number }) {
         </div>
       ))}
     </div>
-  )
-}
-
-// ---- Stepper (detalle incidencia) -------------------------------------------
-export function Stepper({ actual }: { actual: IncidentStatus }) {
-  const pasos: { key: IncidentStatus; label: string }[] = [
-    { key: 'abierta', label: 'Abierta' },
-    { key: 'en_curso', label: 'En curso' },
-    { key: 'resuelta', label: 'Resuelta' },
-    { key: 'cerrada', label: 'Cerrada' },
-  ]
-  const idx = pasos.findIndex((p) => p.key === actual)
-  return (
-    <ol className="flex items-center gap-1">
-      {pasos.map((p, i) => {
-        const done = i <= idx
-        return (
-          <li key={p.key} className="flex flex-1 flex-col items-center gap-1">
-            <div className="flex w-full items-center gap-1">
-              <span className={cx('flex h-6 w-6 shrink-0 items-center justify-center rounded-full text-[11px] font-bold',
-                done ? 'bg-primary text-white' : 'border border-dashed border-border-strong text-faint')}>
-                {done ? '✓' : i + 1}
-              </span>
-              {i < pasos.length - 1 && <span className={cx('h-0.5 flex-1', i < idx ? 'bg-primary' : 'bg-border')} />}
-            </div>
-            <span className={cx('text-[11px]', done ? 'font-semibold text-ink' : 'text-faint')}>{p.label}</span>
-          </li>
-        )
-      })}
-    </ol>
   )
 }
 

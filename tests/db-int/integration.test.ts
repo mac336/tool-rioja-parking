@@ -8,8 +8,8 @@ import { supabase } from '@/lib/supabase'
 import * as contactos from '@/lib/db/contactos'
 import * as reservas from '@/lib/db/reservas'
 import * as encuestas from '@/lib/db/encuestas'
-import * as incidencias from '@/lib/db/incidencias'
-import * as storage from '@/lib/db/storage'
+import * as mensajes from '@/lib/db/mensajes'
+import * as buzon from '@/lib/db/buzon'
 
 const URL = 'http://127.0.0.1:54321'
 const SERVICE = 'eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJzdXBhYmFzZS1kZW1vIiwicm9sZSI6InNlcnZpY2Vfcm9sZSIsImV4cCI6MTk4MzgxMjk5Nn0.EGIM96RAZx35lJzdJsyH-qQwv8Hdp7fsn3W0YpN81IU'
@@ -56,30 +56,33 @@ describe.skipIf(!process.env.SUPA_ITEST)('capa de datos real (Supabase local)', 
     expect(cts.length).toBeGreaterThanOrEqual(14)
   })
 
-  it('vecino: crea incidencia (pendiente), gestión aprueba y comenta', async () => {
-    await supabase.auth.signInWithPassword({ email: V_EMAIL, password: PASS })
-    const inc = await incidencias.crearIncidencia({ titulo: 'ITEST luz', descripcion: 'prueba', categoria: 'otros' })
-    expect(inc.id).toBeTruthy()
-    expect(inc.estado).toBe('pendiente') // moderación previa: nace pendiente
-    await incidencias.comentarIncidencia(inc.id, 'un comentario')
-    // Presidente la ve en la cola y la aprueba → pasa a 'abierta'.
+  it('mensajes: gestión publica y el vecino lo ve (vecino no puede publicar)', async () => {
     await supabase.auth.signInWithPassword({ email: P_EMAIL, password: PASS })
-    const cola = await incidencias.incidenciasPendientesGestion()
-    expect(cola.find((x) => x.id === inc.id)).toBeTruthy()
-    await incidencias.aprobarIncidencia(inc.id, true)
-    const full = await incidencias.getIncidencia(inc.id)
-    expect(full?.estado).toBe('abierta')
-    expect(full?.comentarios.length).toBeGreaterThanOrEqual(1)
+    const m = await mensajes.crearMensaje({ tipo: 'aviso', titulo: 'ITEST aviso', cuerpo: 'contenido' })
+    expect(m.id).toBeTruthy()
+    await supabase.auth.signInWithPassword({ email: V_EMAIL, password: PASS })
+    const lista = await mensajes.listMensajes()
+    expect(lista.find((x) => x.id === m.id)).toBeTruthy()
+    // el vecino NO puede publicar (RLS)
+    await expect(mensajes.crearMensaje({ tipo: 'aviso', titulo: 'x', cuerpo: 'y' })).rejects.toBeTruthy()
+    // limpieza
+    await supabase.auth.signInWithPassword({ email: P_EMAIL, password: PASS })
+    await mensajes.borrarMensaje(m.id)
   })
 
-  it('vecino: sube una foto de incidencia al Storage y la lee con URL firmada', async () => {
+  it('buzón: el vecino abre un hilo, la gestión lo ve y responde', async () => {
     await supabase.auth.signInWithPassword({ email: V_EMAIL, password: PASS })
-    const inc = await incidencias.crearIncidencia({ titulo: 'ITEST foto', descripcion: 'con adjunto', categoria: 'otros' })
-    const file = new File([new Uint8Array([137, 80, 78, 71])], 'foto.png', { type: 'image/png' })
-    await storage.subirAdjuntosIncidencia(inc.id, [file])
-    const full = await incidencias.getIncidencia(inc.id)
-    expect(full?.fotos.length).toBe(1)
-    expect(full?.fotos[0]).toContain('token=') // URL firmada
+    const hiloId = await buzon.crearHilo({ asunto: 'ITEST buzón', texto: 'hola admin' })
+    expect(hiloId).toBeTruthy()
+    const mios = await buzon.misHilos()
+    expect(mios.find((h) => h.id === hiloId)).toBeTruthy()
+    await supabase.auth.signInWithPassword({ email: P_EMAIL, password: PASS })
+    const todos = await buzon.hilosGestion()
+    expect(todos.find((h) => h.id === hiloId)).toBeTruthy()
+    await buzon.responderHilo(hiloId, 'te leo, gracias')
+    const det = await buzon.getHilo(hiloId)
+    expect(det?.mensajes.length).toBe(2)
+    expect(det?.mensajes.some((mm) => mm.de_gestion)).toBe(true)
   })
 
   it('gestión: crea encuesta multi-pregunta, vecino vota, resultados', async () => {

@@ -2,7 +2,7 @@
 // Alineados con src/types y con las viviendas reales de la comunidad.
 
 import type {
-  Profile, Incident, Encuesta, ZonaComun, Reserva, Anuncio, Contact, AccessRequest,
+  Profile, Encuesta, ZonaComun, Reserva, Contact, AccessRequest,
 } from '@/types'
 import { quincenaGlobal } from '@/lib/parking'
 
@@ -24,41 +24,6 @@ export const MOCK_ACCESS_REQUESTS: AccessRequest[] = [
     estado: 'pendiente', created_at: '2026-07-05T18:00:00Z' },
   { id: 'r3', nombre: 'Luis Pardo', email: 'luis.pardo@correo.es', vivienda: 'Bajo C',
     comentario: 'Nuevo inquilino.', estado: 'pendiente', created_at: '2026-07-04T09:00:00Z' },
-]
-
-export const MOCK_INCIDENTS: Incident[] = [
-  {
-    id: '128', autor_id: 'u_x', autor_nombre: 'Ana (3º B Dcha)', autor_vivienda: '3º B Dcha',
-    titulo: 'Luz fundida en el portal', descripcion: 'La bombilla de la entrada lleva dos días sin funcionar. Por la noche se ve muy poco al entrar.',
-    categoria: 'otros', ubicacion: 'Portal', estado: 'abierta', prioridad: 'media',
-    comentarios_bloqueados: false, fotos: [],
-    comentarios: [
-      { id: 'c1', autor_id: 'u_j', autor_nombre: 'David Seco', autor_rol: 'presidente',
-        texto: 'Avisamos al electricista para mañana.', oculto: false, created_at: '2026-07-06T09:10:00Z' },
-    ],
-    eventos: [
-      { id: 'e1', estado_anterior: null, estado_nuevo: 'abierta', actor_nombre: 'Ana', created_at: '2026-07-06T08:20:00Z' },
-    ],
-    created_at: '2026-07-06T08:20:00Z',
-  },
-  {
-    id: '127', autor_id: 'u_y', autor_nombre: 'Pedro (1º C Izqda)', autor_vivienda: '1º C Izqda',
-    titulo: 'Ruido en el ascensor', descripcion: 'Hace un ruido metálico al frenar en la planta baja.',
-    categoria: 'ascensor', ubicacion: 'Ascensor', estado: 'en_curso', prioridad: 'alta',
-    comentarios_bloqueados: false, fotos: [], comentarios: [],
-    eventos: [
-      { id: 'e2', estado_anterior: null, estado_nuevo: 'abierta', actor_nombre: 'Pedro', created_at: '2026-07-05T10:00:00Z' },
-      { id: 'e3', estado_anterior: 'abierta', estado_nuevo: 'en_curso', actor_nombre: 'David Seco', created_at: '2026-07-05T18:00:00Z' },
-    ],
-    created_at: '2026-07-05T10:00:00Z',
-  },
-  {
-    id: '126', autor_id: 'u_z', autor_nombre: 'Bajo A', autor_vivienda: 'Bajo A',
-    titulo: 'Gotera en el garaje', descripcion: 'Filtración junto a la rampa cuando llueve.',
-    categoria: 'garaje', ubicacion: 'Garaje', estado: 'resuelta',
-    comentarios_bloqueados: false, fotos: [], comentarios: [], eventos: [],
-    created_at: '2026-07-03T12:00:00Z',
-  },
 ]
 
 const cierraEn = (dias: number) => new Date(Date.now() + dias * 86_400_000).toISOString()
@@ -152,36 +117,6 @@ export const MOCK_RESERVAS: Reserva[] = [
   },
 ]
 
-export const MOCK_ANUNCIOS: Anuncio[] = [
-  {
-    id: 'a1', autor_id: 'u_j', autor_nombre: 'Junta', vivienda: '1º A Dcha',
-    titulo: 'Cena de vecinos en el patio', cuerpo: 'El **sábado 19** a las 21:00 hacemos una cena en el patio. ¡Trae algo para compartir!',
-    fecha_inicio: '2026-07-07', fecha_fin: '2026-07-20', revision_larga: false,
-    nivel_solicitado: 'principal', nivel: 'principal', estado: 'publicado', publicado_at: '2026-07-06T10:00:00Z', created_at: '2026-07-06T09:00:00Z',
-  },
-  {
-    id: 'a2', autor_id: 'u_marta', autor_nombre: 'Marta Ruiz Bel', vivienda: '2º C Dcha',
-    titulo: 'Vendo bicicleta de paseo', cuerpo: 'Bici de paseo en buen estado, 60 €. Interesados escribid al portal.',
-    fecha_inicio: '2026-07-05', fecha_fin: '2026-08-05', revision_larga: false,
-    nivel_solicitado: 'secundario', nivel: 'secundario', estado: 'publicado', publicado_at: '2026-07-05T12:00:00Z', created_at: '2026-07-05T11:00:00Z',
-  },
-  {
-    id: 'a3', autor_id: 'u_p', autor_nombre: 'David Seco', vivienda: '1º F Dcha',
-    titulo: 'Corte de agua programado', cuerpo: 'El martes de 10:00 a 12:00 habrá corte de agua por mantenimiento.',
-    fecha_inicio: '2026-07-08', fecha_fin: '2026-07-09', revision_larga: false,
-    nivel_solicitado: 'principal', nivel: 'principal', estado: 'publicado', publicado_at: '2026-07-06T08:00:00Z', created_at: '2026-07-06T07:00:00Z',
-  },
-]
-
-// Anuncio pendiente de moderar (va en la misma lista MOCK_ANUNCIOS al sembrar).
-export const MOCK_ANUNCIOS_PENDIENTES: Anuncio[] = [
-  {
-    id: 'a9', autor_id: 'u_q', autor_nombre: 'Sara (2º E Izqda)', vivienda: '2º E Izqda',
-    titulo: 'Clases de guitarra para vecinos', cuerpo: 'Ofrezco clases de guitarra los fines de semana.',
-    fecha_inicio: '2026-07-10', fecha_fin: '2026-09-10', revision_larga: false,
-    nivel_solicitado: 'principal', nivel: null, estado: 'pendiente', created_at: '2026-07-06T15:00:00Z',
-  },
-]
 
 // Vecinos de la comunidad (para la gestión de usuarios del panel admin).
 export const MOCK_VECINOS: Profile[] = [

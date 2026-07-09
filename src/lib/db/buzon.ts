@@ -60,7 +60,7 @@ export async function crearHilo(input: { asunto: string; texto: string }): Promi
   if (error) throw error
   const { error: e2 } = await supabase.from('hilo_mensajes').insert({ hilo_id: hilo.id, autor_id: user.id, texto: input.texto })
   if (e2) throw e2
-  await supabase.functions.invoke('notificar', { body: { kind: 'buzon', id: hilo.id } }).catch(() => undefined)
+  void supabase.functions.invoke('notificar', { body: { kind: 'buzon', id: hilo.id } }).catch(() => undefined)
   return hilo.id as string
 }
 
@@ -70,7 +70,7 @@ export async function responderHilo(hiloId: string, texto: string): Promise<void
   if (!user) throw new Error('No autenticado')
   const { error } = await supabase.from('hilo_mensajes').insert({ hilo_id: hiloId, autor_id: user.id, texto })
   if (error) throw error
-  await supabase.functions.invoke('notificar', { body: { kind: 'buzon', id: hiloId } }).catch(() => undefined)
+  void supabase.functions.invoke('notificar', { body: { kind: 'buzon', id: hiloId } }).catch(() => undefined)
 }
 
 export async function cerrarHilo(hiloId: string, cerrar = true): Promise<void> {

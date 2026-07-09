@@ -34,15 +34,13 @@ export const BADGE_LABEL: Record<RoleBadgeKind, string> = {
 // La verdad la tiene la BD (tabla role_permissions + RLS). En el cliente cacheamos
 // los permisos del USUARIO ACTUAL para adaptar la interfaz; app_admin = SUPERADMIN
 // (siempre todo). En modo demo (sin backend) no hay caché → se usan los defaults.
-export type Permiso = 'panel' | 'aprobar_altas' | 'aprobar_reservas' | 'aprobar_anuncios' | 'bloquear_anuncios' | 'publicar_mensajes'
+export type Permiso = 'panel' | 'aprobar_altas' | 'aprobar_reservas' | 'publicar_mensajes'
 
 export const CATALOGO_PERMISOS: { key: Permiso; label: string; desc: string }[] = [
   { key: 'panel', label: 'Panel de gestión', desc: 'Acceder al panel y al buzón de administración' },
   { key: 'publicar_mensajes', label: 'Publicar mensajes', desc: 'Crear avisos, anuncios e incidencias para toda la comunidad' },
   { key: 'aprobar_altas', label: 'Aprobar altas y gestionar vecinos', desc: 'Aprobar solicitudes, editar, suspender y dar de baja' },
   { key: 'aprobar_reservas', label: 'Aprobar reservas', desc: 'Aprobar o rechazar reservas de zonas comunes' },
-  { key: 'aprobar_anuncios', label: 'Aprobar anuncios (tablón antiguo)', desc: 'Publicar o rechazar anuncios del tablón' },
-  { key: 'bloquear_anuncios', label: 'Bloquear anuncios de una vivienda', desc: 'Impedir que una vivienda publique anuncios' },
 ]
 
 // Defaults (deben coincidir con la semilla de la migración 0010) — solo se usan
@@ -52,8 +50,6 @@ const DEFAULTS: Record<Permiso, Role[]> = {
   publicar_mensajes: ['app_admin', 'presidente', 'vicepresidente', 'administrador_finca', 'junta'],
   aprobar_altas: ['app_admin', 'presidente', 'administrador_finca'],
   aprobar_reservas: ['app_admin', 'presidente'],
-  aprobar_anuncios: ['app_admin', 'presidente', 'vicepresidente', 'administrador_finca', 'junta'],
-  bloquear_anuncios: ['app_admin', 'presidente', 'administrador_finca'],
 }
 
 /** Matriz de permisos por defecto (para el modo demo / semilla del mock). */
@@ -80,11 +76,6 @@ export function esGestion(rol: Role): boolean {
   return tienePermiso(rol, 'panel')
 }
 
-/** Puede aprobar/publicar anuncios. */
-export function puedeAprobarAnuncios(rol: Role): boolean {
-  return tienePermiso(rol, 'aprobar_anuncios')
-}
-
 /** Puede aprobar/rechazar reservas. */
 export function puedeAprobarReservas(rol: Role): boolean {
   return tienePermiso(rol, 'aprobar_reservas')
@@ -93,11 +84,6 @@ export function puedeAprobarReservas(rol: Role): boolean {
 /** Puede aprobar altas de acceso y gestionar vecinos. */
 export function puedeAprobarAltas(rol: Role): boolean {
   return tienePermiso(rol, 'aprobar_altas')
-}
-
-/** Puede bloquear anuncios de una vivienda. */
-export function puedeBloquearAnuncios(rol: Role): boolean {
-  return tienePermiso(rol, 'bloquear_anuncios')
 }
 
 /** Puede publicar mensajes (avisos/anuncios/incidencias) a la comunidad. */

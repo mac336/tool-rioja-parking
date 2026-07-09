@@ -42,47 +42,6 @@ export interface AccessRequest {
   created_at: string
 }
 
-export type IncidentStatus = 'pendiente' | 'abierta' | 'en_curso' | 'resuelta' | 'cerrada' | 'rechazada'
-export type IncidentCategory =
-  | 'limpieza' | 'ascensor' | 'garaje' | 'jardin' | 'piscina' | 'ruido' | 'otros'
-export type IncidentPriority = 'baja' | 'media' | 'alta'
-
-export interface IncidentComment {
-  id: string
-  autor_id: string
-  autor_nombre: string
-  autor_rol: Role
-  texto: string
-  oculto: boolean
-  created_at: string
-}
-
-export interface IncidentEvent {
-  id: string
-  estado_anterior: IncidentStatus | null
-  estado_nuevo: IncidentStatus
-  actor_nombre: string
-  created_at: string
-}
-
-export interface Incident {
-  id: string
-  autor_id: string
-  autor_nombre: string
-  autor_vivienda: string
-  titulo: string
-  descripcion: string
-  categoria: IncidentCategory
-  ubicacion?: string
-  estado: IncidentStatus
-  prioridad?: IncidentPriority
-  comentarios_bloqueados: boolean
-  fotos: string[]
-  comentarios: IncidentComment[]
-  eventos: IncidentEvent[]
-  created_at: string
-}
-
 export type EncuestaTipo = 'opcion_unica' | 'opcion_multiple'
 export type EncuestaEstado = 'programada' | 'abierta' | 'cerrada'
 
@@ -245,29 +204,6 @@ export interface ParkingQuincena {
   actual: boolean
 }
 
-export type AnuncioNivel = 'principal' | 'secundario'
-export type AnuncioEstado = 'pendiente' | 'publicado' | 'rechazado' | 'archivado'
-
-export interface Anuncio {
-  id: string
-  autor_id: string
-  autor_nombre: string
-  vivienda: string
-  titulo: string
-  cuerpo: string // markdown restringido, saneado
-  imagen_path?: string
-  fecha_inicio: string // date
-  fecha_fin: string // date
-  revision_larga: boolean
-  nivel_solicitado: AnuncioNivel
-  nivel: AnuncioNivel | null
-  estado: AnuncioEstado
-  aprobado_por?: string
-  motivo_rechazo?: string
-  publicado_at?: string
-  created_at: string
-}
-
 export type ContactCategory = 'administrador' | 'conserje' | 'proveedor' | 'junta' | 'seguro'
 export interface Contact {
   id: string
@@ -278,17 +214,6 @@ export interface Contact {
   telefonos: string[]
   web_o_email?: string
   orden: number
-}
-
-export type ReporteEntidad = 'anuncio' | 'comentario'
-export interface Reporte {
-  id: string
-  entidad: ReporteEntidad
-  entidad_id: string
-  autor_id: string
-  motivo: string
-  estado: 'pendiente' | 'atendido' | 'descartado'
-  created_at: string
 }
 
 // Estado de UI transversal

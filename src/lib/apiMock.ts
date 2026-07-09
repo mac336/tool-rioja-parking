@@ -4,8 +4,8 @@
 // de cada endpoint queda como paso posterior — ver todo.md.
 
 import type {
-  Profile, Role, Incident, IncidentComment, IncidentStatus, IncidentCategory,
-  Encuesta, EncuestaFormato, EncuestaTipo, ZonaComun, Reserva, ReservaGrupo, CrearReservaInput, Anuncio, AnuncioNivel,
+  Profile, Role,
+  Encuesta, EncuestaFormato, EncuestaTipo, ZonaComun, Reserva, ReservaGrupo, CrearReservaInput,
   Mensaje, MensajeTipo, Hilo, HiloMensaje,
   Contact, ContactCategory, AccessRequest, ParkingCesion, CesionTipo, ParkingQuincena,
 } from '@/types'
@@ -21,11 +21,9 @@ const now = () => new Date().toISOString()
 // ---- Estado en memoria (semilla desde mock; mutable para demo) ---------------
 const db = {
   profiles: structuredClone(mock.MOCK_VECINOS) as Profile[],
-  incidencias: structuredClone(mock.MOCK_INCIDENTS) as Incident[],
   encuestas: structuredClone(mock.MOCK_ENCUESTAS) as Encuesta[],
   zonas: structuredClone(mock.MOCK_ZONAS) as ZonaComun[],
   reservas: structuredClone(mock.MOCK_RESERVAS) as Reserva[],
-  anuncios: structuredClone([...mock.MOCK_ANUNCIOS, ...mock.MOCK_ANUNCIOS_PENDIENTES]) as Anuncio[],
   contactos: structuredClone(mock.MOCK_CONTACTS) as Contact[],
   requests: structuredClone(mock.MOCK_ACCESS_REQUESTS) as AccessRequest[],
   mensajes: [
@@ -36,8 +34,6 @@ const db = {
   hilos: [] as Hilo[],
   hiloMensajes: [] as HiloMensaje[],
   cesiones: [] as ParkingCesion[],
-  reportes: [] as { id: string; entidad_id: string; entidad_titulo: string; autor: string; motivo: string; created_at: string }[],
-  viviendasBloqueadas: new Set<string>(),
 }
 
 // ---- Sesión ------------------------------------------------------------------
@@ -52,89 +48,6 @@ const esGestionActual = () => currentUser.rol !== 'vecino'
 
 // ---- Viviendas ---------------------------------------------------------------
 export const listViviendas = () => delay(PISOS)
-
-// ---- Incidencias -------------------------------------------------------------
-// Visibilidad: gestión ve todo; el resto ve las moderadas + las suyas propias.
-const puedeVerIncidencia = (i: Incident) =>
-  esGestionActual() || i.autor_id === currentUser.id || (i.estado !== 'pendiente' && i.estado !== 'rechazada')
-export const listIncidencias = () => delay(db.incidencias.filter(puedeVerIncidencia))
-export const getIncidencia = (id: string) => {
-  const i = db.incidencias.find((i) => i.id === id)
-  return delay(i && puedeVerIncidencia(i) ? i : null)
-}
-
-/** Cola de aprobación de incidencias (gestión): las que están 'pendiente'. */
-export const incidenciasPendientesGestion = () =>
-  delay(db.incidencias.filter((i) => i.estado === 'pendiente'))
-
-/** Aprueba (→abierta) o rechaza (→rechazada) una incidencia pendiente. */
-export function aprobarIncidencia(id: string, aprobar: boolean): Promise<void> {
-  const inc = db.incidencias.find((i) => i.id === id)
-  if (inc) {
-    const estado: IncidentStatus = aprobar ? 'abierta' : 'rechazada'
-    inc.eventos.push({ id: uid(), estado_anterior: inc.estado, estado_nuevo: estado, actor_nombre: currentUser.nombre, created_at: now() })
-    inc.estado = estado
-  }
-  return delay(undefined)
-}
-
-export function crearIncidencia(input: {
-  titulo: string; descripcion: string; categoria: IncidentCategory; ubicacion?: string; fotos?: string[]
-}): Promise<Incident> {
-  const inc: Incident = {
-    id: uid(), autor_id: currentUser.id, autor_nombre: `${currentUser.nombre} (${currentUser.vivienda})`,
-    autor_vivienda: currentUser.vivienda, titulo: input.titulo, descripcion: input.descripcion,
-    categoria: input.categoria, ubicacion: input.ubicacion, estado: 'pendiente', comentarios_bloqueados: false,
-    fotos: input.fotos ?? [], comentarios: [],
-    eventos: [{ id: uid(), estado_anterior: null, estado_nuevo: 'pendiente', actor_nombre: currentUser.nombre, created_at: now() }],
-    created_at: now(),
-  }
-  db.incidencias.unshift(inc)
-  return delay(inc)
-}
-
-export function editarIncidencia(id: string, input: {
-  titulo: string; descripcion: string; categoria: IncidentCategory; ubicacion?: string
-}): Promise<Incident> {
-  const inc = db.incidencias.find((i) => i.id === id)!
-  Object.assign(inc, input)
-  return delay(inc)
-}
-
-export function borrarIncidencia(id: string): Promise<void> {
-  db.incidencias = db.incidencias.filter((i) => i.id !== id)
-  return delay(undefined)
-}
-
-export function comentarIncidencia(id: string, texto: string): Promise<IncidentComment> {
-  const inc = db.incidencias.find((i) => i.id === id)!
-  const c: IncidentComment = {
-    id: uid(), autor_id: currentUser.id, autor_nombre: currentUser.nombre, autor_rol: currentUser.rol,
-    texto, oculto: false, created_at: now(),
-  }
-  inc.comentarios.push(c)
-  return delay(c)
-}
-
-export function ocultarComentario(incId: string, comId: string, oculto = true): Promise<void> {
-  const inc = db.incidencias.find((i) => i.id === incId)
-  const c = inc?.comentarios.find((x) => x.id === comId)
-  if (c) c.oculto = oculto
-  return delay(undefined)
-}
-
-export function bloquearComentarios(id: string, bloqueado: boolean): Promise<void> {
-  const inc = db.incidencias.find((i) => i.id === id)
-  if (inc) inc.comentarios_bloqueados = bloqueado
-  return delay(undefined)
-}
-
-export function cambiarEstadoIncidencia(id: string, estado: IncidentStatus): Promise<Incident> {
-  const inc = db.incidencias.find((i) => i.id === id)!
-  inc.eventos.push({ id: uid(), estado_anterior: inc.estado, estado_nuevo: estado, actor_nombre: currentUser.nombre, created_at: now() })
-  inc.estado = estado
-  return delay(inc)
-}
 
 // ---- Encuestas ---------------------------------------------------------------
 export const listEncuestas = () => delay(db.encuestas.slice())
@@ -326,86 +239,6 @@ export function demandaParking(): Promise<{ necesitan: number; ceden: number }> 
   return delay({ necesitan, ceden })
 }
 
-// ---- Anuncios ----------------------------------------------------------------
-const hoyISO = () => new Date().toISOString().slice(0, 10)
-const vigente = (a: Anuncio) => a.estado === 'publicado' && a.fecha_inicio <= hoyISO() && a.fecha_fin >= hoyISO()
-export const anunciosPrincipales = () => delay(db.anuncios.filter((a) => vigente(a) && a.nivel === 'principal'))
-export const anunciosListado = () => delay(db.anuncios.filter(vigente))
-export const misAnuncios = () => delay(db.anuncios.filter((a) => a.autor_id === currentUser.id))
-
-export const viviendaPuedePublicar = () => delay(!db.viviendasBloqueadas.has(currentUser.vivienda))
-
-export function crearAnuncio(input: {
-  titulo: string; cuerpo: string; fechaInicio: string; fechaFin: string; nivelSolicitado: AnuncioNivel
-}): Promise<Anuncio> {
-  if (db.viviendasBloqueadas.has(currentUser.vivienda)) {
-    return Promise.reject(new Error('Tu vivienda está bloqueada para publicar anuncios.'))
-  }
-  const a: Anuncio = {
-    id: uid(), autor_id: currentUser.id, autor_nombre: currentUser.nombre, vivienda: currentUser.vivienda,
-    titulo: input.titulo, cuerpo: input.cuerpo, fecha_inicio: input.fechaInicio, fecha_fin: input.fechaFin,
-    revision_larga: false, nivel_solicitado: input.nivelSolicitado, nivel: null, estado: 'pendiente', created_at: now(),
-  }
-  db.anuncios.unshift(a)
-  return delay(a)
-}
-
-export function editarAnuncio(id: string, input: {
-  titulo: string; cuerpo: string; fechaInicio: string; fechaFin: string; nivelSolicitado: AnuncioNivel
-}): Promise<Anuncio> {
-  const a = db.anuncios.find((x) => x.id === id)!
-  Object.assign(a, {
-    titulo: input.titulo, cuerpo: input.cuerpo,
-    fecha_inicio: input.fechaInicio, fecha_fin: input.fechaFin, nivel_solicitado: input.nivelSolicitado,
-  })
-  return delay(a)
-}
-export function borrarAnuncio(id: string): Promise<void> {
-  db.anuncios = db.anuncios.filter((a) => a.id !== id)
-  return delay(undefined)
-}
-
-export const anunciosPendientesGestion = () => delay(db.anuncios.filter((a) => a.estado === 'pendiente'))
-export function resolverAnuncio(id: string, accion: 'publicar' | 'rechazar', nivel?: AnuncioNivel, motivo?: string): Promise<void> {
-  const a = db.anuncios.find((x) => x.id === id)
-  if (!a) return delay(undefined)
-  if (accion === 'publicar') { a.estado = 'publicado'; a.nivel = nivel ?? a.nivel_solicitado; a.publicado_at = now(); a.aprobado_por = currentUser.id }
-  else { a.estado = 'rechazado'; a.motivo_rechazo = motivo; a.aprobado_por = currentUser.id }
-  return delay(undefined)
-}
-/** Mover un anuncio publicado entre principal/secundario (gestión). */
-export function moverNivelAnuncio(id: string, nivel: AnuncioNivel): Promise<void> {
-  const a = db.anuncios.find((x) => x.id === id)
-  if (a && a.estado === 'publicado') a.nivel = nivel
-  return delay(undefined)
-}
-/** Despublicar/archivar un anuncio publicado (gestión). */
-export function despublicarAnuncio(id: string): Promise<void> {
-  const a = db.anuncios.find((x) => x.id === id)
-  if (a) a.estado = 'archivado'
-  return delay(undefined)
-}
-
-// Reportes de contenido (vecinos) + cola de gestión
-export function reportarAnuncio(anuncioId: string, motivo: string): Promise<void> {
-  const a = db.anuncios.find((x) => x.id === anuncioId)
-  db.reportes.push({ id: uid(), entidad_id: anuncioId, entidad_titulo: a?.titulo ?? '—', autor: currentUser.nombre, motivo, created_at: now() })
-  return delay(undefined)
-}
-export const listReportes = () => delay(db.reportes.slice())
-export function descartarReporte(id: string): Promise<void> {
-  db.reportes = db.reportes.filter((r) => r.id !== id)
-  return delay(undefined)
-}
-
-// Bloqueo de viviendas para publicar (presidente/adm.finca/app_admin)
-export const listViviendasBloqueadas = () => delay([...db.viviendasBloqueadas])
-export function bloquearVivienda(vivienda: string, bloquear: boolean): Promise<void> {
-  if (bloquear) db.viviendasBloqueadas.add(vivienda)
-  else db.viviendasBloqueadas.delete(vivienda)
-  return delay(undefined)
-}
-
 // ---- Contactos (CRUD admin) --------------------------------------------------
 export const listContactos = () => delay(db.contactos.slice().sort((a, b) => a.orden - b.orden))
 export function crearContacto(input: Omit<Contact, 'id'>): Promise<Contact> {
@@ -543,21 +376,17 @@ export function listAvisos(): Promise<Aviso[]> {
   const avisos: Aviso[] = []
   const abierta = db.encuestas.find((e) => e.estado === 'abierta')
   if (abierta) avisos.push({ id: 'av-enc', texto: `Votación abierta: ${abierta.titulo}`, cuando: 'Ahora', to: `/votaciones/${abierta.id}` })
-  const principal = db.anuncios.find((a) => vigente(a) && a.nivel === 'principal')
-  if (principal) avisos.push({ id: 'av-anun', texto: `Nuevo anuncio destacado: ${principal.titulo}`, cuando: fechaCorta(principal.publicado_at ?? principal.created_at), to: '/anuncios' })
+  for (const m of db.mensajes.filter((x) => x.activo).slice(0, 3)) {
+    const etiqueta = m.tipo === 'aviso' ? 'Aviso' : m.tipo === 'anuncio' ? 'Anuncio' : 'Incidencia'
+    avisos.push({ id: `av-msg-${m.id}`, texto: `${etiqueta}: ${m.titulo}`, cuando: fechaCorta(m.created_at), to: '/mensajes' })
+  }
   const miReserva = db.reservas.find((r) => r.solicitada_por === currentUser.id && r.estado === 'aprobada')
   if (miReserva) avisos.push({ id: 'av-res', texto: `Tu reserva de ${miReserva.zona_nombre} está aprobada`, cuando: fechaCorta(miReserva.inicio), to: '/reservas/mias' })
   if (esGestionActual()) {
-    const pend = db.anuncios.filter((a) => a.estado === 'pendiente').length
     const pendRes = db.reservas.filter((r) => r.estado === 'pendiente').length
-    if (pend) avisos.push({ id: 'av-mod', texto: `${pend} anuncio(s) esperando moderación`, cuando: 'Pendiente', to: '/anuncios' })
     if (pendRes) avisos.push({ id: 'av-modres', texto: `${pendRes} reserva(s) por aprobar`, cuando: 'Pendiente', to: '/reservas' })
   }
   return delay(avisos)
 }
-
-// ---- Storage (mock: no sube nada; las fotos ya son data-URLs de preview) ----
-export async function subirAdjuntosIncidencia(_incidenciaId: string, _files: File[]): Promise<void> {}
-export function urlFirmada(path: string): Promise<string> { return delay(path) }
 
 export { iniciales }

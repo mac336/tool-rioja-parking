@@ -6,7 +6,7 @@ import { render, cleanup } from '@testing-library/react'
 import { MemoryRouter, Routes, Route } from 'react-router-dom'
 import type { ReactElement } from 'react'
 
-// jsdom no implementa matchMedia; lo stubeamos (lo usa el carrusel de anuncios).
+// jsdom no implementa matchMedia; lo stubeamos (lo usan utilidades PWA/tema).
 beforeAll(() => {
   if (!window.matchMedia) {
     // @ts-expect-error stub de test
@@ -23,15 +23,12 @@ import { PendingPage } from '@/features/auth/PendingPage'
 import { SuspendedPage } from '@/features/auth/SuspendedPage'
 import { HomePage } from '@/features/home/HomePage'
 import { MasPage } from '@/features/home/MasPage'
-import { IncidentsListPage } from '@/features/incidents/IncidentsListPage'
-import { IncidentDetailPage } from '@/features/incidents/IncidentDetailPage'
-import { NewIncidentPage } from '@/features/incidents/NewIncidentPage'
+import { MensajesPage } from '@/features/mensajes/MensajesPage'
+import { BuzonPage } from '@/features/buzon/BuzonPage'
 import { EncuestasListPage } from '@/features/encuestas/EncuestasListPage'
 import { CreateEncuestaPage } from '@/features/encuestas/CreateEncuestaPage'
 import { VotePage } from '@/features/encuestas/VotePage'
 import { ResultsPage } from '@/features/encuestas/ResultsPage'
-import { AnunciosPage } from '@/features/anuncios/AnunciosPage'
-import { NewAnuncioPage } from '@/features/anuncios/NewAnuncioPage'
 import { BookingsPage } from '@/features/bookings/BookingsPage'
 import { MyBookingsPage } from '@/features/bookings/MyBookingsPage'
 import { ParkingPage } from '@/features/parking/ParkingPage'
@@ -64,15 +61,12 @@ const casos: [string, ReactElement, string, string][] = [
   ['Suspended', <SuspendedPage />, '/suspendido', '/suspendido'],
   ['Home', <HomePage />, '/', '/'],
   ['Mas', <MasPage />, '/mas', '/mas'],
-  ['IncidentsList', <IncidentsListPage />, '/incidencias', '/incidencias'],
-  ['IncidentDetail', <IncidentDetailPage />, '/incidencias/128', '/incidencias/:id'],
-  ['NewIncident', <NewIncidentPage />, '/incidencias/nueva', '/incidencias/nueva'],
+  ['Mensajes', <MensajesPage />, '/mensajes', '/mensajes'],
+  ['Buzon', <BuzonPage />, '/buzon', '/buzon'],
   ['EncuestasList', <EncuestasListPage />, '/votaciones', '/votaciones'],
   ['CreateEncuesta', <CreateEncuestaPage />, '/votaciones/nueva', '/votaciones/nueva'],
   ['Vote', <VotePage />, '/votaciones/p1', '/votaciones/:id'],
   ['Results', <ResultsPage />, '/votaciones/p3/resultados', '/votaciones/:id/resultados'],
-  ['Anuncios', <AnunciosPage />, '/anuncios', '/anuncios'],
-  ['NewAnuncio', <NewAnuncioPage />, '/anuncios/nuevo', '/anuncios/nuevo'],
   ['Bookings', <BookingsPage />, '/reservas', '/reservas'],
   ['MyBookings', <MyBookingsPage />, '/reservas/mias', '/reservas/mias'],
   ['Parking', <ParkingPage />, '/parking', '/parking'],

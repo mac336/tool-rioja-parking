@@ -194,6 +194,6 @@ export async function resolverReserva(grupoId: string, aprobar: boolean, motivo?
     })
     .or(`grupo_id.eq.${grupoId},id.eq.${grupoId}`)
   if (error) throw error
-  // Avisar al solicitante (correo + push). No bloquea si falla el aviso.
-  await supabase.functions.invoke('notificar-reserva', { body: { grupoId, aprobar } }).catch(() => undefined)
+  // Avisar al solicitante (correo + push) en segundo plano: no bloquea la acción.
+  void supabase.functions.invoke('notificar-reserva', { body: { grupoId, aprobar } }).catch(() => undefined)
 }

@@ -6,6 +6,7 @@
 import type {
   Profile, Role, Incident, IncidentComment, IncidentStatus, IncidentCategory,
   Encuesta, EncuestaFormato, EncuestaTipo, ZonaComun, Reserva, ReservaGrupo, CrearReservaInput, Anuncio, AnuncioNivel,
+  Mensaje, MensajeTipo, Hilo, HiloMensaje,
   Contact, ContactCategory, AccessRequest, ParkingCesion, CesionTipo, ParkingQuincena,
 } from '@/types'
 import * as mock from '@/mock/data'
@@ -27,6 +28,13 @@ const db = {
   anuncios: structuredClone([...mock.MOCK_ANUNCIOS, ...mock.MOCK_ANUNCIOS_PENDIENTES]) as Anuncio[],
   contactos: structuredClone(mock.MOCK_CONTACTS) as Contact[],
   requests: structuredClone(mock.MOCK_ACCESS_REQUESTS) as AccessRequest[],
+  mensajes: [
+    { id: 'msg-1', tipo: 'aviso', titulo: 'Corte de agua el martes', cuerpo: 'El martes de 9:00 a 13:00 habrá corte de agua por mantenimiento. Llena garrafas por si acaso.', activo: true, created_at: now() },
+    { id: 'msg-2', tipo: 'anuncio', titulo: 'Piscina abierta', cuerpo: 'Ya ha abierto la temporada de piscina. Recuerda ducharte antes de entrar.', activo: true, created_at: now() },
+    { id: 'msg-3', tipo: 'incidencia', titulo: 'Ascensor B averiado', cuerpo: 'El ascensor del portal B está averiado. El técnico viene mañana.', activo: true, created_at: now() },
+  ] as Mensaje[],
+  hilos: [] as Hilo[],
+  hiloMensajes: [] as HiloMensaje[],
   cesiones: [] as ParkingCesion[],
   reportes: [] as { id: string; entidad_id: string; entidad_titulo: string; autor: string; motivo: string; created_at: string }[],
   viviendasBloqueadas: new Set<string>(),
@@ -475,6 +483,57 @@ export function guardarSuscripcionPush(_sub: PushSubscriptionJSON, _ua: string):
   return delay(undefined)
 }
 export function quitarSuscripcionPush(_endpoint: string): Promise<void> {
+  return delay(undefined)
+}
+
+// ---- Mensajes públicos (demo) ------------------------------------------------
+export const listMensajes = () => delay(db.mensajes.filter((m) => m.activo).slice().sort((a, b) => b.created_at.localeCompare(a.created_at)))
+export function crearMensaje(input: { tipo: MensajeTipo; titulo: string; cuerpo: string }): Promise<Mensaje> {
+  const m: Mensaje = { id: uid(), tipo: input.tipo, titulo: input.titulo, cuerpo: input.cuerpo, created_by: currentUser.id, activo: true, created_at: now() }
+  db.mensajes.unshift(m)
+  return delay(m)
+}
+export function editarMensaje(id: string, input: { tipo: MensajeTipo; titulo: string; cuerpo: string }): Promise<void> {
+  const m = db.mensajes.find((x) => x.id === id)
+  if (m) Object.assign(m, input)
+  return delay(undefined)
+}
+export function borrarMensaje(id: string): Promise<void> {
+  db.mensajes = db.mensajes.filter((m) => m.id !== id)
+  return delay(undefined)
+}
+
+// ---- Buzón privado (demo) ----------------------------------------------------
+export const misHilos = () => delay(db.hilos.filter((h) => h.vecino_id === currentUser.id).slice().sort((a, b) => b.updated_at.localeCompare(a.updated_at)))
+export const hilosGestion = () => delay(db.hilos.slice().map((h) => ({ ...h, vecino_nombre: nombreDe(h.vecino_id), vecino_vivienda: db.profiles.find((p) => p.id === h.vecino_id)?.vivienda ?? '' })).sort((a, b) => b.updated_at.localeCompare(a.updated_at)))
+export function getHilo(id: string): Promise<{ hilo: Hilo; mensajes: HiloMensaje[] } | null> {
+  const hilo = db.hilos.find((h) => h.id === id)
+  if (!hilo) return delay(null)
+  const soyDueño = hilo.vecino_id === currentUser.id
+  if (soyDueño) hilo.no_leido_vecino = false; else hilo.no_leido_gestion = false
+  const mensajes = db.hiloMensajes.filter((m) => m.hilo_id === id).map((m) => ({ ...m, autor_nombre: nombreDe(m.autor_id) }))
+  return delay({ hilo, mensajes })
+}
+export function crearHilo(input: { asunto: string; texto: string }): Promise<string> {
+  const id = uid()
+  db.hilos.unshift({ id, vecino_id: currentUser.id, asunto: input.asunto, estado: 'abierto', no_leido_gestion: true, no_leido_vecino: false, created_at: now(), updated_at: now() })
+  db.hiloMensajes.push({ id: uid(), hilo_id: id, autor_id: currentUser.id, de_gestion: esGestionActual(), texto: input.texto, created_at: now() })
+  return delay(id)
+}
+export function responderHilo(hiloId: string, texto: string): Promise<void> {
+  const gestion = esGestionActual()
+  db.hiloMensajes.push({ id: uid(), hilo_id: hiloId, autor_id: currentUser.id, de_gestion: gestion, texto, created_at: now() })
+  const h = db.hilos.find((x) => x.id === hiloId)
+  if (h) { h.updated_at = now(); h.estado = 'abierto'; if (gestion) h.no_leido_vecino = true; else h.no_leido_gestion = true }
+  return delay(undefined)
+}
+export function cerrarHilo(hiloId: string, cerrar = true): Promise<void> {
+  const h = db.hilos.find((x) => x.id === hiloId)
+  if (h) h.estado = cerrar ? 'cerrado' : 'abierto'
+  return delay(undefined)
+}
+export function convertirEnMensaje(_hiloId: string, input: { tipo: MensajeTipo; titulo: string; cuerpo: string }): Promise<void> {
+  db.mensajes.unshift({ id: uid(), tipo: input.tipo, titulo: input.titulo, cuerpo: input.cuerpo, created_by: currentUser.id, activo: true, created_at: now() })
   return delay(undefined)
 }
 

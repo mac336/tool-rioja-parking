@@ -1,10 +1,10 @@
 import { NavLink } from 'react-router-dom'
-import { Home, TriangleAlert, CalendarDays, SquareParking, Menu } from 'lucide-react'
+import { Home, Megaphone, CalendarDays, SquareParking, Menu } from 'lucide-react'
 import { cx } from '@/components/ui'
 
 const tabs = [
   { to: '/', label: 'Inicio', Icon: Home, end: true },
-  { to: '/incidencias', label: 'Incidencias', Icon: TriangleAlert },
+  { to: '/mensajes', label: 'Mensajes', Icon: Megaphone },
   { to: '/reservas', label: 'Reservas', Icon: CalendarDays },
   { to: '/parking', label: 'Parking', Icon: SquareParking },
   { to: '/mas', label: 'Más', Icon: Menu },

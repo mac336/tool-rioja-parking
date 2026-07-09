@@ -29,6 +29,8 @@ export const {
   listVecinos, suspenderVecino, cambiarRolVecino, editarVecino, darDeBajaVecino,
   listRolePermisos, setRolePermiso, enviarSugerencia,
   guardarSuscripcionPush, quitarSuscripcionPush,
+  listMensajes, crearMensaje, editarMensaje, borrarMensaje,
+  misHilos, hilosGestion, getHilo, crearHilo, responderHilo, cerrarHilo, convertirEnMensaje,
   listAvisos,
   subirAdjuntosIncidencia, urlFirmada,
 } = A

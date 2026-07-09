@@ -20,8 +20,10 @@ const BAJA_MAILTO =
   '?subject=' + encodeURIComponent('Solicitud de baja / borrado de datos — Rioja 25') +
   '&body=' + encodeURIComponent('Hola,\n\nSolicito la baja de mi cuenta y el borrado de mis datos personales de la app de la comunidad.\n\nNombre y vivienda:\n\nGracias.')
 
+const MSG_TIPOS: [import('@/types').MensajeTipo, string][] = [['aviso', 'Avisos'], ['anuncio', 'Anuncios'], ['incidencia', 'Incidencias']]
+
 export function SettingsPage() {
-  const { user, theme, setTheme, palette, setPalette, setName, logout, toast } = useApp()
+  const { user, theme, setTheme, palette, setPalette, msgColors, setMsgColor, setName, logout, toast } = useApp()
   const nav = useNavigate()
   const cerrarSesion = async () => { await logout(); nav('/login') }
   const [nombre, setNombre] = useState(user.nombre)
@@ -100,6 +102,22 @@ export function SettingsPage() {
                 {p.nombre}
                 {palette === p.id && <Check size={15} className="ml-auto text-primary" />}
               </button>
+            ))}
+          </div>
+        </Card>
+
+        {/* Colores de los mensajes */}
+        <Card>
+          <div className="overline mb-1">Colores de los mensajes</div>
+          <p className="mb-3 text-[13px] text-muted">Elige el color de fondo de cada tipo en el tablón.</p>
+          <div className="flex flex-col gap-2.5">
+            {MSG_TIPOS.map(([tipo, label]) => (
+              <div key={tipo} className="flex items-center gap-3">
+                <span className="h-8 w-8 shrink-0 rounded-[10px] border border-border" style={{ background: msgColors[tipo] }} />
+                <span className="flex-1 text-[14px] font-semibold text-ink">{label}</span>
+                <input type="color" value={msgColors[tipo]} onChange={(e) => setMsgColor(tipo, e.target.value)}
+                  aria-label={`Color de ${label}`} className="h-9 w-12 cursor-pointer rounded-lg border border-border bg-surface" />
+              </div>
             ))}
           </div>
         </Card>

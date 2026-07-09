@@ -12,6 +12,8 @@ import { PrivacidadPage } from '@/features/auth/PrivacidadPage'
 import { PendingPage } from '@/features/auth/PendingPage'
 import { SuspendedPage } from '@/features/auth/SuspendedPage'
 import { HomePage } from '@/features/home/HomePage'
+import { MensajesPage } from '@/features/mensajes/MensajesPage'
+import { BuzonPage } from '@/features/buzon/BuzonPage'
 import { MasPage } from '@/features/home/MasPage'
 import { IncidentsListPage } from '@/features/incidents/IncidentsListPage'
 import { IncidentDetailPage } from '@/features/incidents/IncidentDetailPage'
@@ -74,6 +76,8 @@ export const router = createBrowserRouter([
     children: [
       { path: '/', element: <HomePage /> },
       { path: '/mas', element: <MasPage /> },
+      { path: '/mensajes', element: <MensajesPage /> },
+      { path: '/buzon', element: <BuzonPage /> },
       { path: '/incidencias', element: <IncidentsListPage /> },
       { path: '/incidencias/nueva', element: <NewIncidentPage /> },
       { path: '/incidencias/:id/editar', element: <NewIncidentPage /> },

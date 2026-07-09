@@ -53,6 +53,8 @@ delete from encuesta_votos where emitido_por in (:'uidA',:'uidB',:'uidP',:'uidX'
 delete from reservas where vivienda in ('Bajo A','1º A Dcha','2º A Dcha','3º A Dcha');
 delete from incidencias where autor_vivienda in ('Bajo A','1º A Dcha','2º A Dcha','3º A Dcha') or autor_id in (:'uidA',:'uidB',:'uidP',:'uidX');
 delete from anuncios where autor_id in (:'uidA',:'uidB',:'uidP',:'uidX');
+delete from hilos where vecino_id in (:'uidA',:'uidB',:'uidP',:'uidX');
+delete from mensajes where titulo in ('__msg A__','__msg pres__');
 delete from parking_cesiones where vivienda in ('Bajo A','1º A Dcha','2º A Dcha','3º A Dcha');
 delete from encuesta_opciones where pregunta_id in (select id from encuesta_preguntas where encuesta_id in (select id from encuestas where titulo in ('__test__','__test2__','__e1__','__e2__')));
 delete from encuesta_preguntas where encuesta_id in (select id from encuestas where titulo in ('__test__','__test2__','__e1__','__e2__'));
@@ -273,6 +275,30 @@ select assert_igual(
   1, 'FUNC5: presidente SÍ bloquea anuncios de una vivienda');
 -- restaurar
 update viviendas set puede_publicar_anuncios=true where codigo='1º A Dcha';
+
+-- ===========================================================================
+-- MENSAJERÍA: mensajes públicos (solo gestión publica) + buzón privado
+-- ===========================================================================
+-- vecino A NO puede publicar un mensaje público
+select set_config('request.jwt.claims', json_build_object('sub',:'uidA','role','authenticated')::text, false);
+select assert_falla(
+  $f$insert into mensajes (tipo, titulo, cuerpo) values ('aviso','__msg A__','x')$f$,
+  'MSG: vecino NO publica mensajes');
+
+-- vecino A abre un hilo privado en el buzón
+insert into hilos (id, vecino_id, asunto) values ('88888888-0000-0000-0000-000000000001', :'uidA', '__buzon A__');
+insert into hilo_mensajes (hilo_id, texto) values ('88888888-0000-0000-0000-000000000001','hola admin');
+select assert_igual((select count(*) from hilos where asunto='__buzon A__'), 1, 'BUZON: vecino A ve su hilo');
+
+-- vecino B NO ve el hilo de A (privacidad)
+select set_config('request.jwt.claims', json_build_object('sub',:'uidB','role','authenticated')::text, false);
+select assert_igual((select count(*) from hilos where asunto='__buzon A__'), 0, 'BUZON: vecino B NO ve el hilo de A');
+
+-- presidente SÍ publica mensaje y SÍ ve el hilo del vecino
+select set_config('request.jwt.claims', json_build_object('sub',:'uidP','role','authenticated')::text, false);
+insert into mensajes (tipo, titulo, cuerpo) values ('aviso','__msg pres__','contenido');
+select assert_igual((select count(*) from mensajes where titulo='__msg pres__'), 1, 'MSG: presidente SÍ publica');
+select assert_igual((select count(*) from hilos where asunto='__buzon A__'), 1, 'BUZON: gestión ve el hilo del vecino');
 
 reset role;
 select '════════════════════════════════════════' as _;

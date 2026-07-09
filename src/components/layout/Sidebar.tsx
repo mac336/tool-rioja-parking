@@ -1,5 +1,5 @@
 import { NavLink } from 'react-router-dom'
-import { Home, TriangleAlert, SquareCheckBig, CalendarDays, SquareParking, Phone, Megaphone, Shield, Settings } from 'lucide-react'
+import { Home, MessageSquare, SquareCheckBig, CalendarDays, SquareParking, Phone, Megaphone, Shield, Settings } from 'lucide-react'
 import { Logo } from '@/components/Logo'
 import { cx } from '@/components/ui'
 import { useApp } from '@/store'
@@ -8,8 +8,8 @@ import { iniciales } from '@/lib/format'
 
 const nav = [
   { to: '/', label: 'Inicio', Icon: Home, end: true },
-  { to: '/anuncios', label: 'Anuncios', Icon: Megaphone },
-  { to: '/incidencias', label: 'Incidencias', Icon: TriangleAlert },
+  { to: '/mensajes', label: 'Mensajes', Icon: Megaphone },
+  { to: '/buzon', label: 'Buzón', Icon: MessageSquare },
   { to: '/votaciones', label: 'Votaciones', Icon: SquareCheckBig },
   { to: '/reservas', label: 'Reservas', Icon: CalendarDays },
   { to: '/parking', label: 'Parking', Icon: SquareParking },

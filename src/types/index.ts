@@ -117,6 +117,42 @@ export interface Encuesta {
   preguntas: EncuestaPregunta[] // 1 si formato='unica'; varias si 'multi'
 }
 
+// ---- Mensajería: mensajes públicos + buzón privado --------------------------
+export type MensajeTipo = 'aviso' | 'anuncio' | 'incidencia'
+export interface Mensaje {
+  id: string
+  tipo: MensajeTipo
+  titulo: string
+  cuerpo: string
+  created_by?: string | null
+  autor_nombre?: string
+  activo: boolean
+  created_at: string
+}
+
+export type HiloEstado = 'abierto' | 'cerrado'
+export interface Hilo {
+  id: string
+  vecino_id: string
+  vecino_nombre?: string
+  vecino_vivienda?: string
+  asunto: string
+  estado: HiloEstado
+  no_leido_gestion: boolean
+  no_leido_vecino: boolean
+  created_at: string
+  updated_at: string
+}
+export interface HiloMensaje {
+  id: string
+  hilo_id: string
+  autor_id: string
+  autor_nombre?: string
+  de_gestion: boolean
+  texto: string
+  created_at: string
+}
+
 export type ReservaEstado = 'pendiente' | 'aprobada' | 'rechazada' | 'cancelada'
 
 export interface ZonaComun {

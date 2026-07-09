@@ -1,17 +1,17 @@
 import { Link } from 'react-router-dom'
-import { Bell, Car, SquareCheckBig, TriangleAlert, CalendarDays, SquareParking, Phone, Leaf, Megaphone, Lightbulb } from 'lucide-react'
+import { Bell, Car, SquareCheckBig, CalendarDays, SquareParking, Phone, Leaf, Megaphone, MessageSquare, Lightbulb } from 'lucide-react'
 import { useApp } from '@/store'
 import { useAsync } from '@/lib/useAsync'
 import { saludo, iniciales, fechaCorta, diasRestantes } from '@/lib/format'
-import { parkingMisTurnos, listEncuestas, anunciosPrincipales } from '@/lib/api'
-import { AnuncioCarousel } from '@/features/anuncios/AnuncioCarousel'
+import { parkingMisTurnos, listEncuestas, listMensajes } from '@/lib/api'
+import { MensajeCard } from '@/features/mensajes/MensajeCard'
 import { Card } from '@/components/ui'
 
 // Tiles "sólido ilustrado": color pleno por módulo (colores de categoría, fijos —
 // no siguen la paleta). Icono arriba-izq + marca de agua vectorial abajo-dcha.
 const tiles = [
-  { to: '/anuncios', label: 'Anuncios', Icon: Megaphone, color: '#E0A22E' },
-  { to: '/incidencias', label: 'Incidencias', Icon: TriangleAlert, color: '#E0555F' },
+  { to: '/mensajes', label: 'Mensajes', Icon: Megaphone, color: '#E0A22E' },
+  { to: '/buzon', label: 'Buzón', Icon: MessageSquare, color: '#3E7CB1' },
   { to: '/votaciones', label: 'Votaciones', Icon: SquareCheckBig, color: '#5B7FD4' },
   { to: '/reservas', label: 'Reservas', Icon: CalendarDays, color: '#2E8E79' },
   { to: '/parking', label: 'Parking', Icon: SquareParking, color: '#8A6FD1' },
@@ -21,13 +21,14 @@ const tiles = [
 ]
 
 export function HomePage() {
-  const { user } = useApp()
+  const { user, msgColors } = useApp()
   const turnos = useAsync(parkingMisTurnos, [user.vivienda])
   const encuestas = useAsync(listEncuestas, [])
-  const principales = useAsync(anunciosPrincipales, [])
+  const mensajes = useAsync(listMensajes, [])
 
   const miPlaza = turnos.data?.find((t) => t.actual)
   const abierta = encuestas.data?.find((e) => e.estado === 'abierta')
+  const msgs = mensajes.data ?? []
 
   return (
     <div>
@@ -64,7 +65,19 @@ export function HomePage() {
           </div>
         </Link>
 
-        {/* Votación + Anuncio destacado */}
+        {/* Mensajes de la comunidad (avisos/anuncios/incidencias) */}
+        {msgs.length > 0 && (
+          <div className="mt-3 flex flex-col gap-2.5">
+            {msgs.slice(0, 5).map((m) => (
+              <Link key={m.id} to="/mensajes" className="block"><MensajeCard m={m} color={msgColors[m.tipo]} /></Link>
+            ))}
+            {msgs.length > 5 && (
+              <Link to="/mensajes" className="py-1 text-center text-[13px] font-bold text-primary">Ver todos los mensajes</Link>
+            )}
+          </div>
+        )}
+
+        {/* Votación abierta */}
         <div className="mt-3 grid grid-cols-1 gap-3 sm:grid-cols-2">
           {abierta && (
             <Link to={`/votaciones/${abierta.id}`}>
@@ -74,9 +87,6 @@ export function HomePage() {
                 <div className="mt-1 text-[12px] text-muted">cierra en {diasRestantes(abierta.cierre)} días</div>
               </Card>
             </Link>
-          )}
-          {principales.data && principales.data.length > 0 && (
-            <div className="sm:col-span-1"><AnuncioCarousel anuncios={principales.data} compact /></div>
           )}
         </div>
 

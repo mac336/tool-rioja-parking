@@ -1,5 +1,5 @@
 import { Link } from 'react-router-dom'
-import { Megaphone, SquareCheckBig, Phone, Leaf, Lightbulb, Shield, FileText, Settings, ChevronRight } from 'lucide-react'
+import { Megaphone, MessageSquare, SquareCheckBig, Phone, Leaf, Lightbulb, Shield, FileText, Settings, ChevronRight } from 'lucide-react'
 import { useApp } from '@/store'
 import { RoleBadge } from '@/components/ui'
 import { roleBadgeKind, ROLE_LABEL, puedeAdmin } from '@/lib/roles'
@@ -7,7 +7,8 @@ import { iniciales } from '@/lib/format'
 import { usingSupabase } from '@/lib/supabase'
 
 const links = [
-  { to: '/anuncios', label: 'Tablón de anuncios', Icon: Megaphone },
+  { to: '/mensajes', label: 'Mensajes de la comunidad', Icon: Megaphone },
+  { to: '/buzon', label: 'Contactar con administración', Icon: MessageSquare },
   { to: '/votaciones', label: 'Votaciones', Icon: SquareCheckBig },
   { to: '/contactos', label: 'Contactos', Icon: Phone },
   { to: '/reciclaje', label: 'Reciclaje', Icon: Leaf },

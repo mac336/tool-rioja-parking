@@ -1,5 +1,5 @@
 import { create } from 'zustand'
-import type { Profile, ThemeMode } from '@/types'
+import type { Profile, ThemeMode, MensajeTipo } from '@/types'
 import { usingSupabase } from '@/lib/supabase'
 import { getUser as mockGetUser, setUserRole as mockSetRole } from '@/lib/apiMock'
 import { actualizarNombre, listRolePermisos } from '@/lib/api'
@@ -16,11 +16,19 @@ export const PALETTES: { id: Palette; nombre: string; color: string }[] = [
 
 interface Toast { id: number; texto: string; tipo: 'ok' | 'error' | 'info' }
 
+export type MsgColors = Record<MensajeTipo, string>
+export const DEFAULT_MSG_COLORS: MsgColors = {
+  aviso: '#F6E2B3',      // ámbar claro
+  anuncio: '#C9DEF6',    // azul claro
+  incidencia: '#F3C9C9', // rojo claro
+}
+
 interface AppState {
   user: Profile
   authStatus: AuthStatus
   theme: ThemeMode
   palette: Palette
+  msgColors: MsgColors
   toasts: Toast[]
   setRole: (rol: Profile['rol']) => void
   setName: (nombre: string) => Promise<void>
@@ -28,6 +36,7 @@ interface AppState {
   logout: () => Promise<void>
   setTheme: (t: ThemeMode) => void
   setPalette: (p: Palette) => void
+  setMsgColor: (tipo: MensajeTipo, color: string) => void
   toast: (texto: string, tipo?: Toast['tipo']) => void
   dismissToast: (id: number) => void
 }
@@ -43,6 +52,12 @@ function applyPalette(p: Palette) {
 
 const savedTheme = (localStorage.getItem('r25-theme') as ThemeMode) || 'system'
 const savedPalette = (localStorage.getItem('r25-palette') as Palette) || 'turquesa'
+function loadMsgColors(): MsgColors {
+  try {
+    const raw = localStorage.getItem('r25-msgcolors')
+    return raw ? { ...DEFAULT_MSG_COLORS, ...JSON.parse(raw) } : { ...DEFAULT_MSG_COLORS }
+  } catch { return { ...DEFAULT_MSG_COLORS } }
+}
 applyTheme(savedTheme)
 applyPalette(savedPalette)
 
@@ -53,6 +68,7 @@ export const useApp = create<AppState>((set, get) => ({
   authStatus: usingSupabase ? 'loading' : 'active',
   theme: savedTheme,
   palette: savedPalette,
+  msgColors: loadMsgColors(),
   toasts: [],
   setRole: (rol) => {
     // Selector DEMO (solo modo mock).
@@ -94,6 +110,11 @@ export const useApp = create<AppState>((set, get) => ({
     localStorage.setItem('r25-palette', p)
     applyPalette(p)
     set({ palette: p })
+  },
+  setMsgColor: (tipo, color) => {
+    const next = { ...get().msgColors, [tipo]: color }
+    localStorage.setItem('r25-msgcolors', JSON.stringify(next))
+    set({ msgColors: next })
   },
   toast: (texto, tipo = 'ok') => {
     const id = ++toastId

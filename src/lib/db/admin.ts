@@ -98,6 +98,24 @@ export async function listAvisos(): Promise<Aviso[]> {
     .select('rol, vivienda').eq('id', user.id).single()
   const esGestion = !!perfil && perfil.rol !== 'vecino'
 
+  // Mensajes recientes de la comunidad (aviso/anuncio/incidencia).
+  const { data: msgs } = await supabase.from('mensajes')
+    .select('id, tipo, titulo, created_at').eq('activo', true)
+    .order('created_at', { ascending: false }).limit(3)
+  for (const m of msgs ?? []) {
+    const etiqueta = m.tipo === 'aviso' ? 'Aviso' : m.tipo === 'anuncio' ? 'Anuncio' : 'Incidencia'
+    avisos.push({ id: `msg-${m.id}`, texto: `${etiqueta}: ${m.titulo}`, cuando: fechaCorta(m.created_at as string), to: '/mensajes' })
+  }
+
+  // Buzón: respuestas sin leer (vecino) o mensajes nuevos (gestión).
+  if (esGestion) {
+    const { count } = await supabase.from('hilos').select('*', { count: 'exact', head: true }).eq('no_leido_gestion', true)
+    if (count) avisos.push({ id: 'buzon-g', texto: `${count} mensaje(s) sin leer en el buzón`, cuando: 'Buzón', to: '/buzon' })
+  } else {
+    const { count } = await supabase.from('hilos').select('*', { count: 'exact', head: true }).eq('vecino_id', user.id).eq('no_leido_vecino', true)
+    if (count) avisos.push({ id: 'buzon-v', texto: 'Administración te ha respondido', cuando: 'Buzón', to: '/buzon' })
+  }
+
   // Encuesta abierta: apertura <= now <= cierre.
   const { data: encuestas } = await supabase.from('encuestas')
     .select('id, titulo, apertura, cierre')

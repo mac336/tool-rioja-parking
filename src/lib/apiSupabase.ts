@@ -37,5 +37,7 @@ export {
 export { listRolePermisos, setRolePermiso } from './db/permisos'
 export { enviarSugerencia } from './db/sugerencias'
 export { guardarSuscripcionPush, quitarSuscripcionPush } from './db/push'
+export { listMensajes, crearMensaje, editarMensaje, borrarMensaje } from './db/mensajes'
+export { misHilos, hilosGestion, getHilo, crearHilo, responderHilo, cerrarHilo, convertirEnMensaje } from './db/buzon'
 export { actualizarNombre } from './db/perfil'
 export { subirAdjuntosIncidencia, urlFirmada } from './db/storage'

@@ -56,6 +56,7 @@ export function LoginPage() {
             {error && <Alert tipo="danger">{error}</Alert>}
             <p className="text-center text-[14px] text-muted">Te hemos enviado un <b>código de 6 dígitos</b> a<br /><b>{email}</b></p>
             <Field label="Código de acceso" inputMode="numeric" maxLength={6} value={codigo}
+              autoComplete="one-time-code" name="one-time-code" autoFocus
               onChange={(e) => setCodigo(e.target.value.replace(/\D/g, ''))}
               placeholder="000000" className="text-center text-[22px] tracking-[0.4em]" />
             <Button variant="primary" block size="lg" disabled={cargando} onClick={entrarConCodigo}>

@@ -1,18 +1,23 @@
 import { useEffect, useState } from 'react'
+import { ArrowRight } from 'lucide-react'
 import { Logo } from '@/components/Logo'
 import { cx } from '@/components/ui'
 
-/** Pantalla de bienvenida al abrir la app. Aparece, se mantiene y se desvanece. */
+/** Pantalla de bienvenida al abrir la app. Aparece con una animación y se
+ *  mantiene hasta que el usuario pulsa "Siguiente" (no se quita sola). */
 export function SplashScreen({ onDone }: { onDone: () => void }) {
   const [entered, setEntered] = useState(false)
   const [leaving, setLeaving] = useState(false)
 
   useEffect(() => {
     const a = requestAnimationFrame(() => setEntered(true))
-    const b = setTimeout(() => setLeaving(true), 1900)
-    const c = setTimeout(onDone, 2450)
-    return () => { cancelAnimationFrame(a); clearTimeout(b); clearTimeout(c) }
-  }, [onDone])
+    return () => cancelAnimationFrame(a)
+  }, [])
+
+  const continuar = () => {
+    setLeaving(true)
+    setTimeout(onDone, 450) // deja terminar el fundido de salida
+  }
 
   return (
     <div
@@ -28,12 +33,20 @@ export function SplashScreen({ onDone }: { onDone: () => void }) {
         <p className="mt-7 text-[13px] font-semibold uppercase tracking-[0.3em] text-white/75">Bienvenido a</p>
         <h1 className="mt-1.5 font-display text-[38px] font-extrabold leading-none text-white">tu comunidad</h1>
         <p className="mt-2 font-display text-[20px] font-bold text-white/90">Rioja 25</p>
-      </div>
 
-      {/* Pie sutil */}
-      <p className={cx('absolute bottom-10 text-[12px] text-white/60 transition-opacity duration-700', entered ? 'opacity-100' : 'opacity-0')}>
-        Gestiones de la comunidad, al alcance de todos
-      </p>
+        <p className="mt-6 max-w-sm text-[15px] leading-relaxed text-white/85">
+          Un espacio pensado para estar al día de todo lo que pasa en tu edificio:
+          incidencias, reservas, votaciones y avisos, al alcance de tu mano.
+        </p>
+
+        <button
+          type="button"
+          onClick={continuar}
+          className="mt-9 inline-flex min-h-[52px] items-center justify-center gap-2 rounded-pill bg-white px-8 text-[16px] font-extrabold text-primary-700 shadow-xl transition-transform active:scale-[0.98]"
+        >
+          Siguiente <ArrowRight size={19} />
+        </button>
+      </div>
     </div>
   )
 }

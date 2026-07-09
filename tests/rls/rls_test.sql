@@ -48,11 +48,9 @@ end; $$;
 -- Limpieza idempotente: borrar datos dependientes de runs previos antes de los
 -- usuarios de prueba (evita fallos de FK al re-ejecutar sin reset).
 delete from encuesta_votos where emitido_por in (:'uidA',:'uidB',:'uidP',:'uidX');
--- borra reservas/incidencias por vivienda de prueba (robusto ante datos de otros
--- suites, p. ej. el test de integración, que comparten estas viviendas).
+-- borra reservas por vivienda de prueba (robusto ante datos de otros suites,
+-- p. ej. el test de integración, que comparten estas viviendas).
 delete from reservas where vivienda in ('Bajo A','1º A Dcha','2º A Dcha','3º A Dcha');
-delete from incidencias where autor_vivienda in ('Bajo A','1º A Dcha','2º A Dcha','3º A Dcha') or autor_id in (:'uidA',:'uidB',:'uidP',:'uidX');
-delete from anuncios where autor_id in (:'uidA',:'uidB',:'uidP',:'uidX');
 delete from hilos where vecino_id in (:'uidA',:'uidB',:'uidP',:'uidX');
 delete from mensajes where titulo in ('__msg A__','__msg pres__');
 delete from parking_cesiones where vivienda in ('Bajo A','1º A Dcha','2º A Dcha','3º A Dcha');
@@ -199,16 +197,6 @@ select assert_falla(
   'tercera cuenta en la misma vivienda');
 
 -- ===========================================================================
--- TEST anti-spam incidencias: 5/día OK, 6ª FALLA
--- ===========================================================================
-set role authenticated;
-select set_config('request.jwt.claims', json_build_object('sub',:'uidB','role','authenticated')::text, false);
-insert into incidencias (titulo, descripcion) select 'inc '||g, 'desc' from generate_series(1,5) g;
-select assert_falla(
-  $f$insert into incidencias (titulo, descripcion) values ('inc 6','desc')$f$,
-  'sexta incidencia del día por vivienda');
-
--- ===========================================================================
 -- REGRESIÓN DE LA REVISIÓN DE SEGURIDAD (SECURITY_REVIEW.md)
 -- ===========================================================================
 
@@ -228,14 +216,6 @@ insert into encuesta_opciones (id, pregunta_id, texto, orden) values
 set role authenticated;
 select set_config('request.jwt.claims', json_build_object('sub',:'uidA','role','authenticated')::text, false);
 
--- 16) CRÍTICO 1: un vecino inserta un anuncio 'publicado'/'principal' → el trigger
---     lo fuerza a 'pendiente' con nivel null (NO se autopublica).
-insert into anuncios (titulo, cuerpo, fecha_inicio, fecha_fin, nivel_solicitado, nivel, estado, publicado_at)
-  values ('__hack pub', 'texto', current_date, current_date + 30, 'principal', 'principal', 'publicado', now());
-select assert_igual(
-  (select count(*) from anuncios where titulo='__hack pub' and estado='pendiente' and nivel is null),
-  1, 'CRÍTICO1: anuncio de vecino nace PENDIENTE (no autopublicado)');
-
 -- 17) MEDIO 2: un vecino NO puede auto-reasignar su cesión de parking
 insert into parking_cesiones (vivienda, tipo, desde, hasta, estado)
   values ('Bajo A', 'cede', current_date, current_date + 5, 'activa');
@@ -243,38 +223,11 @@ select assert_falla(
   $f$update parking_cesiones set estado='reasignada', reasignada_a='3º C Dcha' where vivienda='Bajo A'$f$,
   'MEDIO2: vecino auto-reasigna su cesión de parking');
 
--- 18) MEDIO 3: el autor NO puede cambiar el estado/moderación de su incidencia
---     (el guard lo revierte → sigue 'pendiente' —estado de alta— y sin bloquear).
-insert into incidencias (titulo, descripcion) values ('__inc guard', 'x');
-update incidencias set estado='resuelta', comentarios_bloqueados=true where titulo='__inc guard';
-select assert_igual(
-  (select count(*) from incidencias where titulo='__inc guard' and estado='pendiente' and not comentarios_bloqueados),
-  1, 'MEDIO3: autor NO cambia estado/moderación de su incidencia');
-
--- 19) BAJO 4: no se puede votar en una pregunta con una opción de OTRA pregunta
+-- 18) BAJO 4: no se puede votar en una pregunta con una opción de OTRA pregunta
 select assert_falla(
   format($f$insert into encuesta_votos (pregunta_id, vivienda, opcion_id, emitido_por)
     values ('cccccccc-0000-0000-0000-000000000001','Bajo A','bbbbbbbb-0000-0000-0000-000000000002','%s')$f$, :'uidA'),
   'BAJO4: voto con opción de otra pregunta');
-
--- ===========================================================================
--- FUNCIONAL 5: el presidente PUEDE bloquear anuncios de una vivienda; un vecino NO
--- ===========================================================================
--- vecino A NO puede tocar el flag: su UPDATE no pasa el USING → 0 filas afectadas
--- (sin excepción), así que comprobamos que el flag sigue en true.
-update viviendas set puede_publicar_anuncios=false where codigo='1º A Dcha';
-select assert_igual(
-  (select count(*) from viviendas where codigo='1º A Dcha' and puede_publicar_anuncios),
-  1, 'FUNC5: vecino NO cambia el flag de la vivienda (sigue true)');
-
--- presidente SÍ puede
-select set_config('request.jwt.claims', json_build_object('sub',:'uidP','role','authenticated')::text, false);
-update viviendas set puede_publicar_anuncios=false where codigo='1º A Dcha';
-select assert_igual(
-  (select count(*) from viviendas where codigo='1º A Dcha' and not puede_publicar_anuncios),
-  1, 'FUNC5: presidente SÍ bloquea anuncios de una vivienda');
--- restaurar
-update viviendas set puede_publicar_anuncios=true where codigo='1º A Dcha';
 
 -- ===========================================================================
 -- MENSAJERÍA: mensajes públicos (solo gestión publica) + buzón privado

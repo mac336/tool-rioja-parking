@@ -32,10 +32,11 @@ export function HomePage() {
   // fecha de expiración aún vigente; anuncios de los últimos 2 días.
   const ahora = Date.now()
   const DOS_DIAS = 2 * 864e5
+  const reciente = (m: { created_at: string }) => ahora - new Date(m.created_at).getTime() <= DOS_DIAS
   const actividad = (mensajes.data ?? []).filter((m) => {
-    if (m.tipo === 'incidencia') return true
-    if (m.tipo === 'aviso') return !!m.expira_at && new Date(m.expira_at).getTime() >= ahora
-    return ahora - new Date(m.created_at).getTime() <= DOS_DIAS // anuncio
+    if (m.tipo === 'incidencia') return true // abiertas (activas)
+    if (m.tipo === 'aviso') return m.expira_at ? new Date(m.expira_at).getTime() >= ahora : reciente(m)
+    return reciente(m) // anuncio: últimos 2 días
   })
 
   return (

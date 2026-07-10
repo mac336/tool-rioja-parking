@@ -5,6 +5,13 @@ al implementar el cambio (ver `CLAUDE.md` → Forma de trabajo).
 
 ## 2026-07-10
 
+- **Buzón estilo WhatsApp:** la bandeja es una lista de contactos/chats (hoy
+  solo "Desarrollador de la app"); tocar el contacto abre directamente el chat
+  (sin asunto ni formulario; el hilo se crea con el primer mensaje). Staff ve
+  sección "Vecinos" con un chat por vecino.
+- **Encuesta protagonista en la Home** (handoff `encuesta.zip`, 2a): tarjeta
+  hero azul antes del tablón con participación y "Votar ahora"; ámbar urgente a
+  ≤3 días; desaparece al votar. Sustituye a la fila discreta.
 - **Auto-arreglo del layout:** tocar cualquier pestaña del menú cierra el
   teclado y re-sincroniza el viewport (si algo quedó descuadrado, Inicio lo
   recompone).

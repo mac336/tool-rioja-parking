@@ -8,6 +8,16 @@ opinión de la comunidad. Sustituye al `mailto:` de "Sugerencias" en su faceta d
 participación (el feedback sobre la app va al módulo 14; las propuestas abiertas,
 al tablón de anuncios, módulo 13).
 
+## Encuesta protagonista en la Home
+
+Mientras haya una encuesta **abierta** y el vecino **no haya votado todas sus
+preguntas**, la Home muestra una **tarjeta hero** (diseño handoff
+`encuesta_home` 2a) como primer elemento, antes del Tablón: degradado azul,
+chip "Cierra en N días", barra de participación (viviendas votantes/total) y
+botón "Votar ahora" (toda la tarjeta navega a la votación). A **≤3 días** del
+cierre pasa a **ámbar urgente** con icono de reloj de arena. Cuando el vecino ya
+votó (todas las preguntas), la tarjeta desaparece.
+
 ## Historias de usuario
 - Como **gestión** (app_admin/presidente/vicepresidente/junta/adm. finca),
   quiero publicar una encuesta con opciones y fechas.

@@ -1,5 +1,5 @@
 import { Link } from 'react-router-dom'
-import { Bell, Car, SquareCheckBig, CalendarDays, SquareParking, Phone, Leaf, Megaphone, MessageSquare, Lightbulb } from 'lucide-react'
+import { Bell, Car, SquareCheckBig, CalendarDays, SquareParking, Phone, Leaf, Megaphone, MessageSquare, Lightbulb, Hourglass } from 'lucide-react'
 import { useApp } from '@/store'
 import { useAsync } from '@/lib/useAsync'
 import { saludo, diasRestantes } from '@/lib/format'
@@ -33,6 +33,16 @@ export function HomePage() {
   const abierta = encuestas.data?.find((e) => e.estado === 'abierta')
   const ahora = Date.now()
   const DIA = 864e5
+
+  // Encuesta protagonista (handoff encuesta_home, 2a): hero arriba del tablón
+  // mientras el vecino no haya votado del todo; urgente (ámbar) a ≤3 días.
+  const yaVoto = !!abierta && abierta.preguntas.every((p) => p.mi_voto_opcion_ids.length > 0)
+  const encuestaHero = abierta && !yaVoto ? abierta : null
+  const diasCierre = encuestaHero ? diasRestantes(encuestaHero.cierre) : 0
+  const encuestaUrgente = diasCierre <= 3
+  const cierraTxt = diasCierre <= 0 ? 'Cierra hoy' : diasCierre === 1 ? 'Cierra mañana' : `Cierra en ${diasCierre} días`
+  const pctVotos = encuestaHero && encuestaHero.total_viviendas > 0
+    ? Math.round((encuestaHero.viviendas_votantes / encuestaHero.total_viviendas) * 100) : 0
 
   // Parking en Home: solo se muestra si estás DENTRO de tu turno o a ≤7 días de
   // que empiece. Cuenta atrás cuando quedan ≤3 días. Fuera de eso, no se muestra.
@@ -90,6 +100,36 @@ export function HomePage() {
       </header>
 
       <div className="px-4 pb-6 pt-2">
+        {/* Encuesta protagonista: hero azul (o ámbar si urge) antes del tablón */}
+        {encuestaHero && (
+          <Link to={`/votaciones/${encuestaHero.id}`}
+            aria-label={`${encuestaHero.titulo}, ${cierraTxt.toLowerCase()}, votar ahora`}
+            className="mb-3.5 block rounded-[20px] p-4 text-white"
+            style={encuestaUrgente
+              ? { background: 'linear-gradient(160deg,#C97E2F,color-mix(in srgb,#8A5A0F 80%,#170f00))', boxShadow: '0 14px 30px -14px rgba(207,138,23,.45)' }
+              : { background: 'linear-gradient(160deg,#2F76C9,color-mix(in srgb,#1F5AA3 75%,#001217))', boxShadow: '0 14px 30px -14px rgba(47,118,201,.5)' }}>
+            <div className="flex items-center justify-between gap-2">
+              <span className={`text-[11px] font-bold uppercase tracking-[0.12em] ${encuestaUrgente ? 'text-white/75' : 'text-white/70'}`}>Encuesta de la comunidad</span>
+              <span className={`inline-flex h-[23px] shrink-0 items-center gap-1 rounded-full px-2.5 text-[11.5px] text-white ${encuestaUrgente ? 'bg-white/20 font-extrabold' : 'bg-white/[.16] font-bold'}`}>
+                {encuestaUrgente && <Hourglass size={11} strokeWidth={2.2} />}{cierraTxt}
+              </span>
+            </div>
+            <div className="mt-1.5 font-display text-[19px] font-extrabold leading-[1.2] tracking-[-0.015em]">{encuestaHero.titulo}</div>
+            <div className="mt-2.5 h-[7px] overflow-hidden rounded-full bg-white/[.22]">
+              <div className="h-full rounded-full bg-white transition-[width] duration-200 ease-out" style={{ width: `${pctVotos}%` }} />
+            </div>
+            <div className="mt-2 flex items-center justify-between gap-2.5">
+              <span className={`text-[12px] ${encuestaUrgente ? 'text-white/90' : 'text-white/85'}`}>
+                {encuestaHero.viviendas_votantes}/{encuestaHero.total_viviendas} viviendas han votado
+              </span>
+              <span className="inline-flex h-9 shrink-0 items-center rounded-full bg-white px-[18px] text-[13px] font-extrabold"
+                style={{ color: encuestaUrgente ? '#8A5A0F' : '#1F5AA3' }}>
+                Votar ahora
+              </span>
+            </div>
+          </Link>
+        )}
+
         {/* Tablón de la comunidad */}
         <TablonBoard mensajes={actividad} />
 
@@ -104,18 +144,6 @@ export function HomePage() {
               <div className="text-[14.5px]">{parking.texto}</div>
             </div>
             <span className="text-[18px] opacity-70">›</span>
-          </Link>
-        )}
-
-        {/* Votación slim */}
-        {abierta && (
-          <Link to={`/votaciones/${abierta.id}`} className="mt-2.5 flex items-center gap-3 rounded-[16px] border border-border bg-surface px-4 py-[13px]">
-            <span className="h-2 w-2 shrink-0 rounded-full" style={{ background: '#2F76C9' }} />
-            <div className="min-w-0 flex-1">
-              <div className="truncate text-[13.5px] font-bold text-ink">{abierta.titulo}</div>
-              <div className="text-[12px] text-faint">Votación abierta · cierra en {diasRestantes(abierta.cierre)} días</div>
-            </div>
-            <span className="rounded-full px-3 py-1.5 text-[12px] font-bold" style={{ color: 'var(--primary-700)', background: 'var(--primary-soft)' }}>Votar</span>
           </Link>
         )}
 

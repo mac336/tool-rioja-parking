@@ -1,128 +1,143 @@
 import { useState } from 'react'
-import { Plus, Send, X, ChevronLeft, Megaphone, ShieldCheck, CircleDot, Trash2 } from 'lucide-react'
+import { Send, X, ChevronLeft, Megaphone, ShieldCheck, Trash2, Code2 } from 'lucide-react'
 import { SubHeader, Page } from '@/components/layout/AppShell'
-import { Button, Card, Field, Textarea, SelectField, EmptyState, ErrorState, SkeletonList, cx } from '@/components/ui'
+import { Button, Card, Field, Textarea, SelectField, Avatar, ErrorState, SkeletonList, cx } from '@/components/ui'
 import { useAsync } from '@/lib/useAsync'
 import { useApp } from '@/store'
 import { puedePublicarMensajes } from '@/lib/roles'
-import { fechaHora } from '@/lib/format'
+import { fechaHora, iniciales } from '@/lib/format'
 import { listHilos, getHilo, crearHilo, responderHilo, cerrarHilo, borrarHilo, convertirEnMensaje } from '@/lib/api'
 import type { Hilo, HiloCanal, MensajeTipo } from '@/types'
 import { TIPO_META } from '@/features/mensajes/MensajeCard'
 
 const CANAL_LABEL: Record<HiloCanal, string> = { administrador: 'Administración', presidencia: 'Presidencia', conserje: 'Conserje', desarrollador: 'Desarrollador de la app' }
-// Por ahora solo se puede escribir al Desarrollador de la app (fase de pruebas).
-// El resto de canales siguen definidos para mostrar hilos antiguos correctamente.
+// Contactos disponibles. Por ahora solo el Desarrollador de la app (fase de
+// pruebas); más adelante se reabren Administración/Presidencia/Conserje
+// añadiéndolos aquí de nuevo.
 const CANALES: HiloCanal[] = ['desarrollador']
 
+// Chat abierto: hilo existente (id) o conversación nueva con un canal.
+type ChatSel = { id?: string; canal: HiloCanal; titulo: string }
+
 export function BuzonPage() {
-  const [abierto, setAbierto] = useState<string | null>(null)
-  if (abierto) return <HiloVista id={abierto} onBack={() => setAbierto(null)} />
-  return <Bandeja onOpen={setAbierto} />
+  const [chat, setChat] = useState<ChatSel | null>(null)
+  if (chat) return <ChatVista sel={chat} onBack={() => setChat(null)} />
+  return <Bandeja onOpen={setChat} />
 }
 
-// ---- Lista de hilos (los míos + los de mi canal) -----------------------------
-function Bandeja({ onOpen }: { onOpen: (id: string) => void }) {
-  const { user, toast } = useApp()
+// ---- Bandeja estilo WhatsApp: contactos + conversaciones ----------------------
+function Bandeja({ onOpen }: { onOpen: (c: ChatSel) => void }) {
+  const { user } = useApp()
   const { data, state, refetch } = useAsync(listHilos, [])
-  const [nuevo, setNuevo] = useState<null | { asunto: string; texto: string; canal: HiloCanal }>(null)
-  const [saving, setSaving] = useState(false)
+  const hilos = data ?? []
 
-  const enviar = async () => {
-    if (!nuevo || nuevo.asunto.trim().length < 1 || nuevo.texto.trim().length < 1) return
-    setSaving(true)
-    try {
-      const id = await crearHilo({ asunto: nuevo.asunto.trim(), texto: nuevo.texto.trim(), canal: nuevo.canal })
-      setNuevo(null); refetch(); toast('Mensaje enviado', 'ok'); onOpen(id)
-    } catch { toast('No se pudo enviar', 'error') } finally { setSaving(false) }
+  // Mis chats como vecino: 1 conversación por canal (el hilo más reciente).
+  const mioPorCanal = new Map<HiloCanal, Hilo>()
+  for (const h of hilos) {
+    if (h.vecino_id === user.id && !mioPorCanal.has(h.canal)) mioPorCanal.set(h.canal, h)
   }
+  // Chats que atiendo como staff de mi canal (un chat por vecino/hilo).
+  const deMiCanal = hilos.filter((h) => h.vecino_id !== user.id)
 
   return (
     <div className="flex h-full flex-col bg-bg">
-      <SubHeader titulo="Buzón" right={(
-        <button onClick={() => setNuevo({ asunto: '', texto: '', canal: 'desarrollador' })} className="flex h-10 items-center gap-1.5 rounded-pill bg-primary px-3.5 text-[14px] font-bold text-white shadow-primary">
-          <Plus size={18} /> Nuevo
-        </button>
-      )} />
-      <Page className="flex min-h-0 flex-1 flex-col gap-3 overflow-y-auto">
-        <p className="text-[13px] text-muted">Escribe en privado al <b>Desarrollador de la app</b> para cualquier duda o problema durante las pruebas. Solo el destinatario lo ve.</p>
+      <SubHeader titulo="Buzón" />
+      <Page className="flex min-h-0 flex-1 flex-col gap-4 overflow-y-auto">
         {state === 'loading' && <SkeletonList n={3} />}
         {state === 'error' && <ErrorState onRetry={refetch} />}
-        {(state === 'empty' || (state === 'ready' && (data ?? []).length === 0)) && (
-          <EmptyState titulo="Sin conversaciones" texto="Cuando escribas o recibas un mensaje, aparecerá aquí." />
-        )}
-        {state === 'ready' && (data ?? []).map((h: Hilo) => {
-          const soyDueño = h.vecino_id === user.id
-          const sinLeer = soyDueño ? h.no_leido_vecino : h.no_leido_gestion
-          return (
-            <Card key={h.id} role="button" onClick={() => onOpen(h.id)} className="cursor-pointer hover:bg-surface-2">
-              <div className="flex items-center justify-between gap-2">
-                <div className="flex min-w-0 items-center gap-2">
-                  {sinLeer && <CircleDot size={15} className="shrink-0 text-primary" />}
-                  <span className="truncate font-semibold text-ink">{h.asunto}</span>
-                </div>
-                <span className="shrink-0 rounded-pill bg-primary-soft px-2 py-0.5 text-[11px] font-bold text-primary-700">{CANAL_LABEL[h.canal]}</span>
-              </div>
-              <div className="mt-0.5 text-[13px] text-muted">
-                {soyDueño ? 'Enviado por ti' : `${h.vecino_nombre ?? 'Vecino'} · ${h.vecino_vivienda}`}
-                {h.estado === 'cerrado' && ' · cerrado'}
-              </div>
-              <div className="mt-0.5 text-[11px] text-faint">{fechaHora(h.updated_at)}</div>
-            </Card>
-          )
-        })}
-      </Page>
 
-      {nuevo && (
-        <div className="app-viewport z-50 flex items-end justify-center bg-black/40 sm:items-center" onClick={() => setNuevo(null)}>
-          <div className="max-h-full w-full max-w-[520px] overflow-y-auto rounded-t-[20px] bg-surface p-5 shadow-xl sm:rounded-[20px]" onClick={(e) => e.stopPropagation()}>
-            <div className="mb-3 flex items-center justify-between">
-              <h3 className="font-display text-[18px] font-bold text-ink">Nuevo mensaje privado</h3>
-              <button onClick={() => setNuevo(null)} aria-label="Cerrar" className="rounded-full p-1.5 text-faint hover:bg-surface-2"><X size={20} /></button>
-            </div>
-            <div className="flex flex-col gap-3">
-              <SelectField label="Para" value={nuevo.canal} onChange={(e) => setNuevo({ ...nuevo, canal: e.target.value as HiloCanal })}>
-                {CANALES.map((c) => <option key={c} value={c}>{CANAL_LABEL[c]}</option>)}
-              </SelectField>
-              <Field label="Asunto" value={nuevo.asunto} maxLength={140} onChange={(e) => setNuevo({ ...nuevo, asunto: e.target.value })} placeholder="Ej. Avería en el garaje" />
-              <Textarea label="Mensaje" value={nuevo.texto} maxLength={4000} rows={5} onChange={(e) => setNuevo({ ...nuevo, texto: e.target.value })} placeholder="Cuéntanos qué ocurre…" />
-              <Button block size="lg" disabled={saving || !nuevo.asunto.trim() || !nuevo.texto.trim()} onClick={enviar}>
-                <Send size={18} /> {saving ? 'Enviando…' : 'Enviar'}
-              </Button>
-            </div>
-          </div>
-        </div>
-      )}
+        {state !== 'loading' && state !== 'error' && (
+          <>
+            {/* Contactos: toca y escribe (directo al chat) */}
+            <section className="flex flex-col gap-2">
+              {CANALES.map((c) => {
+                const h = mioPorCanal.get(c)
+                const sinLeer = !!h?.no_leido_vecino
+                return (
+                  <Card key={c} role="button" onClick={() => onOpen({ id: h?.id, canal: c, titulo: CANAL_LABEL[c] })}
+                    className="flex cursor-pointer items-center gap-3 hover:bg-surface-2">
+                    <span className="flex h-11 w-11 shrink-0 items-center justify-center rounded-full bg-primary-soft text-primary-700">
+                      <Code2 size={21} strokeWidth={1.9} />
+                    </span>
+                    <div className="min-w-0 flex-1">
+                      <div className="font-semibold text-ink">{CANAL_LABEL[c]}</div>
+                      <div className="truncate text-[12.5px] text-muted">
+                        {h ? fechaHora(h.updated_at) : 'Toca para escribirle · solo lo veréis vosotros'}
+                      </div>
+                    </div>
+                    {sinLeer && <span className="h-2.5 w-2.5 shrink-0 rounded-full bg-primary" />}
+                  </Card>
+                )
+              })}
+            </section>
+
+            {/* Conversaciones que atiendo (staff del canal) */}
+            {deMiCanal.length > 0 && (
+              <section className="flex flex-col gap-2">
+                <h2 className="section-title">Vecinos</h2>
+                {deMiCanal.map((h) => (
+                  <Card key={h.id} role="button"
+                    onClick={() => onOpen({ id: h.id, canal: h.canal, titulo: h.vecino_nombre ?? 'Vecino' })}
+                    className="flex cursor-pointer items-center gap-3 hover:bg-surface-2">
+                    <Avatar text={iniciales(h.vecino_nombre ?? 'V')} size={44} />
+                    <div className="min-w-0 flex-1">
+                      <div className="truncate font-semibold text-ink">{h.vecino_nombre ?? 'Vecino'} <span className="font-normal text-muted">· {h.vecino_vivienda}</span></div>
+                      <div className="truncate text-[12.5px] text-muted">{fechaHora(h.updated_at)}{h.estado === 'cerrado' && ' · cerrado'}</div>
+                    </div>
+                    {h.no_leido_gestion && <span className="h-2.5 w-2.5 shrink-0 rounded-full bg-primary" />}
+                  </Card>
+                ))}
+              </section>
+            )}
+          </>
+        )}
+      </Page>
     </div>
   )
 }
 
-// ---- Vista de un hilo (chat) -------------------------------------------------
-function HiloVista({ id, onBack }: { id: string; onBack: () => void }) {
+// ---- Chat (estilo WhatsApp) ----------------------------------------------------
+function ChatVista({ sel, onBack }: { sel: ChatSel; onBack: () => void }) {
   const { user, toast } = useApp()
-  const { data, state, refetch } = useAsync(() => getHilo(id), [id])
+  const [hiloId, setHiloId] = useState<string | undefined>(sel.id)
+  const { data, state, refetch } = useAsync(
+    () => (hiloId ? getHilo(hiloId) : Promise.resolve(null)),
+    [hiloId],
+  )
   const [texto, setTexto] = useState('')
   const [saving, setSaving] = useState(false)
   const [convertir, setConvertir] = useState<null | { tipo: MensajeTipo; titulo: string; cuerpo: string }>(null)
 
   const hilo = data?.hilo
-  const soyDueño = !!hilo && hilo.vecino_id === user.id
+  const soyDueño = !hilo || hilo.vecino_id === user.id
   const staff = !!hilo && !soyDueño
   const cerrado = hilo?.estado === 'cerrado'
 
-  const responder = async () => {
-    if (texto.trim().length < 1) return
+  // Enviar: si aún no existe conversación, se crea con este primer mensaje.
+  const enviar = async () => {
+    const t = texto.trim()
+    if (t.length < 1) return
     setSaving(true)
-    try { await responderHilo(id, texto.trim()); setTexto(''); refetch() }
-    catch { toast('No se pudo enviar', 'error') } finally { setSaving(false) }
+    try {
+      if (hiloId) {
+        await responderHilo(hiloId, t)
+        refetch()
+      } else {
+        const id = await crearHilo({ asunto: sel.titulo, texto: t, canal: sel.canal })
+        setHiloId(id) // el useAsync recarga con el hilo nuevo
+      }
+      setTexto('')
+    } catch { toast('No se pudo enviar', 'error') } finally { setSaving(false) }
   }
+
   const alternarCierre = async () => {
-    if (!hilo) return
-    await cerrarHilo(id, !cerrado); refetch(); toast(cerrado ? 'Conversación reabierta' : 'Conversación cerrada', 'info')
+    if (!hiloId) return
+    await cerrarHilo(hiloId, !cerrado); refetch(); toast(cerrado ? 'Conversación reabierta' : 'Conversación cerrada', 'info')
   }
   const borrar = async () => {
+    if (!hiloId) { onBack(); return }
     if (!window.confirm('¿Borrar esta conversación? Se eliminará para siempre, junto con todos sus mensajes.')) return
-    try { await borrarHilo(id); toast('Conversación borrada', 'info'); onBack() }
+    try { await borrarHilo(hiloId); toast('Conversación borrada', 'info'); onBack() }
     catch { toast('No se pudo borrar', 'error') }
   }
   const abrirConvertir = () => {
@@ -130,31 +145,41 @@ function HiloVista({ id, onBack }: { id: string; onBack: () => void }) {
     setConvertir({ tipo: 'incidencia', titulo: hilo?.asunto ?? '', cuerpo: primer?.texto ?? '' })
   }
   const publicar = async () => {
-    if (!convertir || !convertir.titulo.trim() || !convertir.cuerpo.trim()) return
+    if (!hiloId || !convertir || !convertir.titulo.trim() || !convertir.cuerpo.trim()) return
     setSaving(true)
-    try { await convertirEnMensaje(id, { ...convertir, titulo: convertir.titulo.trim(), cuerpo: convertir.cuerpo.trim() }); setConvertir(null); toast('Publicado como mensaje y notificado', 'ok') }
+    try { await convertirEnMensaje(hiloId, { ...convertir, titulo: convertir.titulo.trim(), cuerpo: convertir.cuerpo.trim() }); setConvertir(null); toast('Publicado como mensaje y notificado', 'ok') }
     catch { toast('No se pudo publicar', 'error') } finally { setSaving(false) }
   }
 
   return (
-    // Chat fijado al viewport visible (.app-viewport): sigue al teclado en altura
-    // y desplazamiento; cabecera y barra de escribir quedan fijas y SOLO
-    // scrollean los mensajes (el input queda siempre sobre el teclado).
+    // Chat fijado al viewport visible (.app-viewport): cabecera y barra de
+    // escribir fijas, SOLO scrollean los mensajes (input siempre sobre el teclado).
     <div className="app-viewport z-50 flex flex-col bg-bg">
-      <header className="z-10 flex shrink-0 items-center gap-1 border-b border-border bg-surface/95 px-2 py-3 backdrop-blur safe-top">
+      <header className="z-10 flex shrink-0 items-center gap-1.5 border-b border-border bg-surface/95 px-2 py-2.5 backdrop-blur safe-top">
         <button onClick={onBack} aria-label="Atrás" className="flex h-10 w-10 shrink-0 items-center justify-center rounded-full hover:bg-surface-2"><ChevronLeft size={24} /></button>
+        {staff
+          ? <Avatar text={iniciales(sel.titulo)} size={38} />
+          : <span className="flex h-[38px] w-[38px] shrink-0 items-center justify-center rounded-full bg-primary-soft text-primary-700"><Code2 size={19} /></span>}
         <div className="min-w-0 flex-1">
-          <h1 className="truncate font-display text-[17px] font-bold text-ink">{hilo?.asunto ?? 'Conversación'}</h1>
-          {hilo && <div className="text-[11.5px] text-faint">{CANAL_LABEL[hilo.canal]}{staff && hilo.vecino_nombre ? ` · ${hilo.vecino_nombre}` : ''}</div>}
+          <h1 className="truncate font-display text-[16.5px] font-bold leading-tight text-ink">{sel.titulo}</h1>
+          <div className="text-[11.5px] text-faint">
+            {staff ? `${hilo?.vecino_vivienda ?? ''} · ${CANAL_LABEL[sel.canal]}` : 'Chat privado · solo lo veis vosotros'}
+          </div>
         </div>
         {staff && <button onClick={alternarCierre} className="shrink-0 rounded-pill px-2.5 py-1.5 text-[12px] font-bold text-muted hover:bg-surface-2">{cerrado ? 'Reabrir' : 'Cerrar'}</button>}
-        <button onClick={borrar} aria-label="Borrar conversación" className="flex h-10 w-10 shrink-0 items-center justify-center rounded-full text-danger hover:bg-danger-soft"><Trash2 size={19} /></button>
+        {hiloId && <button onClick={borrar} aria-label="Borrar conversación" className="flex h-10 w-10 shrink-0 items-center justify-center rounded-full text-danger hover:bg-danger-soft"><Trash2 size={19} /></button>}
       </header>
 
       <div className="mx-auto w-full min-h-0 max-w-[720px] flex-1 overflow-y-auto px-4 py-4">
-        {state === 'loading' && <SkeletonList n={3} />}
+        {hiloId && state === 'loading' && <SkeletonList n={3} />}
         {state === 'error' && <ErrorState onRetry={refetch} />}
-        {state === 'ready' && data && (
+        {!hiloId && (
+          <div className="flex h-full flex-col items-center justify-center gap-2 text-center">
+            <span className="flex h-16 w-16 items-center justify-center rounded-full bg-primary-soft text-primary-700"><Code2 size={30} /></span>
+            <p className="max-w-[260px] text-[14px] text-muted">Escríbele al <b>{sel.titulo}</b>. Es un chat privado: solo lo veréis vosotros.</p>
+          </div>
+        )}
+        {hiloId && state === 'ready' && data && (
           <>
             {staff && puedePublicarMensajes(user.rol) && (
               <Button variant="secondary" block className="mb-4" onClick={abrirConvertir}><Megaphone size={17} /> Convertir en mensaje público</Button>
@@ -186,7 +211,7 @@ function HiloVista({ id, onBack }: { id: string; onBack: () => void }) {
           <div className="mx-auto flex max-w-[720px] items-end gap-2">
             <textarea value={texto} onChange={(e) => setTexto(e.target.value)} rows={1} placeholder="Escribe un mensaje…"
               className="max-h-32 min-h-[46px] flex-1 resize-none rounded-[16px] border border-border bg-surface px-3.5 py-2.5 text-[15px] text-ink shadow-neu-inset focus:border-primary focus:outline-none" />
-            <button onClick={responder} disabled={saving || !texto.trim()} aria-label="Enviar"
+            <button onClick={enviar} disabled={saving || !texto.trim()} aria-label="Enviar"
               className="flex h-[46px] w-[46px] shrink-0 items-center justify-center rounded-full bg-primary text-white shadow-primary disabled:opacity-50">
               <Send size={19} />
             </button>

@@ -18,17 +18,21 @@ siquiera el `app_admin`, salvo su propio canal).
 **Privacidad estricta:** cada canal solo es visible para su(s) rol(es) + el
 vecino que abrió el hilo. El `app_admin` **no** ve Presidencia ni Conserje.
 
-## Comportamiento
+## Comportamiento (estilo WhatsApp)
 
-- Cualquier vecino activo puede **abrir un hilo** eligiendo el canal ("Para").
-- **Fase de pruebas (actual):** el selector "Para" solo ofrece **Desarrollador de
-  la app**; el resto de canales quedan definidos (para mostrar hilos antiguos y
-  reactivarlos después) pero no seleccionables. Los hilos previos se migraron al
-  canal `desarrollador`. Reabrir canales = volver a poner todos en `CANALES`
-  (`src/features/buzon/BuzonPage.tsx`).
-- El staff del canal ve en su **bandeja** los hilos de su canal (más los que él
-  mismo haya abierto como vecino) y puede **responder**, **cerrar** y
-  **"Convertir en mensaje público"** (si tiene `publicar_mensajes`).
+- La bandeja es una **lista de contactos/chats**, sin formulario de asunto:
+  - **Vecino:** un contacto por canal disponible (hoy solo "Desarrollador de la
+    app"). Tocar el contacto abre **directamente el chat** (si ya existía
+    conversación con ese canal, la retoma: 1 conversación por vecino+canal, la
+    más reciente). El hilo se **crea con el primer mensaje** (asunto = nombre
+    del canal); punto azul si hay respuesta sin leer.
+  - **Staff del canal:** además ve la sección "Vecinos" con un chat por vecino
+    (nombre + vivienda + fecha; punto si hay no leído).
+- **Fase de pruebas (actual):** solo el canal **desarrollador** es contactable;
+  el resto quedan definidos para conservar hilos antiguos. Reabrir canales =
+  añadirlos de nuevo a `CANALES` (`src/features/buzon/BuzonPage.tsx`).
+- El staff puede **responder**, **cerrar/reabrir** y **"Convertir en mensaje
+  público"** (si tiene `publicar_mensajes`).
 - Estilo **chat fijado al viewport visible** (`--app-h`): cabecera y barra de
   escribir fijas, **solo scrollean los mensajes**; el input queda siempre sobre
   el teclado (no descuadra en iOS).

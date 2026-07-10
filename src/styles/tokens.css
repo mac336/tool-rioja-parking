@@ -56,6 +56,7 @@
 
   --font-display: "Bricolage Grotesque", "Figtree", sans-serif;
   --font-ui: "Figtree", system-ui, sans-serif;
+  --font-hand: "Caveat", cursive;
 }
 
 /* ===== Modo oscuro (neumorfismo suave sobre fondo carbón, no negro puro) ===== */

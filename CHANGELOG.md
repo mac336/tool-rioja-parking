@@ -5,6 +5,11 @@ al implementar el cambio (ver `CLAUDE.md` → Forma de trabajo).
 
 ## 2026-07-10
 
+- **v1.7.0 · Acceso directo (temporal) + bienvenida en 2 pasos:** los vecinos ya
+  aprobados entran **solo con su correo, sin código** (flag `ACCESO_DIRECTO`;
+  Edge `acceso-directo` genera sesión sin enviar correo), para no liar a la gente
+  mayor. Reversible poniendo el flag a `false`. La **bienvenida** añade un
+  segundo paso que invita a **instalar la app** en el móvil.
 - **v1.6.0 · Adopción por piso: entrado vs sin entrar:** la tabla de Adopción
   marca en cada vivienda con cuenta si **ha entrado** (ya inició sesión) o está
   **sin entrar** (aprobada pero no ha accedido — típicamente correo en spam).

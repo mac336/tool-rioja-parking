@@ -8,6 +8,28 @@ import { iniciales } from '@/lib/format'
 
 export type AuthStatus = 'loading' | 'anon' | 'pending' | 'active' | 'suspended'
 
+// ⚠️ TEMPORAL: acceso directo solo con el correo (sin código), para vecinos ya
+// aprobados. Muchos vecinos mayores se lían con el flujo del código. Poner en
+// `false` para volver al bloqueo por código OTP (no requiere más cambios).
+export const ACCESO_DIRECTO = true
+
+/** Acceso directo (solo correo): pide una sesión al servidor para un vecino
+ *  aprobado y la establece. No envía ningún correo. Devuelve `error` (código
+ *  interno) o null si entró. */
+export async function accesoDirecto(email: string): Promise<{ error: string | null }> {
+  const { data, error } = await supabase.functions.invoke('acceso-directo', {
+    body: { email: email.trim().toLowerCase() },
+  })
+  if (error) return { error: 'error' }
+  if (data?.error) return { error: data.error as string }
+  if (!data?.access_token || !data?.refresh_token) return { error: 'no_sesion' }
+  const { error: setErr } = await supabase.auth.setSession({
+    access_token: data.access_token, refresh_token: data.refresh_token,
+  })
+  if (setErr) return { error: 'no_sesion' }
+  return { error: null }
+}
+
 /** Envía un código de 6 dígitos (OTP) por correo. Solo a usuarios ya aprobados
  *  (shouldCreateUser:false → un correo no dado de alta no crea cuenta). */
 export async function enviarCodigo(email: string) {

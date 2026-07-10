@@ -12,6 +12,15 @@ lo ofrezca automáticamente.
 > sesión se recuerda en el dispositivo (persistente). Emisor de correo: SMTP de
 > Gmail de la comunidad (`cdelarioja25@gmail.com`).
 
+> **Acceso directo (TEMPORAL, flag `ACCESO_DIRECTO=true` en `src/lib/session.ts`):**
+> para facilitar la entrada a vecinos mayores, si el correo introducido es de un
+> vecino **ya aprobado y activo**, la app le da sesión **directamente sin código**
+> (Edge Function `acceso-directo`: genera un token de magic link sin enviar
+> correo y lo canjea por sesión). Es login por correo como **único factor**
+> (relajación deliberada de seguridad). Para volver al bloqueo por código OTP:
+> poner el flag en `false` (no requiere más cambios; la función puede quedarse
+> desplegada, deja de llamarse).
+
 ## Autenticado ≠ autorizado
 
 Tener sesión no da acceso: lo concede la gestión al aprobar la solicitud. Estado

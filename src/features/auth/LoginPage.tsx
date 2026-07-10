@@ -3,7 +3,7 @@ import { Link, useNavigate } from 'react-router-dom'
 import { Logo } from '@/components/Logo'
 import { Button, Field, Alert } from '@/components/ui'
 import { usingSupabase } from '@/lib/supabase'
-import { enviarCodigo, verificarCodigo } from '@/lib/session'
+import { enviarCodigo, verificarCodigo, accesoDirecto, ACCESO_DIRECTO } from '@/lib/session'
 import { useApp } from '@/store'
 
 type Paso = 'correo' | 'codigo'
@@ -21,6 +21,24 @@ export function LoginPage() {
     setError('')
     if (!/.+@.+\..+/.test(email)) { setError('Introduce un correo válido.'); return }
     if (!usingSupabase) { nav('/'); return } // modo demo: acceso directo
+
+    // TEMPORAL: acceso directo solo con el correo (sin código) para aprobados.
+    if (ACCESO_DIRECTO) {
+      setCargando(true)
+      const { error } = await accesoDirecto(email.trim())
+      if (error) {
+        setCargando(false)
+        setError(error === 'no_aprobado' || error === 'no_activo'
+          ? 'Ese correo no tiene acceso aprobado todavía. Solicita acceso al administrador.'
+          : 'No se pudo entrar. Inténtalo de nuevo en unos segundos.')
+        return
+      }
+      await refreshAuth() // carga el perfil antes de navegar (si no, el guard rebota)
+      setCargando(false)
+      nav('/', { replace: true })
+      return
+    }
+
     setCargando(true)
     const { error } = await enviarCodigo(email.trim())
     setCargando(false)
@@ -68,12 +86,18 @@ export function LoginPage() {
         ) : (
           <>
             {error && <Alert tipo="danger">{error}</Alert>}
-            <p className="text-center text-[14px] text-muted">Si ya estás registrado, introduce tu correo y te enviaremos un código de acceso.</p>
+            <p className="text-center text-[14px] text-muted">
+              {ACCESO_DIRECTO
+                ? 'Si ya estás registrado, introduce tu correo y entra directamente.'
+                : 'Si ya estás registrado, introduce tu correo y te enviaremos un código de acceso.'}
+            </p>
             <Field label="Tu correo" type="email" value={email} onChange={(e) => setEmail(e.target.value)} placeholder="tucorreo@ejemplo.com" />
             <Button variant="primary" block size="lg" disabled={cargando} onClick={pedirCodigo}>
-              {cargando ? 'Enviando…' : 'Enviarme el código'}
+              {ACCESO_DIRECTO ? (cargando ? 'Entrando…' : 'Entrar') : (cargando ? 'Enviando…' : 'Enviarme el código')}
             </Button>
-            <p className="text-center text-[13px] text-faint">El código llega por correo. Si no lo ves, revisa tu carpeta de <b>spam</b> o correo no deseado.</p>
+            {!ACCESO_DIRECTO && (
+              <p className="text-center text-[13px] text-faint">El código llega por correo. Si no lo ves, revisa tu carpeta de <b>spam</b> o correo no deseado.</p>
+            )}
 
             <div className="my-2 flex items-center gap-3 text-[12px] text-faint">
               <span className="h-px flex-1 bg-border" />¿aún no tienes acceso?<span className="h-px flex-1 bg-border" />

@@ -49,7 +49,11 @@
   origen deja de estar vigente (mensaje borrado/caducado, hilo leído, votación
   cerrada…). Contador de "no vistos" en la campana de la Home comparando `ts`
   con la última visita a /avisos (localStorage, por dispositivo).
-- **Bienvenida** al abrir (una vez por sesión) con botón Siguiente.
+- **Bienvenida** al abrir (una vez por sesión de pestaña) en **dos pasos**:
+  (1) mensaje de bienvenida; (2) **invitación a instalar la app** en el móvil
+  (Android: instalador nativo; iPhone: guía Compartir → Añadir a pantalla de
+  inicio) para que solo se identifiquen una vez. Si ya está instalada (abierta
+  desde el icono) el paso 2 se omite.
 
 ## Rendimiento
 - App ligera: carga inicial rápida en móvil (objetivo < 200 KB JS inicial

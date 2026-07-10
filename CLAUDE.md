@@ -27,8 +27,10 @@ Al implementar algo nuevo o cambiar algo existente:
 
 ## Estado y decisiones vigentes (resumen)
 
-- **Login:** sin contraseña — **código OTP de 6 dígitos por correo** (solo a
-  vecinos ya aprobados). No hay Google ni enlace mágico. Ver `specs/03`.
+- **Login:** sin contraseña. **TEMPORAL (flag `ACCESO_DIRECTO`):** los vecinos
+  aprobados entran **solo con su correo, sin código** (Edge `acceso-directo`),
+  por usabilidad con gente mayor. Con el flag en `false` vuelve al **código OTP
+  de 6 dígitos por correo**. No hay Google ni enlace mágico. Ver `specs/03`.
 - **Roles (8):** `app_admin` (SUPERADMIN), `presidente`, `vicepresidente`,
   `administrador_finca`, `junta`, `conserje`, `vecino`, `tester` (cuenta de
   pruebas SOLO lectura + chat del buzón).

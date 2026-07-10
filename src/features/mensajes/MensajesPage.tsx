@@ -1,18 +1,25 @@
 import { useState } from 'react'
-import { Plus, X, Send } from 'lucide-react'
+import { Plus, X, Send, Trash2 } from 'lucide-react'
 import { Page } from '@/components/layout/AppShell'
 import { Button, Field, Textarea, SelectField, EmptyState, ErrorState, SkeletonList, cx } from '@/components/ui'
 import { useAsync } from '@/lib/useAsync'
 import { useApp } from '@/store'
 import { puedePublicarMensajes } from '@/lib/roles'
+import { PISOS } from '@/lib/parking'
 import { listMensajes, crearMensaje, editarMensaje, borrarMensaje } from '@/lib/api'
 import type { Mensaje, MensajeTipo } from '@/types'
 import { MensajeCard, TIPO_META } from './MensajeCard'
 
 const ORDEN: MensajeTipo[] = ['aviso', 'anuncio', 'incidencia']
 const SECCION: Record<MensajeTipo, string> = { aviso: 'Avisos', anuncio: 'Anuncios', incidencia: 'Incidencias' }
+const FIRMAS = ['Administrador', 'Conserje', 'la Junta', ...PISOS]
 
-type FormState = { id?: string; tipo: MensajeTipo; titulo: string; cuerpo: string; expira: string }
+const pad = (n: number) => String(n).padStart(2, '0')
+const claveDia = (d: Date) => `${d.getFullYear()}-${pad(d.getMonth() + 1)}-${pad(d.getDate())}`
+const hoyStr = () => claveDia(new Date())
+const mananaStr = () => { const d = new Date(); d.setDate(d.getDate() + 1); return claveDia(d) }
+
+type FormState = { id?: string; tipo: MensajeTipo; titulo: string; cuerpo: string; expira: string; firma: string }
 
 export function MensajesPage() {
   const { user, msgColors, toast } = useApp()
@@ -23,8 +30,8 @@ export function MensajesPage() {
   const [form, setForm] = useState<FormState | null>(null)
   const [saving, setSaving] = useState(false)
 
-  const abrirNuevo = () => setForm({ tipo: tab, titulo: '', cuerpo: '', expira: '' })
-  const abrirEditar = (m: Mensaje) => setForm({ id: m.id, tipo: m.tipo, titulo: m.titulo, cuerpo: m.cuerpo, expira: m.expira_at ? m.expira_at.slice(0, 10) : '' })
+  const abrirNuevo = () => setForm({ tipo: tab, titulo: '', cuerpo: '', expira: mananaStr(), firma: 'Administrador' })
+  const abrirEditar = (m: Mensaje) => setForm({ id: m.id, tipo: m.tipo, titulo: m.titulo, cuerpo: m.cuerpo, expira: m.expira_at ? m.expira_at.slice(0, 10) : '', firma: m.firma || 'Administrador' })
 
   const guardar = async () => {
     if (!form || form.titulo.trim().length < 1 || form.cuerpo.trim().length < 1) return
@@ -33,6 +40,7 @@ export function MensajesPage() {
       const payload = {
         tipo: form.tipo, titulo: form.titulo.trim(), cuerpo: form.cuerpo.trim(),
         expira_at: form.expira ? new Date(`${form.expira}T23:59:59`).toISOString() : null,
+        firma: form.firma,
       }
       if (form.id) { await editarMensaje(form.id, payload); toast('Mensaje actualizado') }
       else { await crearMensaje(payload); toast('Mensaje publicado y notificado', 'ok') }
@@ -99,8 +107,23 @@ export function MensajesPage() {
               </SelectField>
               <Field label="Título" value={form.titulo} maxLength={140} onChange={(e) => setForm({ ...form, titulo: e.target.value })} placeholder="Ej. Corte de agua el martes" />
               <Textarea label="Mensaje" value={form.cuerpo} maxLength={4000} rows={5} onChange={(e) => setForm({ ...form, cuerpo: e.target.value })} placeholder="Escribe el mensaje para la comunidad…" />
-              <Field label="Caduca el (opcional)" type="date" value={form.expira} onChange={(e) => setForm({ ...form, expira: e.target.value })}
-                hint="Los avisos con fecha de caducidad aparecen en “Actividad reciente” de Inicio hasta ese día." />
+              <SelectField label="Firma (aparece en el post-it)" value={form.firma} onChange={(e) => setForm({ ...form, firma: e.target.value })}>
+                {FIRMAS.map((f) => <option key={f} value={f}>{f}</option>)}
+              </SelectField>
+              <div className="flex flex-col gap-1.5">
+                <label htmlFor="caduca" className="text-[13px] font-semibold text-muted">Caduca el (opcional)</label>
+                <div className="flex items-center gap-2">
+                  <input id="caduca" type="date" min={hoyStr()} value={form.expira} onChange={(e) => setForm({ ...form, expira: e.target.value })}
+                    className="min-h-[48px] flex-1 rounded-[14px] border border-border bg-surface px-3.5 text-[15px] text-ink shadow-neu-inset focus:border-primary focus:outline-none" />
+                  {form.expira && (
+                    <button type="button" onClick={() => setForm({ ...form, expira: '' })} aria-label="Quitar caducidad"
+                      className="flex h-[48px] w-[48px] shrink-0 items-center justify-center rounded-[14px] border border-border bg-surface text-danger active:shadow-neu-inset">
+                      <Trash2 size={18} />
+                    </button>
+                  )}
+                </div>
+                <span className="text-[12px] text-faint">Los avisos con caducidad aparecen en “Actividad reciente” hasta ese día. Bórrala (🗑) para que no caduque.</span>
+              </div>
               <Button block size="lg" disabled={saving || !form.titulo.trim() || !form.cuerpo.trim()} onClick={guardar}>
                 <Send size={18} /> {saving ? 'Guardando…' : form.id ? 'Guardar cambios' : 'Publicar y notificar'}
               </Button>

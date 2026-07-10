@@ -97,7 +97,7 @@ export function PostItPadModal({ tipo, grupo, onClose }: { tipo: MensajeTipo; gr
                   )}
                   <div className="mt-auto flex items-end justify-between">
                     <span className="text-[11px] font-bold" style={{ color: '#8B9DAA' }}>Hoja {idx + pos + 1} de {n}</span>
-                    <span style={{ fontFamily: 'var(--font-hand)', fontSize: '19px', color: e.tint }}>— {e.autor}</span>
+                    <span style={{ fontFamily: 'var(--font-hand)', fontSize: '19px', color: e.tint }}>— {m.firma || e.autor}</span>
                   </div>
                   <span className="absolute bottom-0 right-0" style={{ width: 0, height: 0, borderStyle: 'solid', borderWidth: '0 0 22px 22px', borderColor: 'transparent transparent rgba(0,0,0,.12) transparent', borderRadius: '0 0 4px 0' }} />
                 </div>

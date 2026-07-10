@@ -87,6 +87,7 @@ export interface Mensaje {
   autor_nombre?: string
   activo: boolean
   expira_at?: string | null // fecha de expiración (usada sobre todo por avisos)
+  firma?: string | null // quién firma (Administrador / Conserje / la Junta / vivienda)
   created_at: string
 }
 

@@ -35,9 +35,11 @@ Al implementar algo nuevo o cambiar algo existente:
   de incidencias y anuncios (RETIRADOS). Ver `specs/16`.
 - **Buzón privado por canales:** vecino↔(Administración/Presidencia/Conserje/
   Desarrollador de la app), dirigido y privado por rol. Ver `specs/17`.
-- **Notificaciones:** push (Web Push/VAPID) para mensajes y buzón; correo (Gmail
-  SMTP) para código de acceso, alta de vecinos, aprobación de reservas y
-  sugerencias. El buzón es **solo push** (sin correo).
+- **Notificaciones:** push (Web Push/VAPID) para casi todo (mensajes, buzón,
+  reservas, nuevas solicitudes, sugerencias). Los **correos de notificación están
+  desactivados** (flag `supabase/functions/_shared/config.ts`); solo se envían por
+  correo los **imprescindibles**: código de acceso (login OTP) e invitación al
+  aprobar un alta.
 - **PWA:** instalable; Android con botón nativo, iPhone con guía (solo Safari).
   Layout app-shell: la app se fija al viewport visible (`--app-h`), cabecera y
   TabBar siempre fijos, solo scrollea el contenido.

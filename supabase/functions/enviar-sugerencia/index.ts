@@ -6,6 +6,8 @@
 import { SMTPClient } from 'https://deno.land/x/denomailer@1.6.0/mod.ts'
 import { createClient } from 'jsr:@supabase/supabase-js@2'
 import { corsHeaders, json } from '../_shared/cors.ts'
+import { enviarPushAUsuarios, idsPorRoles } from '../_shared/push.ts'
+import { CORREOS_NOTIFICACION } from '../_shared/config.ts'
 
 const SUPABASE_URL = Deno.env.get('SUPABASE_URL')!
 const SERVICE_ROLE = Deno.env.get('SUPABASE_SERVICE_ROLE_KEY')!
@@ -35,27 +37,33 @@ Deno.serve(async (req) => {
     const cuerpo = typeof texto === 'string' ? texto.trim() : ''
     if (cuerpo.length < 3 || cuerpo.length > 4000) return json({ error: 'La sugerencia debe tener entre 3 y 4000 caracteres.' }, 400)
 
-    if (!GMAIL_APP_PASSWORD || !GMAIL_USER) {
-      // Sin SMTP configurado (dev): no falla el flujo, solo informa.
-      return json({ ok: true, skipped: 'SMTP no configurado' })
-    }
+    // 3) Aviso al desarrollador (app_admin) por PUSH — canal principal ahora que
+    //    los correos de notificación están desactivados.
+    const idsDev = await idsPorRoles(admin, ['app_admin'])
+    await enviarPushAUsuarios(admin, idsDev, {
+      title: '💡 Nueva sugerencia',
+      body: `${perfil.nombre} (${perfil.vivienda}): ${cuerpo.slice(0, 140)}`,
+      url: '/',
+    }).catch(() => undefined)
 
-    // 3) Enviar el correo a la comunidad (responder-a = correo del vecino).
-    const client = new SMTPClient({
-      connection: { hostname: 'smtp.gmail.com', port: 465, tls: true, auth: { username: GMAIL_USER, password: GMAIL_APP_PASSWORD } },
-    })
-    await client.send({
-      from: `App Rioja 25 <${GMAIL_USER}>`,
-      to: SUGERENCIAS_TO,
-      replyTo: user.email ?? undefined,
-      subject: `Sugerencia — ${perfil.nombre} (${perfil.vivienda})`,
-      content:
-        `Nueva sugerencia desde la app Rioja 25.\n\n` +
-        `De: ${perfil.nombre} · ${perfil.vivienda}\n` +
-        `Correo: ${user.email ?? '—'}\n\n` +
-        `Sugerencia:\n${cuerpo}\n`,
-    })
-    await client.close()
+    // 4) Correo (solo si los correos de notificación están activados y hay SMTP).
+    if (CORREOS_NOTIFICACION && GMAIL_APP_PASSWORD && GMAIL_USER) {
+      const client = new SMTPClient({
+        connection: { hostname: 'smtp.gmail.com', port: 465, tls: true, auth: { username: GMAIL_USER, password: GMAIL_APP_PASSWORD } },
+      })
+      await client.send({
+        from: `App Rioja 25 <${GMAIL_USER}>`,
+        to: SUGERENCIAS_TO,
+        replyTo: user.email ?? undefined,
+        subject: `Sugerencia — ${perfil.nombre} (${perfil.vivienda})`,
+        content:
+          `Nueva sugerencia desde la app Rioja 25.\n\n` +
+          `De: ${perfil.nombre} · ${perfil.vivienda}\n` +
+          `Correo: ${user.email ?? '—'}\n\n` +
+          `Sugerencia:\n${cuerpo}\n`,
+      })
+      await client.close()
+    }
 
     return json({ ok: true })
   } catch (_e) {

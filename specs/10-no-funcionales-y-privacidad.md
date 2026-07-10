@@ -14,8 +14,13 @@
   el icono). No se pueden forzar: el permiso lo concede el usuario. Envío desde
   Edge Functions (`notificar`, `notificar-reserva`, `notificar-admin`) con clave
   privada VAPID en el servidor (la pública va en el cliente). Usos: mensajes
-  nuevos, buzón, reservas y **nuevas solicitudes de acceso** (push + correo a
-  gestión).
+  nuevos, buzón, reservas, **nuevas solicitudes de acceso** y **sugerencias**
+  (estas últimas → push al app_admin).
+- **Correos:** los **correos de notificación están DESACTIVADOS** (interruptor
+  `supabase/functions/_shared/config.ts` → `CORREOS_NOTIFICACION = false`); esos
+  avisos van por push. Siguen activos solo los **imprescindibles**: el **código
+  de acceso** (login OTP, vía Supabase Auth) y la **invitación al aprobar un
+  alta** (`aprobar-solicitud`). Reactivar = poner el flag a `true` y redesplegar.
 - **Layout app-shell:** la app se **fija al viewport visible** (`--app-h` vía
   VisualViewport, `AppShell` en `position: fixed`). El documento nunca hace
   scroll; **cabecera y TabBar siempre fijos** y solo scrollea el contenido. Evita

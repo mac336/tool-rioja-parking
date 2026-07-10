@@ -6,6 +6,7 @@ import { SMTPClient } from 'https://deno.land/x/denomailer@1.6.0/mod.ts'
 import { createClient } from 'jsr:@supabase/supabase-js@2'
 import { corsHeaders, json } from '../_shared/cors.ts'
 import { enviarPushAUsuarios } from '../_shared/push.ts'
+import { CORREOS_NOTIFICACION } from '../_shared/config.ts'
 
 const SUPABASE_URL = Deno.env.get('SUPABASE_URL')!
 const SERVICE_ROLE = Deno.env.get('SUPABASE_SERVICE_ROLE_KEY')!
@@ -34,9 +35,9 @@ Deno.serve(async (req) => {
       url: '/admin',
     }).catch(() => undefined)
 
-    // 2) Correo (si hay SMTP configurado y hay destinatarios).
+    // 2) Correo (si los correos de notificación están activados y hay SMTP).
     let enviadosCorreo = 0
-    if (GMAIL_APP_PASSWORD && destinatarios.length > 0) {
+    if (CORREOS_NOTIFICACION && GMAIL_APP_PASSWORD && destinatarios.length > 0) {
       const client = new SMTPClient({
         connection: { hostname: 'smtp.gmail.com', port: 465, tls: true, auth: { username: GMAIL_USER, password: GMAIL_APP_PASSWORD } },
       })

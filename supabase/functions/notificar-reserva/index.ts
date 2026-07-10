@@ -6,6 +6,7 @@ import { SMTPClient } from 'https://deno.land/x/denomailer@1.6.0/mod.ts'
 import { createClient } from 'jsr:@supabase/supabase-js@2'
 import { corsHeaders, json } from '../_shared/cors.ts'
 import { enviarPush } from '../_shared/push.ts'
+import { CORREOS_NOTIFICACION } from '../_shared/config.ts'
 
 const SUPABASE_URL = Deno.env.get('SUPABASE_URL')!
 const SERVICE_ROLE = Deno.env.get('SUPABASE_SERVICE_ROLE_KEY')!
@@ -64,8 +65,8 @@ Deno.serve(async (req) => {
       ? `Hola ${dueño.nombre}:\n\nTu reserva ha sido APROBADA.\n\nZona(s): ${zonas}\nCuándo: ${cuando}\n\nPuedes verla en la app, en "Mis reservas".\n\n— Comunidad Rioja 25`
       : `Hola ${dueño.nombre}:\n\nTu solicitud de reserva ha sido rechazada.\n\nZona(s): ${zonas}\nCuándo: ${cuando}\n\nPuedes solicitar otra desde la app.\n\n— Comunidad Rioja 25`
 
-    // 3) Correo (si hay SMTP configurado).
-    if (GMAIL_USER && GMAIL_APP_PASSWORD) {
+    // 3) Correo (si los correos de notificación están activados y hay SMTP).
+    if (CORREOS_NOTIFICACION && GMAIL_USER && GMAIL_APP_PASSWORD) {
       try {
         const client = new SMTPClient({
           connection: { hostname: 'smtp.gmail.com', port: 465, tls: true, auth: { username: GMAIL_USER, password: GMAIL_APP_PASSWORD } },

@@ -1,8 +1,9 @@
 import { Link } from 'react-router-dom'
-import { Megaphone, MessageSquare, SquareCheckBig, Phone, Leaf, Lightbulb, Shield, FileText, Settings, ChevronRight, TrendingUp } from 'lucide-react'
+import { Megaphone, MessageSquare, SquareCheckBig, Phone, Leaf, Lightbulb, Shield, FileText, Settings, ChevronRight, TrendingUp, Eye } from 'lucide-react'
 import { useApp } from '@/store'
 import { RoleBadge } from '@/components/ui'
 import { roleBadgeKind, ROLE_LABEL, puedeAdmin, esAppAdmin } from '@/lib/roles'
+import type { Role } from '@/types'
 import { iniciales } from '@/lib/format'
 import { usingSupabase } from '@/lib/supabase'
 
@@ -16,8 +17,10 @@ const links = [
   { to: '/normas', label: 'Normas de uso', Icon: FileText },
 ]
 
+const ROLES_VER: Role[] = ['vecino', 'presidente', 'vicepresidente', 'administrador_finca', 'junta', 'conserje']
+
 export function MasPage() {
-  const { user, setRole } = useApp()
+  const { user, setRole, verComo } = useApp()
   return (
     <div className="px-4 py-5">
       {/* Perfil → abre Perfil y ajustes */}
@@ -51,6 +54,25 @@ export function MasPage() {
           </Link>
         ))}
       </nav>
+
+      {/* Ver como: el app_admin previsualiza la app con otro rol (solo interfaz). */}
+      {esAppAdmin(user.rol) && (
+        <div className="mt-4 rounded-[18px] bg-surface p-4 shadow-neu">
+          <div className="flex items-center gap-2">
+            <Eye size={18} className="text-primary" />
+            <span className="section-title">Ver la app como…</span>
+          </div>
+          <p className="mt-1 text-[12.5px] text-muted">Previsualiza lo que ve cada rol. Podrás volver a administrador desde la barra inferior.</p>
+          <div className="mt-3 flex flex-wrap gap-2">
+            {ROLES_VER.map((r) => (
+              <button key={r} onClick={() => void verComo(r)}
+                className="rounded-pill bg-surface-2 px-3.5 py-1.5 text-[13px] font-semibold text-ink transition-colors hover:bg-primary-soft hover:text-primary-700">
+                {ROLE_LABEL[r]}
+              </button>
+            ))}
+          </div>
+        </div>
+      )}
 
       {/* Demo: cambiar rol para ver las vistas de gestión (solo modo demo, sin login real) */}
       {!usingSupabase && (

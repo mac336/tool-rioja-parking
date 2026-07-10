@@ -26,11 +26,14 @@ export const DEFAULT_MSG_COLORS: MsgColors = {
 interface AppState {
   user: Profile
   authStatus: AuthStatus
+  rolReal: Profile['rol'] | null // rol verdadero mientras se usa "Ver como" (null si no)
   theme: ThemeMode
   palette: Palette
   msgColors: MsgColors
   toasts: Toast[]
   setRole: (rol: Profile['rol']) => void
+  verComo: (rol: Profile['rol']) => Promise<void>
+  salirVerComo: () => Promise<void>
   setName: (nombre: string) => Promise<void>
   refreshAuth: () => Promise<void>
   logout: () => Promise<void>
@@ -66,6 +69,7 @@ let toastId = 0
 export const useApp = create<AppState>((set, get) => ({
   user: mockGetUser(), // en modo supabase es solo un placeholder hasta cargar el perfil
   authStatus: usingSupabase ? 'loading' : 'active',
+  rolReal: null,
   theme: savedTheme,
   palette: savedPalette,
   msgColors: loadMsgColors(),
@@ -75,6 +79,33 @@ export const useApp = create<AppState>((set, get) => ({
     mockSetRole(rol)
     set({ user: { ...mockGetUser() } })
   },
+  // "Ver como": previsualiza la app con OTRO rol (solo interfaz; tu identidad/JWT
+  // sigue siendo la real). Recalcula los permisos efectivos del rol simulado.
+  verComo: async (rol) => {
+    const st = get()
+    const real = st.rolReal ?? st.user.rol // conserva el rol verdadero original
+    let keys: string[] | null = null
+    try {
+      const matriz = await listRolePermisos()
+      keys = rol === 'app_admin'
+        ? CATALOGO_PERMISOS.map((c) => c.key)
+        : matriz.filter((m) => m.rol === rol).map((m) => m.permiso)
+    } catch { keys = null }
+    setPermisosActuales(keys)
+    set({ user: { ...st.user, rol }, rolReal: real })
+  },
+  salirVerComo: async () => {
+    const st = get()
+    if (!st.rolReal) return
+    const real = st.rolReal
+    if (usingSupabase) {
+      await get().refreshAuth() // restaura identidad y permisos reales del servidor
+    } else {
+      mockSetRole(real)
+      setPermisosActuales(null)
+      set({ user: { ...mockGetUser() }, rolReal: null })
+    }
+  },
   setName: async (nombre) => {
     await actualizarNombre(nombre)
     if (usingSupabase) await get().refreshAuth()
@@ -83,7 +114,7 @@ export const useApp = create<AppState>((set, get) => ({
   refreshAuth: async () => {
     const p = await loadProfile()
     if (p) {
-      set({ user: p, authStatus: statusFromProfile(p) })
+      set({ user: p, authStatus: statusFromProfile(p), rolReal: null })
       // Permisos efectivos del rol (app_admin = todos) para adaptar la interfaz.
       try {
         const matriz = await listRolePermisos()

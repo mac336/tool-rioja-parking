@@ -6,6 +6,7 @@ import { Sidebar } from './Sidebar'
 import { Toaster } from './Toaster'
 import { InstallPrompt } from '@/components/InstallPrompt'
 import { NotificationsPrompt } from '@/components/NotificationsPrompt'
+import { VerComoBar } from '@/components/VerComoBar'
 
 /** Layout de nivel superior: altura fija de ventana; SOLO el contenido (main)
  *  scrollea. La cabecera (sticky dentro de main) y el menú (Sidebar/TabBar, fuera
@@ -16,6 +17,7 @@ export function AppShell({ children }: { children: ReactNode }) {
       <Sidebar />
       <div className="flex min-w-0 flex-1 flex-col overflow-hidden">
         <main className="mx-auto w-full min-w-0 max-w-[720px] flex-1 overflow-y-auto overscroll-contain">{children}</main>
+        <VerComoBar />
         <TabBar />
       </div>
       <InstallPrompt />

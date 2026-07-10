@@ -27,12 +27,29 @@ export function HomePage() {
   const encuestas = useAsync(listEncuestas, [])
   const mensajes = useAsync(listMensajes, [])
 
-  const miPlaza = turnos.data?.find((t) => t.actual)
   const abierta = encuestas.data?.find((e) => e.estado === 'abierta')
+  const ahora = Date.now()
+  const DIA = 864e5
+
+  // Parking en Home: solo se muestra si estás DENTRO de tu turno o a ≤7 días de
+  // que empiece. Cuenta atrás cuando quedan ≤3 días. Fuera de eso, no se muestra.
+  const misTurnos = turnos.data ?? []
+  const turnoActual = misTurnos.find((t) => t.actual)
+  const turnoProx = misTurnos.find((t) => !t.actual)
+  let parking: { texto: React.ReactNode; urgente: boolean } | null = null
+  if (turnoActual) {
+    const diasFin = Math.ceil((new Date(turnoActual.fin).getTime() - ahora) / DIA)
+    if (diasFin <= 0) parking = { urgente: true, texto: <>Hoy es tu último día en la <b>Plaza {turnoActual.plaza}</b></> }
+    else if (diasFin <= 3) parking = { urgente: true, texto: <>Te quedan <b>{diasFin} {diasFin === 1 ? 'día' : 'días'}</b> en la Plaza {turnoActual.plaza}</> }
+    else parking = { urgente: false, texto: <>Esta quincena aparcas en la <b>Plaza {turnoActual.plaza}</b></> }
+  } else if (turnoProx) {
+    const diasIni = Math.ceil((new Date(turnoProx.inicio).getTime() - ahora) / DIA)
+    if (diasIni <= 0) parking = { urgente: true, texto: <>Hoy te toca la <b>Plaza {turnoProx.plaza}</b></> }
+    else if (diasIni <= 7) parking = { urgente: false, texto: <>En <b>{diasIni} {diasIni === 1 ? 'día' : 'días'}</b> te toca la Plaza {turnoProx.plaza}</> }
+  }
 
   // Actividad reciente para el tablón: incidencias abiertas; avisos vigentes (o
   // sin caducidad, 2 días); anuncios de los últimos 2 días.
-  const ahora = Date.now()
   const DOS_DIAS = 2 * 864e5
   const reciente = (m: { created_at: string }) => ahora - new Date(m.created_at).getTime() <= DOS_DIAS
   const actividad = (mensajes.data ?? []).filter((m) => {
@@ -64,15 +81,19 @@ export function HomePage() {
         {/* Tablón de la comunidad */}
         <TablonBoard mensajes={actividad} />
 
-        {/* Parking strip */}
-        <Link to="/parking" className="mt-3.5 flex items-center gap-3 rounded-[16px] px-4 py-[13px] text-white" style={{ background: 'var(--grad-hero)' }}>
-          <Car size={26} strokeWidth={1.9} />
-          <div className="min-w-0 flex-1">
-            <div className="text-[11px] font-bold uppercase tracking-[0.12em] text-white/65">Parking exterior</div>
-            <div className="text-[14.5px]">{miPlaza ? <>Esta quincena: <b>Plaza {miPlaza.plaza}</b></> : 'Esta quincena no te toca plaza'}</div>
-          </div>
-          <span className="text-[18px] opacity-70">›</span>
-        </Link>
+        {/* Parking strip (solo cuando toca: dentro del turno o ≤7 días antes) */}
+        {parking && (
+          <Link to="/parking" className="mt-3.5 flex items-center gap-3 rounded-[16px] px-4 py-[13px] text-white" style={{ background: 'var(--grad-hero)' }}>
+            <Car size={26} strokeWidth={1.9} />
+            <div className="min-w-0 flex-1">
+              <div className="flex items-center gap-1.5 text-[11px] font-bold uppercase tracking-[0.12em] text-white/65">
+                Parking exterior {parking.urgente && <span className="rounded-full bg-white/20 px-1.5 py-px text-[10px]">⏳</span>}
+              </div>
+              <div className="text-[14.5px]">{parking.texto}</div>
+            </div>
+            <span className="text-[18px] opacity-70">›</span>
+          </Link>
+        )}
 
         {/* Votación slim */}
         {abierta && (

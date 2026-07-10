@@ -9,6 +9,7 @@ export function roleBadgeKind(rol: Role): RoleBadgeKind {
     case 'presidente':
     case 'vicepresidente':
     case 'junta':
+    case 'conserje':
       return 'junta'
     default:
       return 'vecino'
@@ -21,6 +22,7 @@ export const ROLE_LABEL: Record<Role, string> = {
   vicepresidente: 'Vicepresidente',
   administrador_finca: 'Administrador de finca',
   junta: 'Junta',
+  conserje: 'Conserje',
   vecino: 'Vecino',
 }
 

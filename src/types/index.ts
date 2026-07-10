@@ -7,6 +7,7 @@ export type Role =
   | 'vicepresidente'
   | 'administrador_finca'
   | 'junta'
+  | 'conserje'
   | 'vecino'
 
 export type UserStatus = 'pendiente' | 'activo' | 'suspendido' | 'baja'

@@ -10,3 +10,6 @@ interface ImportMetaEnv {
 interface ImportMeta {
   readonly env: ImportMetaEnv
 }
+
+/** Versión de la app (package.json), inyectada por Vite en el build. */
+declare const __APP_VERSION__: string

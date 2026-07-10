@@ -19,7 +19,7 @@ const nav = [
 export function Sidebar() {
   const { user } = useApp()
   return (
-    <aside className="hidden w-[238px] shrink-0 flex-col justify-between p-4 text-white md:flex"
+    <aside className="hidden w-[238px] shrink-0 flex-col justify-between p-4 text-white md:sticky md:top-0 md:flex md:h-dvh md:self-start"
       style={{ background: 'var(--grad-sidebar)' }}>
       <div>
         <div className="mb-6 flex items-center gap-2.5 px-1">

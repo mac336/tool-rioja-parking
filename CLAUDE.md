@@ -20,6 +20,10 @@ Al implementar algo nuevo o cambiar algo existente:
    migraciones ya aplicadas. Aplícala en local **y en producción**.
 4. Si tocas una **Edge Function**, **despliégala** (`supabase functions deploy`).
 5. Verifica: `npx tsc --noEmit`, tests relevantes y `npx vite build`.
+6. **Versiona la subida**: incrementa `version` en `package.json` en cada push
+   que despliegue (parche para arreglos, minor para funcionalidad). La versión
+   se inyecta como `__APP_VERSION__` (vite.config) y se muestra abajo del todo
+   en la pantalla de bienvenida.
 
 ## Estado y decisiones vigentes (resumen)
 

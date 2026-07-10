@@ -48,9 +48,10 @@ export function SplashScreen({ onDone }: { onDone: () => void }) {
         </button>
       </div>
 
-      <p className="absolute inset-x-0 bottom-0 pb-[calc(env(safe-area-inset-bottom)+18px)] text-center text-[12px] font-medium tracking-wide text-white/70">
-        Designed and developed by mac336
-      </p>
+      <div className="absolute inset-x-0 bottom-0 pb-[calc(env(safe-area-inset-bottom)+14px)] text-center">
+        <p className="text-[12px] font-medium tracking-wide text-white/70">Designed and developed by mac336</p>
+        <p className="mt-0.5 text-[10.5px] text-white/50">v{__APP_VERSION__}</p>
+      </div>
     </div>
   )
 }

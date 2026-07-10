@@ -3,10 +3,18 @@ import { defineConfig } from 'vitest/config'
 import react from '@vitejs/plugin-react'
 import { VitePWA } from 'vite-plugin-pwa'
 import path from 'node:path'
+import { readFileSync } from 'node:fs'
+
+// Versión de la app = la de package.json. Se SUBE en cada despliegue (ver
+// CLAUDE.md → Forma de trabajo) y se muestra en la pantalla de bienvenida.
+const pkg = JSON.parse(readFileSync(path.resolve(__dirname, 'package.json'), 'utf-8')) as { version: string }
 
 // PWA: cachea SOLO la App Shell (estáticos). NUNCA datos de Supabase
 // (módulo 10/11 de las specs): las llamadas a la API se dejan network-only.
 export default defineConfig({
+  define: {
+    __APP_VERSION__: JSON.stringify(pkg.version),
+  },
   resolve: {
     alias: { '@': path.resolve(__dirname, 'src') },
   },

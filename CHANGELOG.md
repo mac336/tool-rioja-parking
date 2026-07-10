@@ -5,6 +5,10 @@ al implementar el cambio (ver `CLAUDE.md` → Forma de trabajo).
 
 ## 2026-07-10
 
+- **Versionado visible:** cada subida incrementa la versión (`package.json`) y
+  se muestra en pequeño al pie de la pantalla de bienvenida (v1.1.0).
+- **Escritorio:** scroll normal de la ventana (sin barra interna); la Sidebar
+  queda pegajosa. El modo app-fijada es solo móvil.
 - **Buzón estilo WhatsApp:** la bandeja es una lista de contactos/chats (hoy
   solo "Desarrollador de la app"); tocar el contacto abre directamente el chat
   (sin asunto ni formulario; el hilo se crea con el primer mensaje). Staff ve

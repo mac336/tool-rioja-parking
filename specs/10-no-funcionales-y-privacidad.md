@@ -34,6 +34,9 @@
 - **Red de seguridad:** pulsar cualquier pestaña del TabBar cierra el teclado y
   re-sincroniza el viewport (`resetViewport`): si una pantalla quedara
   descuadrada, tocar Inicio la recompone.
+- **Escritorio (md+):** el app-shell pasa a **flujo normal** — scrollea la
+  ventana (sin barra interna) y la Sidebar queda pegajosa (`sticky`). El modo
+  fijado al viewport es solo para móvil (teclado iOS).
 - **Sin zoom:** `maximum-scale=1, user-scalable=no` (index.html) +
   `touch-action: manipulation` (body). Interfaz mobile-first; el zoom por
   pellizco/doble toque descuadraba la app instalada.

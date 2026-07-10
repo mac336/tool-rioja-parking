@@ -13,10 +13,13 @@ import { VerComoBar } from '@/components/VerComoBar'
  *  de main) no se mueven. */
 export function AppShell({ children }: { children: ReactNode }) {
   return (
-    <div className="app-viewport flex overflow-hidden bg-bg">
+    // Móvil: fijada al viewport visible (.app-viewport) y SOLO scrollea <main>
+    // (necesario por el teclado de iOS). Escritorio (md+): flujo normal — la
+    // ventana scrollea (sin barra interna) y la Sidebar queda pegajosa.
+    <div className="app-viewport flex overflow-hidden bg-bg md:!static md:!top-auto md:!h-auto md:min-h-dvh md:overflow-visible">
       <Sidebar />
-      <div className="flex min-w-0 flex-1 flex-col overflow-hidden">
-        <main className="mx-auto w-full min-w-0 max-w-[720px] flex-1 overflow-y-auto overscroll-contain">{children}</main>
+      <div className="flex min-w-0 flex-1 flex-col overflow-hidden md:overflow-visible">
+        <main className="mx-auto w-full min-w-0 max-w-[720px] flex-1 overflow-y-auto overscroll-contain md:overflow-visible">{children}</main>
         <VerComoBar />
         <TabBar />
       </div>

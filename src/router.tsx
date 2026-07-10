@@ -28,7 +28,7 @@ import { ReciclajePage } from '@/features/misc/ReciclajePage'
 import { SugerenciasPage } from '@/features/misc/SugerenciasPage'
 import { AvisosPage } from '@/features/misc/AvisosPage'
 import { AdminPage } from '@/features/admin/AdminPage'
-import { AdopcionPage } from '@/features/admin/AdopcionPage'
+import { DashboardPage } from '@/features/admin/DashboardPage'
 
 function Shell() {
   return <AppShell><Outlet /></AppShell>
@@ -97,7 +97,7 @@ export const router = createBrowserRouter([
         children: [{ path: '/admin', element: <AdminPage /> }],
       }, {
         element: <RequireAppAdmin />,
-        children: [{ path: '/adopcion', element: <AdopcionPage /> }],
+        children: [{ path: '/dashboard', element: <DashboardPage /> }],
       },
     ],
     }],

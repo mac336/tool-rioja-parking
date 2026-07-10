@@ -195,6 +195,24 @@ export const reservasPendientesGestion = (): Promise<ReservaGrupo[]> =>
     .map((g) => ({ ...g, nombre: nombreDe(g.solicitada_por) }))
     .sort((a, b) => a.inicio.localeCompare(b.inicio)))
 
+export interface EstadisticasReservas { aprobadasMes: number; aprobadasAnio: number; canceladasAnio: number; totalAnio: number; ranking: { nombre: string; veces: number }[] }
+export function estadisticasReservas(): Promise<EstadisticasReservas> {
+  const ahora = new Date(); const anio = ahora.getFullYear(); const mes = ahora.getMonth()
+  const grupos = new Map<string, { solicitada_por: string; inicio: string; estado: string }>()
+  for (const r of db.reservas) { const k = claveGrupo(r); if (!grupos.has(k)) grupos.set(k, { solicitada_por: r.solicitada_por, inicio: r.inicio, estado: r.estado }) }
+  let aprobadasMes = 0, aprobadasAnio = 0, canceladasAnio = 0, totalAnio = 0
+  const veces = new Map<string, number>()
+  for (const g of grupos.values()) {
+    if (new Date(g.inicio).getFullYear() !== anio) continue
+    totalAnio++
+    if (g.estado === 'cancelada') canceladasAnio++
+    if (g.estado === 'aprobada') { aprobadasAnio++; if (new Date(g.inicio).getMonth() === mes) aprobadasMes++ }
+    if (g.estado !== 'cancelada') veces.set(g.solicitada_por, (veces.get(g.solicitada_por) ?? 0) + 1)
+  }
+  const ranking = [...veces.entries()].map(([id, n]) => ({ nombre: nombreDe(id), veces: n })).sort((a, b) => b.veces - a.veces)
+  return delay({ aprobadasMes, aprobadasAnio, canceladasAnio, totalAnio, ranking })
+}
+
 // Agenda mensual de gestión: pendientes + aprobadas cuyo inicio cae en el rango.
 export const reservasGestion = (desdeISO: string, hastaISO: string): Promise<ReservaGrupo[]> =>
   delay(agrupar(db.reservas.filter((r) =>

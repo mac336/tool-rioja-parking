@@ -102,10 +102,15 @@ sigue siendo la real (la RLS del servidor no cambia). Una **barra fija** ("Viend
 como…") permite **volver a administrador** (`salirVerComo` → `refreshAuth`). Se
 sale también al recargar o al refrescarse la sesión.
 
-**Adopción de la app** (menú en "Más", **solo app_admin**; ruta `/adopcion`):
-gráfico (donut) de **viviendas dentro vs por inscribir** y tabla **por piso** (no
-por vecino) — un piso "está dentro" si tiene ≥1 cuenta **activa**. Se calcula con
-`listViviendas` (catálogo) + `listVecinos`.
+**Dashboard de la app** (menú en "Más", **solo app_admin**; ruta `/dashboard`):
+selector de dos secciones:
+- **Adopción** — donut de **viviendas dentro vs por inscribir** y tabla **por
+  piso** (un piso "está dentro" si tiene ≥1 cuenta activa; `listViviendas` +
+  `listVecinos`).
+- **Reservas** — estadísticas de gestión (`estadisticasReservas`): reservas
+  **aprobadas este mes** y **este año**, **canceladas este año**, **total del
+  año** y **ranking** de quién ha reservado y cuántas veces este año. Cuenta por
+  grupo (una reserva multi-zona = 1); RLS `es_gestion` ve todas.
 
 ## Buzón por canales (roles con canal propio)
 

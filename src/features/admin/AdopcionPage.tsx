@@ -1,7 +1,6 @@
 import { useMemo } from 'react'
 import { Check, Minus } from 'lucide-react'
-import { Page } from '@/components/layout/AppShell'
-import { ScreenHeader, Card, SectionTitle, ErrorState, SkeletonList, cx } from '@/components/ui'
+import { Card, SectionTitle, ErrorState, SkeletonList, cx } from '@/components/ui'
 import { useAsync } from '@/lib/useAsync'
 import { listViviendas, listVecinos } from '@/lib/api'
 
@@ -42,7 +41,8 @@ function Donut({ dentro, total }: { dentro: number; total: number }) {
   )
 }
 
-export function AdopcionPage() {
+/** Contenido de "Adopción de la app" (sin cabecera; va dentro del Dashboard). */
+export function AdopcionView() {
   const { data, state, refetch } = useAsync(cargar, [])
 
   const { dentro, faltan, total, cuentas } = useMemo(() => {
@@ -54,13 +54,11 @@ export function AdopcionPage() {
   }, [data])
 
   return (
-    <div>
-      <ScreenHeader title="Adopción de la app" />
-      <Page className="flex flex-col gap-4">
-        {state === 'loading' && <SkeletonList n={4} />}
-        {state === 'error' && <ErrorState onRetry={refetch} />}
-        {state !== 'loading' && state !== 'error' && data && (
-          <>
+    <div className="flex flex-col gap-4">
+      {state === 'loading' && <SkeletonList n={4} />}
+      {state === 'error' && <ErrorState onRetry={refetch} />}
+      {state !== 'loading' && state !== 'error' && data && (
+        <>
             {/* Resumen + gráfico */}
             <Card className="flex items-center gap-4">
               <Donut dentro={dentro.length} total={total} />
@@ -103,10 +101,9 @@ export function AdopcionPage() {
                   {faltan.map((f) => <FilaPiso key={f.codigo} codigo={f.codigo} cuentas={0} dentro={false} />)}
                 </Card>
               )}
-            </section>
-          </>
-        )}
-      </Page>
+          </section>
+        </>
+      )}
     </div>
   )
 }

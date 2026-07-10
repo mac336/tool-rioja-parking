@@ -1,5 +1,5 @@
 import { Link } from 'react-router-dom'
-import { Megaphone, MessageSquare, SquareCheckBig, Phone, Leaf, Lightbulb, Shield, FileText, Settings, ChevronRight, TrendingUp, Eye } from 'lucide-react'
+import { Megaphone, MessageSquare, SquareCheckBig, Phone, Leaf, Lightbulb, Shield, FileText, Settings, ChevronRight, LayoutDashboard, Eye } from 'lucide-react'
 import { useApp } from '@/store'
 import { RoleBadge } from '@/components/ui'
 import { roleBadgeKind, ROLE_LABEL, puedeAdmin, esAppAdmin } from '@/lib/roles'
@@ -44,8 +44,8 @@ export function MasPage() {
           </Link>
         )}
         {esAppAdmin(user.rol) && (
-          <Link to="/adopcion" className="flex items-center gap-3 border-b border-border px-4 py-3.5 text-[15px] font-semibold text-primary-700">
-            <TrendingUp size={20} /> Adopción de la app
+          <Link to="/dashboard" className="flex items-center gap-3 border-b border-border px-4 py-3.5 text-[15px] font-semibold text-primary-700">
+            <LayoutDashboard size={20} /> Dashboard de la app
           </Link>
         )}
         {links.map(({ to, label, Icon }) => (

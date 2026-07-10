@@ -5,6 +5,10 @@ al implementar el cambio (ver `CLAUDE.md` → Forma de trabajo).
 
 ## 2026-07-10
 
+- **v1.4.0 · Dashboard de la app:** el menú "Adopción" pasa a **Dashboard** (solo
+  app_admin) con dos secciones: **Adopción** (la de antes) y **Reservas**
+  (estadísticas: aprobadas mes/año, canceladas año, total año y ranking de quién
+  ha reservado y cuántas veces este año).
 - **v1.3.2 · Sin vivienda soportado:** una cuenta puede no tener piso (p. ej. un
   tester). Opción "Sin vivienda" en el alta/edición; el servidor la guarda como
   null; se muestra como "Sin vivienda" y no afecta a parking ni conteos.

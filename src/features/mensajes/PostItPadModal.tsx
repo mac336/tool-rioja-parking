@@ -41,7 +41,7 @@ export function PostItPadModal({ tipo, grupo, onClose }: { tipo: MensajeTipo; gr
 
   return (
     <div className="fixed inset-0 z-[60] flex flex-col" style={{ background: 'rgba(19,37,32,.55)', backdropFilter: 'blur(3px)', WebkitBackdropFilter: 'blur(3px)' }}
-      onClick={(ev) => { if (ev.target === ev.currentTarget) onClose() }}>
+      onClick={onClose}>
       <div className="flex items-center justify-between px-5 pb-2 pt-5 safe-top">
         <div>
           <div className="font-display text-[20px] font-extrabold text-white">{PLURAL[tipo]} ({n})</div>
@@ -56,7 +56,7 @@ export function PostItPadModal({ tipo, grupo, onClose }: { tipo: MensajeTipo; gr
             <div className="absolute inset-0 flex flex-col items-center justify-center gap-3.5 text-center text-white">
               <div className="text-[40px]">✓</div>
               <div className="font-display text-[19px] font-extrabold">Estás al día</div>
-              <button onClick={() => { setIdx(0); setDragY(0); setDragging(false); setPeeling(false) }}
+              <button onClick={(e) => { e.stopPropagation(); setIdx(0); setDragY(0); setDragging(false); setPeeling(false) }}
                 className="rounded-full bg-white px-[18px] py-2.5 text-[13px] font-bold" style={{ color: '#132520' }}>Volver a empezar</button>
             </div>
           )}
@@ -79,6 +79,7 @@ export function PostItPadModal({ tipo, grupo, onClose }: { tipo: MensajeTipo; gr
             }
             return (
               <div key={m.id}
+                onClick={(e) => e.stopPropagation()}
                 onPointerDown={top ? (ev) => { if (peeling) return; (ev.currentTarget as HTMLElement).setPointerCapture(ev.pointerId); startY.current = ev.clientY; setDragging(true); setDragY(0) } : undefined}
                 onPointerMove={peelMove} onPointerUp={peelUp} onPointerCancel={peelUp}
                 className="absolute inset-0 select-none"

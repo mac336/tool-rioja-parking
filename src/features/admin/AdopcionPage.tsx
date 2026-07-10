@@ -2,12 +2,12 @@ import { useMemo } from 'react'
 import { Check, Minus } from 'lucide-react'
 import { Card, SectionTitle, ErrorState, SkeletonList, cx } from '@/components/ui'
 import { useAsync } from '@/lib/useAsync'
-import { listViviendas, listVecinos } from '@/lib/api'
+import { listViviendas, listVecinos, statsAcceso } from '@/lib/api'
 
 // Un piso "está dentro" si tiene al menos una cuenta ACTIVA. El cómputo es por
 // vivienda (piso), no por vecino: dos cuentas del mismo piso cuentan como 1 piso.
 async function cargar() {
-  const [viviendas, vecinos] = await Promise.all([listViviendas(), listVecinos()])
+  const [viviendas, vecinos, acceso] = await Promise.all([listViviendas(), listVecinos(), statsAcceso()])
   const activosPorPiso = new Map<string, number>()
   for (const v of vecinos) {
     if (v.estado !== 'activo') continue
@@ -18,7 +18,7 @@ async function cargar() {
     cuentas: activosPorPiso.get(codigo) ?? 0,
     dentro: (activosPorPiso.get(codigo) ?? 0) > 0,
   }))
-  return filas
+  return { filas, acceso }
 }
 
 function Donut({ dentro, total }: { dentro: number; total: number }) {
@@ -46,12 +46,13 @@ export function AdopcionView() {
   const { data, state, refetch } = useAsync(cargar, [])
 
   const { dentro, faltan, total, cuentas } = useMemo(() => {
-    const filas = data ?? []
+    const filas = data?.filas ?? []
     const dentro = filas.filter((f) => f.dentro)
     const faltan = filas.filter((f) => !f.dentro)
     const cuentas = filas.reduce((n, f) => n + f.cuentas, 0)
     return { dentro, faltan, total: filas.length, cuentas }
   }, [data])
+  const acceso = data?.acceso
 
   return (
     <div className="flex flex-col gap-4">
@@ -76,6 +77,11 @@ export function AdopcionView() {
                 <div className="mt-3 border-t border-border pt-2 text-[12.5px] text-faint">
                   {total} viviendas en total · {cuentas} {cuentas === 1 ? 'cuenta activa' : 'cuentas activas'}
                 </div>
+                {acceso && (
+                  <div className="mt-1 text-[12.5px] font-semibold text-primary-700">
+                    {acceso.entrados} de {acceso.creados} {acceso.creados === 1 ? 'cuenta ha entrado' : 'cuentas han entrado'} alguna vez
+                  </div>
+                )}
               </div>
             </Card>
 

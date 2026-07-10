@@ -5,6 +5,10 @@ al implementar el cambio (ver `CLAUDE.md` → Forma de trabajo).
 
 ## 2026-07-10
 
+- **v1.5.0 · Adopción + normas:** el Dashboard → Adopción muestra ahora
+  **cuántas cuentas han conseguido entrar** alguna vez (`stats_acceso`, mig.
+  0024). La pantalla de **normas** (primer acceso) fija el botón "Acepto" abajo,
+  siempre visible, arreglando el problema de scroll en Android.
 - **v1.4.1 · Aviso de spam:** la pantalla de bienvenida y el paso del código de
   acceso recuerdan revisar la carpeta de spam si el correo no llega.
 - **v1.4.0 · Dashboard de la app:** el menú "Adopción" pasa a **Dashboard** (solo

@@ -92,6 +92,15 @@ export async function crearVecinoDirecto(input: { nombre: string; email: string;
   if (data?.error) throw new Error(data.error as string)
 }
 
+/** Cuántas cuentas activas hay y cuántas han iniciado sesión alguna vez.
+ *  (Función `stats_acceso`, solo gestión; migración 0024.) */
+export async function statsAcceso(): Promise<{ creados: number; entrados: number }> {
+  const { data, error } = await supabase.rpc('stats_acceso')
+  if (error) throw error
+  const row = (Array.isArray(data) ? data[0] : data) as { creados?: number; entrados?: number } | null
+  return { creados: row?.creados ?? 0, entrados: row?.entrados ?? 0 }
+}
+
 // ---- Avisos (feed para la campana) -------------------------------------------
 // `ts` (ISO) ordena el feed (más nuevo arriba) y alimenta el contador de "no
 // vistos" de la campana (comparado con la última visita a /avisos).

@@ -106,7 +106,8 @@ sale también al recargar o al refrescarse la sesión.
 selector de dos secciones:
 - **Adopción** — donut de **viviendas dentro vs por inscribir** y tabla **por
   piso** (un piso "está dentro" si tiene ≥1 cuenta activa; `listViviendas` +
-  `listVecinos`).
+  `listVecinos`) + **cuántas cuentas han conseguido entrar** alguna vez
+  (`stats_acceso`, migración 0024: cuenta `auth.users.last_sign_in_at`).
 - **Reservas** — estadísticas de gestión (`estadisticasReservas`): reservas
   **aprobadas este mes** y **este año**, **canceladas este año**, **total del
   año** y **ranking** de quién ha reservado y cuántas veces este año. Cuenta por
@@ -121,7 +122,7 @@ conserje → Conserje; app_admin → Desarrollador de la app. Ver `specs/17`.
 ## Primer acceso y normas
 
 En el primer acceso se muestran las **normas de uso** (ver `specs/15`) y se
-guarda `normas_aceptadas_at`; mientras sea `null`, la app vuelve a esa pantalla.
+guarda `normas_aceptadas_at`; mientras sea `null`, la app vuelve a esa pantalla. La pantalla fija el botón **"Acepto las normas"** abajo (siempre visible; el texto scrollea en el centro) para que sea accesible también en Android.
 
 ## Sesiones
 

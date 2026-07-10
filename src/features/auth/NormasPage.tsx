@@ -31,30 +31,39 @@ export function NormasPage() {
   }
 
   return (
-    <div className="min-h-dvh bg-bg">
+    // Fijada al viewport visible: la lista de normas scrollea en el centro y el
+    // botón "Acepto" queda SIEMPRE fijo abajo (accesible sin llegar al final,
+    // arreglaba el problema en Android). Ver global.css (.app-viewport).
+    <div className="app-viewport flex flex-col bg-bg">
       <SubHeader titulo="Normas de uso" />
-      <Page className="mx-auto max-w-[560px]">
-        <p className="mb-4 text-[14px] text-muted">Antes de empezar, revisa y acepta las normas de convivencia de la comunidad.</p>
-        <Card className="mb-3 border border-primary/30 bg-primary-soft">
-          <h3 className="text-[15px] font-bold text-ink">Sobre esta app</h3>
-          <p className="mt-1 text-[13px] text-muted">
-            La creó un <b>vecino del Bajo C</b> de forma voluntaria y sin ánimo de lucro, para centralizar las gestiones
-            de la comunidad y que estén al alcance de todos. Si tienes ideas para mejorarla, mándalas desde
-            <b> Sugerencias</b>: llegan directamente a ese vecino para que siga desarrollándola.
-          </p>
-        </Card>
-        <div className="flex flex-col gap-3">
-          {NORMAS.map(([t, d]) => (
-            <Card key={t}>
-              <h3 className="text-[15px] font-bold text-ink">{t}</h3>
-              <p className="mt-1 text-[13px] text-muted">{d}</p>
-            </Card>
-          ))}
+      <div className="min-h-0 flex-1 overflow-y-auto">
+        <Page className="mx-auto max-w-[560px]">
+          <p className="mb-4 text-[14px] text-muted">Antes de empezar, revisa y acepta las normas de convivencia de la comunidad.</p>
+          <Card className="mb-3 border border-primary/30 bg-primary-soft">
+            <h3 className="text-[15px] font-bold text-ink">Sobre esta app</h3>
+            <p className="mt-1 text-[13px] text-muted">
+              La creó un <b>vecino del Bajo C</b> de forma voluntaria y sin ánimo de lucro, para centralizar las gestiones
+              de la comunidad y que estén al alcance de todos. Si tienes ideas para mejorarla, mándalas desde
+              <b> Sugerencias</b>: llegan directamente a ese vecino para que siga desarrollándola.
+            </p>
+          </Card>
+          <div className="flex flex-col gap-3">
+            {NORMAS.map(([t, d]) => (
+              <Card key={t}>
+                <h3 className="text-[15px] font-bold text-ink">{t}</h3>
+                <p className="mt-1 text-[13px] text-muted">{d}</p>
+              </Card>
+            ))}
+          </div>
+        </Page>
+      </div>
+      <div className="shrink-0 border-t border-border bg-surface/95 p-4 backdrop-blur safe-bottom">
+        <div className="mx-auto max-w-[560px]">
+          <Button block size="lg" disabled={guardando} onClick={aceptar}>
+            {guardando ? 'Guardando…' : 'Acepto las normas'}
+          </Button>
         </div>
-        <Button block size="lg" className="mt-5" disabled={guardando} onClick={aceptar}>
-          {guardando ? 'Guardando…' : 'Acepto las normas'}
-        </Button>
-      </Page>
+      </div>
     </div>
   )
 }

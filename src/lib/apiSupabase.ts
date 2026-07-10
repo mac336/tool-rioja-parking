@@ -21,7 +21,7 @@ export {
 } from './db/contactos'
 export {
   listAccessRequests, resolverSolicitud, crearSolicitud, listVecinos, suspenderVecino, cambiarRolVecino,
-  editarVecino, darDeBajaVecino, crearVecinoDirecto, listAvisos,
+  editarVecino, darDeBajaVecino, crearVecinoDirecto, statsAcceso, listAvisos,
 } from './db/admin'
 export { listRolePermisos, setRolePermiso } from './db/permisos'
 export { enviarSugerencia } from './db/sugerencias'

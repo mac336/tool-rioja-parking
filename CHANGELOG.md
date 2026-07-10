@@ -5,6 +5,13 @@ al implementar el cambio (ver `CLAUDE.md` → Forma de trabajo).
 
 ## 2026-07-10
 
+- **Auto-arreglo del layout:** tocar cualquier pestaña del menú cierra el
+  teclado y re-sincroniza el viewport (si algo quedó descuadrado, Inicio lo
+  recompone).
+- **Sin zoom** (pellizco/doble toque): interfaz mobile-first
+  (`user-scalable=no` + `touch-action: manipulation`).
+- **Campana de avisos:** ordenados del más nuevo al más antiguo y **contador
+  rojo de no vistos** en la campana de la Home (se limpia al abrirla).
 - **Fix iOS teclado (general):** la app sigue al viewport visible también en su
   **desplazamiento** (`--vv-top`), no solo en altura. Clase `.app-viewport` en el
   shell, el chat del buzón y todos los modales con formulario (hoja scrollable):

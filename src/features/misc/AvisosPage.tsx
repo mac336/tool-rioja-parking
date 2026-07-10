@@ -1,12 +1,16 @@
+import { useEffect } from 'react'
 import { Link } from 'react-router-dom'
 import { Bell, ChevronRight } from 'lucide-react'
 import { SubHeader, Page } from '@/components/layout/AppShell'
 import { Card, EmptyState, ErrorState, SkeletonList } from '@/components/ui'
 import { useAsync } from '@/lib/useAsync'
 import { listAvisos } from '@/lib/api'
+import { marcarAvisosVistos } from '@/lib/avisosVistos'
 
 export function AvisosPage() {
   const { data, state, refetch } = useAsync(listAvisos, [])
+  // Al abrir la campana, lo actual queda como "visto" (se borra el contador).
+  useEffect(() => { marcarAvisosVistos() }, [])
 
   return (
     <div className="min-h-full bg-bg">

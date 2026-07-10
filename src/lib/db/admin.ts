@@ -83,7 +83,9 @@ export async function darDeBajaVecino(id: string): Promise<void> {
 }
 
 // ---- Avisos (feed para la campana) -------------------------------------------
-export interface Aviso { id: string; texto: string; cuando: string; to: string }
+// `ts` (ISO) ordena el feed (más nuevo arriba) y alimenta el contador de "no
+// vistos" de la campana (comparado con la última visita a /avisos).
+export interface Aviso { id: string; texto: string; cuando: string; to: string; ts: string }
 
 export async function listAvisos(): Promise<Aviso[]> {
   const avisos: Aviso[] = []
@@ -103,17 +105,17 @@ export async function listAvisos(): Promise<Aviso[]> {
     .order('created_at', { ascending: false }).limit(3)
   for (const m of msgs ?? []) {
     const etiqueta = m.tipo === 'aviso' ? 'Aviso' : m.tipo === 'anuncio' ? 'Anuncio' : 'Incidencia'
-    avisos.push({ id: `msg-${m.id}`, texto: `${etiqueta}: ${m.titulo}`, cuando: fechaCorta(m.created_at as string), to: '/mensajes' })
+    avisos.push({ id: `msg-${m.id}`, texto: `${etiqueta}: ${m.titulo}`, cuando: fechaCorta(m.created_at as string), to: '/mensajes', ts: m.created_at as string })
   }
 
   // Buzón: respuestas a mis hilos (como vecino) y mensajes nuevos de mi canal
   // (como staff). La RLS ya limita los hilos visibles a mi canal.
   const { count: resp } = await supabase.from('hilos').select('*', { count: 'exact', head: true })
     .eq('vecino_id', user.id).eq('no_leido_vecino', true)
-  if (resp) avisos.push({ id: 'buzon-v', texto: 'Tienes una respuesta en el buzón', cuando: 'Buzón', to: '/buzon' })
+  if (resp) avisos.push({ id: 'buzon-v', texto: 'Tienes una respuesta en el buzón', cuando: 'Buzón', to: '/buzon', ts: nowISO })
   const { count: nuevos } = await supabase.from('hilos').select('*', { count: 'exact', head: true })
     .neq('vecino_id', user.id).eq('no_leido_gestion', true)
-  if (nuevos) avisos.push({ id: 'buzon-g', texto: `${nuevos} mensaje(s) sin leer en el buzón`, cuando: 'Buzón', to: '/buzon' })
+  if (nuevos) avisos.push({ id: 'buzon-g', texto: `${nuevos} mensaje(s) sin leer en el buzón`, cuando: 'Buzón', to: '/buzon', ts: nowISO })
 
   // Encuesta abierta: apertura <= now <= cierre.
   const { data: encuestas } = await supabase.from('encuestas')
@@ -124,28 +126,29 @@ export async function listAvisos(): Promise<Aviso[]> {
     .limit(1)
   const abierta = (encuestas ?? [])[0]
   if (abierta) {
-    avisos.push({ id: 'av-enc', texto: `Votación abierta: ${abierta.titulo}`, cuando: 'Ahora', to: `/votaciones/${abierta.id}` })
+    avisos.push({ id: 'av-enc', texto: `Votación abierta: ${abierta.titulo}`, cuando: 'Ahora', to: `/votaciones/${abierta.id}`, ts: abierta.apertura as string })
   }
 
   // Reserva propia aprobada.
   const { data: reservas } = await supabase.from('reservas')
-    .select('id, inicio, zona:zonas_comunes(nombre)')
+    .select('id, inicio, created_at, zona:zonas_comunes(nombre)')
     .eq('solicitada_por', user.id)
     .eq('estado', 'aprobada')
     .order('inicio', { ascending: false })
     .limit(1)
-  const miReserva = (reservas ?? [])[0] as { id: string; inicio: string; zona?: { nombre: string } | { nombre: string }[] | null } | undefined
+  const miReserva = (reservas ?? [])[0] as { id: string; inicio: string; created_at: string; zona?: { nombre: string } | { nombre: string }[] | null } | undefined
   if (miReserva) {
     const z = Array.isArray(miReserva.zona) ? miReserva.zona[0] : miReserva.zona
-    avisos.push({ id: 'av-res', texto: `Tu reserva de ${z?.nombre ?? ''} está aprobada`, cuando: fechaCorta(miReserva.inicio), to: '/reservas/mias' })
+    avisos.push({ id: 'av-res', texto: `Tu reserva de ${z?.nombre ?? ''} está aprobada`, cuando: fechaCorta(miReserva.inicio), to: '/reservas/mias', ts: miReserva.created_at })
   }
 
   // Cola de reservas por aprobar (solo gestión).
   if (esGestion) {
     const { count: pendRes } = await supabase.from('reservas')
       .select('*', { count: 'exact', head: true }).eq('estado', 'pendiente')
-    if (pendRes) avisos.push({ id: 'av-modres', texto: `${pendRes} reserva(s) por aprobar`, cuando: 'Pendiente', to: '/reservas' })
+    if (pendRes) avisos.push({ id: 'av-modres', texto: `${pendRes} reserva(s) por aprobar`, cuando: 'Pendiente', to: '/reservas', ts: nowISO })
   }
 
-  return avisos
+  // Más nuevo arriba.
+  return avisos.sort((a, b) => b.ts.localeCompare(a.ts))
 }

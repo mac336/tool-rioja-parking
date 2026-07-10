@@ -30,7 +30,19 @@
   fijos** y solo scrollea el contenido. `.app-viewport` se usa en `AppShell`,
   el chat del buzón y **todos los modales con formulario** (hoja inferior con
   `max-h-full overflow-y-auto` para que el propio formulario scrollee sobre el
-  teclado).
+  teclado). Sincronización en `src/lib/viewport.ts`.
+- **Red de seguridad:** pulsar cualquier pestaña del TabBar cierra el teclado y
+  re-sincroniza el viewport (`resetViewport`): si una pantalla quedara
+  descuadrada, tocar Inicio la recompone.
+- **Sin zoom:** `maximum-scale=1, user-scalable=no` (index.html) +
+  `touch-action: manipulation` (body). Interfaz mobile-first; el zoom por
+  pellizco/doble toque descuadraba la app instalada.
+- **Campana de avisos:** feed DERIVADO (se calcula al vuelo: últimos 3 mensajes
+  activos, buzón sin leer, votación abierta, reserva aprobada, cola de gestión),
+  ordenado del más nuevo al más antiguo (`ts`). Un aviso desaparece cuando su
+  origen deja de estar vigente (mensaje borrado/caducado, hilo leído, votación
+  cerrada…). Contador de "no vistos" en la campana de la Home comparando `ts`
+  con la última visita a /avisos (localStorage, por dispositivo).
 - **Bienvenida** al abrir (una vez por sesión) con botón Siguiente.
 
 ## Rendimiento

@@ -3,7 +3,8 @@ import { Bell, Car, SquareCheckBig, CalendarDays, SquareParking, Phone, Leaf, Me
 import { useApp } from '@/store'
 import { useAsync } from '@/lib/useAsync'
 import { saludo, diasRestantes } from '@/lib/format'
-import { parkingMisTurnos, listEncuestas, listMensajes } from '@/lib/api'
+import { parkingMisTurnos, listEncuestas, listMensajes, listAvisos } from '@/lib/api'
+import { contarAvisosNuevos } from '@/lib/avisosVistos'
 import { Logo } from '@/components/Logo'
 import { TablonBoard } from '@/features/mensajes/TablonBoard'
 
@@ -26,6 +27,8 @@ export function HomePage() {
   const turnos = useAsync(parkingMisTurnos, [user.vivienda])
   const encuestas = useAsync(listEncuestas, [])
   const mensajes = useAsync(listMensajes, [])
+  const avisos = useAsync(listAvisos, [])
+  const nuevos = contarAvisosNuevos(avisos.data ?? [])
 
   const abierta = encuestas.data?.find((e) => e.estado === 'abierta')
   const ahora = Date.now()
@@ -74,9 +77,13 @@ export function HomePage() {
             <Link to="/buzon" aria-label="Buzón" className="flex h-10 w-10 items-center justify-center rounded-full border border-border bg-surface text-ink">
               <MessageSquare size={20} strokeWidth={1.9} />
             </Link>
-            <Link to="/avisos" aria-label="Avisos" className="relative flex h-10 w-10 items-center justify-center rounded-full border border-border bg-surface text-ink">
+            <Link to="/avisos" aria-label={nuevos > 0 ? `Avisos (${nuevos} nuevos)` : 'Avisos'} className="relative flex h-10 w-10 items-center justify-center rounded-full border border-border bg-surface text-ink">
               <Bell size={20} strokeWidth={1.9} />
-              <span className="absolute right-2 top-[7px] h-2 w-2 rounded-full border-[1.5px] border-surface" style={{ background: '#F5B417' }} />
+              {nuevos > 0 && (
+                <span className="absolute -right-1 -top-1 flex h-[18px] min-w-[18px] items-center justify-center rounded-full border-2 border-surface bg-danger px-1 text-[10px] font-extrabold leading-none text-white">
+                  {nuevos > 9 ? '9+' : nuevos}
+                </span>
+              )}
             </Link>
           </div>
         </div>

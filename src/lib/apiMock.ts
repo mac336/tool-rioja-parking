@@ -395,22 +395,24 @@ export function convertirEnMensaje(_hiloId: string, input: { tipo: MensajeTipo; 
 }
 
 // ---- Avisos (feed para la campana) -------------------------------------------
-export interface Aviso { id: string; texto: string; cuando: string; to: string }
+// `ts` (ISO) ordena el feed (más nuevo arriba) y alimenta el contador de "no
+// vistos" de la campana (comparado con la última visita a /avisos).
+export interface Aviso { id: string; texto: string; cuando: string; to: string; ts: string }
 export function listAvisos(): Promise<Aviso[]> {
   const avisos: Aviso[] = []
   const abierta = db.encuestas.find((e) => e.estado === 'abierta')
-  if (abierta) avisos.push({ id: 'av-enc', texto: `Votación abierta: ${abierta.titulo}`, cuando: 'Ahora', to: `/votaciones/${abierta.id}` })
+  if (abierta) avisos.push({ id: 'av-enc', texto: `Votación abierta: ${abierta.titulo}`, cuando: 'Ahora', to: `/votaciones/${abierta.id}`, ts: abierta.apertura })
   for (const m of db.mensajes.filter((x) => x.activo).slice(0, 3)) {
     const etiqueta = m.tipo === 'aviso' ? 'Aviso' : m.tipo === 'anuncio' ? 'Anuncio' : 'Incidencia'
-    avisos.push({ id: `av-msg-${m.id}`, texto: `${etiqueta}: ${m.titulo}`, cuando: fechaCorta(m.created_at), to: '/mensajes' })
+    avisos.push({ id: `av-msg-${m.id}`, texto: `${etiqueta}: ${m.titulo}`, cuando: fechaCorta(m.created_at), to: '/mensajes', ts: m.created_at })
   }
   const miReserva = db.reservas.find((r) => r.solicitada_por === currentUser.id && r.estado === 'aprobada')
-  if (miReserva) avisos.push({ id: 'av-res', texto: `Tu reserva de ${miReserva.zona_nombre} está aprobada`, cuando: fechaCorta(miReserva.inicio), to: '/reservas/mias' })
+  if (miReserva) avisos.push({ id: 'av-res', texto: `Tu reserva de ${miReserva.zona_nombre} está aprobada`, cuando: fechaCorta(miReserva.inicio), to: '/reservas/mias', ts: miReserva.created_at })
   if (esGestionActual()) {
     const pendRes = db.reservas.filter((r) => r.estado === 'pendiente').length
-    if (pendRes) avisos.push({ id: 'av-modres', texto: `${pendRes} reserva(s) por aprobar`, cuando: 'Pendiente', to: '/reservas' })
+    if (pendRes) avisos.push({ id: 'av-modres', texto: `${pendRes} reserva(s) por aprobar`, cuando: 'Pendiente', to: '/reservas', ts: now() })
   }
-  return delay(avisos)
+  return delay(avisos.sort((a, b) => b.ts.localeCompare(a.ts)))
 }
 
 export { iniciales }

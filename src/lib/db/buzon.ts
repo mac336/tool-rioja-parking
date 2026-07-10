@@ -70,6 +70,12 @@ export async function cerrarHilo(hiloId: string, cerrar = true): Promise<void> {
   if (error) throw error
 }
 
+/** Borra un hilo entero (sus mensajes caen en cascada). RLS: dueño o rol del canal. */
+export async function borrarHilo(hiloId: string): Promise<void> {
+  const { error } = await supabase.from('hilos').delete().eq('id', hiloId)
+  if (error) throw error
+}
+
 /** La gestión convierte un reporte del buzón en un mensaje público. */
 export async function convertirEnMensaje(hiloId: string, input: { tipo: MensajeTipo; titulo: string; cuerpo: string }): Promise<void> {
   await crearMensaje(input)

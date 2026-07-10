@@ -384,6 +384,11 @@ export function cerrarHilo(hiloId: string, cerrar = true): Promise<void> {
   if (h) h.estado = cerrar ? 'cerrado' : 'abierto'
   return delay(undefined)
 }
+export function borrarHilo(hiloId: string): Promise<void> {
+  db.hilos = db.hilos.filter((x) => x.id !== hiloId)
+  db.hiloMensajes = db.hiloMensajes.filter((m) => m.hilo_id !== hiloId)
+  return delay(undefined)
+}
 export function convertirEnMensaje(_hiloId: string, input: { tipo: MensajeTipo; titulo: string; cuerpo: string }): Promise<void> {
   db.mensajes.unshift({ id: uid(), tipo: input.tipo, titulo: input.titulo, cuerpo: input.cuerpo, created_by: currentUser.id, activo: true, created_at: now() })
   return delay(undefined)

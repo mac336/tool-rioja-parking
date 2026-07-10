@@ -29,7 +29,12 @@ vecino que abrió el hilo. El `app_admin` **no** ve Presidencia ni Conserje.
 - El staff del canal ve en su **bandeja** los hilos de su canal (más los que él
   mismo haya abierto como vecino) y puede **responder**, **cerrar** y
   **"Convertir en mensaje público"** (si tiene `publicar_mensajes`).
-- Estilo **chat**; cabecera y barra de escribir fijas, solo scrollean los mensajes.
+- Estilo **chat fijado al viewport visible** (`--app-h`): cabecera y barra de
+  escribir fijas, **solo scrollean los mensajes**; el input queda siempre sobre
+  el teclado (no descuadra en iOS).
+- **Borrar conversación** (icono papelera en la cabecera del chat): la elimina
+  para siempre con sus mensajes (cascade). RLS: el dueño o el rol del canal
+  (política `hilo_del`, migración 0019).
 
 ## Datos
 

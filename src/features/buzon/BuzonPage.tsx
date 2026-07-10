@@ -1,12 +1,12 @@
 import { useState } from 'react'
-import { Plus, Send, X, ChevronLeft, Megaphone, ShieldCheck, CircleDot } from 'lucide-react'
+import { Plus, Send, X, ChevronLeft, Megaphone, ShieldCheck, CircleDot, Trash2 } from 'lucide-react'
 import { SubHeader, Page } from '@/components/layout/AppShell'
 import { Button, Card, Field, Textarea, SelectField, EmptyState, ErrorState, SkeletonList, cx } from '@/components/ui'
 import { useAsync } from '@/lib/useAsync'
 import { useApp } from '@/store'
 import { puedePublicarMensajes } from '@/lib/roles'
 import { fechaHora } from '@/lib/format'
-import { listHilos, getHilo, crearHilo, responderHilo, cerrarHilo, convertirEnMensaje } from '@/lib/api'
+import { listHilos, getHilo, crearHilo, responderHilo, cerrarHilo, borrarHilo, convertirEnMensaje } from '@/lib/api'
 import type { Hilo, HiloCanal, MensajeTipo } from '@/types'
 import { TIPO_META } from '@/features/mensajes/MensajeCard'
 
@@ -120,6 +120,11 @@ function HiloVista({ id, onBack }: { id: string; onBack: () => void }) {
     if (!hilo) return
     await cerrarHilo(id, !cerrado); refetch(); toast(cerrado ? 'Conversación reabierta' : 'Conversación cerrada', 'info')
   }
+  const borrar = async () => {
+    if (!window.confirm('¿Borrar esta conversación? Se eliminará para siempre, junto con todos sus mensajes.')) return
+    try { await borrarHilo(id); toast('Conversación borrada', 'info'); onBack() }
+    catch { toast('No se pudo borrar', 'error') }
+  }
   const abrirConvertir = () => {
     const primer = data?.mensajes.find((m) => !m.de_gestion)
     setConvertir({ tipo: 'incidencia', titulo: hilo?.asunto ?? '', cuerpo: primer?.texto ?? '' })
@@ -132,14 +137,18 @@ function HiloVista({ id, onBack }: { id: string; onBack: () => void }) {
   }
 
   return (
-    <div className="flex h-full flex-col bg-bg">
-      <header className="z-10 flex shrink-0 items-center gap-2 border-b border-border bg-surface/95 px-3 py-3 backdrop-blur safe-top">
-        <button onClick={onBack} aria-label="Atrás" className="flex h-10 w-10 items-center justify-center rounded-full hover:bg-surface-2"><ChevronLeft size={24} /></button>
+    // Chat fijado al viewport visible (--app-h): cabecera y barra de escribir
+    // quedan fijas y SOLO scrollean los mensajes. Evita que iOS descuadre la
+    // ventana al abrir el teclado (el input queda siempre sobre el teclado).
+    <div className="fixed inset-x-0 top-0 z-50 flex flex-col bg-bg" style={{ height: 'var(--app-h, 100dvh)' }}>
+      <header className="z-10 flex shrink-0 items-center gap-1 border-b border-border bg-surface/95 px-2 py-3 backdrop-blur safe-top">
+        <button onClick={onBack} aria-label="Atrás" className="flex h-10 w-10 shrink-0 items-center justify-center rounded-full hover:bg-surface-2"><ChevronLeft size={24} /></button>
         <div className="min-w-0 flex-1">
           <h1 className="truncate font-display text-[17px] font-bold text-ink">{hilo?.asunto ?? 'Conversación'}</h1>
           {hilo && <div className="text-[11.5px] text-faint">{CANAL_LABEL[hilo.canal]}{staff && hilo.vecino_nombre ? ` · ${hilo.vecino_nombre}` : ''}</div>}
         </div>
-        {staff && <button onClick={alternarCierre} className="rounded-pill px-3 py-1.5 text-[12px] font-bold text-muted hover:bg-surface-2">{cerrado ? 'Reabrir' : 'Cerrar'}</button>}
+        {staff && <button onClick={alternarCierre} className="shrink-0 rounded-pill px-2.5 py-1.5 text-[12px] font-bold text-muted hover:bg-surface-2">{cerrado ? 'Reabrir' : 'Cerrar'}</button>}
+        <button onClick={borrar} aria-label="Borrar conversación" className="flex h-10 w-10 shrink-0 items-center justify-center rounded-full text-danger hover:bg-danger-soft"><Trash2 size={19} /></button>
       </header>
 
       <div className="mx-auto w-full min-h-0 max-w-[720px] flex-1 overflow-y-auto px-4 py-4">

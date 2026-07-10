@@ -63,10 +63,19 @@ no solo en la interfaz.
 > que comprueban el permiso. El cliente nunca escribe rol/estado. Ocultar botones
 > en la interfaz **no** es seguridad: cada regla vive también en la RLS.
 
-## Gestión de vecinos (Panel → Vecinos)
+## Panel de gestión
 
-Con permiso `aprobar_altas`: **editar** nombre/vivienda, **cambiar rol**,
-**suspender/reactivar** y **dar de baja/reactivar**.
+Acceso con permiso `panel` (o app_admin). Cabecera **fija y compacta** (icono +
+"Panel de gestión" + pestañas); solo el contenido scrollea. Los usuarios de
+gestión tienen además un acceso **"Gestión"** en la barra inferior (empuja
+Mensajes; cede el sitio a Parking, que sigue en "Más"). Pestañas:
+
+- **Acceso** — cola de altas por aprobar (asignar vivienda y rol).
+- **Reservas** — cola de pendientes + **agenda mensual** (ver `specs/07`).
+- **Vecinos** — **buscador por piso/nombre**, y por vecino: **editar**
+  nombre/vivienda, **cambiar rol**, **suspender/reactivar** y **dar de baja**
+  (icono papelera) **/reactivar**. Requiere `aprobar_altas`.
+- **Permisos** — editor de permisos por rol (solo app_admin).
 
 ## Buzón por canales (roles con canal propio)
 

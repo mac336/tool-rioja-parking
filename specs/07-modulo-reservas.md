@@ -39,6 +39,11 @@ defecto presidente/app_admin) antes de confirmarse.
 2. **Aprobación** (**presidente**; `app_admin` como respaldo): aprobar
    (`aprobada`) o rechazar (`rechazada`, con motivo opcional). Aviso al
    solicitante (opcional v1.1 por correo).
+2b. **Agenda mensual (panel de gestión → Reservas)**: además de la cola de
+   pendientes, un **calendario del mes** marca los días con reservas (pendientes
+   + aprobadas); se navega entre meses (‹ / ›) y al **elegir un día** se listan
+   sus reservas (zona, horario, vivienda, solicitante y estado). API
+   `reservasGestion(desdeISO, hastaISO)` (RLS: solo `aprobar_reservas`/app_admin).
 3. **Visibilidad de ocupación**:
    - Una franja con reserva `aprobada` aparece como **ocupada**.
    - Una franja con reserva `pendiente` aparece como **"pendiente de aprobar"**:

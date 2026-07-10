@@ -1,7 +1,7 @@
 import { createBrowserRouter, Navigate, Outlet } from 'react-router-dom'
 import { AppShell } from '@/components/layout/AppShell'
 import { useApp } from '@/store'
-import { puedeAdmin } from '@/lib/roles'
+import { puedeAdmin, esAppAdmin } from '@/lib/roles'
 import { usingSupabase } from '@/lib/supabase'
 
 import { LoginPage } from '@/features/auth/LoginPage'
@@ -28,6 +28,7 @@ import { ReciclajePage } from '@/features/misc/ReciclajePage'
 import { SugerenciasPage } from '@/features/misc/SugerenciasPage'
 import { AvisosPage } from '@/features/misc/AvisosPage'
 import { AdminPage } from '@/features/admin/AdminPage'
+import { AdopcionPage } from '@/features/admin/AdopcionPage'
 
 function Shell() {
   return <AppShell><Outlet /></AppShell>
@@ -36,6 +37,12 @@ function Shell() {
 function RequireAdmin() {
   const { user } = useApp()
   if (!puedeAdmin(user.rol)) return <Navigate to="/" replace />
+  return <Outlet />
+}
+
+function RequireAppAdmin() {
+  const { user } = useApp()
+  if (!esAppAdmin(user.rol)) return <Navigate to="/" replace />
   return <Outlet />
 }
 
@@ -88,6 +95,9 @@ export const router = createBrowserRouter([
       {
         element: <RequireAdmin />,
         children: [{ path: '/admin', element: <AdminPage /> }],
+      }, {
+        element: <RequireAppAdmin />,
+        children: [{ path: '/adopcion', element: <AdopcionPage /> }],
       },
     ],
     }],

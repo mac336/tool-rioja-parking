@@ -77,6 +77,11 @@ Mensajes; cede el sitio a Parking, que sigue en "Más"). Pestañas:
   (icono papelera) **/reactivar**. Requiere `aprobar_altas`.
 - **Permisos** — editor de permisos por rol (solo app_admin).
 
+**Adopción de la app** (menú en "Más", **solo app_admin**; ruta `/adopcion`):
+gráfico (donut) de **viviendas dentro vs por inscribir** y tabla **por piso** (no
+por vecino) — un piso "está dentro" si tiene ≥1 cuenta **activa**. Se calcula con
+`listViviendas` (catálogo) + `listVecinos`.
+
 ## Buzón por canales (roles con canal propio)
 
 Aparte de los permisos, ciertos roles atienden **canales privados del buzón**:

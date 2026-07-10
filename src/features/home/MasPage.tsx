@@ -1,8 +1,8 @@
 import { Link } from 'react-router-dom'
-import { Megaphone, MessageSquare, SquareCheckBig, Phone, Leaf, Lightbulb, Shield, FileText, Settings, ChevronRight } from 'lucide-react'
+import { Megaphone, MessageSquare, SquareCheckBig, Phone, Leaf, Lightbulb, Shield, FileText, Settings, ChevronRight, TrendingUp } from 'lucide-react'
 import { useApp } from '@/store'
 import { RoleBadge } from '@/components/ui'
-import { roleBadgeKind, ROLE_LABEL, puedeAdmin } from '@/lib/roles'
+import { roleBadgeKind, ROLE_LABEL, puedeAdmin, esAppAdmin } from '@/lib/roles'
 import { iniciales } from '@/lib/format'
 import { usingSupabase } from '@/lib/supabase'
 
@@ -38,6 +38,11 @@ export function MasPage() {
         {puedeAdmin(user.rol) && (
           <Link to="/admin" className="flex items-center gap-3 border-b border-border px-4 py-3.5 text-[15px] font-semibold text-primary-700">
             <Shield size={20} /> Panel de gestión
+          </Link>
+        )}
+        {esAppAdmin(user.rol) && (
+          <Link to="/adopcion" className="flex items-center gap-3 border-b border-border px-4 py-3.5 text-[15px] font-semibold text-primary-700">
+            <TrendingUp size={20} /> Adopción de la app
           </Link>
         )}
         {links.map(({ to, label, Icon }) => (

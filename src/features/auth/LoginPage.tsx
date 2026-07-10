@@ -12,7 +12,10 @@ export function LoginPage() {
   const nav = useNavigate()
   const refreshAuth = useApp((s) => s.refreshAuth)
   const [paso, setPaso] = useState<Paso>('correo')
-  const [email, setEmail] = useState('')
+  // Recuerda el último correo usado en este dispositivo (para no reescribirlo).
+  const [email, setEmail] = useState(() => {
+    try { return localStorage.getItem('r25-ultimo-correo') ?? '' } catch { return '' }
+  })
   const [codigo, setCodigo] = useState('')
   const [error, setError] = useState('')
   const [cargando, setCargando] = useState(false)
@@ -20,6 +23,7 @@ export function LoginPage() {
   const pedirCodigo = async () => {
     setError('')
     if (!/.+@.+\..+/.test(email)) { setError('Introduce un correo válido.'); return }
+    try { localStorage.setItem('r25-ultimo-correo', email.trim().toLowerCase()) } catch { /* noop */ }
     if (!usingSupabase) { nav('/'); return } // modo demo: acceso directo
 
     // TEMPORAL: acceso directo solo con el correo (sin código) para aprobados.
@@ -91,7 +95,7 @@ export function LoginPage() {
                 ? 'Si ya estás registrado, introduce tu correo y entra directamente.'
                 : 'Si ya estás registrado, introduce tu correo y te enviaremos un código de acceso.'}
             </p>
-            <Field label="Tu correo" type="email" value={email} onChange={(e) => setEmail(e.target.value)} placeholder="tucorreo@ejemplo.com" />
+            <Field label="Tu correo" type="email" autoComplete="email" value={email} onChange={(e) => setEmail(e.target.value)} placeholder="tucorreo@ejemplo.com" />
             <Button variant="primary" block size="lg" disabled={cargando} onClick={pedirCodigo}>
               {ACCESO_DIRECTO ? (cargando ? 'Entrando…' : 'Entrar') : (cargando ? 'Enviando…' : 'Enviarme el código')}
             </Button>

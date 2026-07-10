@@ -11,7 +11,7 @@ import { InstallPrompt } from '@/components/InstallPrompt'
  *  de main) no se mueven. */
 export function AppShell({ children }: { children: ReactNode }) {
   return (
-    <div className="flex h-dvh overflow-hidden bg-bg">
+    <div className="fixed inset-x-0 top-0 flex overflow-hidden bg-bg" style={{ height: 'var(--app-h, 100dvh)' }}>
       <Sidebar />
       <div className="flex min-w-0 flex-1 flex-col overflow-hidden">
         <main className="mx-auto w-full min-w-0 max-w-[720px] flex-1 overflow-y-auto overscroll-contain">{children}</main>

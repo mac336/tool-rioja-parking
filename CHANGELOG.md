@@ -5,6 +5,12 @@ al implementar el cambio (ver `CLAUDE.md` → Forma de trabajo).
 
 ## 2026-07-10
 
+- **v1.3.0 · Viviendas especiales + permisos votar/reservar:** el alta directa
+  ofrece además Conserje/Administrador/Tester como "vivienda" (`es_piso=false`,
+  migración 0023) para cuentas que no son un piso; **no cuentan** en votaciones,
+  censo ni parking. Dos permisos configurables nuevos en el panel: **Votar en
+  encuestas** y **Realizar reservas** (RLS `puede_votar_encuestas` /
+  `puede_hacer_reservas`; por defecto todos menos tester).
 - **v1.2.0 · Gestión unificada + rol Tester:** la pestaña "Vecinos" une las
   altas de acceso (arriba del todo, se aprueban primero) con la gestión de
   vecinos; **alta directa** por el admin sin registro ("Añadir vecino": crea la

@@ -56,9 +56,9 @@ Deno.serve(async (req) => {
       return json({ ok: true })
     }
 
-    // La vivienda debe existir en el catálogo
-    const { data: viv } = await admin.from('viviendas').select('codigo').eq('codigo', viviendaT).maybeSingle()
-    if (!viv) return json({ error: 'Vivienda no válida.' }, 400)
+    // La vivienda debe existir en el catálogo y ser un PISO real (no especial).
+    const { data: viv } = await admin.from('viviendas').select('codigo, es_piso').eq('codigo', viviendaT).maybeSingle()
+    if (!viv || viv.es_piso === false) return json({ error: 'Vivienda no válida.' }, 400)
 
     await admin.from('access_requests').insert({
       nombre: nombreT, email: emailT, vivienda: viviendaT, comentario: comentarioT || null,

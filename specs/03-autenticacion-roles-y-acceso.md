@@ -63,6 +63,8 @@ no solo en la interfaz.
   - `aprobar_altas` — aprobar solicitudes y gestionar vecinos (editar, suspender,
     dar de baja, cambiar rol).
   - `aprobar_reservas` — aprobar/rechazar reservas (ver `specs/07`).
+  - `votar_encuestas` — emitir voto en encuestas (por defecto todos menos tester).
+  - `realizar_reservas` — solicitar reservas de zonas comunes (idem).
 - Semilla por defecto: toda la gestión (todos menos `vecino`) tiene `panel` y
   `publicar_mensajes`; `aprobar_altas` = presidente/administrador_finca/app_admin;
   `aprobar_reservas` = presidente/app_admin. `conserje` sin permisos por defecto.
@@ -82,7 +84,11 @@ Mensajes; cede el sitio a Parking, que sigue en "Más"). Pestañas:
   de acceso pendientes** (se aprueban primero); botón **"Añadir vecino"** para
   **alta directa sin registro** (nombre, correo, vivienda y rol; crea Auth +
   perfil activo vía `gestionar-usuario` accion `crear`; la persona entra luego
-  con su código OTP — útil para cuentas de prueba con rol **Tester**); después
+  con su código OTP — útil para cuentas de prueba con rol **Tester**). En el alta directa —y **solo
+  ahí**— el desplegable de vivienda ofrece además tres **viviendas especiales**
+  (Conserje / Administrador / Tester) para cuentas que **no** representan un piso:
+  `es_piso=false`, **no cuentan** como vivienda en votaciones, censo de vecinos
+  ni parking (migración 0023). Después
   **buscador por piso/nombre** y por vecino: **editar**, **cambiar rol**,
   **suspender/reactivar** y **dar de baja** (papelera) **/reactivar**.
   Requiere `aprobar_altas`.

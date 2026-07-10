@@ -34,8 +34,10 @@ defecto presidente/app_admin) antes de confirmarse.
   poder **anularla**, sin poder pedir otra hasta entonces.
 
 ## Requisitos funcionales
-1. **Solicitar reserva**: elegir zona, **día / mes / año**, **hora de inicio**,
-   **hora de fin** y **número de invitados**. Se crea con estado `pendiente`.
+1. **Solicitar reserva** (exige permiso `realizar_reservas`, configurable; RLS
+   `puede_hacer_reservas`, mig. 0023, y la vivienda debe ser un piso real):
+   elegir zona, **día / mes / año**, **hora de inicio**, **hora de fin** y
+   **número de invitados**. Se crea con estado `pendiente`.
 2. **Aprobación** (**presidente**; `app_admin` como respaldo): aprobar
    (`aprobada`) o rechazar (`rechazada`, con motivo opcional). Aviso al
    solicitante (opcional v1.1 por correo).

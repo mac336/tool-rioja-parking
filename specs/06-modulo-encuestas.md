@@ -18,6 +18,11 @@ botón "Votar ahora" (toda la tarjeta navega a la votación). A **≤3 días** d
 cierre pasa a **ámbar urgente** con icono de reloj de arena. Cuando el vecino ya
 votó (todas las preguntas), la tarjeta desaparece.
 
+El **denominador** ("X de Y viviendas") cuenta solo los **pisos reales**
+(`viviendas.es_piso`); las viviendas especiales (Conserje/Administrador/Tester)
+no cuentan ni como total ni como votantes. Votar exige el permiso
+`votar_encuestas` (configurable; RLS `puede_votar_encuestas`, mig. 0023).
+
 ## Historias de usuario
 - Como **gestión** (app_admin/presidente/vicepresidente/junta/adm. finca),
   quiero publicar una encuesta con opciones y fechas.

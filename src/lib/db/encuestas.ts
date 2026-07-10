@@ -7,6 +7,7 @@
 // encuesta esté abierta, la opción única y la pertenencia opción↔pregunta; aquí
 // solo emitimos las operaciones. La escritura la gatea RLS (gestión).
 import { supabase } from '@/lib/supabase'
+import { esViviendaEspecial } from '@/lib/parking'
 import type {
   Encuesta, EncuestaEstado, EncuestaFormato, EncuestaOpcion, EncuestaPregunta, EncuestaTipo,
 } from '@/types'
@@ -60,9 +61,11 @@ async function usuarioYVivienda(): Promise<{ userId: string; vivienda: string }>
   return { userId: user.id, vivienda }
 }
 
-/** Total de viviendas del catálogo (denominador del "X de Y"). */
+/** Total de PISOS reales (denominador del "X de Y"): excluye las viviendas
+ *  especiales (Conserje/Administrador/Tester), que no cuentan como vivienda. */
 async function contarViviendas(): Promise<number> {
-  const { count, error } = await supabase.from('viviendas').select('*', { count: 'exact', head: true })
+  const { count, error } = await supabase.from('viviendas')
+    .select('*', { count: 'exact', head: true }).eq('es_piso', true)
   if (error) throw error
   return count ?? 0
 }
@@ -89,7 +92,8 @@ function ensamblar(
         .map((o) => {
           const votos = o.encuesta_votos ?? []
           for (const v of votos) {
-            viviendasVotantes.add(v.vivienda)
+            // Las viviendas especiales no cuentan en la participación.
+            if (!esViviendaEspecial(v.vivienda)) viviendasVotantes.add(v.vivienda)
             if (miVivienda && v.vivienda === miVivienda) miVoto.push(o.id)
           }
           return { id: o.id, texto: o.texto, votos: votos.length }

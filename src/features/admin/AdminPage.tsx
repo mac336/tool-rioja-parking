@@ -15,7 +15,7 @@ import {
   puedeAprobarAltas, puedeAprobarReservas,
 } from '@/lib/roles'
 import type { Profile, Role, ReservaGrupo } from '@/types'
-import { PISOS } from '@/lib/parking'
+import { PISOS, VIVIENDAS_ESPECIALES } from '@/lib/parking'
 import { reservaCelebrada } from '@/lib/reglas'
 import { useApp } from '@/store'
 import {
@@ -433,7 +433,12 @@ function VecinosTab({ canManage, currentUserId, onToast, onChanged }: { canManag
             onChange={(e) => setAlta({ ...alta, email: e.target.value })} />
           <div className="grid grid-cols-1 gap-3 sm:grid-cols-2">
             <SelectField label="Vivienda" value={alta.vivienda} onChange={(e) => setAlta({ ...alta, vivienda: e.target.value })}>
-              {PISOS.map((pi) => <option key={pi} value={pi}>{pi}</option>)}
+              <optgroup label="Viviendas">
+                {PISOS.map((pi) => <option key={pi} value={pi}>{pi}</option>)}
+              </optgroup>
+              <optgroup label="Especiales (no cuentan como vivienda)">
+                {VIVIENDAS_ESPECIALES.map((v) => <option key={v} value={v}>{v}</option>)}
+              </optgroup>
             </SelectField>
             <SelectField label="Rol" value={alta.rol} onChange={(e) => setAlta({ ...alta, rol: e.target.value as Role })}>
               {ROLES.map((r) => <option key={r} value={r}>{ROLE_LABEL[r]}</option>)}

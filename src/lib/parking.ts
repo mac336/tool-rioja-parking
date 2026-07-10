@@ -37,6 +37,13 @@ export const PISOS: string[] = [
   '3º A Izqda', '3º B Izqda', '3º C Izqda', '3º D Izqda', '3º E Izqda', '3º F Izqda',
 ]
 
+/** "Viviendas" especiales para cuentas que NO son un piso (conserje, un
+ *  administrador externo, cuentas de prueba). NO cuentan como viviendas en
+ *  votaciones, censo de vecinos ni parking. Solo se ofrecen en el alta directa
+ *  del panel; en la BD son filas de `viviendas` con `es_piso = false`. */
+export const VIVIENDAS_ESPECIALES: string[] = ['Conserje', 'Administrador', 'Tester']
+export const esViviendaEspecial = (codigo: string) => VIVIENDAS_ESPECIALES.includes(codigo)
+
 /** Número de día (UTC) del calendario Europe/Madrid de una fecha dada. */
 function madridDayNumber(date: Date): number {
   const parts = new Intl.DateTimeFormat('en-CA', {

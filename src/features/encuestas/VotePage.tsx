@@ -6,7 +6,7 @@ import { Button, Card, Alert, ErrorState, SkeletonList, cx } from '@/components/
 import { useAsync } from '@/lib/useAsync'
 import { getEncuesta, votarPregunta } from '@/lib/api'
 import { useApp } from '@/store'
-import { esTester } from '@/lib/roles'
+import { esTester, puedeVotar } from '@/lib/roles'
 import type { EncuestaPregunta } from '@/types'
 
 export function VotePage() {
@@ -14,6 +14,7 @@ export function VotePage() {
   const nav = useNavigate()
   const { user, toast } = useApp()
   const tester = esTester(user.rol)
+  const noPuedeVotar = !puedeVotar(user.rol)
   const { data, state, refetch } = useAsync(() => getEncuesta(id), [id])
 
   // selección local por pregunta: { [preguntaId]: opcionId[] }
@@ -96,8 +97,10 @@ export function VotePage() {
             <div className="flex items-center gap-1.5 text-[12px] font-semibold text-muted">
               <Lock size={13} /> Voto verificado
             </div>
-            {tester && <div className="mb-2"><Alert tipo="info">Cuenta de pruebas (Tester): solo lectura. Puedes mirarlo todo y chatear por el buzón, pero no realizar acciones.</Alert></div>}
-            <Button block size="lg" disabled={tester || !algunaMarcada || enviando} onClick={confirmar}>
+            {tester
+              ? <div className="mb-2"><Alert tipo="info">Cuenta de pruebas (Tester): solo lectura. Puedes mirarlo todo y chatear por el buzón, pero no realizar acciones.</Alert></div>
+              : noPuedeVotar && <div className="mb-2"><Alert tipo="warn">Tu rol no tiene permiso para votar en encuestas.</Alert></div>}
+            <Button block size="lg" disabled={noPuedeVotar || !algunaMarcada || enviando} onClick={confirmar}>
               {enviando ? 'Registrando…' : 'Confirmar mi voto'}
             </Button>
           </>

@@ -1,5 +1,21 @@
-import type { Mensaje } from '@/types'
+import { TriangleAlert, Megaphone } from 'lucide-react'
+import type { Mensaje, MensajeTipo } from '@/types'
 import { POSTIT, PLURAL, fechaMano, caducaTexto } from './postit'
+
+/** Icono del tipo de mensaje (sustituye a la etiqueta de texto en el tablón). */
+function TipoIcono({ tipo, color, label }: { tipo: MensajeTipo; color: string; label: string }) {
+  if (tipo === 'aviso') return <TriangleAlert size={19} style={{ color }} aria-label={label} />
+  if (tipo === 'anuncio') return <Megaphone size={19} style={{ color }} aria-label={label} />
+  // Incidencia: triángulo (rojo) con una X dentro.
+  return (
+    <svg width={19} height={19} viewBox="0 0 24 24" fill="none" stroke={color} strokeWidth={2}
+      strokeLinecap="round" strokeLinejoin="round" role="img" aria-label={label}>
+      <path d="m21.73 18-8-14a2 2 0 0 0-3.46 0l-8 14A2 2 0 0 0 4 21h16a2 2 0 0 0 1.73-3Z" />
+      <path d="m9.8 12.6 4.4 4.4" />
+      <path d="m14.2 12.6-4.4 4.4" />
+    </svg>
+  )
+}
 
 /** Nota de papel pinchada con chincheta. Si el grupo tiene varias, se ve apilada
  *  con contador. `rot` = rotación de la nota en el tablón. */
@@ -31,7 +47,7 @@ export function PostItNote({ grupo, rot, onClick }: { grupo: Mensaje[]; rot: str
         )}
 
         <div className="flex items-center justify-between gap-2">
-          <span className="text-[10.5px] font-extrabold uppercase tracking-[0.1em]" style={{ color: e.tint }}>{esPila ? PLURAL[m.tipo] : e.etiqueta}</span>
+          <TipoIcono tipo={m.tipo} color={e.tint} label={esPila ? PLURAL[m.tipo] : e.etiqueta} />
           <span className="px-2.5" style={{
             fontFamily: 'var(--font-hand)', fontSize: '17px', fontWeight: 600, color: e.tint, opacity: 0.85,
             transform: 'rotate(-2deg)', border: `1.5px solid ${e.tint}`, borderRadius: '55% 45% 50% 60% / 65% 55% 60% 50%',

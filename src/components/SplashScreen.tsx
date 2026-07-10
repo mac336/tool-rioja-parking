@@ -35,7 +35,7 @@ export function SplashScreen({ onDone }: { onDone: () => void }) {
         <p className="mt-2 font-display text-[20px] font-bold text-white/90">Rioja 25</p>
 
         <p className="mt-6 max-w-sm text-[15px] leading-relaxed text-white/85">
-          Un espacio pensado para estar al día de todo lo que pasa en tu edificio:
+          Un espacio pensado para estar al día de todo lo que pasa en tu urbanización:
           incidencias, reservas, votaciones y avisos, al alcance de tu mano.
         </p>
 

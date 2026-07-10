@@ -354,9 +354,9 @@ function VecinosTab({ canManage, currentUserId, onToast, onChanged }: { canManag
   }
 
   const s = q.trim().toLowerCase()
-  const filtrados = s
-    ? data.filter((v) => v.vivienda.toLowerCase().includes(s) || v.nombre.toLowerCase().includes(s))
-    : data
+  const coincide = (v: Profile) =>
+    [v.vivienda, v.nombre, v.email].some((campo) => (campo ?? '').toLowerCase().includes(s))
+  const filtrados = s ? data.filter(coincide) : data
 
   function abrirEdicion(v: Profile) {
     setEditId(v.id); setForm({ nombre: v.nombre, vivienda: v.vivienda })

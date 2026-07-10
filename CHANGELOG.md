@@ -5,6 +5,9 @@ al implementar el cambio (ver `CLAUDE.md` → Forma de trabajo).
 
 ## 2026-07-10
 
+- **v1.3.1 · Fix:** el buscador de Vecinos ya no falla ("null is not an object")
+  cuando un vecino tiene la vivienda/nombre sin rellenar; además busca por
+  piso, nombre y correo.
 - **v1.3.0 · Viviendas especiales + permisos votar/reservar:** el alta directa
   ofrece además Conserje/Administrador/Tester como "vivienda" (`es_piso=false`,
   migración 0023) para cuentas que no son un piso; **no cuentan** en votaciones,

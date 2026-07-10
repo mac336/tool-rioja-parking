@@ -21,6 +21,11 @@ vecino que abrió el hilo. El `app_admin` **no** ve Presidencia ni Conserje.
 ## Comportamiento
 
 - Cualquier vecino activo puede **abrir un hilo** eligiendo el canal ("Para").
+- **Fase de pruebas (actual):** el selector "Para" solo ofrece **Desarrollador de
+  la app**; el resto de canales quedan definidos (para mostrar hilos antiguos y
+  reactivarlos después) pero no seleccionables. Los hilos previos se migraron al
+  canal `desarrollador`. Reabrir canales = volver a poner todos en `CANALES`
+  (`src/features/buzon/BuzonPage.tsx`).
 - El staff del canal ve en su **bandeja** los hilos de su canal (más los que él
   mismo haya abierto como vecino) y puede **responder**, **cerrar** y
   **"Convertir en mensaje público"** (si tiene `publicar_mensajes`).

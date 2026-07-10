@@ -11,7 +11,9 @@ import type { Hilo, HiloCanal, MensajeTipo } from '@/types'
 import { TIPO_META } from '@/features/mensajes/MensajeCard'
 
 const CANAL_LABEL: Record<HiloCanal, string> = { administrador: 'Administración', presidencia: 'Presidencia', conserje: 'Conserje', desarrollador: 'Desarrollador de la app' }
-const CANALES: HiloCanal[] = ['administrador', 'presidencia', 'conserje', 'desarrollador']
+// Por ahora solo se puede escribir al Desarrollador de la app (fase de pruebas).
+// El resto de canales siguen definidos para mostrar hilos antiguos correctamente.
+const CANALES: HiloCanal[] = ['desarrollador']
 
 export function BuzonPage() {
   const [abierto, setAbierto] = useState<string | null>(null)
@@ -38,12 +40,12 @@ function Bandeja({ onOpen }: { onOpen: (id: string) => void }) {
   return (
     <div className="flex h-full flex-col bg-bg">
       <SubHeader titulo="Buzón" right={(
-        <button onClick={() => setNuevo({ asunto: '', texto: '', canal: 'administrador' })} className="flex h-10 items-center gap-1.5 rounded-pill bg-primary px-3.5 text-[14px] font-bold text-white shadow-primary">
+        <button onClick={() => setNuevo({ asunto: '', texto: '', canal: 'desarrollador' })} className="flex h-10 items-center gap-1.5 rounded-pill bg-primary px-3.5 text-[14px] font-bold text-white shadow-primary">
           <Plus size={18} /> Nuevo
         </button>
       )} />
       <Page className="flex min-h-0 flex-1 flex-col gap-3 overflow-y-auto">
-        <p className="text-[13px] text-muted">Escribe en privado a <b>Administración</b>, <b>Presidencia</b> o al <b>Conserje</b>. Solo el destinatario lo ve.</p>
+        <p className="text-[13px] text-muted">Escribe en privado al <b>Desarrollador de la app</b> para cualquier duda o problema durante las pruebas. Solo el destinatario lo ve.</p>
         {state === 'loading' && <SkeletonList n={3} />}
         {state === 'error' && <ErrorState onRetry={refetch} />}
         {(state === 'empty' || (state === 'ready' && (data ?? []).length === 0)) && (

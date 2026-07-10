@@ -61,7 +61,7 @@ export function HomePage() {
   return (
     <div className="min-h-full bg-bg">
       {/* Header compacto claro */}
-      <header className="px-4 pb-2 pt-5 safe-top">
+      <header className="px-4 pb-2 pt-[calc(env(safe-area-inset-top)+20px)]">
         <div className="flex items-center justify-between">
           <div className="flex items-center gap-2.5">
             <Logo size={42} />

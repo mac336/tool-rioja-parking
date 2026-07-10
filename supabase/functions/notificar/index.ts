@@ -12,8 +12,9 @@ const ROLES_CANAL: Record<string, string[]> = {
   administrador: ['administrador_finca'],
   presidencia: ['presidente', 'vicepresidente'],
   conserje: ['conserje'],
+  desarrollador: ['app_admin'],
 }
-const CANAL_LABEL: Record<string, string> = { administrador: 'Administración', presidencia: 'Presidencia', conserje: 'Conserje' }
+const CANAL_LABEL: Record<string, string> = { administrador: 'Administración', presidencia: 'Presidencia', conserje: 'Conserje', desarrollador: 'Desarrollador de la app' }
 
 const SUPABASE_URL = Deno.env.get('SUPABASE_URL')!
 const SERVICE_ROLE = Deno.env.get('SUPABASE_SERVICE_ROLE_KEY')!

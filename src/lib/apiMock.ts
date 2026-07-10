@@ -342,6 +342,7 @@ const ROLES_CANAL: Record<HiloCanal, Role[]> = {
   administrador: ['administrador_finca'],
   presidencia: ['presidente', 'vicepresidente'],
   conserje: ['conserje'],
+  desarrollador: ['app_admin'],
 }
 const atiendeCanal = (canal: HiloCanal) => ROLES_CANAL[canal].includes(currentUser.rol)
 const veoHilo = (h: Hilo) => h.vecino_id === currentUser.id || atiendeCanal(h.canal)

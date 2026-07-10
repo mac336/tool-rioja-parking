@@ -10,8 +10,8 @@ import { listHilos, getHilo, crearHilo, responderHilo, cerrarHilo, convertirEnMe
 import type { Hilo, HiloCanal, MensajeTipo } from '@/types'
 import { TIPO_META } from '@/features/mensajes/MensajeCard'
 
-const CANAL_LABEL: Record<HiloCanal, string> = { administrador: 'Administración', presidencia: 'Presidencia', conserje: 'Conserje' }
-const CANALES: HiloCanal[] = ['administrador', 'presidencia', 'conserje']
+const CANAL_LABEL: Record<HiloCanal, string> = { administrador: 'Administración', presidencia: 'Presidencia', conserje: 'Conserje', desarrollador: 'Desarrollador de la app' }
+const CANALES: HiloCanal[] = ['administrador', 'presidencia', 'conserje', 'desarrollador']
 
 export function BuzonPage() {
   const [abierto, setAbierto] = useState<string | null>(null)

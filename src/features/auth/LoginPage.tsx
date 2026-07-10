@@ -73,6 +73,7 @@ export function LoginPage() {
             <Button variant="primary" block size="lg" disabled={cargando} onClick={pedirCodigo}>
               {cargando ? 'Enviando…' : 'Enviarme el código'}
             </Button>
+            <p className="text-center text-[13px] text-faint">El código llega por correo. Si no lo ves, revisa tu carpeta de <b>spam</b> o correo no deseado.</p>
 
             <div className="my-2 flex items-center gap-3 text-[12px] text-faint">
               <span className="h-px flex-1 bg-border" />¿aún no tienes acceso?<span className="h-px flex-1 bg-border" />

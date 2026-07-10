@@ -2,7 +2,7 @@
 // RLS: el vecino ve solo sus hilos; la gestión ve todos. de_gestion lo fija un
 // trigger (no de confianza en cliente). Firmas idénticas al mock.
 import { supabase } from '@/lib/supabase'
-import type { Hilo, HiloMensaje, MensajeTipo } from '@/types'
+import type { Hilo, HiloMensaje, HiloCanal, MensajeTipo } from '@/types'
 import { crearMensaje } from '@/lib/db/mensajes'
 
 async function nombresPorId(ids: string[]): Promise<Map<string, { nombre: string; vivienda: string }>> {
@@ -13,18 +13,10 @@ async function nombresPorId(ids: string[]): Promise<Map<string, { nombre: string
   return m
 }
 
-/** Hilos del vecino actual (los suyos). */
-export async function misHilos(): Promise<Hilo[]> {
-  const { data: { user } } = await supabase.auth.getUser()
-  if (!user) throw new Error('No autenticado')
-  const { data, error } = await supabase.from('hilos')
-    .select('*').eq('vecino_id', user.id).order('updated_at', { ascending: false })
-  if (error) throw error
-  return (data ?? []) as Hilo[]
-}
-
-/** Todos los hilos (gestión), con nombre/vivienda del vecino. */
-export async function hilosGestion(): Promise<Hilo[]> {
+/** Todos los hilos visibles para mí: los que yo abrí (como vecino) + los de los
+ *  canales que atiendo por mi rol. La RLS ya filtra; aquí adjunto nombre/vivienda
+ *  del solicitante para la vista de gestión. */
+export async function listHilos(): Promise<Hilo[]> {
   const { data, error } = await supabase.from('hilos')
     .select('*').order('updated_at', { ascending: false })
   if (error) throw error
@@ -51,12 +43,12 @@ export async function getHilo(id: string): Promise<{ hilo: Hilo; mensajes: HiloM
   return { hilo: hilo as Hilo, mensajes }
 }
 
-/** El vecino abre un hilo nuevo con su primer mensaje. */
-export async function crearHilo(input: { asunto: string; texto: string }): Promise<string> {
+/** El vecino abre un hilo nuevo (dirigido a un canal) con su primer mensaje. */
+export async function crearHilo(input: { asunto: string; texto: string; canal: HiloCanal }): Promise<string> {
   const { data: { user } } = await supabase.auth.getUser()
   if (!user) throw new Error('No autenticado')
   const { data: hilo, error } = await supabase.from('hilos')
-    .insert({ vecino_id: user.id, asunto: input.asunto }).select('id').single()
+    .insert({ vecino_id: user.id, asunto: input.asunto, canal: input.canal }).select('id').single()
   if (error) throw error
   const { error: e2 } = await supabase.from('hilo_mensajes').insert({ hilo_id: hilo.id, autor_id: user.id, texto: input.texto })
   if (e2) throw e2

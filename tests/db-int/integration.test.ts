@@ -70,15 +70,16 @@ describe.skipIf(!process.env.SUPA_ITEST)('capa de datos real (Supabase local)', 
     await mensajes.borrarMensaje(m.id)
   })
 
-  it('buzón: el vecino abre un hilo, la gestión lo ve y responde', async () => {
+  it('buzón: el vecino escribe a Presidencia, el presidente lo ve y responde', async () => {
     await supabase.auth.signInWithPassword({ email: V_EMAIL, password: PASS })
-    const hiloId = await buzon.crearHilo({ asunto: 'ITEST buzón', texto: 'hola admin' })
+    const hiloId = await buzon.crearHilo({ asunto: 'ITEST buzón', texto: 'hola presidencia', canal: 'presidencia' })
     expect(hiloId).toBeTruthy()
-    const mios = await buzon.misHilos()
+    const mios = await buzon.listHilos()
     expect(mios.find((h) => h.id === hiloId)).toBeTruthy()
+    // El presidente (canal presidencia) lo ve y responde.
     await supabase.auth.signInWithPassword({ email: P_EMAIL, password: PASS })
-    const todos = await buzon.hilosGestion()
-    expect(todos.find((h) => h.id === hiloId)).toBeTruthy()
+    const visibles = await buzon.listHilos()
+    expect(visibles.find((h) => h.id === hiloId)).toBeTruthy()
     await buzon.responderHilo(hiloId, 'te leo, gracias')
     const det = await buzon.getHilo(hiloId)
     expect(det?.mensajes.length).toBe(2)

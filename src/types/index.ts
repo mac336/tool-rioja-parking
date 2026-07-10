@@ -93,12 +93,14 @@ export interface Mensaje {
 }
 
 export type HiloEstado = 'abierto' | 'cerrado'
+export type HiloCanal = 'administrador' | 'presidencia' | 'conserje'
 export interface Hilo {
   id: string
   vecino_id: string
   vecino_nombre?: string
   vecino_vivienda?: string
   asunto: string
+  canal: HiloCanal
   estado: HiloEstado
   no_leido_gestion: boolean
   no_leido_vecino: boolean

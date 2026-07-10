@@ -6,7 +6,7 @@
 import type {
   Profile, Role,
   Encuesta, EncuestaFormato, EncuestaTipo, ZonaComun, Reserva, ReservaGrupo, CrearReservaInput,
-  Mensaje, MensajeTipo, Hilo, HiloMensaje,
+  Mensaje, MensajeTipo, Hilo, HiloMensaje, HiloCanal,
   Contact, ContactCategory, AccessRequest, ParkingCesion, CesionTipo, ParkingQuincena,
 } from '@/types'
 import * as mock from '@/mock/data'
@@ -337,28 +337,38 @@ export function borrarMensaje(id: string): Promise<void> {
   return delay(undefined)
 }
 
-// ---- Buzón privado (demo) ----------------------------------------------------
-export const misHilos = () => delay(db.hilos.filter((h) => h.vecino_id === currentUser.id).slice().sort((a, b) => b.updated_at.localeCompare(a.updated_at)))
-export const hilosGestion = () => delay(db.hilos.slice().map((h) => ({ ...h, vecino_nombre: nombreDe(h.vecino_id), vecino_vivienda: db.profiles.find((p) => p.id === h.vecino_id)?.vivienda ?? '' })).sort((a, b) => b.updated_at.localeCompare(a.updated_at)))
+// ---- Buzón privado por canales (demo) ----------------------------------------
+const ROLES_CANAL: Record<HiloCanal, Role[]> = {
+  administrador: ['administrador_finca'],
+  presidencia: ['presidente', 'vicepresidente'],
+  conserje: ['conserje'],
+}
+const atiendeCanal = (canal: HiloCanal) => ROLES_CANAL[canal].includes(currentUser.rol)
+const veoHilo = (h: Hilo) => h.vecino_id === currentUser.id || atiendeCanal(h.canal)
+
+export const listHilos = () => delay(
+  db.hilos.filter(veoHilo).map((h) => ({ ...h, vecino_nombre: nombreDe(h.vecino_id), vecino_vivienda: db.profiles.find((p) => p.id === h.vecino_id)?.vivienda ?? '' }))
+    .sort((a, b) => b.updated_at.localeCompare(a.updated_at)))
+
 export function getHilo(id: string): Promise<{ hilo: Hilo; mensajes: HiloMensaje[] } | null> {
   const hilo = db.hilos.find((h) => h.id === id)
-  if (!hilo) return delay(null)
+  if (!hilo || !veoHilo(hilo)) return delay(null)
   const soyDueño = hilo.vecino_id === currentUser.id
   if (soyDueño) hilo.no_leido_vecino = false; else hilo.no_leido_gestion = false
   const mensajes = db.hiloMensajes.filter((m) => m.hilo_id === id).map((m) => ({ ...m, autor_nombre: nombreDe(m.autor_id) }))
   return delay({ hilo, mensajes })
 }
-export function crearHilo(input: { asunto: string; texto: string }): Promise<string> {
+export function crearHilo(input: { asunto: string; texto: string; canal: HiloCanal }): Promise<string> {
   const id = uid()
-  db.hilos.unshift({ id, vecino_id: currentUser.id, asunto: input.asunto, estado: 'abierto', no_leido_gestion: true, no_leido_vecino: false, created_at: now(), updated_at: now() })
-  db.hiloMensajes.push({ id: uid(), hilo_id: id, autor_id: currentUser.id, de_gestion: esGestionActual(), texto: input.texto, created_at: now() })
+  db.hilos.unshift({ id, vecino_id: currentUser.id, asunto: input.asunto, canal: input.canal, estado: 'abierto', no_leido_gestion: true, no_leido_vecino: false, created_at: now(), updated_at: now() })
+  db.hiloMensajes.push({ id: uid(), hilo_id: id, autor_id: currentUser.id, de_gestion: false, texto: input.texto, created_at: now() })
   return delay(id)
 }
 export function responderHilo(hiloId: string, texto: string): Promise<void> {
-  const gestion = esGestionActual()
-  db.hiloMensajes.push({ id: uid(), hilo_id: hiloId, autor_id: currentUser.id, de_gestion: gestion, texto, created_at: now() })
   const h = db.hilos.find((x) => x.id === hiloId)
-  if (h) { h.updated_at = now(); h.estado = 'abierto'; if (gestion) h.no_leido_vecino = true; else h.no_leido_gestion = true }
+  const delCanal = !!h && h.vecino_id !== currentUser.id // lo escribe el canal, no el dueño
+  db.hiloMensajes.push({ id: uid(), hilo_id: hiloId, autor_id: currentUser.id, de_gestion: delCanal, texto, created_at: now() })
+  if (h) { h.updated_at = now(); h.estado = 'abierto'; if (delCanal) h.no_leido_vecino = true; else h.no_leido_gestion = true }
   return delay(undefined)
 }
 export function cerrarHilo(hiloId: string, cerrar = true): Promise<void> {

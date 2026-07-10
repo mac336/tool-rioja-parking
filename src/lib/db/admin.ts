@@ -106,14 +106,14 @@ export async function listAvisos(): Promise<Aviso[]> {
     avisos.push({ id: `msg-${m.id}`, texto: `${etiqueta}: ${m.titulo}`, cuando: fechaCorta(m.created_at as string), to: '/mensajes' })
   }
 
-  // Buzón: respuestas sin leer (vecino) o mensajes nuevos (gestión).
-  if (esGestion) {
-    const { count } = await supabase.from('hilos').select('*', { count: 'exact', head: true }).eq('no_leido_gestion', true)
-    if (count) avisos.push({ id: 'buzon-g', texto: `${count} mensaje(s) sin leer en el buzón`, cuando: 'Buzón', to: '/buzon' })
-  } else {
-    const { count } = await supabase.from('hilos').select('*', { count: 'exact', head: true }).eq('vecino_id', user.id).eq('no_leido_vecino', true)
-    if (count) avisos.push({ id: 'buzon-v', texto: 'Administración te ha respondido', cuando: 'Buzón', to: '/buzon' })
-  }
+  // Buzón: respuestas a mis hilos (como vecino) y mensajes nuevos de mi canal
+  // (como staff). La RLS ya limita los hilos visibles a mi canal.
+  const { count: resp } = await supabase.from('hilos').select('*', { count: 'exact', head: true })
+    .eq('vecino_id', user.id).eq('no_leido_vecino', true)
+  if (resp) avisos.push({ id: 'buzon-v', texto: 'Tienes una respuesta en el buzón', cuando: 'Buzón', to: '/buzon' })
+  const { count: nuevos } = await supabase.from('hilos').select('*', { count: 'exact', head: true })
+    .neq('vecino_id', user.id).eq('no_leido_gestion', true)
+  if (nuevos) avisos.push({ id: 'buzon-g', texto: `${nuevos} mensaje(s) sin leer en el buzón`, cuando: 'Buzón', to: '/buzon' })
 
   // Encuesta abierta: apertura <= now <= cierre.
   const { data: encuestas } = await supabase.from('encuestas')

@@ -61,6 +61,13 @@ export async function idsGestion(admin: SupabaseClient): Promise<string[]> {
   const { data: perms } = await admin.from('role_permissions').select('rol').eq('permiso', 'panel')
   const roles = new Set((perms ?? []).map((p) => p.rol as string))
   roles.add('app_admin')
-  const { data: profs } = await admin.from('profiles').select('id, rol').eq('estado', 'activo')
-  return (profs ?? []).filter((p) => roles.has(p.rol as string)).map((p) => p.id as string)
+  return idsPorRoles(admin, [...roles])
+}
+
+/** IDs de usuarios activos con alguno de los roles indicados. */
+export async function idsPorRoles(admin: SupabaseClient, roles: string[]): Promise<string[]> {
+  if (roles.length === 0) return []
+  const { data } = await admin.from('profiles').select('id, rol').eq('estado', 'activo')
+  const set = new Set(roles)
+  return (data ?? []).filter((p) => set.has(p.rol as string)).map((p) => p.id as string)
 }

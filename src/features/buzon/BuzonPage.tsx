@@ -4,65 +4,67 @@ import { SubHeader, Page } from '@/components/layout/AppShell'
 import { Button, Card, Field, Textarea, SelectField, EmptyState, ErrorState, SkeletonList, cx } from '@/components/ui'
 import { useAsync } from '@/lib/useAsync'
 import { useApp } from '@/store'
-import { esGestion } from '@/lib/roles'
+import { puedePublicarMensajes } from '@/lib/roles'
 import { fechaHora } from '@/lib/format'
-import { misHilos, hilosGestion, getHilo, crearHilo, responderHilo, cerrarHilo, convertirEnMensaje } from '@/lib/api'
-import type { Hilo, MensajeTipo } from '@/types'
+import { listHilos, getHilo, crearHilo, responderHilo, cerrarHilo, convertirEnMensaje } from '@/lib/api'
+import type { Hilo, HiloCanal, MensajeTipo } from '@/types'
 import { TIPO_META } from '@/features/mensajes/MensajeCard'
 
-export function BuzonPage() {
-  const { user, toast } = useApp()
-  const gestor = esGestion(user.rol)
-  const [abierto, setAbierto] = useState<string | null>(null)
+const CANAL_LABEL: Record<HiloCanal, string> = { administrador: 'Administración', presidencia: 'Presidencia', conserje: 'Conserje' }
+const CANALES: HiloCanal[] = ['administrador', 'presidencia', 'conserje']
 
-  if (abierto) return <HiloVista id={abierto} gestor={gestor} onBack={() => setAbierto(null)} />
-  return <Bandeja gestor={gestor} onOpen={setAbierto} onToast={toast} />
+export function BuzonPage() {
+  const [abierto, setAbierto] = useState<string | null>(null)
+  if (abierto) return <HiloVista id={abierto} onBack={() => setAbierto(null)} />
+  return <Bandeja onOpen={setAbierto} />
 }
 
-// ---- Lista de hilos ----------------------------------------------------------
-function Bandeja({ gestor, onOpen, onToast }: { gestor: boolean; onOpen: (id: string) => void; onToast: (t: string, k?: 'ok' | 'error' | 'info') => void }) {
-  const { data, state, refetch } = useAsync(gestor ? hilosGestion : misHilos, [])
-  const [nuevo, setNuevo] = useState<null | { asunto: string; texto: string }>(null)
+// ---- Lista de hilos (los míos + los de mi canal) -----------------------------
+function Bandeja({ onOpen }: { onOpen: (id: string) => void }) {
+  const { user, toast } = useApp()
+  const { data, state, refetch } = useAsync(listHilos, [])
+  const [nuevo, setNuevo] = useState<null | { asunto: string; texto: string; canal: HiloCanal }>(null)
   const [saving, setSaving] = useState(false)
 
   const enviar = async () => {
     if (!nuevo || nuevo.asunto.trim().length < 1 || nuevo.texto.trim().length < 1) return
     setSaving(true)
     try {
-      const id = await crearHilo({ asunto: nuevo.asunto.trim(), texto: nuevo.texto.trim() })
-      setNuevo(null); refetch(); onToast('Mensaje enviado a administración', 'ok'); onOpen(id)
-    } catch { onToast('No se pudo enviar', 'error') } finally { setSaving(false) }
+      const id = await crearHilo({ asunto: nuevo.asunto.trim(), texto: nuevo.texto.trim(), canal: nuevo.canal })
+      setNuevo(null); refetch(); toast('Mensaje enviado', 'ok'); onOpen(id)
+    } catch { toast('No se pudo enviar', 'error') } finally { setSaving(false) }
   }
 
   return (
     <div className="min-h-full bg-bg">
-      <SubHeader titulo={gestor ? 'Buzón de administración' : 'Contactar con administración'}
-        right={!gestor ? (
-          <button onClick={() => setNuevo({ asunto: '', texto: '' })} className="flex h-10 items-center gap-1.5 rounded-pill bg-primary px-3.5 text-[14px] font-bold text-white shadow-primary">
-            <Plus size={18} /> Nuevo
-          </button>
-        ) : undefined} />
+      <SubHeader titulo="Buzón" right={(
+        <button onClick={() => setNuevo({ asunto: '', texto: '', canal: 'administrador' })} className="flex h-10 items-center gap-1.5 rounded-pill bg-primary px-3.5 text-[14px] font-bold text-white shadow-primary">
+          <Plus size={18} /> Nuevo
+        </button>
+      )} />
       <Page className="flex flex-col gap-3">
-        {!gestor && (
-          <p className="text-[13px] text-muted">Escribe a la administración para reportar una avería, un problema o cualquier consulta. Solo lo ven ellos.</p>
-        )}
+        <p className="text-[13px] text-muted">Escribe en privado a <b>Administración</b>, <b>Presidencia</b> o al <b>Conserje</b>. Solo el destinatario lo ve.</p>
         {state === 'loading' && <SkeletonList n={3} />}
         {state === 'error' && <ErrorState onRetry={refetch} />}
         {(state === 'empty' || (state === 'ready' && (data ?? []).length === 0)) && (
-          <EmptyState titulo={gestor ? 'Buzón vacío' : 'Sin conversaciones'} texto={gestor ? 'No hay mensajes de vecinos.' : 'Cuando escribas a administración, tus conversaciones aparecerán aquí.'} />
+          <EmptyState titulo="Sin conversaciones" texto="Cuando escribas o recibas un mensaje, aparecerá aquí." />
         )}
         {state === 'ready' && (data ?? []).map((h: Hilo) => {
-          const sinLeer = gestor ? h.no_leido_gestion : h.no_leido_vecino
+          const soyDueño = h.vecino_id === user.id
+          const sinLeer = soyDueño ? h.no_leido_vecino : h.no_leido_gestion
           return (
             <Card key={h.id} role="button" onClick={() => onOpen(h.id)} className="cursor-pointer hover:bg-surface-2">
               <div className="flex items-center justify-between gap-2">
-                <div className="flex items-center gap-2 min-w-0">
+                <div className="flex min-w-0 items-center gap-2">
                   {sinLeer && <CircleDot size={15} className="shrink-0 text-primary" />}
                   <span className="truncate font-semibold text-ink">{h.asunto}</span>
                 </div>
-                {h.estado === 'cerrado' && <span className="shrink-0 rounded-pill bg-surface-2 px-2 py-0.5 text-[11px] font-bold text-muted">Cerrado</span>}
+                <span className="shrink-0 rounded-pill bg-primary-soft px-2 py-0.5 text-[11px] font-bold text-primary-700">{CANAL_LABEL[h.canal]}</span>
               </div>
-              {gestor && <div className="mt-0.5 text-[13px] text-muted">{h.vecino_nombre ?? 'Vecino'} · {h.vecino_vivienda}</div>}
+              <div className="mt-0.5 text-[13px] text-muted">
+                {soyDueño ? 'Enviado por ti' : `${h.vecino_nombre ?? 'Vecino'} · ${h.vecino_vivienda}`}
+                {h.estado === 'cerrado' && ' · cerrado'}
+              </div>
               <div className="mt-0.5 text-[11px] text-faint">{fechaHora(h.updated_at)}</div>
             </Card>
           )
@@ -73,10 +75,13 @@ function Bandeja({ gestor, onOpen, onToast }: { gestor: boolean; onOpen: (id: st
         <div className="fixed inset-0 z-50 flex items-end justify-center bg-black/40 sm:items-center" onClick={() => setNuevo(null)}>
           <div className="w-full max-w-[520px] rounded-t-[20px] bg-surface p-5 shadow-xl sm:rounded-[20px]" onClick={(e) => e.stopPropagation()}>
             <div className="mb-3 flex items-center justify-between">
-              <h3 className="font-display text-[18px] font-bold text-ink">Nuevo mensaje a administración</h3>
+              <h3 className="font-display text-[18px] font-bold text-ink">Nuevo mensaje privado</h3>
               <button onClick={() => setNuevo(null)} aria-label="Cerrar" className="rounded-full p-1.5 text-faint hover:bg-surface-2"><X size={20} /></button>
             </div>
             <div className="flex flex-col gap-3">
+              <SelectField label="Para" value={nuevo.canal} onChange={(e) => setNuevo({ ...nuevo, canal: e.target.value as HiloCanal })}>
+                {CANALES.map((c) => <option key={c} value={c}>{CANAL_LABEL[c]}</option>)}
+              </SelectField>
               <Field label="Asunto" value={nuevo.asunto} maxLength={140} onChange={(e) => setNuevo({ ...nuevo, asunto: e.target.value })} placeholder="Ej. Avería en el garaje" />
               <Textarea label="Mensaje" value={nuevo.texto} maxLength={4000} rows={5} onChange={(e) => setNuevo({ ...nuevo, texto: e.target.value })} placeholder="Cuéntanos qué ocurre…" />
               <Button block size="lg" disabled={saving || !nuevo.asunto.trim() || !nuevo.texto.trim()} onClick={enviar}>
@@ -91,12 +96,17 @@ function Bandeja({ gestor, onOpen, onToast }: { gestor: boolean; onOpen: (id: st
 }
 
 // ---- Vista de un hilo (chat) -------------------------------------------------
-function HiloVista({ id, gestor, onBack }: { id: string; gestor: boolean; onBack: () => void }) {
+function HiloVista({ id, onBack }: { id: string; onBack: () => void }) {
   const { user, toast } = useApp()
   const { data, state, refetch } = useAsync(() => getHilo(id), [id])
   const [texto, setTexto] = useState('')
   const [saving, setSaving] = useState(false)
   const [convertir, setConvertir] = useState<null | { tipo: MensajeTipo; titulo: string; cuerpo: string }>(null)
+
+  const hilo = data?.hilo
+  const soyDueño = !!hilo && hilo.vecino_id === user.id
+  const staff = !!hilo && !soyDueño
+  const cerrado = hilo?.estado === 'cerrado'
 
   const responder = async () => {
     if (texto.trim().length < 1) return
@@ -104,15 +114,10 @@ function HiloVista({ id, gestor, onBack }: { id: string; gestor: boolean; onBack
     try { await responderHilo(id, texto.trim()); setTexto(''); refetch() }
     catch { toast('No se pudo enviar', 'error') } finally { setSaving(false) }
   }
-
-  const hilo = data?.hilo
-  const cerrado = hilo?.estado === 'cerrado'
-
   const alternarCierre = async () => {
     if (!hilo) return
     await cerrarHilo(id, !cerrado); refetch(); toast(cerrado ? 'Conversación reabierta' : 'Conversación cerrada', 'info')
   }
-
   const abrirConvertir = () => {
     const primer = data?.mensajes.find((m) => !m.de_gestion)
     setConvertir({ tipo: 'incidencia', titulo: hilo?.asunto ?? '', cuerpo: primer?.texto ?? '' })
@@ -128,10 +133,11 @@ function HiloVista({ id, gestor, onBack }: { id: string; gestor: boolean; onBack
     <div className="flex min-h-full flex-col bg-bg">
       <header className="sticky top-0 z-10 flex items-center gap-2 border-b border-border bg-surface/95 px-3 py-3 backdrop-blur safe-top">
         <button onClick={onBack} aria-label="Atrás" className="flex h-10 w-10 items-center justify-center rounded-full hover:bg-surface-2"><ChevronLeft size={24} /></button>
-        <h1 className="flex-1 truncate font-display text-[17px] font-bold text-ink">{hilo?.asunto ?? 'Conversación'}</h1>
-        {gestor && hilo && (
-          <button onClick={alternarCierre} className="rounded-pill px-3 py-1.5 text-[12px] font-bold text-muted hover:bg-surface-2">{cerrado ? 'Reabrir' : 'Cerrar'}</button>
-        )}
+        <div className="min-w-0 flex-1">
+          <h1 className="truncate font-display text-[17px] font-bold text-ink">{hilo?.asunto ?? 'Conversación'}</h1>
+          {hilo && <div className="text-[11.5px] text-faint">{CANAL_LABEL[hilo.canal]}{staff && hilo.vecino_nombre ? ` · ${hilo.vecino_nombre}` : ''}</div>}
+        </div>
+        {staff && <button onClick={alternarCierre} className="rounded-pill px-3 py-1.5 text-[12px] font-bold text-muted hover:bg-surface-2">{cerrado ? 'Reabrir' : 'Cerrar'}</button>}
       </header>
 
       <div className="mx-auto w-full max-w-[720px] flex-1 px-4 py-4">
@@ -139,7 +145,7 @@ function HiloVista({ id, gestor, onBack }: { id: string; gestor: boolean; onBack
         {state === 'error' && <ErrorState onRetry={refetch} />}
         {state === 'ready' && data && (
           <>
-            {gestor && (
+            {staff && puedePublicarMensajes(user.rol) && (
               <Button variant="secondary" block className="mb-4" onClick={abrirConvertir}><Megaphone size={17} /> Convertir en mensaje público</Button>
             )}
             <div className="flex flex-col gap-2.5">
@@ -147,11 +153,10 @@ function HiloVista({ id, gestor, onBack }: { id: string; gestor: boolean; onBack
                 const mio = m.autor_id === user.id
                 return (
                   <div key={m.id} className={cx('flex', mio ? 'justify-end' : 'justify-start')}>
-                    <div className={cx('max-w-[80%] rounded-[16px] px-3.5 py-2.5 text-[14px]',
-                      mio ? 'bg-primary text-white' : 'bg-surface text-ink shadow-neu-sm')}>
+                    <div className={cx('max-w-[80%] rounded-[16px] px-3.5 py-2.5 text-[14px]', mio ? 'bg-primary text-white' : 'bg-surface text-ink shadow-neu-sm')}>
                       {!mio && (
                         <div className="mb-0.5 flex items-center gap-1 text-[11px] font-bold opacity-70">
-                          {m.de_gestion && <ShieldCheck size={12} />}{m.de_gestion ? 'Administración' : (m.autor_nombre ?? 'Vecino')}
+                          {m.de_gestion && <ShieldCheck size={12} />}{m.de_gestion ? (hilo ? CANAL_LABEL[hilo.canal] : 'Administración') : (m.autor_nombre ?? 'Vecino')}
                         </div>
                       )}
                       <div className="whitespace-pre-wrap leading-relaxed">{m.texto}</div>
@@ -165,7 +170,6 @@ function HiloVista({ id, gestor, onBack }: { id: string; gestor: boolean; onBack
         )}
       </div>
 
-      {/* Barra de respuesta */}
       {!cerrado && (
         <div className="sticky bottom-0 border-t border-border bg-surface/95 p-3 backdrop-blur safe-bottom">
           <div className="mx-auto flex max-w-[720px] items-end gap-2">
@@ -179,7 +183,6 @@ function HiloVista({ id, gestor, onBack }: { id: string; gestor: boolean; onBack
         </div>
       )}
 
-      {/* Convertir en mensaje público (gestión) */}
       {convertir && (
         <div className="fixed inset-0 z-50 flex items-end justify-center bg-black/40 sm:items-center" onClick={() => setConvertir(null)}>
           <div className="w-full max-w-[520px] rounded-t-[20px] bg-surface p-5 shadow-xl sm:rounded-[20px]" onClick={(e) => e.stopPropagation()}>

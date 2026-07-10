@@ -6,7 +6,14 @@
 // La app la llama tras crear el elemento. Requiere usuario activo.
 import { createClient } from 'jsr:@supabase/supabase-js@2'
 import { corsHeaders, json } from '../_shared/cors.ts'
-import { enviarPush, enviarPushATodos, enviarPushAUsuarios, idsGestion } from '../_shared/push.ts'
+import { enviarPush, enviarPushATodos, enviarPushAUsuarios, idsPorRoles } from '../_shared/push.ts'
+
+const ROLES_CANAL: Record<string, string[]> = {
+  administrador: ['administrador_finca'],
+  presidencia: ['presidente', 'vicepresidente'],
+  conserje: ['conserje'],
+}
+const CANAL_LABEL: Record<string, string> = { administrador: 'Administración', presidencia: 'Presidencia', conserje: 'Conserje' }
 
 const SUPABASE_URL = Deno.env.get('SUPABASE_URL')!
 const SERVICE_ROLE = Deno.env.get('SUPABASE_SERVICE_ROLE_KEY')!
@@ -42,20 +49,21 @@ Deno.serve(async (req) => {
     }
 
     if (kind === 'buzon') {
-      const { data: h } = await admin.from('hilos').select('id, vecino_id, asunto').eq('id', id).single()
+      const { data: h } = await admin.from('hilos').select('id, vecino_id, asunto, canal').eq('id', id).single()
       if (!h) return json({ ok: true, skipped: 'sin hilo' })
+      const canal = h.canal as string
       // Último mensaje del hilo → decide destinatario.
       const { data: ultimo } = await admin.from('hilo_mensajes')
         .select('de_gestion, texto').eq('hilo_id', id).order('created_at', { ascending: false }).limit(1).maybeSingle()
       if (!ultimo) return json({ ok: true, skipped: 'sin mensajes' })
       const body = (ultimo.texto as string).slice(0, 120)
       if (ultimo.de_gestion) {
-        // Responde la gestión → avisa al vecino del hilo.
-        await enviarPush(admin, h.vecino_id as string, { title: 'Respuesta de administración', body, url: '/buzon' })
+        // Responde el canal → avisa al vecino del hilo.
+        await enviarPush(admin, h.vecino_id as string, { title: `Respuesta de ${CANAL_LABEL[canal] ?? 'administración'}`, body, url: '/buzon' })
       } else {
-        // Escribe el vecino → avisa a la gestión.
-        const gestion = await idsGestion(admin)
-        await enviarPushAUsuarios(admin, gestion, { title: `Nuevo mensaje al buzón: ${h.asunto}`, body, url: '/buzon' })
+        // Escribe el vecino → avisa SOLO a los roles del canal (privacidad).
+        const destinatarios = await idsPorRoles(admin, ROLES_CANAL[canal] ?? [])
+        await enviarPushAUsuarios(admin, destinatarios, { title: `Nuevo mensaje (${CANAL_LABEL[canal] ?? 'buzón'}): ${h.asunto}`, body, url: '/buzon' })
       }
       return json({ ok: true })
     }

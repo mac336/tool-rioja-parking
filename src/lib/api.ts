@@ -23,6 +23,6 @@ export const {
   listRolePermisos, setRolePermiso, enviarSugerencia,
   guardarSuscripcionPush, quitarSuscripcionPush,
   listMensajes, crearMensaje, editarMensaje, borrarMensaje,
-  misHilos, hilosGestion, getHilo, crearHilo, responderHilo, cerrarHilo, convertirEnMensaje,
+  listHilos, getHilo, crearHilo, responderHilo, cerrarHilo, convertirEnMensaje,
   listAvisos,
 } = A

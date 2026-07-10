@@ -238,20 +238,24 @@ select assert_falla(
   $f$insert into mensajes (tipo, titulo, cuerpo) values ('aviso','__msg A__','x')$f$,
   'MSG: vecino NO publica mensajes');
 
--- vecino A abre un hilo privado en el buzón
-insert into hilos (id, vecino_id, asunto) values ('88888888-0000-0000-0000-000000000001', :'uidA', '__buzon A__');
-insert into hilo_mensajes (hilo_id, texto) values ('88888888-0000-0000-0000-000000000001','hola admin');
+-- vecino A abre un hilo privado en el buzón, dirigido a Presidencia
+insert into hilos (id, vecino_id, asunto, canal) values ('88888888-0000-0000-0000-000000000001', :'uidA', '__buzon A__', 'presidencia');
+insert into hilo_mensajes (hilo_id, texto) values ('88888888-0000-0000-0000-000000000001','hola presidencia');
 select assert_igual((select count(*) from hilos where asunto='__buzon A__'), 1, 'BUZON: vecino A ve su hilo');
 
--- vecino B NO ve el hilo de A (privacidad)
+-- vecino B NO ve el hilo de A (privacidad de canal)
 select set_config('request.jwt.claims', json_build_object('sub',:'uidB','role','authenticated')::text, false);
 select assert_igual((select count(*) from hilos where asunto='__buzon A__'), 0, 'BUZON: vecino B NO ve el hilo de A');
 
--- presidente SÍ publica mensaje y SÍ ve el hilo del vecino
+-- presidente SÍ publica mensaje y SÍ ve el hilo (canal presidencia)
 select set_config('request.jwt.claims', json_build_object('sub',:'uidP','role','authenticated')::text, false);
 insert into mensajes (tipo, titulo, cuerpo) values ('aviso','__msg pres__','contenido');
 select assert_igual((select count(*) from mensajes where titulo='__msg pres__'), 1, 'MSG: presidente SÍ publica');
-select assert_igual((select count(*) from hilos where asunto='__buzon A__'), 1, 'BUZON: gestión ve el hilo del vecino');
+select assert_igual((select count(*) from hilos where asunto='__buzon A__'), 1, 'BUZON: presidencia ve el hilo del vecino');
+
+-- app_admin (uidX) NO ve el hilo de Presidencia (privacidad estricta)
+select set_config('request.jwt.claims', json_build_object('sub',:'uidX','role','authenticated')::text, false);
+select assert_igual((select count(*) from hilos where asunto='__buzon A__'), 0, 'BUZON: app_admin NO husmea el canal Presidencia');
 
 reset role;
 select '════════════════════════════════════════' as _;

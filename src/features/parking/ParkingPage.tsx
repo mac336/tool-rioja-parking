@@ -9,7 +9,7 @@ import {
   parkingMisTurnos, parkingProximas, crearCesion, demandaParking,
   misCesiones, cancelarCesion, cesionesActivas, reasignarCesion,
 } from '@/lib/api'
-import { esGestion } from '@/lib/roles'
+import { esGestion, esTester } from '@/lib/roles'
 import { PISOS } from '@/lib/parking'
 import type { CesionTipo, ParkingCesion } from '@/types'
 
@@ -28,6 +28,7 @@ const CESION_TEXTO: Record<CesionTipo, string> = {
 
 export function ParkingPage() {
   const { user, toast } = useApp()
+  const tester = esTester(user.rol)
   const gestion = esGestion(user.rol)
   const misTurnos = useAsync(parkingMisTurnos, [user.vivienda])
   const proximas = useAsync(() => parkingProximas(5), [])
@@ -188,7 +189,8 @@ export function ParkingPage() {
               <Field label="Hasta" type="date" value={hasta} onChange={(e) => setHasta(e.target.value)} />
             </div>
             <Textarea label="Nota (opcional)" value={nota} onChange={(e) => setNota(e.target.value)} placeholder="Cualquier detalle útil para la gestión…" />
-            <Button block disabled={!valido || enviando} onClick={enviar}>
+            {tester && <Alert tipo="info">Cuenta de pruebas (Tester): solo lectura. Puedes mirarlo todo y chatear por el buzón, pero no realizar acciones.</Alert>}
+            <Button block disabled={tester || !valido || enviando} onClick={enviar}>
               {enviando ? 'Enviando…' : 'Enviar aviso'}
             </Button>
           </Card>

@@ -1,7 +1,7 @@
 import { useMemo, useState } from 'react'
 import {
   Shield, Check, X, Clock, Users, MapPin,
-  UserX, UserCheck, Pencil, Trash2, Search,
+  UserX, UserCheck, Pencil, Trash2, Search, UserPlus,
   ChevronLeft, ChevronRight, CalendarDays,
 } from 'lucide-react'
 import {
@@ -20,12 +20,12 @@ import { reservaCelebrada } from '@/lib/reglas'
 import { useApp } from '@/store'
 import {
   listAccessRequests, resolverSolicitud, listVecinos, suspenderVecino, cambiarRolVecino,
-  editarVecino, darDeBajaVecino,
+  editarVecino, darDeBajaVecino, crearVecinoDirecto,
   reservasPendientesGestion, reservasGestion, resolverReserva,
   listRolePermisos, setRolePermiso,
 } from '@/lib/api'
 
-type TabKey = 'acceso' | 'reservas' | 'vecinos' | 'permisos'
+type TabKey = 'vecinos' | 'reservas' | 'permisos'
 type Seleccion = { vivienda: string; rol: Role }
 type Toast = (t: string, tipo?: 'ok' | 'error' | 'info') => void
 
@@ -47,9 +47,9 @@ export function AdminPage() {
   const refrescar = () => conteos.refetch()
 
   const tabs = ([
-    { key: 'acceso', label: 'Acceso', show: puedeAprobarAltas(rol), count: n.acceso },
+    // Vecinos unifica las altas de acceso (arriba) con la gestión de vecinos.
+    { key: 'vecinos', label: 'Vecinos', show: puedeAprobarAltas(rol), count: n.acceso },
     { key: 'reservas', label: 'Reservas', show: puedeAprobarReservas(rol), count: n.reservas },
-    { key: 'vecinos', label: 'Vecinos', show: puedeAprobarAltas(rol), count: 0 },
     { key: 'permisos', label: 'Permisos', show: true, count: 0 },
   ] as { key: TabKey; label: string; show: boolean; count: number }[]).filter((t) => t.show)
 
@@ -84,26 +84,22 @@ export function AdminPage() {
       </header>
 
       <div className="px-4 py-4">
-        {tab === 'acceso' && <AccesoTab canApprove={puedeAprobarAltas(rol)} onToast={toast} onChanged={refrescar} />}
         {tab === 'reservas' && <ReservasTab onToast={toast} onChanged={refrescar} />}
-        {tab === 'vecinos' && <VecinosTab canManage={puedeAprobarAltas(rol)} currentUserId={user.id} onToast={toast} />}
+        {tab === 'vecinos' && <VecinosTab canManage={puedeAprobarAltas(rol)} currentUserId={user.id} onToast={toast} onChanged={refrescar} />}
         {tab === 'permisos' && <PermisosTab canEdit={esAppAdmin(rol)} onToast={toast} />}
       </div>
     </div>
   )
 }
 
-// ---- Acceso (altas de acceso) ------------------------------------------------
-function AccesoTab({ canApprove, onToast, onChanged }: { canApprove: boolean; onToast: Toast; onChanged: () => void }) {
+// ---- Solicitudes de acceso pendientes (arriba del todo en Vecinos) ------------
+function SolicitudesPendientes({ canApprove, onToast, onChanged }: { canApprove: boolean; onToast: Toast; onChanged: () => void }) {
   const { data, state, refetch } = useAsync(listAccessRequests, [])
   const [sel, setSel] = useState<Record<string, Seleccion>>({})
   const [pendingId, setPendingId] = useState<string | null>(null)
 
-  if (state === 'loading') return <SkeletonList n={3} />
-  if (state === 'error') return <ErrorState onRetry={refetch} />
-  if (state === 'empty' || !data || data.length === 0) {
-    return <EmptyState titulo="Sin solicitudes" texto="No hay altas pendientes de revisar por ahora." />
-  }
+  // Sin solicitudes (o cargando): no ocupa sitio — la lista de vecinos manda.
+  if (state !== 'ready' || !data || data.length === 0) return null
 
   async function resolver(id: string, aprobar: boolean, s?: Seleccion) {
     setPendingId(id)
@@ -119,7 +115,9 @@ function AccesoTab({ canApprove, onToast, onChanged }: { canApprove: boolean; on
   }
 
   return (
-    <div className="flex flex-col gap-3">
+    <section className="mb-5">
+      <SectionTitle icon={<Clock size={15} />}>Solicitudes de acceso ({data.length})</SectionTitle>
+      <div className="flex flex-col gap-3">
       {data.map((req) => {
         const seleccion = sel[req.id] ?? { vivienda: req.vivienda, rol: 'vecino' as Role }
         const setField = (patch: Partial<Seleccion>) => setSel((s) => ({ ...s, [req.id]: { ...seleccion, ...patch } }))
@@ -159,7 +157,8 @@ function AccesoTab({ canApprove, onToast, onChanged }: { canApprove: boolean; on
           </Card>
         )
       })}
-    </div>
+      </div>
+    </section>
   )
 }
 
@@ -323,13 +322,30 @@ function ReservasTab({ onToast, onChanged }: { onToast: Toast; onChanged: () => 
   )
 }
 
-// ---- Vecinos (buscar, editar, roles, suspensión y baja) ----------------------
-function VecinosTab({ canManage, currentUserId, onToast }: { canManage: boolean; currentUserId: string; onToast: Toast }) {
+// ---- Vecinos (solicitudes + alta directa + buscar/editar/roles/baja) ----------
+function VecinosTab({ canManage, currentUserId, onToast, onChanged }: { canManage: boolean; currentUserId: string; onToast: Toast; onChanged: () => void }) {
   const { data, state, refetch } = useAsync(listVecinos, [])
   const [pendingId, setPendingId] = useState<string | null>(null)
   const [editId, setEditId] = useState<string | null>(null)
   const [form, setForm] = useState<{ nombre: string; vivienda: string }>({ nombre: '', vivienda: '' })
   const [q, setQ] = useState('')
+  // Alta directa: el admin crea la cuenta sin proceso de registro (p. ej. un TESTER).
+  const [alta, setAlta] = useState<null | { nombre: string; email: string; vivienda: string; rol: Role }>(null)
+  const [altaBusy, setAltaBusy] = useState(false)
+
+  const crearDirecto = async () => {
+    if (!alta || !alta.nombre.trim() || !/.+@.+\..+/.test(alta.email.trim())) {
+      onToast('Nombre y correo válidos son obligatorios', 'error'); return
+    }
+    setAltaBusy(true)
+    try {
+      await crearVecinoDirecto({ ...alta, nombre: alta.nombre.trim(), email: alta.email.trim().toLowerCase() })
+      onToast(`${alta.nombre.trim()} dado de alta (entrará con su código por correo)`, 'ok')
+      setAlta(null); refetch()
+    } catch (e) {
+      onToast(e instanceof Error ? e.message : 'No se pudo crear el usuario', 'error')
+    } finally { setAltaBusy(false) }
+  }
 
   if (state === 'loading') return <SkeletonList n={4} />
   if (state === 'error') return <ErrorState onRetry={refetch} />
@@ -395,6 +411,38 @@ function VecinosTab({ canManage, currentUserId, onToast }: { canManage: boolean;
 
   return (
     <div className="flex flex-col gap-3">
+      {/* Altas de acceso pendientes: SIEMPRE arriba del todo, para aprobar primero */}
+      {canManage && <SolicitudesPendientes canApprove={canManage} onToast={onToast} onChanged={() => { refetch(); onChanged() }} />}
+
+      {/* Alta directa (sin registro) — útil para cuentas de prueba (rol Tester) */}
+      {canManage && !alta && (
+        <Button variant="secondary" block onClick={() => setAlta({ nombre: '', email: '', vivienda: PISOS[0], rol: 'vecino' })}>
+          <UserPlus size={17} /> Añadir vecino
+        </Button>
+      )}
+      {canManage && alta && (
+        <Card className="flex flex-col gap-3">
+          <div className="flex items-center justify-between">
+            <SectionTitle icon={<UserPlus size={15} />} className="mb-0">Añadir vecino (alta directa)</SectionTitle>
+            <button onClick={() => setAlta(null)} aria-label="Cerrar" className="rounded-full p-1.5 text-faint hover:bg-surface-2"><X size={18} /></button>
+          </div>
+          <p className="text-[12.5px] text-muted">Crea la cuenta sin proceso de registro. La persona entrará con el código que le llegue a su correo. Para cuentas de prueba usa el rol <b>Tester</b> (solo lectura + chat).</p>
+          <Field label="Nombre o alias" value={alta.nombre} maxLength={80} placeholder="Ej. Nico"
+            onChange={(e) => setAlta({ ...alta, nombre: e.target.value })} />
+          <Field label="Correo" type="email" value={alta.email} placeholder="correo@ejemplo.com"
+            onChange={(e) => setAlta({ ...alta, email: e.target.value })} />
+          <div className="grid grid-cols-1 gap-3 sm:grid-cols-2">
+            <SelectField label="Vivienda" value={alta.vivienda} onChange={(e) => setAlta({ ...alta, vivienda: e.target.value })}>
+              {PISOS.map((pi) => <option key={pi} value={pi}>{pi}</option>)}
+            </SelectField>
+            <SelectField label="Rol" value={alta.rol} onChange={(e) => setAlta({ ...alta, rol: e.target.value as Role })}>
+              {ROLES.map((r) => <option key={r} value={r}>{ROLE_LABEL[r]}</option>)}
+            </SelectField>
+          </div>
+          <Button block disabled={altaBusy} onClick={crearDirecto}><Check size={17} /> {altaBusy ? 'Creando…' : 'Crear cuenta'}</Button>
+        </Card>
+      )}
+
       {/* Buscador por piso (o nombre) */}
       <div className="relative">
         <Search size={17} className="pointer-events-none absolute left-3.5 top-1/2 -translate-y-1/2 text-faint" />

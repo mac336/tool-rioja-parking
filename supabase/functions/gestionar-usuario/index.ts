@@ -9,7 +9,7 @@ const SUPABASE_URL = Deno.env.get('SUPABASE_URL')!
 const SERVICE_ROLE = Deno.env.get('SUPABASE_SERVICE_ROLE_KEY')!
 const ANON = Deno.env.get('SUPABASE_ANON_KEY')!
 
-const ROLES_VALIDOS = ['app_admin', 'presidente', 'vicepresidente', 'administrador_finca', 'junta', 'conserje', 'vecino']
+const ROLES_VALIDOS = ['app_admin', 'presidente', 'vicepresidente', 'administrador_finca', 'junta', 'conserje', 'vecino', 'tester']
 
 Deno.serve(async (req) => {
   if (req.method === 'OPTIONS') return new Response('ok', { headers: corsHeaders })
@@ -31,7 +31,37 @@ Deno.serve(async (req) => {
       if (!perm) return json({ error: 'Sin permiso para gestionar usuarios.' }, 403)
     }
 
-    const { accion, userId, rol, nombre, vivienda } = await req.json()
+    const { accion, userId, rol, nombre, vivienda, email } = await req.json()
+
+    // Alta DIRECTA (sin proceso de registro): crea el usuario en Auth y su
+    // perfil activo. Pensado para que el admin dé de alta vecinos o cuentas de
+    // prueba (rol 'tester'). El usuario entra luego con su código OTP.
+    if (accion === 'crear') {
+      const nombreT = String(nombre ?? '').trim().slice(0, 80)
+      const emailT = String(email ?? '').trim().toLowerCase()
+      const rolT = String(rol ?? 'vecino')
+      if (!nombreT || !/.+@.+\..+/.test(emailT)) return json({ error: 'Nombre o correo no válidos.' }, 400)
+      if (!ROLES_VALIDOS.includes(rolT)) return json({ error: 'Rol no válido.' }, 400)
+      const { data: viv } = await admin.from('viviendas').select('codigo').eq('codigo', String(vivienda ?? '')).maybeSingle()
+      if (!viv) return json({ error: 'Vivienda no válida.' }, 400)
+
+      // Crear en Auth (o localizarlo si ya existía).
+      const { data: created, error: createErr } = await admin.auth.admin.createUser({
+        email: emailT, email_confirm: true,
+      })
+      let nuevoId = created?.user?.id
+      if (createErr || !nuevoId) {
+        const { data: list } = await admin.auth.admin.listUsers()
+        nuevoId = list.users.find((u) => u.email?.toLowerCase() === emailT)?.id
+        if (!nuevoId) return json({ error: 'No se pudo crear el usuario.' }, 500)
+      }
+      await admin.from('profiles').upsert({
+        id: nuevoId, email: emailT, nombre: nombreT,
+        vivienda: viv.codigo, rol: rolT, estado: 'activo',
+      })
+      return json({ ok: true, userId: nuevoId })
+    }
+
     if (!userId || userId === user.id) return json({ error: 'Objetivo no válido.' }, 400)
 
     if (accion === 'suspender') {

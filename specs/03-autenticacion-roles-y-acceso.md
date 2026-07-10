@@ -36,10 +36,17 @@ en `profiles.estado`:
 - **Máx. 2 cuentas por vivienda** (estados activo/pendiente). **1 voto/postura
   por vivienda** en encuestas y parking.
 
-## Roles (7)
+## Roles (8)
 
 `app_admin` (SUPERADMIN), `presidente`, `vicepresidente`, `administrador_finca`,
-`junta`, `conserje`, `vecino`.
+`junta`, `conserje`, `vecino` y `tester` (solo lectura, ver abajo).
+
+## Rol `tester` (solo lectura)
+
+Cuenta de pruebas (migraciones 0021/0022): ve la app como un vecino pero **no
+puede ejecutar acciones** — reservar, votar, ceder plaza y sugerir están
+bloqueados **en RLS** (`es_tester()`) y ocultos/deshabilitados en la interfaz.
+Única acción permitida: **chatear por el buzón** (permiso `usar_buzon`).
 
 ## Permisos personalizables (por rol)
 
@@ -51,6 +58,7 @@ no solo en la interfaz.
 - **`app_admin` = SUPERADMIN**: siempre todos los permisos, no editable.
 - Catálogo:
   - `panel` — acceder al panel de gestión y moderar.
+  - `usar_buzon` — chatear por el buzón (por defecto TODOS los roles, tester incluido).
   - `publicar_mensajes` — crear avisos/anuncios/incidencias (ver `specs/16`).
   - `aprobar_altas` — aprobar solicitudes y gestionar vecinos (editar, suspender,
     dar de baja, cambiar rol).
@@ -70,11 +78,15 @@ Acceso con permiso `panel` (o app_admin). Cabecera **fija y compacta** (icono +
 gestión tienen además un acceso **"Gestión"** en la barra inferior (empuja
 Mensajes; cede el sitio a Parking, que sigue en "Más"). Pestañas:
 
-- **Acceso** — cola de altas por aprobar (asignar vivienda y rol).
+- **Vecinos** (unifica el antiguo "Acceso") — arriba del todo las **solicitudes
+  de acceso pendientes** (se aprueban primero); botón **"Añadir vecino"** para
+  **alta directa sin registro** (nombre, correo, vivienda y rol; crea Auth +
+  perfil activo vía `gestionar-usuario` accion `crear`; la persona entra luego
+  con su código OTP — útil para cuentas de prueba con rol **Tester**); después
+  **buscador por piso/nombre** y por vecino: **editar**, **cambiar rol**,
+  **suspender/reactivar** y **dar de baja** (papelera) **/reactivar**.
+  Requiere `aprobar_altas`.
 - **Reservas** — cola de pendientes + **agenda mensual** (ver `specs/07`).
-- **Vecinos** — **buscador por piso/nombre**, y por vecino: **editar**
-  nombre/vivienda, **cambiar rol**, **suspender/reactivar** y **dar de baja**
-  (icono papelera) **/reactivar**. Requiere `aprobar_altas`.
 - **Permisos** — editor de permisos por rol (solo app_admin).
 
 **Ver como** (en "Más", **solo app_admin**): previsualiza la interfaz con otro rol

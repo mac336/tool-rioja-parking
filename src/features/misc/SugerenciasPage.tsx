@@ -3,10 +3,12 @@ import { Lightbulb, Send, CheckCircle2 } from 'lucide-react'
 import { SubHeader, Page } from '@/components/layout/AppShell'
 import { Card, Textarea, Button, Alert } from '@/components/ui'
 import { useApp } from '@/store'
+import { esTester } from '@/lib/roles'
 import { enviarSugerencia } from '@/lib/api'
 
 export function SugerenciasPage() {
   const { user, toast } = useApp()
+  const tester = esTester(user.rol)
   const [texto, setTexto] = useState('')
   const [enviando, setEnviando] = useState(false)
   const [enviada, setEnviada] = useState(false)
@@ -65,7 +67,8 @@ export function SugerenciasPage() {
               placeholder="Escribe aquí tu idea…"
             />
 
-            <Button block size="lg" disabled={!valido || enviando} onClick={enviar}>
+            {tester && <Alert tipo="info">Cuenta de pruebas (Tester): solo lectura. Puedes mirarlo todo y chatear por el buzón, pero no realizar acciones.</Alert>}
+            <Button block size="lg" disabled={tester || !valido || enviando} onClick={enviar}>
               <Send size={19} /> {enviando ? 'Enviando…' : 'Enviar sugerencia'}
             </Button>
 

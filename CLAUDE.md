@@ -29,8 +29,9 @@ Al implementar algo nuevo o cambiar algo existente:
 
 - **Login:** sin contraseña — **código OTP de 6 dígitos por correo** (solo a
   vecinos ya aprobados). No hay Google ni enlace mágico. Ver `specs/03`.
-- **Roles (7):** `app_admin` (SUPERADMIN), `presidente`, `vicepresidente`,
-  `administrador_finca`, `junta`, `conserje`, `vecino`.
+- **Roles (8):** `app_admin` (SUPERADMIN), `presidente`, `vicepresidente`,
+  `administrador_finca`, `junta`, `conserje`, `vecino`, `tester` (cuenta de
+  pruebas SOLO lectura + chat del buzón).
 - **Permisos personalizables:** el app_admin activa/desactiva permisos por rol
   (tabla `role_permissions`). Los helpers RLS los leen en vivo. Ver `specs/03`.
 - **Estados de cuenta:** `pendiente`, `activo`, `suspendido`, `baja` (reversible).

@@ -296,6 +296,14 @@ export function editarVecino(id: string, patch: { nombre?: string; vivienda?: st
   }
   return delay(undefined)
 }
+export function crearVecinoDirecto(input: { nombre: string; email: string; vivienda: string; rol: Role }): Promise<void> {
+  db.profiles.push({
+    id: uid(), nombre: input.nombre, email: input.email, vivienda: input.vivienda,
+    rol: input.rol, estado: 'activo', iniciales: iniciales(input.nombre),
+    normas_aceptadas_at: now(),
+  } as Profile)
+  return delay(undefined)
+}
 export function darDeBajaVecino(id: string): Promise<void> {
   const p = db.profiles.find((p) => p.id === id)
   if (p) p.estado = 'baja'

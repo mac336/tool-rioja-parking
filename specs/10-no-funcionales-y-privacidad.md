@@ -37,6 +37,9 @@
 - **Escritorio (md+):** el app-shell pasa a **flujo normal** — scrollea la
   ventana (sin barra interna) y la Sidebar queda pegajosa (`sticky`). El modo
   fijado al viewport es solo para móvil (teclado iOS).
+- **Solo vertical (móvil):** el manifest fija `orientation: portrait` (Android
+  instalada); iOS no lo respeta → overlay CSS a pantalla completa que pide girar
+  el móvil cuando se usa en horizontal.
 - **Sin zoom:** `maximum-scale=1, user-scalable=no` (index.html) +
   `touch-action: manipulation` (body). Interfaz mobile-first; el zoom por
   pellizco/doble toque descuadraba la app instalada.

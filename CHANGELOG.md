@@ -5,6 +5,14 @@ al implementar el cambio (ver `CLAUDE.md` → Forma de trabajo).
 
 ## 2026-07-10
 
+- **v1.2.0 · Gestión unificada + rol Tester:** la pestaña "Vecinos" une las
+  altas de acceso (arriba del todo, se aprueban primero) con la gestión de
+  vecinos; **alta directa** por el admin sin registro ("Añadir vecino": crea la
+  cuenta y la persona entra con su código). Nuevo **rol `tester`** de solo
+  lectura (RLS + UI) cuya única acción es **chatear por el buzón**; nuevo
+  permiso configurable **`usar_buzon`** (migraciones 0021/0022).
+- **Solo vertical en móvil:** manifest `portrait` + overlay "gira el móvil" si
+  se usa en horizontal.
 - **Versionado visible:** cada subida incrementa la versión (`package.json`) y
   se muestra en pequeño al pie de la pantalla de bienvenida (v1.1.0).
 - **Escritorio:** scroll normal de la ventana (sin barra interna); la Sidebar

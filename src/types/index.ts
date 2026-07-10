@@ -9,6 +9,7 @@ export type Role =
   | 'junta'
   | 'conserje'
   | 'vecino'
+  | 'tester'
 
 export type UserStatus = 'pendiente' | 'activo' | 'suspendido' | 'baja'
 

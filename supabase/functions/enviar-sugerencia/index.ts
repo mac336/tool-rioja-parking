@@ -29,8 +29,9 @@ Deno.serve(async (req) => {
     if (!user) return json({ error: 'No autenticado.' }, 401)
 
     const admin = createClient(SUPABASE_URL, SERVICE_ROLE)
-    const { data: perfil } = await admin.from('profiles').select('nombre, vivienda, estado').eq('id', user.id).single()
+    const { data: perfil } = await admin.from('profiles').select('nombre, vivienda, estado, rol').eq('id', user.id).single()
     if (!perfil || perfil.estado !== 'activo') return json({ error: 'Solo los vecinos activos pueden enviar sugerencias.' }, 403)
+    if (perfil.rol === 'tester') return json({ error: 'Las cuentas de prueba son de solo lectura.' }, 403)
 
     // 2) Validar el texto.
     const { texto } = await req.json()

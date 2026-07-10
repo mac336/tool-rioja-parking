@@ -82,6 +82,16 @@ export async function darDeBajaVecino(id: string): Promise<void> {
   if (error) throw error
 }
 
+/** Alta DIRECTA por el admin (sin registro): crea Auth + perfil activo.
+ *  El vecino/tester entra después con su código OTP. */
+export async function crearVecinoDirecto(input: { nombre: string; email: string; vivienda: string; rol: Role }): Promise<void> {
+  const { data, error } = await supabase.functions.invoke('gestionar-usuario', {
+    body: { accion: 'crear', ...input },
+  })
+  if (error) throw error
+  if (data?.error) throw new Error(data.error as string)
+}
+
 // ---- Avisos (feed para la campana) -------------------------------------------
 // `ts` (ISO) ordena el feed (más nuevo arriba) y alimenta el contador de "no
 // vistos" de la campana (comparado con la última visita a /avisos).

@@ -49,6 +49,10 @@ vecino que abrió el hilo. El `app_admin` **no** ve Presidencia ni Conserje.
 
 ## Seguridad (RLS)
 
+- **Escribir** (crear hilo / responder) exige el permiso **`usar_buzon`**
+  (configurable por rol en el panel; por defecto todos los roles, incluido
+  `tester`). Helper `puede_usar_buzon()`, migración 0022.
+
 - Helper `puede_ver_hilo(canal)`: true si el usuario activo pertenece al rol del
   canal. Políticas de `hilos` y `hilo_mensajes` usan `vecino_id = auth.uid() OR
   puede_ver_hilo(canal)`. Migraciones 0012 (base) y 0017/0018 (canales).

@@ -17,7 +17,7 @@ const links = [
   { to: '/normas', label: 'Normas de uso', Icon: FileText },
 ]
 
-const ROLES_VER: Role[] = ['vecino', 'presidente', 'vicepresidente', 'administrador_finca', 'junta', 'conserje']
+const ROLES_VER: Role[] = ['vecino', 'presidente', 'vicepresidente', 'administrador_finca', 'junta', 'conserje', 'tester']
 
 export function MasPage() {
   const { user, setRole, verComo } = useApp()

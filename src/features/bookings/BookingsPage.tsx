@@ -4,7 +4,7 @@ import { CalendarDays, Check, Clock, MapPin, Users, X } from 'lucide-react'
 import { useApp } from '@/store'
 import { useAsync } from '@/lib/useAsync'
 import { fechaHora, hora } from '@/lib/format'
-import { puedeAprobarReservas } from '@/lib/roles'
+import { puedeAprobarReservas, esTester } from '@/lib/roles'
 import { puedeAnularReserva, HORAS_MIN_ANULACION } from '@/lib/reglas'
 import {
   listZonas, reservaVigente, ocupacionDia, crearReserva,
@@ -246,7 +246,8 @@ export function BookingsPage() {
             {err && <Alert tipo="danger">{err}</Alert>}
             <Alert tipo="info">Tu reserva quedará pendiente de que el presidente la apruebe.</Alert>
 
-            <Button block size="lg" disabled={!puedeSolicitar} onClick={solicitar}>
+            {esTester(user.rol) && <div className="mb-2"><Alert tipo="info">Cuenta de pruebas (Tester): solo lectura. Puedes mirarlo todo y chatear por el buzón, pero no realizar acciones.</Alert></div>}
+            <Button block size="lg" disabled={esTester(user.rol) || !puedeSolicitar} onClick={solicitar}>
               <CalendarDays size={18} /> {saving ? 'Solicitando…' : 'Solicitar reserva'}
             </Button>
           </div>

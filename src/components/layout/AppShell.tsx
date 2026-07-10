@@ -5,6 +5,7 @@ import { TabBar } from './TabBar'
 import { Sidebar } from './Sidebar'
 import { Toaster } from './Toaster'
 import { InstallPrompt } from '@/components/InstallPrompt'
+import { NotificationsPrompt } from '@/components/NotificationsPrompt'
 
 /** Layout de nivel superior: altura fija de ventana; SOLO el contenido (main)
  *  scrollea. La cabecera (sticky dentro de main) y el menú (Sidebar/TabBar, fuera
@@ -18,6 +19,7 @@ export function AppShell({ children }: { children: ReactNode }) {
         <TabBar />
       </div>
       <InstallPrompt />
+      <NotificationsPrompt />
       <Toaster />
     </div>
   )

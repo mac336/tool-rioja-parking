@@ -8,9 +8,14 @@
     animada** (flecha al botón Compartir) y **solo** si es Safari (si es Chrome
     iOS u otro, se invita a abrir en Safari). Requisito para push en iOS.
 - **Notificaciones push** (Web Push/VAPID, `push_subscriptions`): el vecino las
-  activa en Ajustes. En iPhone requieren la app **instalada**. Envío desde Edge
-  Functions (`notificar`, `notificar-reserva`) con clave privada VAPID en el
-  servidor (la pública va en el cliente). Usos: mensajes nuevos, buzón, reservas.
+  activa en Ajustes **o** con el aviso automático que aparece al entrar si aún no
+  las tiene (`NotificationsPrompt`; "Ahora no" las pospone unos días, siempre
+  reversible en Ajustes). En iPhone requieren la app **instalada** (abierta desde
+  el icono). No se pueden forzar: el permiso lo concede el usuario. Envío desde
+  Edge Functions (`notificar`, `notificar-reserva`, `notificar-admin`) con clave
+  privada VAPID en el servidor (la pública va en el cliente). Usos: mensajes
+  nuevos, buzón, reservas y **nuevas solicitudes de acceso** (push + correo a
+  gestión).
 - **Layout app-shell:** la app se **fija al viewport visible** (`--app-h` vía
   VisualViewport, `AppShell` en `position: fixed`). El documento nunca hace
   scroll; **cabecera y TabBar siempre fijos** y solo scrollea el contenido. Evita

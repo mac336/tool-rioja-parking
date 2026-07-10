@@ -34,10 +34,14 @@ display, **15px, peso 800, tono `--ink`, sin mayúsculas ni tracking**.
 
 ## Layout (app-shell)
 
-- La app se **fija al viewport visible** (`--app-h` vía VisualViewport;
-  `AppShell` en `position: fixed`). Ver `specs/10`.
+- La app se **fija al viewport visible** con la clase **`.app-viewport`**
+  (altura `--app-h` + desplazamiento `--vv-top`, vía VisualViewport). Ver
+  `specs/10`.
 - **Cabecera y TabBar siempre fijos**; el **único que scrollea es el contenido**.
 - El documento nunca hace scroll (evita el descuadre con el teclado en iOS).
+- **Toda pantalla tipo chat y todo modal con formulario** usan `.app-viewport`
+  (la hoja del modal con `max-h-full overflow-y-auto`): así el input queda
+  siempre sobre el teclado. NO usar `fixed inset-0` en overlays con inputs.
 
 ## Superficies y color
 

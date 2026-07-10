@@ -55,7 +55,12 @@ defecto presidente/app_admin) antes de confirmarse.
      Se implementa con una vista de ocupación (módulo 04), no ocultando datos
      solo en la interfaz.
 4. **Mis reservas**: listado propio (pendiente, aprobada, pasadas) con opción de
-   **anular** la vigente.
+   **anular** la vigente. **Anular solo hasta 24 h antes del inicio** (trigger
+   `reservas_anulacion_24h`, mig. 0020; la gestión con `aprobar_reservas` puede
+   anular siempre). La UI oculta el botón y avisa cuando quedan menos de 24 h.
+4b. **Archivo**: una reserva aprobada que ya terminó pasa a verse como
+   **"Celebrada"** (en Mis reservas y en la agenda mensual de gestión). No se
+   borra: queda como historial de **quién usó cada zona y en qué fecha**.
 5. **Calendario/agenda** por zona con los estados de cada franja.
 6. **Sin límite de antelación**: se puede reservar cualquier fecha futura.
 

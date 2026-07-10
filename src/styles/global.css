@@ -77,6 +77,16 @@
   .safe-top { padding-top: env(safe-area-inset-top); }
   .no-scrollbar::-webkit-scrollbar { display: none; }
   .no-scrollbar { -ms-overflow-style: none; scrollbar-width: none; }
+  /* Contenedor fijado al viewport VISIBLE: sigue al teclado de iOS en altura
+     (--app-h) y desplazamiento (--vv-top). Úsalo en el app-shell, pantallas
+     tipo chat y modales con formulario. Ver src/main.tsx (syncViewport). */
+  .app-viewport {
+    position: fixed;
+    left: 0;
+    right: 0;
+    top: var(--vv-top, 0px);
+    height: var(--app-h, 100dvh);
+  }
 }
 
 /* Respeta "reducir movimiento" (accesibilidad — vecinos mayores) */

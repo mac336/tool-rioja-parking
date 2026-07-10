@@ -21,10 +21,16 @@
   avisos van por push. Siguen activos solo los **imprescindibles**: el **código
   de acceso** (login OTP, vía Supabase Auth) y la **invitación al aprobar un
   alta** (`aprobar-solicitud`). Reactivar = poner el flag a `true` y redesplegar.
-- **Layout app-shell:** la app se **fija al viewport visible** (`--app-h` vía
-  VisualViewport, `AppShell` en `position: fixed`). El documento nunca hace
-  scroll; **cabecera y TabBar siempre fijos** y solo scrollea el contenido. Evita
-  el desplazamiento de toda la pantalla con el teclado en iOS.
+- **Layout app-shell:** la app se **fija al viewport visible** con la clase
+  `.app-viewport` (altura `--app-h` **y desplazamiento `--vv-top`**, ambos
+  sincronizados desde VisualViewport en `src/main.tsx`). iOS, al abrir el
+  teclado, encoge **y desplaza** el viewport visible; seguirlo en ambas cosas es
+  lo que evita que la pantalla "se descuadre". El documento nunca hace scroll
+  (se recoloca a 0 si queda scroll residual); **cabecera y TabBar siempre
+  fijos** y solo scrollea el contenido. `.app-viewport` se usa en `AppShell`,
+  el chat del buzón y **todos los modales con formulario** (hoja inferior con
+  `max-h-full overflow-y-auto` para que el propio formulario scrollee sobre el
+  teclado).
 - **Bienvenida** al abrir (una vez por sesión) con botón Siguiente.
 
 ## Rendimiento

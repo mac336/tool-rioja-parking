@@ -74,8 +74,8 @@ function Bandeja({ onOpen }: { onOpen: (id: string) => void }) {
       </Page>
 
       {nuevo && (
-        <div className="fixed inset-0 z-50 flex items-end justify-center bg-black/40 sm:items-center" onClick={() => setNuevo(null)}>
-          <div className="w-full max-w-[520px] rounded-t-[20px] bg-surface p-5 shadow-xl sm:rounded-[20px]" onClick={(e) => e.stopPropagation()}>
+        <div className="app-viewport z-50 flex items-end justify-center bg-black/40 sm:items-center" onClick={() => setNuevo(null)}>
+          <div className="max-h-full w-full max-w-[520px] overflow-y-auto rounded-t-[20px] bg-surface p-5 shadow-xl sm:rounded-[20px]" onClick={(e) => e.stopPropagation()}>
             <div className="mb-3 flex items-center justify-between">
               <h3 className="font-display text-[18px] font-bold text-ink">Nuevo mensaje privado</h3>
               <button onClick={() => setNuevo(null)} aria-label="Cerrar" className="rounded-full p-1.5 text-faint hover:bg-surface-2"><X size={20} /></button>
@@ -137,10 +137,10 @@ function HiloVista({ id, onBack }: { id: string; onBack: () => void }) {
   }
 
   return (
-    // Chat fijado al viewport visible (--app-h): cabecera y barra de escribir
-    // quedan fijas y SOLO scrollean los mensajes. Evita que iOS descuadre la
-    // ventana al abrir el teclado (el input queda siempre sobre el teclado).
-    <div className="fixed inset-x-0 top-0 z-50 flex flex-col bg-bg" style={{ height: 'var(--app-h, 100dvh)' }}>
+    // Chat fijado al viewport visible (.app-viewport): sigue al teclado en altura
+    // y desplazamiento; cabecera y barra de escribir quedan fijas y SOLO
+    // scrollean los mensajes (el input queda siempre sobre el teclado).
+    <div className="app-viewport z-50 flex flex-col bg-bg">
       <header className="z-10 flex shrink-0 items-center gap-1 border-b border-border bg-surface/95 px-2 py-3 backdrop-blur safe-top">
         <button onClick={onBack} aria-label="Atrás" className="flex h-10 w-10 shrink-0 items-center justify-center rounded-full hover:bg-surface-2"><ChevronLeft size={24} /></button>
         <div className="min-w-0 flex-1">
@@ -195,8 +195,8 @@ function HiloVista({ id, onBack }: { id: string; onBack: () => void }) {
       )}
 
       {convertir && (
-        <div className="fixed inset-0 z-50 flex items-end justify-center bg-black/40 sm:items-center" onClick={() => setConvertir(null)}>
-          <div className="w-full max-w-[520px] rounded-t-[20px] bg-surface p-5 shadow-xl sm:rounded-[20px]" onClick={(e) => e.stopPropagation()}>
+        <div className="app-viewport z-50 flex items-end justify-center bg-black/40 sm:items-center" onClick={() => setConvertir(null)}>
+          <div className="max-h-full w-full max-w-[520px] overflow-y-auto rounded-t-[20px] bg-surface p-5 shadow-xl sm:rounded-[20px]" onClick={(e) => e.stopPropagation()}>
             <div className="mb-3 flex items-center justify-between">
               <h3 className="font-display text-[18px] font-bold text-ink">Publicar como mensaje</h3>
               <button onClick={() => setConvertir(null)} aria-label="Cerrar" className="rounded-full p-1.5 text-faint hover:bg-surface-2"><X size={20} /></button>

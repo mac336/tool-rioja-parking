@@ -16,6 +16,7 @@ import {
 } from '@/lib/roles'
 import type { Profile, Role, ReservaGrupo } from '@/types'
 import { PISOS } from '@/lib/parking'
+import { reservaCelebrada } from '@/lib/reglas'
 import { useApp } from '@/store'
 import {
   listAccessRequests, resolverSolicitud, listVecinos, suspenderVecino, cambiarRolVecino,
@@ -167,6 +168,8 @@ const DIAS_SEMANA = ['L', 'M', 'X', 'J', 'V', 'S', 'D']
 
 function ReservaCard({ g, children }: { g: ReservaGrupo; children?: React.ReactNode }) {
   const aprobada = g.estado === 'aprobada'
+  // Celebrada = aprobada y ya terminada → queda archivada (quién usó la zona y cuándo).
+  const celebrada = reservaCelebrada(g.estado, g.fin)
   return (
     <Card>
       <div className="flex items-center justify-between gap-2">
@@ -175,8 +178,8 @@ function ReservaCard({ g, children }: { g: ReservaGrupo; children?: React.ReactN
           <div className="truncate font-display text-[16px] font-bold text-ink">{g.zonas.map((z) => z.nombre).join(' + ')}</div>
         </div>
         <span className={cx('shrink-0 rounded-pill px-2 py-0.5 text-[11.5px] font-bold',
-          aprobada ? 'bg-success-soft text-success-ink' : 'bg-warn-soft text-warn-ink')}>
-          {aprobada ? 'Aprobada' : 'Pendiente'}
+          celebrada ? 'bg-info-soft text-info-ink' : aprobada ? 'bg-success-soft text-success-ink' : 'bg-warn-soft text-warn-ink')}>
+          {celebrada ? 'Celebrada' : aprobada ? 'Aprobada' : 'Pendiente'}
         </span>
       </div>
       <p className="mt-1 text-[13px] text-muted">{g.nombre ? `${g.nombre} · ` : ''}Vivienda {g.vivienda}</p>

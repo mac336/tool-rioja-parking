@@ -13,7 +13,7 @@ import { VerComoBar } from '@/components/VerComoBar'
  *  de main) no se mueven. */
 export function AppShell({ children }: { children: ReactNode }) {
   return (
-    <div className="fixed inset-x-0 top-0 flex overflow-hidden bg-bg" style={{ height: 'var(--app-h, 100dvh)' }}>
+    <div className="app-viewport flex overflow-hidden bg-bg">
       <Sidebar />
       <div className="flex min-w-0 flex-1 flex-col overflow-hidden">
         <main className="mx-auto w-full min-w-0 max-w-[720px] flex-1 overflow-y-auto overscroll-contain">{children}</main>

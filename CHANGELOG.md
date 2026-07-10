@@ -5,6 +5,27 @@ al implementar el cambio (ver `CLAUDE.md` → Forma de trabajo).
 
 ## 2026-07-10
 
+- **Fix iOS teclado (general):** la app sigue al viewport visible también en su
+  **desplazamiento** (`--vv-top`), no solo en altura. Clase `.app-viewport` en el
+  shell, el chat del buzón y todos los modales con formulario (hoja scrollable):
+  al escribir ya no se descuadra la pantalla ni se oculta lo escrito
+  (`specs/10`, `specs/18`).
+- **Reservas · anulación:** solo hasta **24 h antes** del inicio (trigger
+  `reservas_anulacion_24h`, migración 0020; la gestión puede siempre). La UI
+  oculta el botón y lo explica.
+- **Reservas · archivo:** las aprobadas ya terminadas se muestran como
+  **"Celebrada"** (Mis reservas y agenda de gestión): queda el historial de
+  quién usó cada zona y cuándo.
+- **Ver como (app_admin):** previsualizar la app con otro rol y volver con la
+  barra "Viendo como…".
+- **Adopción de la app (app_admin):** gráfico + tabla por piso (dentro / por
+  inscribir).
+- **Correos de notificación desactivados** (flag `CORREOS_NOTIFICACION`): los
+  avisos van por push (solicitudes, reservas, sugerencias → push al app_admin).
+  Se mantienen el código de login y la invitación de alta.
+- **Buzón:** borrar conversación (migración 0019); en pruebas solo el canal
+  "Desarrollador de la app"; aviso automático para activar notificaciones; push
+  al recibir nuevas solicitudes de acceso.
 - **Layout app-shell general:** la app se fija al viewport visible (`--app-h`
   vía VisualViewport); cabecera y TabBar siempre fijos, solo scrollea el
   contenido. Arregla el desplazamiento de toda la pantalla con el teclado en iOS.

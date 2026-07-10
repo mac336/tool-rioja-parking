@@ -3,19 +3,21 @@ import { useApp } from '@/store'
 import { useAsync } from '@/lib/useAsync'
 import { fechaHora, hora } from '@/lib/format'
 import { misReservas, cancelarReserva } from '@/lib/api'
+import { puedeAnularReserva, reservaCelebrada, HORAS_MIN_ANULACION } from '@/lib/reglas'
 import { SubHeader, Page } from '@/components/layout/AppShell'
 import { Button, Card, EmptyState, ErrorState, SkeletonList, cx } from '@/components/ui'
 import type { ReservaGrupo, ReservaEstado } from '@/types'
 
 const TZ = 'Europe/Madrid'
 
-const PILL: Record<ReservaEstado, { label: string; cls: string }> = {
+const PILL: Record<ReservaEstado | 'celebrada', { label: string; cls: string }> = {
   pendiente: { label: 'Pendiente de aprobar', cls: 'bg-warn-soft text-warn-ink' },
   aprobada: { label: 'Aprobada', cls: 'bg-success-soft text-success-ink' },
   rechazada: { label: 'Rechazada', cls: 'bg-danger-soft text-danger-ink' },
   cancelada: { label: 'Cancelada', cls: 'bg-surface-2 text-muted' },
+  celebrada: { label: 'Celebrada', cls: 'bg-info-soft text-info-ink' }, // archivada
 }
-function EstadoPill({ estado }: { estado: ReservaEstado }) {
+function EstadoPill({ estado }: { estado: ReservaEstado | 'celebrada' }) {
   const p = PILL[estado]
   return <span className={cx('inline-flex items-center rounded-pill px-2.5 py-1 text-[12px] font-bold', p.cls)}>{p.label}</span>
 }
@@ -37,9 +39,13 @@ export function MyBookingsPage() {
   const { data, state, refetch } = useAsync(misReservas, [])
 
   async function anular(grupoId: string) {
-    await cancelarReserva(grupoId)
-    refetch()
-    toast('Reserva anulada')
+    try {
+      await cancelarReserva(grupoId)
+      refetch()
+      toast('Reserva anulada')
+    } catch {
+      toast(`No se pudo anular (solo hasta ${HORAS_MIN_ANULACION} h antes)`, 'error')
+    }
   }
 
   const reservas = (data ?? []).slice().sort((a, b) => b.inicio.localeCompare(a.inicio))
@@ -59,7 +65,10 @@ export function MyBookingsPage() {
           <div className="flex flex-col gap-3">
             {reservas.map((r: ReservaGrupo) => {
               const futura = new Date(r.fin).getTime() > ahora
-              const anulable = futura && (r.estado === 'pendiente' || r.estado === 'aprobada')
+              const vigente = futura && (r.estado === 'pendiente' || r.estado === 'aprobada')
+              // Solo se puede anular hasta 24 h antes del inicio (regla en BD, mig. 0020).
+              const anulable = vigente && puedeAnularReserva(r.inicio)
+              const celebrada = reservaCelebrada(r.estado, r.fin)
               return (
                 <Card key={r.grupo_id}>
                   <div className="flex items-start gap-3">
@@ -67,7 +76,7 @@ export function MyBookingsPage() {
                     <div className="min-w-0 flex-1">
                       <div className="flex items-center justify-between gap-2">
                         <h3 className="truncate font-display text-[16px] font-bold text-ink">{r.zonas.map((z) => z.nombre).join(' + ')}</h3>
-                        <EstadoPill estado={r.estado} />
+                        <EstadoPill estado={celebrada ? 'celebrada' : r.estado} />
                       </div>
                       <p className="mt-1 flex items-center gap-1.5 text-[13px] text-muted"><Clock size={14} /> {fechaHora(r.inicio)}–{hora(r.fin)}</p>
                       {r.num_invitados > 0 && (
@@ -82,6 +91,11 @@ export function MyBookingsPage() {
                     <div className="mt-3">
                       <Button variant="danger-outline" block onClick={() => anular(r.grupo_id)}>Anular</Button>
                     </div>
+                  )}
+                  {vigente && !anulable && (
+                    <p className="mt-3 rounded-[12px] bg-surface-2 px-3 py-2 text-[12.5px] text-muted">
+                      Ya no se puede anular: quedan menos de {HORAS_MIN_ANULACION} h para el inicio.
+                    </p>
                   )}
                 </Card>
               )

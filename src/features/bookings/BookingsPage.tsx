@@ -5,6 +5,7 @@ import { useApp } from '@/store'
 import { useAsync } from '@/lib/useAsync'
 import { fechaHora, hora } from '@/lib/format'
 import { puedeAprobarReservas } from '@/lib/roles'
+import { puedeAnularReserva, HORAS_MIN_ANULACION } from '@/lib/reglas'
 import {
   listZonas, reservaVigente, ocupacionDia, crearReserva,
   cancelarReserva, reservasPendientesGestion, resolverReserva,
@@ -105,9 +106,13 @@ export function BookingsPage() {
   }
 
   async function anular(grupoId: string) {
-    await cancelarReserva(grupoId)
-    vigente.refetch()
-    toast('Reserva anulada')
+    try {
+      await cancelarReserva(grupoId)
+      vigente.refetch()
+      toast('Reserva anulada')
+    } catch {
+      toast(`No se pudo anular (solo hasta ${HORAS_MIN_ANULACION} h antes)`, 'error')
+    }
   }
 
   async function solicitar() {
@@ -166,9 +171,15 @@ export function BookingsPage() {
             <p className="mt-3 text-[13px] text-muted">
               Solo se permite una reserva por vivienda a la vez (puede incluir varias zonas). Anúlala para poder solicitar otra.
             </p>
-            <div className="mt-3">
-              <Button variant="danger-outline" block onClick={() => anular(vigente.data!.grupo_id)}>Anular reserva</Button>
-            </div>
+            {puedeAnularReserva(vigente.data.inicio) ? (
+              <div className="mt-3">
+                <Button variant="danger-outline" block onClick={() => anular(vigente.data!.grupo_id)}>Anular reserva</Button>
+              </div>
+            ) : (
+              <p className="mt-3 rounded-[12px] bg-surface-2 px-3 py-2 text-[12.5px] text-muted">
+                Ya no se puede anular: quedan menos de {HORAS_MIN_ANULACION} h para el inicio.
+              </p>
+            )}
           </Card>
         )}
 

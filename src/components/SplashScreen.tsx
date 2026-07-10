@@ -39,10 +39,15 @@ export function SplashScreen({ onDone }: { onDone: () => void }) {
           incidencias, reservas, votaciones y avisos, al alcance de tu mano.
         </p>
 
+        <p className="mt-4 max-w-sm rounded-[14px] bg-white/10 px-4 py-2.5 text-[13px] leading-snug text-white/85">
+          Para entrar recibirás un <b>código por correo</b>. Si no te llega,
+          revisa tu carpeta de <b>spam</b> o correo no deseado.
+        </p>
+
         <button
           type="button"
           onClick={continuar}
-          className="mt-9 inline-flex min-h-[52px] items-center justify-center gap-2 rounded-pill bg-white px-8 text-[16px] font-extrabold text-primary-700 shadow-xl transition-transform active:scale-[0.98]"
+          className="mt-7 inline-flex min-h-[52px] items-center justify-center gap-2 rounded-pill bg-white px-8 text-[16px] font-extrabold text-primary-700 shadow-xl transition-transform active:scale-[0.98]"
         >
           Siguiente <ArrowRight size={19} />
         </button>

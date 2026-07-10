@@ -5,6 +5,8 @@ al implementar el cambio (ver `CLAUDE.md` → Forma de trabajo).
 
 ## 2026-07-10
 
+- **v1.4.1 · Aviso de spam:** la pantalla de bienvenida y el paso del código de
+  acceso recuerdan revisar la carpeta de spam si el correo no llega.
 - **v1.4.0 · Dashboard de la app:** el menú "Adopción" pasa a **Dashboard** (solo
   app_admin) con dos secciones: **Adopción** (la de antes) y **Reservas**
   (estadísticas: aprobadas mes/año, canceladas año, total año y ranking de quién

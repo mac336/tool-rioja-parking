@@ -59,6 +59,7 @@ export function LoginPage() {
               autoComplete="one-time-code" name="one-time-code" autoFocus
               onChange={(e) => setCodigo(e.target.value.replace(/\D/g, ''))}
               placeholder="000000" className="text-center text-[22px] tracking-[0.4em]" />
+            <p className="text-center text-[13px] text-faint">¿No lo ves? Revisa tu carpeta de <b>spam</b> o correo no deseado.</p>
             <Button variant="primary" block size="lg" disabled={cargando} onClick={entrarConCodigo}>
               {cargando ? 'Comprobando…' : 'Entrar'}
             </Button>

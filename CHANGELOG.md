@@ -5,6 +5,11 @@ al implementar el cambio (ver `CLAUDE.md` → Forma de trabajo).
 
 ## 2026-07-10
 
+- **v1.6.0 · Adopción por piso: entrado vs sin entrar:** la tabla de Adopción
+  marca en cada vivienda con cuenta si **ha entrado** (ya inició sesión) o está
+  **sin entrar** (aprobada pero no ha accedido — típicamente correo en spam).
+  Función `stats_acceso_por_vivienda` (mig. 0025). Aclara que "con cuenta" no es
+  lo mismo que "ha entrado".
 - **v1.5.0 · Adopción + normas:** el Dashboard → Adopción muestra ahora
   **cuántas cuentas han conseguido entrar** alguna vez (`stats_acceso`, mig.
   0024). La pantalla de **normas** (primer acceso) fija el botón "Acepto" abajo,

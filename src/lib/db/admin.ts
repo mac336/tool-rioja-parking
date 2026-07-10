@@ -101,6 +101,16 @@ export async function statsAcceso(): Promise<{ creados: number; entrados: number
   return { creados: row?.creados ?? 0, entrados: row?.entrados ?? 0 }
 }
 
+/** Por vivienda con cuenta activa: nº de cuentas y cuántas han entrado alguna
+ *  vez. (Función `stats_acceso_por_vivienda`, solo gestión; migración 0025.) */
+export async function statsAccesoPorVivienda(): Promise<{ vivienda: string; cuentas: number; entrados: number }[]> {
+  const { data, error } = await supabase.rpc('stats_acceso_por_vivienda')
+  if (error) throw error
+  return (data ?? []).map((r: { vivienda: string; cuentas: number; entrados: number }) => ({
+    vivienda: r.vivienda, cuentas: r.cuentas, entrados: r.entrados,
+  }))
+}
+
 // ---- Avisos (feed para la campana) -------------------------------------------
 // `ts` (ISO) ordena el feed (más nuevo arriba) y alimenta el contador de "no
 // vistos" de la campana (comparado con la última visita a /avisos).

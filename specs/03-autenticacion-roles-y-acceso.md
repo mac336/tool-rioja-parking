@@ -107,7 +107,10 @@ selector de dos secciones:
 - **Adopción** — donut de **viviendas dentro vs por inscribir** y tabla **por
   piso** (un piso "está dentro" si tiene ≥1 cuenta activa; `listViviendas` +
   `listVecinos`) + **cuántas cuentas han conseguido entrar** alguna vez
-  (`stats_acceso`, migración 0024: cuenta `auth.users.last_sign_in_at`).
+  (`stats_acceso`, migración 0024). En la tabla por piso, cada vivienda con
+  cuenta marca **"Ha entrado"** (ya inició sesión) o **"Sin entrar"** (cuenta
+  aprobada pero aún no ha accedido) — `stats_acceso_por_vivienda`, migración
+  0025. "Dentro/Con cuenta" = cuenta aprobada; NO implica haber entrado.
 - **Reservas** — estadísticas de gestión (`estadisticasReservas`): reservas
   **aprobadas este mes** y **este año**, **canceladas este año**, **total del
   año** y **ranking** de quién ha reservado y cuántas veces este año. Cuenta por

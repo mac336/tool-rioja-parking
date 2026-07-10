@@ -318,6 +318,16 @@ export function statsAcceso(): Promise<{ creados: number; entrados: number }> {
   const activos = db.profiles.filter((p) => p.estado === 'activo').length
   return delay({ creados: activos, entrados: activos })
 }
+export function statsAccesoPorVivienda(): Promise<{ vivienda: string; cuentas: number; entrados: number }[]> {
+  const m = new Map<string, { cuentas: number; entrados: number }>()
+  for (const p of db.profiles) {
+    if (p.estado !== 'activo' || !p.vivienda) continue
+    const e = m.get(p.vivienda) ?? { cuentas: 0, entrados: 0 }
+    e.cuentas++; e.entrados++ // demo: se asume que han entrado
+    m.set(p.vivienda, e)
+  }
+  return delay([...m.entries()].map(([vivienda, v]) => ({ vivienda, ...v })))
+}
 export function crearVecinoDirecto(input: { nombre: string; email: string; vivienda: string; rol: Role }): Promise<void> {
   db.profiles.push({
     id: uid(), nombre: input.nombre, email: input.email, vivienda: input.vivienda,

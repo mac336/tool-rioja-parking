@@ -1,23 +1,18 @@
 import { useMemo } from 'react'
-import { Check, Minus } from 'lucide-react'
+import { Check, Minus, Clock } from 'lucide-react'
 import { Card, SectionTitle, ErrorState, SkeletonList, cx } from '@/components/ui'
 import { useAsync } from '@/lib/useAsync'
-import { listViviendas, listVecinos, statsAcceso } from '@/lib/api'
+import { listViviendas, statsAcceso, statsAccesoPorVivienda } from '@/lib/api'
 
-// Un piso "está dentro" si tiene al menos una cuenta ACTIVA. El cómputo es por
-// vivienda (piso), no por vecino: dos cuentas del mismo piso cuentan como 1 piso.
+// Un piso "está dentro" si tiene al menos una cuenta ACTIVA (aprobada). Además
+// se marca si esa cuenta ya ha ENTRADO (iniciado sesión) alguna vez.
 async function cargar() {
-  const [viviendas, vecinos, acceso] = await Promise.all([listViviendas(), listVecinos(), statsAcceso()])
-  const activosPorPiso = new Map<string, number>()
-  for (const v of vecinos) {
-    if (v.estado !== 'activo') continue
-    activosPorPiso.set(v.vivienda, (activosPorPiso.get(v.vivienda) ?? 0) + 1)
-  }
-  const filas = viviendas.map((codigo) => ({
-    codigo,
-    cuentas: activosPorPiso.get(codigo) ?? 0,
-    dentro: (activosPorPiso.get(codigo) ?? 0) > 0,
-  }))
+  const [viviendas, porViv, acceso] = await Promise.all([listViviendas(), statsAccesoPorVivienda(), statsAcceso()])
+  const m = new Map(porViv.map((x) => [x.vivienda, x]))
+  const filas = viviendas.map((codigo) => {
+    const x = m.get(codigo)
+    return { codigo, cuentas: x?.cuentas ?? 0, entrados: x?.entrados ?? 0, dentro: (x?.cuentas ?? 0) > 0 }
+  })
   return { filas, acceso }
 }
 
@@ -85,14 +80,18 @@ export function AdopcionView() {
               </div>
             </Card>
 
-            {/* Tabla por piso: dentro */}
+            {/* Tabla por piso: dentro (con marca de si han entrado) */}
             <section>
-              <SectionTitle icon={<Check size={15} />}>Dentro ({dentro.length})</SectionTitle>
+              <SectionTitle icon={<Check size={15} />}>Con cuenta ({dentro.length})</SectionTitle>
+              <p className="mb-2 text-[12px] text-faint">
+                Tiene cuenta aprobada. <span className="font-semibold text-success-ink">Ha entrado</span> = ya inició sesión;
+                <span className="font-semibold text-warn-ink"> Sin entrar</span> = aún no ha logrado acceder.
+              </p>
               {dentro.length === 0 ? (
                 <p className="rounded-[14px] bg-surface-2 px-4 py-4 text-center text-[13px] text-muted">Todavía no se ha inscrito ningún piso.</p>
               ) : (
                 <Card className="divide-y divide-border p-0">
-                  {dentro.map((f) => <FilaPiso key={f.codigo} codigo={f.codigo} cuentas={f.cuentas} dentro />)}
+                  {dentro.map((f) => <FilaPiso key={f.codigo} codigo={f.codigo} cuentas={f.cuentas} entrados={f.entrados} dentro />)}
                 </Card>
               )}
             </section>
@@ -104,7 +103,7 @@ export function AdopcionView() {
                 <p className="rounded-[14px] bg-success-soft px-4 py-4 text-center text-[13px] font-semibold text-success-ink">¡Todos los pisos están dentro! 🎉</p>
               ) : (
                 <Card className="divide-y divide-border p-0">
-                  {faltan.map((f) => <FilaPiso key={f.codigo} codigo={f.codigo} cuentas={0} dentro={false} />)}
+                  {faltan.map((f) => <FilaPiso key={f.codigo} codigo={f.codigo} cuentas={0} entrados={0} dentro={false} />)}
                 </Card>
               )}
           </section>
@@ -114,16 +113,21 @@ export function AdopcionView() {
   )
 }
 
-function FilaPiso({ codigo, cuentas, dentro }: { codigo: string; cuentas: number; dentro: boolean }) {
+function FilaPiso({ codigo, cuentas, entrados, dentro }: { codigo: string; cuentas: number; entrados: number; dentro: boolean }) {
+  const suf = cuentas > 1 ? ` · ${entrados}/${cuentas}` : ''
   return (
     <div className="flex items-center justify-between gap-2 px-4 py-2.5">
       <span className={cx('text-[14px]', dentro ? 'font-semibold text-ink' : 'text-muted')}>{codigo}</span>
-      {dentro ? (
+      {!dentro ? (
+        <span className="rounded-pill bg-surface-2 px-2.5 py-0.5 text-[11.5px] font-bold text-muted">Sin inscribir</span>
+      ) : entrados > 0 ? (
         <span className="flex items-center gap-1.5 rounded-pill bg-success-soft px-2.5 py-0.5 text-[11.5px] font-bold text-success-ink">
-          <Check size={13} /> Dentro{cuentas > 1 ? ` · ${cuentas}` : ''}
+          <Check size={13} /> Ha entrado{suf}
         </span>
       ) : (
-        <span className="rounded-pill bg-surface-2 px-2.5 py-0.5 text-[11.5px] font-bold text-muted">Sin inscribir</span>
+        <span className="flex items-center gap-1.5 rounded-pill bg-warn-soft px-2.5 py-0.5 text-[11.5px] font-bold text-warn-ink">
+          <Clock size={13} /> Sin entrar
+        </span>
       )}
     </div>
   )

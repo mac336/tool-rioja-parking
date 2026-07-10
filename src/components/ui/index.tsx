@@ -11,7 +11,7 @@ const cx = (...c: (string | false | undefined)[]) => c.filter(Boolean).join(' ')
 // arriba mientras el contenido se desplaza. Título en display 22px. Ver specs/18.
 export function ScreenHeader({ title, right }: { title: string; right?: ReactNode }) {
   return (
-    <header className="sticky top-0 z-10 flex items-center justify-between gap-2 border-b border-border bg-surface/95 px-4 py-3.5 backdrop-blur safe-top">
+    <header className="sticky top-0 z-10 flex min-h-[62px] items-center justify-between gap-2 border-b border-border bg-surface/95 px-4 py-2 backdrop-blur safe-top">
       <h1 className="font-display text-[22px] font-extrabold text-ink">{title}</h1>
       {right}
     </header>

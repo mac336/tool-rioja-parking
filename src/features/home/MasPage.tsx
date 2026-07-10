@@ -28,7 +28,7 @@ export function MasPage() {
         <span className="flex h-12 w-12 items-center justify-center rounded-full bg-primary-soft text-[16px] font-bold text-primary-700">{iniciales(user.nombre)}</span>
         <div className="flex-1">
           <div className="font-semibold text-ink">{user.nombre}</div>
-          <div className="text-[13px] text-muted">{user.vivienda} · {ROLE_LABEL[user.rol]}</div>
+          <div className="text-[13px] text-muted">{user.vivienda || 'Sin vivienda'} · {ROLE_LABEL[user.rol]}</div>
         </div>
         <RoleBadge kind={roleBadgeKind(user.rol)} />
       </Link>

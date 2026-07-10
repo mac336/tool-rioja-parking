@@ -359,7 +359,7 @@ function VecinosTab({ canManage, currentUserId, onToast, onChanged }: { canManag
   const filtrados = s ? data.filter(coincide) : data
 
   function abrirEdicion(v: Profile) {
-    setEditId(v.id); setForm({ nombre: v.nombre, vivienda: v.vivienda })
+    setEditId(v.id); setForm({ nombre: v.nombre ?? '', vivienda: v.vivienda ?? '' })
   }
 
   async function guardarEdicion(v: Profile) {
@@ -437,6 +437,7 @@ function VecinosTab({ canManage, currentUserId, onToast, onChanged }: { canManag
                 {PISOS.map((pi) => <option key={pi} value={pi}>{pi}</option>)}
               </optgroup>
               <optgroup label="Especiales (no cuentan como vivienda)">
+                <option value="">Sin vivienda (p. ej. tester)</option>
                 {VIVIENDAS_ESPECIALES.map((v) => <option key={v} value={v}>{v}</option>)}
               </optgroup>
             </SelectField>
@@ -477,7 +478,7 @@ function VecinosTab({ canManage, currentUserId, onToast, onChanged }: { canManag
                   {suspendido && <span className="shrink-0 rounded-pill bg-danger-soft px-2 py-0.5 text-[11.5px] font-bold text-danger-ink">Suspendido</span>}
                   {baja && <span className="shrink-0 rounded-pill bg-surface-2 px-2 py-0.5 text-[11.5px] font-bold text-muted">De baja</span>}
                 </div>
-                <div className="truncate text-[13px] text-muted">{vecino.vivienda}</div>
+                <div className="truncate text-[13px] text-muted">{vecino.vivienda || 'Sin vivienda'}</div>
                 <div className="truncate text-[12px] text-faint">{vecino.email}</div>
               </div>
             </div>
@@ -487,7 +488,13 @@ function VecinosTab({ canManage, currentUserId, onToast, onChanged }: { canManag
                 <Field label="Nombre o alias" value={form.nombre} maxLength={80}
                   onChange={(e) => setForm((f) => ({ ...f, nombre: e.target.value }))} placeholder="Ej. Nico" />
                 <SelectField label="Vivienda" value={form.vivienda} onChange={(e) => setForm((f) => ({ ...f, vivienda: e.target.value }))} disabled={busy}>
-                  {PISOS.map((p) => <option key={p} value={p}>{p}</option>)}
+                  <optgroup label="Viviendas">
+                    {PISOS.map((p) => <option key={p} value={p}>{p}</option>)}
+                  </optgroup>
+                  <optgroup label="Especiales (no cuentan como vivienda)">
+                    <option value="">Sin vivienda (p. ej. tester)</option>
+                    {VIVIENDAS_ESPECIALES.map((v) => <option key={v} value={v}>{v}</option>)}
+                  </optgroup>
                 </SelectField>
                 <div className="flex gap-2">
                   <Button block disabled={busy} onClick={() => guardarEdicion(vecino)}><Check size={17} /> Guardar</Button>

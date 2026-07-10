@@ -42,8 +42,14 @@ Deno.serve(async (req) => {
       const rolT = String(rol ?? 'vecino')
       if (!nombreT || !/.+@.+\..+/.test(emailT)) return json({ error: 'Nombre o correo no válidos.' }, 400)
       if (!ROLES_VALIDOS.includes(rolT)) return json({ error: 'Rol no válido.' }, 400)
-      const { data: viv } = await admin.from('viviendas').select('codigo').eq('codigo', String(vivienda ?? '')).maybeSingle()
-      if (!viv) return json({ error: 'Vivienda no válida.' }, 400)
+      // Vivienda OPCIONAL: una cuenta puede no tener piso (p. ej. un tester).
+      const viviendaRaw = String(vivienda ?? '').trim()
+      let viviendaFinal: string | null = null
+      if (viviendaRaw) {
+        const { data: viv } = await admin.from('viviendas').select('codigo').eq('codigo', viviendaRaw).maybeSingle()
+        if (!viv) return json({ error: 'Vivienda no válida.' }, 400)
+        viviendaFinal = viv.codigo
+      }
 
       // Crear en Auth (o localizarlo si ya existía).
       const { data: created, error: createErr } = await admin.auth.admin.createUser({
@@ -57,7 +63,7 @@ Deno.serve(async (req) => {
       }
       await admin.from('profiles').upsert({
         id: nuevoId, email: emailT, nombre: nombreT,
-        vivienda: viv.codigo, rol: rolT, estado: 'activo',
+        vivienda: viviendaFinal, rol: rolT, estado: 'activo',
       })
       return json({ ok: true, userId: nuevoId })
     }
@@ -76,16 +82,21 @@ Deno.serve(async (req) => {
       await admin.from('profiles').update({ rol }).eq('id', userId)
     } else if (accion === 'editar') {
       // Corrige datos del vecino (nombre/alias y/o vivienda).
-      const patch: Record<string, string> = {}
+      const patch: Record<string, string | null> = {}
       if (typeof nombre === 'string') {
         const n = nombre.trim()
         if (n.length < 1 || n.length > 80) return json({ error: 'Nombre no válido.' }, 400)
         patch.nombre = n
       }
       if (typeof vivienda === 'string') {
-        const { data: viv } = await admin.from('viviendas').select('codigo').eq('codigo', vivienda).maybeSingle()
-        if (!viv) return json({ error: 'Vivienda no válida.' }, 400)
-        patch.vivienda = vivienda
+        const v = vivienda.trim()
+        if (!v) {
+          patch.vivienda = null // "Sin vivienda" (p. ej. tester)
+        } else {
+          const { data: viv } = await admin.from('viviendas').select('codigo').eq('codigo', v).maybeSingle()
+          if (!viv) return json({ error: 'Vivienda no válida.' }, 400)
+          patch.vivienda = v
+        }
       }
       if (Object.keys(patch).length === 0) return json({ error: 'Nada que actualizar.' }, 400)
       await admin.from('profiles').update(patch).eq('id', userId)

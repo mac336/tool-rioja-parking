@@ -5,6 +5,9 @@ al implementar el cambio (ver `CLAUDE.md` → Forma de trabajo).
 
 ## 2026-07-10
 
+- **v1.3.2 · Sin vivienda soportado:** una cuenta puede no tener piso (p. ej. un
+  tester). Opción "Sin vivienda" en el alta/edición; el servidor la guarda como
+  null; se muestra como "Sin vivienda" y no afecta a parking ni conteos.
 - **v1.3.1 · Fix:** el buscador de Vecinos ya no falla ("null is not an object")
   cuando un vecino tiene la vivienda/nombre sin rellenar; además busca por
   piso, nombre y correo.

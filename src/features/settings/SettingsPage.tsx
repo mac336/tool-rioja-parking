@@ -79,7 +79,7 @@ export function SettingsPage() {
 
         {/* Apariencia: tema */}
         <Card>
-          <div className="overline mb-3">Apariencia</div>
+          <div className="section-title mb-3">Apariencia</div>
           <div className="mb-2 text-[13px] font-semibold text-muted">Tema</div>
           <div className="flex gap-2">
             {THEMES.map(([val, lbl, Icon]) => (
@@ -108,7 +108,7 @@ export function SettingsPage() {
 
         {/* Colores de los mensajes */}
         <Card>
-          <div className="overline mb-1">Colores de los mensajes</div>
+          <div className="section-title mb-1">Colores de los mensajes</div>
           <p className="mb-3 text-[13px] text-muted">Elige el color de fondo de cada tipo en el tablón.</p>
           <div className="flex flex-col gap-2.5">
             {MSG_TIPOS.map(([tipo, label]) => (

@@ -1,7 +1,7 @@
 import { useState } from 'react'
 import { Phone, Mail, MapPin, Plus, Pencil, Trash2 } from 'lucide-react'
 import { Page } from '@/components/layout/AppShell'
-import { Button, Card, Field, SelectField, EmptyState, ErrorState, SkeletonList } from '@/components/ui'
+import { Button, Card, Field, SelectField, EmptyState, ErrorState, SkeletonList, ScreenHeader } from '@/components/ui'
 import { useAsync } from '@/lib/useAsync'
 import { useApp } from '@/store'
 import { listContactos, crearContacto, editarContacto, borrarContacto } from '@/lib/api'
@@ -276,14 +276,9 @@ export function ContactsPage() {
 
   return (
     <div>
-      <header className="flex items-center justify-between gap-2 border-b border-border bg-surface px-4 pb-3 pt-5">
-        <h1 className="font-display text-[26px] font-extrabold text-ink">Contactos</h1>
-        {puedeEditar && editando === null && (
-          <Button size="md" onClick={() => setEditando('nuevo')}>
-            <Plus size={18} /> Añadir contacto
-          </Button>
-        )}
-      </header>
+      <ScreenHeader title="Contactos" right={puedeEditar && editando === null ? (
+        <Button size="md" onClick={() => setEditando('nuevo')}><Plus size={18} /> Añadir contacto</Button>
+      ) : undefined} />
 
       <Page>
         {puedeEditar && editando === 'nuevo' && (
@@ -309,7 +304,7 @@ export function ContactsPage() {
               if (delGrupo.length === 0) return null
               return (
                 <section key={categoria}>
-                  <h2 className="overline mb-2">{titulo}</h2>
+                  <h2 className="section-title mb-2">{titulo}</h2>
                   <div className="flex flex-col gap-3">
                     {delGrupo.map((c) =>
                       puedeEditar && contactoEnEdicion?.id === c.id ? (

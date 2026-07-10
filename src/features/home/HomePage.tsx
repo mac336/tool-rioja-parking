@@ -113,7 +113,7 @@ export function HomePage() {
         )}
 
         {/* Servicios en círculo */}
-        <div className="mb-2.5 mt-[22px] text-[11.5px] font-bold uppercase tracking-[0.14em] text-faint">Servicios</div>
+        <div className="section-title mb-2.5 mt-[22px]">Servicios</div>
         <div className="grid grid-cols-4 gap-x-2 gap-y-3.5">
           {servicios.map(({ to, short, Icon, color }) => (
             <Link key={to} to={to} className="flex flex-col items-center gap-1.5">

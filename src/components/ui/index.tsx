@@ -6,6 +6,25 @@ import { BADGE_LABEL } from '@/lib/roles'
 
 const cx = (...c: (string | false | undefined)[]) => c.filter(Boolean).join(' ')
 
+// ---- Cabecera de pantalla (estándar) -----------------------------------------
+// Cabecera fija de una pantalla principal (sin botón atrás). Se queda pinchada
+// arriba mientras el contenido se desplaza. Título en display 22px. Ver specs/18.
+export function ScreenHeader({ title, right }: { title: string; right?: ReactNode }) {
+  return (
+    <header className="sticky top-0 z-10 flex items-center justify-between gap-2 border-b border-border bg-surface/95 px-4 py-3.5 backdrop-blur safe-top">
+      <h1 className="font-display text-[22px] font-extrabold text-ink">{title}</h1>
+      {right}
+    </header>
+  )
+}
+
+// ---- Título de sección (estándar) --------------------------------------------
+// Encabezado de un grupo de contenido. Sustituye al viejo "overline" en
+// mayúsculas. Ver specs/18.
+export function SectionTitle({ children, icon, className }: { children: ReactNode; icon?: ReactNode; className?: string }) {
+  return <h2 className={cx('section-title mb-2 flex items-center gap-1.5', className)}>{icon}{children}</h2>
+}
+
 // ---- Button ------------------------------------------------------------------
 type BtnVariant = 'primary' | 'secondary' | 'ghost' | 'danger' | 'danger-outline'
 interface ButtonProps extends ButtonHTMLAttributes<HTMLButtonElement> {

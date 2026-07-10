@@ -1,7 +1,7 @@
 import { useState } from 'react'
 import { SquareParking, CalendarClock, ArrowLeftRight, Bell, Repeat } from 'lucide-react'
 import { Page } from '@/components/layout/AppShell'
-import { Card, SelectField, Field, Textarea, Button, Alert, EmptyState, cx } from '@/components/ui'
+import { Card, SelectField, Field, Textarea, Button, Alert, EmptyState, ScreenHeader, cx } from '@/components/ui'
 import { useApp } from '@/store'
 import { useAsync } from '@/lib/useAsync'
 import { rangoFechas, fechaCorta } from '@/lib/format'
@@ -98,14 +98,12 @@ export function ParkingPage() {
   const viviendasResto = PISOS.filter((v) => !viviendasPrioritarias.includes(v))
 
   return (
-    <div>
-      <header className="border-b border-border bg-surface px-4 pb-3 pt-5">
-        <h1 className="font-display text-[26px] font-extrabold text-ink">Parking Exterior</h1>
-      </header>
+    <div className="min-h-full bg-bg">
+      <ScreenHeader title="Parking Exterior" />
 
       <Page className="flex flex-col gap-5">
         {/* Plaza de esta quincena */}
-        <div className="rounded-[18px] p-5 text-white shadow-neu" style={{ background: 'var(--grad-hero)' }}>
+        <div className="rounded-[18px] p-5 text-white" style={{ background: 'var(--grad-hero)' }}>
           <div className="flex items-start justify-between gap-3">
             <div>
               {actual ? (
@@ -128,7 +126,7 @@ export function ParkingPage() {
 
         {/* Mis próximos turnos */}
         <section>
-          <h2 className="overline mb-2 flex items-center gap-1.5"><CalendarClock size={14} /> Mis próximos turnos</h2>
+          <h2 className="section-title mb-2 flex items-center gap-1.5"><CalendarClock size={14} /> Mis próximos turnos</h2>
           {futuros.length === 0 ? (
             <Card className="text-[14px] text-muted">No hay turnos próximos calculados.</Card>
           ) : (
@@ -145,7 +143,7 @@ export function ParkingPage() {
 
         {/* Próximas quincenas · 6 plazas */}
         <section>
-          <h2 className="overline mb-2">Próximas quincenas · 6 plazas</h2>
+          <h2 className="section-title mb-2">Próximas quincenas · 6 plazas</h2>
           <div className="min-w-0 max-w-full overflow-x-auto rounded-[16px] border border-border bg-surface">
             <table className="w-full border-collapse text-[13px]">
               <thead>
@@ -180,7 +178,7 @@ export function ParkingPage() {
 
         {/* ¿Cedes o necesitas plaza? */}
         <section>
-          <h2 className="overline mb-2 flex items-center gap-1.5"><ArrowLeftRight size={14} /> ¿Cedes o necesitas plaza?</h2>
+          <h2 className="section-title mb-2 flex items-center gap-1.5"><ArrowLeftRight size={14} /> ¿Cedes o necesitas plaza?</h2>
           <Card className="flex flex-col gap-4">
             <SelectField label="¿Qué quieres avisar?" value={tipo} onChange={(e) => setTipo(e.target.value as CesionTipo)}>
               {TIPO_LABEL.map((t) => <option key={t.value} value={t.value}>{t.label}</option>)}
@@ -198,7 +196,7 @@ export function ParkingPage() {
 
         {/* Panel de demanda */}
         <section>
-          <h2 className="overline mb-2">Demanda actual</h2>
+          <h2 className="section-title mb-2">Demanda actual</h2>
           <div className="grid grid-cols-2 gap-3">
             <Card className="text-center">
               <div className="font-display text-[28px] font-extrabold text-ink">{demanda.data?.necesitan ?? 0}</div>
@@ -213,7 +211,7 @@ export function ParkingPage() {
 
         {/* Mis avisos de plaza */}
         <section>
-          <h2 className="overline mb-2 flex items-center gap-1.5"><Bell size={14} /> Mis avisos de plaza</h2>
+          <h2 className="section-title mb-2 flex items-center gap-1.5"><Bell size={14} /> Mis avisos de plaza</h2>
           {avisosOrdenados.length === 0 ? (
             <Card>
               <EmptyState titulo="Sin avisos" texto="Cuando cedas o pidas plaza, tus avisos aparecerán aquí." />
@@ -251,7 +249,7 @@ export function ParkingPage() {
         {/* Reasignar huecos (solo gestión) */}
         {gestion && (
           <section>
-            <h2 className="overline mb-2 flex items-center gap-1.5"><Repeat size={14} /> Reasignar huecos</h2>
+            <h2 className="section-title mb-2 flex items-center gap-1.5"><Repeat size={14} /> Reasignar huecos</h2>
 
             {solicitan.length > 0 && (
               <Alert tipo="info">

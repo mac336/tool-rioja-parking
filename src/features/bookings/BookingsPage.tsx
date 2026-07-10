@@ -176,7 +176,7 @@ export function BookingsPage() {
         {!cargando && !vigente.data && zonas.state !== 'error' && (
           <div className="flex flex-col gap-5">
             <section>
-              <h2 className="overline mb-2">Elige una o varias zonas</h2>
+              <h2 className="section-title mb-2">Elige una o varias zonas</h2>
               <div className="flex flex-wrap gap-2">
                 {(zonas.data ?? []).map((z) => {
                   const on = sel.has(z.id)
@@ -192,14 +192,14 @@ export function BookingsPage() {
             </section>
 
             <section>
-              <h2 className="overline mb-2">Elige el día</h2>
+              <h2 className="section-title mb-2">Elige el día</h2>
               <Field type="date" min={hoy} max={maxDia} value={dia}
                 onChange={(e) => setDia(e.target.value || hoy)} />
               <p className="mt-1 text-[12px] text-faint">Puedes reservar hasta 6 meses vista.</p>
             </section>
 
             <section>
-              <h2 className="overline mb-2">Elige la hora</h2>
+              <h2 className="section-title mb-2">Elige la hora</h2>
               <div className="grid grid-cols-2 gap-3">
                 <Field label="Desde" type="time" value={desde} onChange={(e) => setDesde(e.target.value)} />
                 <Field label="Hasta" type="time" value={hasta} onChange={(e) => setHasta(e.target.value)} />
@@ -210,7 +210,7 @@ export function BookingsPage() {
             {/* Disponibilidad por zona seleccionada */}
             {sel.size > 0 && rangoOk && (
               <section>
-                <h2 className="overline mb-2">Disponibilidad</h2>
+                <h2 className="section-title mb-2">Disponibilidad</h2>
                 {ocupacion.state === 'loading' && <SkeletonList n={1} />}
                 {ocupacion.state !== 'loading' && (
                   <div className="flex flex-col gap-2">
@@ -244,7 +244,7 @@ export function BookingsPage() {
         {/* Cola de aprobación (presidente / app_admin) */}
         {puedeAprobarReservas(user.rol) && (
           <section className="mt-6">
-            <h2 className="overline mb-2">Cola de aprobación</h2>
+            <h2 className="section-title mb-2">Cola de aprobación</h2>
             {gestion.state === 'loading' && <SkeletonList n={2} />}
             {gestion.state === 'error' && <ErrorState onRetry={gestion.refetch} />}
             {gestion.state === 'empty' && <p className="text-[14px] text-muted">No hay reservas pendientes de aprobar.</p>}

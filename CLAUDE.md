@@ -60,6 +60,10 @@ Al implementar algo nuevo o cambiar algo existente:
 
 ## Convenciones
 
+- **Estilos (`specs/18`):** la Home manda. Cabeceras de pantalla con
+  `ScreenHeader`; títulos de sección con `SectionTitle`/`.section-title` (NO el
+  viejo `overline`, que queda solo para micro-rótulos en tarjetas). Diseño plano
+  (evitar `shadow-neu*`). Cabecera/TabBar fijas; solo scrollea el contenido.
 - Textos de UI en **español**. Fechas en Europe/Madrid.
 - La seguridad la impone la **RLS**, no la interfaz. Toda función de datos nueva
   debe tener su política RLS y, si aplica, su aserción en `tests/rls/rls_test.sql`.

@@ -2,7 +2,7 @@ import { useState } from 'react'
 import { Link } from 'react-router-dom'
 import { Plus, ListChecks, CheckCircle2, Lock, Trash2 } from 'lucide-react'
 import { Page } from '@/components/layout/AppShell'
-import { Button, Card, ProgressBar, Alert, EmptyState, ErrorState, SkeletonList, cx } from '@/components/ui'
+import { Button, Card, ProgressBar, Alert, EmptyState, ErrorState, SkeletonList, ScreenHeader, cx } from '@/components/ui'
 import { useAsync } from '@/lib/useAsync'
 import { diasRestantes } from '@/lib/format'
 import { esGestion } from '@/lib/roles'
@@ -52,9 +52,7 @@ export function EncuestasListPage() {
 
   return (
     <div>
-      <header className="border-b border-border bg-surface px-4 pb-3 pt-5">
-        <h1 className="font-display text-[26px] font-extrabold text-ink">Votaciones</h1>
-      </header>
+      <ScreenHeader title="Votaciones" />
       <Page className="flex flex-col gap-4">
         {gestion && (
           <Link to="/votaciones/nueva" className="block">
@@ -110,7 +108,7 @@ export function EncuestasListPage() {
 
         {cerradas.length > 0 && (
           <section>
-            <h2 className="overline mb-2 flex items-center gap-1.5"><ListChecks size={14} /> Cerradas</h2>
+            <h2 className="section-title mb-2 flex items-center gap-1.5"><ListChecks size={14} /> Cerradas</h2>
             <div className="flex flex-col gap-3">
               {cerradas.map((e) => (
                 <Card key={e.id} className="flex items-center justify-between gap-2">

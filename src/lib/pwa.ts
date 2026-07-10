@@ -42,3 +42,13 @@ export function getPlataforma(): Plataforma {
   if (/android/i.test(ua)) return 'android'
   return 'other'
 }
+
+/** En iOS, "Añadir a pantalla de inicio" solo existe en Safari (no en Chrome iOS,
+ *  Firefox iOS, ni navegadores dentro de otras apps). */
+export function esSafariIOS(): boolean {
+  if (typeof navigator === 'undefined') return false
+  const ua = navigator.userAgent
+  const ios = /iphone|ipad|ipod/i.test(ua)
+  const otroNavegador = /CriOS|FxiOS|EdgiOS|OPiOS|GSA|mercury/i.test(ua)
+  return ios && !otroNavegador && /Safari/i.test(ua)
+}

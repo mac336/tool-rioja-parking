@@ -1,16 +1,21 @@
 import { useEffect, useState } from 'react'
-import { Download, Share, SquarePlus, X, Smartphone } from 'lucide-react'
+import { Download, Share, SquarePlus, X, Smartphone, ArrowDown, Compass } from 'lucide-react'
 import { Button, cx } from '@/components/ui'
-import { getDeferredPrompt, clearDeferredPrompt, isStandalone, getPlataforma } from '@/lib/pwa'
+import { getDeferredPrompt, clearDeferredPrompt, isStandalone, getPlataforma, esSafariIOS } from '@/lib/pwa'
 
 const DISMISS_KEY = 'r25-install-dismissed'
 
-/** Aviso para añadir la app a la pantalla de inicio (iPhone/Android). */
+/** Aviso para añadir la app a la pantalla de inicio.
+ *  - Android/Chrome: botón que lanza el instalador nativo (automatismo).
+ *  - iPhone (Safari): guía animada con flecha al botón Compartir (Apple no permite
+ *    instalar con un botón; solo se puede guiar).
+ *  - iPhone (otro navegador): invita a abrir en Safari. */
 export function InstallPrompt() {
   const [plataforma] = useState(getPlataforma)
+  const [safariIOS] = useState(esSafariIOS)
   const [installable, setInstallable] = useState<boolean>(() => !!getDeferredPrompt())
   const [visible, setVisible] = useState(false)
-  const [ayudaIOS, setAyudaIOS] = useState(false)
+  const [guiaIOS, setGuiaIOS] = useState(false)
 
   useEffect(() => {
     if (isStandalone() || localStorage.getItem(DISMISS_KEY)) return
@@ -18,7 +23,7 @@ export function InstallPrompt() {
     const onInstalled = () => setVisible(false)
     window.addEventListener('pwa-installable', onInstallable)
     window.addEventListener('pwa-installed', onInstalled)
-    const t = setTimeout(() => setVisible(true), 1500) // deja respirar tras entrar
+    const t = setTimeout(() => setVisible(true), 1500)
     return () => {
       clearTimeout(t)
       window.removeEventListener('pwa-installable', onInstallable)
@@ -26,7 +31,7 @@ export function InstallPrompt() {
     }
   }, [])
 
-  const cerrar = () => { localStorage.setItem(DISMISS_KEY, '1'); setVisible(false) }
+  const cerrar = () => { localStorage.setItem(DISMISS_KEY, '1'); setVisible(false); setGuiaIOS(false) }
 
   const instalarAndroid = async () => {
     const dp = getDeferredPrompt()
@@ -38,9 +43,48 @@ export function InstallPrompt() {
   }
 
   if (isStandalone()) return null
-  // Mostramos en iOS (instrucciones manuales) o cuando el navegador ofrece instalar.
   const puedeMostrar = plataforma === 'ios' || installable
   if (!visible || !puedeMostrar) return null
+
+  // Guía animada de iPhone a pantalla completa.
+  if (guiaIOS) {
+    return (
+      <div className="fixed inset-0 z-[70] flex flex-col justify-end bg-black/60 backdrop-blur-sm" onClick={cerrar}>
+        <div className="mx-auto mb-2 w-full max-w-[520px] px-4" onClick={(e) => e.stopPropagation()}>
+          <div className="rounded-[22px] border border-border bg-surface p-5 shadow-xl">
+            <div className="mb-3 flex items-center justify-between">
+              <h3 className="font-display text-[18px] font-extrabold text-ink">Añádela en 3 pasos</h3>
+              <button onClick={cerrar} aria-label="Cerrar" className="rounded-full p-1.5 text-faint hover:bg-surface-2"><X size={20} /></button>
+            </div>
+            <ol className="flex flex-col gap-3">
+              <li className="flex items-center gap-3">
+                <span className="flex h-8 w-8 shrink-0 items-center justify-center rounded-full bg-primary text-[14px] font-bold text-white">1</span>
+                <span className="text-[14px] text-ink">Pulsa el icono <b>Compartir</b> <Share size={16} className="inline align-text-bottom text-primary" /> en la barra de Safari.</span>
+              </li>
+              <li className="flex items-center gap-3">
+                <span className="flex h-8 w-8 shrink-0 items-center justify-center rounded-full bg-primary text-[14px] font-bold text-white">2</span>
+                <span className="text-[14px] text-ink">Elige <b>“Añadir a pantalla de inicio”</b> <SquarePlus size={16} className="inline align-text-bottom text-primary" />.</span>
+              </li>
+              <li className="flex items-center gap-3">
+                <span className="flex h-8 w-8 shrink-0 items-center justify-center rounded-full bg-primary text-[14px] font-bold text-white">3</span>
+                <span className="text-[14px] text-ink">Confirma con <b>Añadir</b>. ¡Ya la tienes como app!</span>
+              </li>
+            </ol>
+          </div>
+        </div>
+        {/* Flecha animada apuntando al botón Compartir (abajo-centro en Safari) */}
+        <div className="mb-1 flex flex-col items-center gap-1 pb-[env(safe-area-inset-bottom)] text-white">
+          <div className="flex items-center gap-2 rounded-full bg-primary px-3.5 py-1.5 text-[13px] font-bold shadow-primary">
+            <Share size={16} /> Pulsa aquí: Compartir
+          </div>
+          <ArrowDown size={30} className="animate-bounce drop-shadow" />
+        </div>
+      </div>
+    )
+  }
+
+  // iPhone pero NO Safari → no se puede añadir; invita a abrir en Safari.
+  const iosNoSafari = plataforma === 'ios' && !safariIOS
 
   return (
     <div className="fixed inset-x-0 bottom-[86px] z-40 px-4 md:bottom-5">
@@ -51,29 +95,25 @@ export function InstallPrompt() {
           </span>
           <div className="min-w-0 flex-1">
             <h3 className="font-display text-[16px] font-bold text-ink">Añade Rioja 25 a tu móvil</h3>
-            <p className="mt-0.5 text-[13px] text-muted">Ábrela como una app y recibe <b>notificaciones</b> cuando aprueben tu reserva u otras novedades.</p>
+            <p className="mt-0.5 text-[13px] text-muted">Ábrela como una app y recibe <b>notificaciones</b> de tus reservas y avisos.</p>
           </div>
           <button onClick={cerrar} aria-label="Cerrar" className="flex h-8 w-8 shrink-0 items-center justify-center rounded-full text-faint hover:bg-surface-2">
             <X size={18} />
           </button>
         </div>
 
-        {plataforma === 'ios' ? (
-          <>
-            <Button variant="secondary" block onClick={() => setAyudaIOS((v) => !v)}>
-              <Share size={18} /> {ayudaIOS ? 'Ocultar instrucciones' : 'Cómo añadirla (iPhone)'}
-            </Button>
-            {ayudaIOS && (
-              <ol className="flex flex-col gap-2 rounded-[14px] bg-surface-2 p-3 text-[13px] text-muted">
-                <li className="flex items-center gap-2"><Share size={16} className="shrink-0 text-primary" /> 1. Pulsa el icono <b>Compartir</b> en la barra de Safari.</li>
-                <li className="flex items-center gap-2"><SquarePlus size={16} className="shrink-0 text-primary" /> 2. Elige <b>“Añadir a pantalla de inicio”</b>.</li>
-                <li className="flex items-center gap-2"><Smartphone size={16} className="shrink-0 text-primary" /> 3. Confirma con <b>Añadir</b>. ¡Listo!</li>
-              </ol>
-            )}
-          </>
-        ) : (
+        {installable ? (
           <Button block onClick={instalarAndroid}>
             <Download size={18} /> Añadir a la pantalla de inicio
+          </Button>
+        ) : iosNoSafari ? (
+          <div className="flex items-center gap-2 rounded-[14px] bg-surface-2 p-3 text-[13px] text-muted">
+            <Compass size={18} className="shrink-0 text-primary" />
+            Para instalarla, abre esta web en <b>Safari</b> y pulsa “Añadir a tu móvil”.
+          </div>
+        ) : (
+          <Button variant="secondary" block onClick={() => setGuiaIOS(true)}>
+            <Share size={18} /> Ver cómo añadirla (iPhone)
           </Button>
         )}
       </div>

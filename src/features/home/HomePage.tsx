@@ -70,10 +70,15 @@ export function HomePage() {
               <div className="text-[12.5px] text-faint first-letter:uppercase">{fechaLarga}</div>
             </div>
           </div>
-          <Link to="/avisos" aria-label="Avisos" className="relative flex h-10 w-10 items-center justify-center rounded-full border border-border bg-surface text-ink">
-            <Bell size={20} strokeWidth={1.9} />
-            <span className="absolute right-2 top-[7px] h-2 w-2 rounded-full border-[1.5px] border-surface" style={{ background: '#F5B417' }} />
-          </Link>
+          <div className="flex items-center gap-2">
+            <Link to="/buzon" aria-label="Buzón" className="flex h-10 w-10 items-center justify-center rounded-full border border-border bg-surface text-ink">
+              <MessageSquare size={20} strokeWidth={1.9} />
+            </Link>
+            <Link to="/avisos" aria-label="Avisos" className="relative flex h-10 w-10 items-center justify-center rounded-full border border-border bg-surface text-ink">
+              <Bell size={20} strokeWidth={1.9} />
+              <span className="absolute right-2 top-[7px] h-2 w-2 rounded-full border-[1.5px] border-surface" style={{ background: '#F5B417' }} />
+            </Link>
+          </div>
         </div>
       </header>
 

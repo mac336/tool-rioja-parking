@@ -36,13 +36,13 @@ function Bandeja({ onOpen }: { onOpen: (id: string) => void }) {
   }
 
   return (
-    <div className="min-h-full bg-bg">
+    <div className="flex h-full flex-col bg-bg">
       <SubHeader titulo="Buzón" right={(
         <button onClick={() => setNuevo({ asunto: '', texto: '', canal: 'administrador' })} className="flex h-10 items-center gap-1.5 rounded-pill bg-primary px-3.5 text-[14px] font-bold text-white shadow-primary">
           <Plus size={18} /> Nuevo
         </button>
       )} />
-      <Page className="flex flex-col gap-3">
+      <Page className="flex min-h-0 flex-1 flex-col gap-3 overflow-y-auto">
         <p className="text-[13px] text-muted">Escribe en privado a <b>Administración</b>, <b>Presidencia</b> o al <b>Conserje</b>. Solo el destinatario lo ve.</p>
         {state === 'loading' && <SkeletonList n={3} />}
         {state === 'error' && <ErrorState onRetry={refetch} />}
@@ -130,8 +130,8 @@ function HiloVista({ id, onBack }: { id: string; onBack: () => void }) {
   }
 
   return (
-    <div className="flex min-h-full flex-col bg-bg">
-      <header className="sticky top-0 z-10 flex items-center gap-2 border-b border-border bg-surface/95 px-3 py-3 backdrop-blur safe-top">
+    <div className="flex h-full flex-col bg-bg">
+      <header className="z-10 flex shrink-0 items-center gap-2 border-b border-border bg-surface/95 px-3 py-3 backdrop-blur safe-top">
         <button onClick={onBack} aria-label="Atrás" className="flex h-10 w-10 items-center justify-center rounded-full hover:bg-surface-2"><ChevronLeft size={24} /></button>
         <div className="min-w-0 flex-1">
           <h1 className="truncate font-display text-[17px] font-bold text-ink">{hilo?.asunto ?? 'Conversación'}</h1>
@@ -140,7 +140,7 @@ function HiloVista({ id, onBack }: { id: string; onBack: () => void }) {
         {staff && <button onClick={alternarCierre} className="rounded-pill px-3 py-1.5 text-[12px] font-bold text-muted hover:bg-surface-2">{cerrado ? 'Reabrir' : 'Cerrar'}</button>}
       </header>
 
-      <div className="mx-auto w-full max-w-[720px] flex-1 px-4 py-4">
+      <div className="mx-auto w-full min-h-0 max-w-[720px] flex-1 overflow-y-auto px-4 py-4">
         {state === 'loading' && <SkeletonList n={3} />}
         {state === 'error' && <ErrorState onRetry={refetch} />}
         {state === 'ready' && data && (
@@ -171,7 +171,7 @@ function HiloVista({ id, onBack }: { id: string; onBack: () => void }) {
       </div>
 
       {!cerrado && (
-        <div className="sticky bottom-0 border-t border-border bg-surface/95 p-3 backdrop-blur safe-bottom">
+        <div className="shrink-0 border-t border-border bg-surface/95 p-3 backdrop-blur safe-bottom">
           <div className="mx-auto flex max-w-[720px] items-end gap-2">
             <textarea value={texto} onChange={(e) => setTexto(e.target.value)} rows={1} placeholder="Escribe un mensaje…"
               className="max-h-32 min-h-[46px] flex-1 resize-none rounded-[16px] border border-border bg-surface px-3.5 py-2.5 text-[15px] text-ink shadow-neu-inset focus:border-primary focus:outline-none" />

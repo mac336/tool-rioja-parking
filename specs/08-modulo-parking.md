@@ -1,9 +1,21 @@
-# 08 · Módulo Parking
+# 08 · Módulo Parking Exterior
+
+> El módulo se llama **"Parking Exterior"** en toda la interfaz (mosaico, TabBar,
+> menú, cabecera).
+
+## Aviso contextual en Inicio
+
+En la Home, el aviso de parking **solo aparece cuando toca** (si no, no se
+muestra; el acceso sigue en el círculo de Servicios):
+- **≤ 7 días antes** de que empiece tu turno → "En X días te toca la Plaza N".
+- **Durante** tu turno → "Esta quincena aparcas en la Plaza N".
+- **≤ 3 días para acabar** → cuenta atrás "Te quedan N días…" (con ⏳).
+- Al terminar tu turno, desaparece hasta la siguiente ventana que aplique.
 
 ## Objetivo
-Portar la **rotación automática** existente de las 6 plazas exteriores (detrás
-del login) y **añadir** la posibilidad de que un vecino **done/ceda** su plaza y
-que la comunidad mida la **demanda** de plazas.
+Portar la **rotación automática** existente de las plazas exteriores (detrás del
+login) y **añadir** la posibilidad de que un vecino **done/ceda** su plaza y que
+la comunidad mida la **demanda** de plazas.
 
 ## Parte 1 — Rotación (lógica actual, a preservar)
 - **6 plazas** exteriores, **solo turismos** (no camiones ni furgonetas).

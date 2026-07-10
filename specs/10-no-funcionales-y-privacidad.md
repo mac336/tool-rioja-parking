@@ -1,5 +1,22 @@
 # 10 · Requisitos no funcionales y privacidad
 
+## Estado actual (PWA, notificaciones, layout)
+
+- **Instalar en el móvil** (`InstallPrompt`):
+  - **Android/Chrome:** botón que lanza el instalador nativo (`beforeinstallprompt`).
+  - **iPhone:** Apple **no** permite instalar con un botón; se muestra una **guía
+    animada** (flecha al botón Compartir) y **solo** si es Safari (si es Chrome
+    iOS u otro, se invita a abrir en Safari). Requisito para push en iOS.
+- **Notificaciones push** (Web Push/VAPID, `push_subscriptions`): el vecino las
+  activa en Ajustes. En iPhone requieren la app **instalada**. Envío desde Edge
+  Functions (`notificar`, `notificar-reserva`) con clave privada VAPID en el
+  servidor (la pública va en el cliente). Usos: mensajes nuevos, buzón, reservas.
+- **Layout app-shell:** la app se **fija al viewport visible** (`--app-h` vía
+  VisualViewport, `AppShell` en `position: fixed`). El documento nunca hace
+  scroll; **cabecera y TabBar siempre fijos** y solo scrollea el contenido. Evita
+  el desplazamiento de toda la pantalla con el teclado en iOS.
+- **Bienvenida** al abrir (una vez por sesión) con botón Siguiente.
+
 ## Rendimiento
 - App ligera: carga inicial rápida en móvil (objetivo < 200 KB JS inicial
   comprimido; *code-splitting* por módulo).

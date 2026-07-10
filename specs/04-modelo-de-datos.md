@@ -1,7 +1,46 @@
 # 04 · Modelo de datos y seguridad (RLS)
 
-Base de datos PostgreSQL en Supabase. **RLS activado en todas las tablas.** El
-esquema es orientativo (nombres/tipos afinables en desarrollo).
+Base de datos PostgreSQL en Supabase. **RLS activado en todas las tablas.**
+
+> **Fuente de verdad del esquema:** las migraciones `supabase/migrations/00NN_*`
+> (append-only). El resto de este documento describe la intención; abajo, el
+> **estado actual**.
+
+## Estado actual (resumen, tras migraciones 0001–0018)
+
+**Tablas vigentes:**
+- `viviendas` (catálogo de 41), `profiles` (rol + estado + vivienda + nombre),
+  `access_requests`, `audit_log`.
+- `role_permissions` (permisos por rol, personalizables — 0010).
+- `encuestas` + `encuesta_preguntas` + `encuesta_opciones` + `encuesta_votos`.
+- `zonas_comunes` + `reservas` (multi-zona: filas con `grupo_id` — 0006/0008).
+- `parking_cesiones` (parking; la rotación es cálculo puro, no tabla).
+- `contactos`.
+- **`mensajes`** (aviso/anuncio/incidencia; `tipo`, `firma`, `expira_at`, `activo`
+  — 0012/0014/0015). Ver `specs/16`.
+- **`hilos`** + **`hilo_mensajes`** (buzón privado por `canal` — 0012/0017/0018).
+  Ver `specs/17`.
+- **`push_subscriptions`** (Web Push por dispositivo — 0011).
+
+**Enums añadidos/ampliados:** `user_role` incluye `conserje` (0016);
+`user_estado` incluye `baja` (0009); `mensaje_tipo`; `hilo_canal`
+(administrador/presidencia/conserje/desarrollador); `hilo_estado`.
+
+**Tablas RETIRADAS (migración 0013):** `incidencias` (+ `incidencia_adjuntos`/
+`_comentarios`/`_eventos`), `anuncios`, `reportes`, y sus enums. Se sustituyeron
+por `mensajes` + buzón. La columna `viviendas.puede_publicar_anuncios` se
+conservó inerte. El bucket de Storage `adjuntos` se eliminó.
+
+**Helpers RLS (SECURITY DEFINER):** `es_activo()`, `rol_actual()`,
+`mi_vivienda()`, `tiene_permiso(p)`, `es_gestion()` (= panel),
+`puede_aprobar_altas/reservas()`, `es_app_admin()`, `puede_ver_hilo(canal)`.
+
+---
+
+## Modelo de referencia (intención original)
+
+El esquema detallado abajo es orientativo; para módulos retirados/reemplazados,
+ver los specs correspondientes.
 
 ## Convenciones
 

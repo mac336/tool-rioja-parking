@@ -1,10 +1,19 @@
 # 14 · Módulo Sugerencias sobre la app
 
+> **Estado actual:** implementado con **Opción B** (formulario que envía correo
+> real por Gmail SMTP vía Edge Function `enviar-sugerencia`). El texto aclara que
+> la app la desarrolla un **vecino del Bajo C** y que la sugerencia le llega a él.
+> Solo vecinos activos; el nombre/vivienda los pone el servidor (no el cliente).
+> El correo llega a `cdelarioja25@gmail.com` con reply-to del vecino.
+>
+> Nota: para reportar fallos/ideas de la app en **privado** y con conversación,
+> existe además el canal **"Desarrollador de la app"** del buzón (ver `specs/17`).
+
 ## Objetivo
 Un apartado sencillo para que cualquier vecino envíe **feedback sobre la propia
-app** (fallos, ideas de mejora, "echo en falta X") directamente por **correo** a
-`cdelarioja25@gmail.com`. Es feedback del producto, **distinto** del tablón de
-anuncios (módulo 13) y de las encuestas (módulo 06).
+app** (fallos, ideas de mejora, "echo en falta X") por **correo** a
+`cdelarioja25@gmail.com`. Es feedback del producto, distinto de los mensajes del
+tablón (módulo 16) y de las encuestas (módulo 06).
 
 ## Historias de usuario
 - Como **vecino**, quiero enviar rápido una sugerencia sobre la app sin

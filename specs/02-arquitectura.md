@@ -1,5 +1,19 @@
 # 02 · Arquitectura
 
+## Edge Functions (estado actual)
+
+Operaciones sensibles y envíos, server-side con `service_role`:
+- `solicitar-acceso` — alta pública (captcha + rate-limit).
+- `aprobar-solicitud` — aprueba alta (crea usuario + profile + correo).
+- `gestionar-usuario` — rol / suspender / baja / editar (permiso `aprobar_altas`).
+- `notificar-admin` — avisa a la gestión de nuevas solicitudes.
+- `notificar-reserva` — correo + push al aprobar/rechazar reserva.
+- `notificar` — push de mensajes (a todos) y del buzón (al canal / al vecino).
+- `enviar-sugerencia` — correo de sugerencias sobre la app.
+
+Correo: **Gmail SMTP** (`cdelarioja25@gmail.com`, contraseña de aplicación en
+secreto de la función). Push: **Web Push/VAPID** (clave privada en secreto).
+
 ## Visión general
 
 ```

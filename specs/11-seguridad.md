@@ -4,6 +4,29 @@
 > documento es prioritario y transversal a todos los módulos. La app maneja
 > datos personales de vecinos y decisiones de la comunidad.
 
+## Estado actual (decisiones y controles vigentes)
+
+- **La seguridad la impone la RLS**, no la interfaz. Toda tabla tiene RLS; las
+  operaciones sensibles (rol/estado/alta, publicar mensajes) pasan por **Edge
+  Functions con service_role** o por políticas que comprueban permisos.
+- **Permisos personalizables reales:** los helpers RLS leen `role_permissions`
+  en vivo (`tiene_permiso`), así que quitar un permiso en el panel lo aplica en
+  el servidor, no solo en el cliente. `app_admin` es SUPERADMIN.
+- **Buzón privado por canales:** `puede_ver_hilo(canal)` limita la visibilidad al
+  rol del canal + el vecino dueño. **Ni el app_admin husmea** Presidencia/
+  Conserje (verificado en `tests/rls/rls_test.sql`).
+- **PII / cifrado de nombres:** se decidió **NO cifrar el nombre por columna**.
+  Motivo: para mostrarlo hay que descifrarlo con una clave; en cliente sería
+  inútil y en servidor rompe búsqueda/orden y añade mucha complejidad. Se protege
+  con **cifrado de disco en reposo** (Supabase) + **RLS estricta** (solo vecinos
+  activos ven el directorio; anónimos nada) + **minimización** (solo nombre o
+  alias, sin apellidos).
+- **Login sin contraseñas** (código OTP de 6 dígitos): no hay contraseñas que
+  robar; mensaje de solicitud idéntico exista o no el correo (anti-enumeración).
+- **Verificación:** `tests/rls/rls_test.sql` (asserts de RLS por psql) +
+  `tests/db-int` (integración con Supabase local). Se amplían con cada frontera
+  de seguridad nueva.
+
 ## Principios
 
 1. **Nunca confiar en el cliente.** El navegador es manipulable. Toda regla de

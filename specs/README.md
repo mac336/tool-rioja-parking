@@ -4,32 +4,33 @@ Este directorio contiene las especificaciones funcionales y técnicas de la
 evolución del portal **Rioja 25** desde una PWA estática informativa hacia una
 **app de comunidad** con cuentas, roles y datos compartidos.
 
-> Estas specs son el contrato de lo que hay que construir. **Todavía no hay
-> código nuevo.** Sirven para revisarse (p. ej. con Fable) antes de desarrollar.
+> Estas specs describen el **comportamiento actual** de la app (ya en producción).
+> Se mantienen al día con cada cambio (ver `../CLAUDE.md` → Forma de trabajo, y el
+> `../CHANGELOG.md`). La **fuente de verdad** técnica es el código y las
+> migraciones `supabase/migrations/`.
 
 ## Índice
 
 | Nº | Documento | Contenido |
 |----|-----------|-----------|
-| 01 | [01-vision-y-alcance.md](01-vision-y-alcance.md) | Objetivo, usuarios, alcance de la v1 y fuera de alcance |
-| 02 | [02-arquitectura.md](02-arquitectura.md) | Stack, hosting, entornos y despliegue |
-| 03 | [03-autenticacion-roles-y-acceso.md](03-autenticacion-roles-y-acceso.md) | Login, roles, flujo de solicitud/aprobación de alta, correos |
-| 04 | [04-modelo-de-datos.md](04-modelo-de-datos.md) | Tablas, relaciones y políticas de seguridad (RLS) |
-| 05 | [05-modulo-incidencias.md](05-modulo-incidencias.md) | Reporte y seguimiento de incidencias |
-| 06 | [06-modulo-encuestas.md](06-modulo-encuestas.md) | Encuestas de la comunidad (sondeos informales) |
-| 07 | [07-modulo-reservas.md](07-modulo-reservas.md) | Reserva de zonas comunes con aprobación |
-| 08 | [08-modulo-parking.md](08-modulo-parking.md) | Rotación de plazas + donación/cesión de plaza |
-| 09 | [09-modulo-contactos.md](09-modulo-contactos.md) | Directorio de contactos tras login |
-| 13 | [13-modulo-anuncios.md](13-modulo-anuncios.md) | Tablón de anuncios (creación abierta + aprobación) |
-| 14 | [14-modulo-sugerencias-app.md](14-modulo-sugerencias-app.md) | Sugerencias sobre la propia app (email) |
-| 15 | [15-reglas-de-uso-limites-y-moderacion.md](15-reglas-de-uso-limites-y-moderacion.md) | **Límites anti-abuso, reglas de convivencia y moderación** |
-| 10 | [10-no-funcionales-y-privacidad.md](10-no-funcionales-y-privacidad.md) | Rendimiento, PWA, RGPD, accesibilidad, i18n |
-| 11 | [11-seguridad.md](11-seguridad.md) | **Modelo de amenazas y controles de seguridad** |
+| 01 | [01-vision-y-alcance.md](01-vision-y-alcance.md) | Objetivo, usuarios, alcance |
+| 02 | [02-arquitectura.md](02-arquitectura.md) | Stack, hosting, entornos, despliegue, Edge Functions |
+| 03 | [03-autenticacion-roles-y-acceso.md](03-autenticacion-roles-y-acceso.md) | Login OTP, roles (7), permisos personalizables, estados |
+| 04 | [04-modelo-de-datos.md](04-modelo-de-datos.md) | Tablas, relaciones y RLS (estado actual arriba) |
+| 06 | [06-modulo-encuestas.md](06-modulo-encuestas.md) | Encuestas (sondeos informales) |
+| 07 | [07-modulo-reservas.md](07-modulo-reservas.md) | Reserva de zonas comunes (multi-zona, con aprobación) |
+| 08 | [08-modulo-parking.md](08-modulo-parking.md) | Rotación de plazas + cesión + aviso contextual en Inicio |
+| 09 | [09-modulo-contactos.md](09-modulo-contactos.md) | Directorio de contactos |
+| 14 | [14-modulo-sugerencias-app.md](14-modulo-sugerencias-app.md) | Sugerencias sobre la app (correo real) |
+| 15 | [15-reglas-de-uso-limites-y-moderacion.md](15-reglas-de-uso-limites-y-moderacion.md) | Límites anti-abuso y reglas de convivencia |
+| **16** | [16-modulo-mensajes-y-tablon.md](16-modulo-mensajes-y-tablon.md) | **Mensajes (aviso/anuncio/incidencia) + Tablón de post-its** |
+| **17** | [17-modulo-buzon-privado.md](17-modulo-buzon-privado.md) | **Buzón privado por canales (vecino ↔ gestión)** |
+| 10 | [10-no-funcionales-y-privacidad.md](10-no-funcionales-y-privacidad.md) | Rendimiento, PWA, notificaciones, RGPD, layout |
+| 11 | [11-seguridad.md](11-seguridad.md) | Modelo de amenazas y controles |
 | 12 | [12-roadmap.md](12-roadmap.md) | Fases de entrega |
-| — | [design-prompt.md](design-prompt.md) | Prompt para enviar a diseño (look & feel) |
-
-> Nota de numeración: los módulos 13, 14 y 15 se añadieron después; su lugar de
-> lectura es junto al resto de módulos (tras el 09), aunque el número sea mayor.
+| — | [design-prompt.md](design-prompt.md) | Prompt de diseño (look & feel) |
+| ~~05~~ | ~~incidencias~~ | **RETIRADO** → ver 16 (reemplazado por mensajes) |
+| ~~13~~ | ~~anuncios~~ | **RETIRADO** → ver 16 (reemplazado por mensajes) |
 
 ## Decisiones ya cerradas
 
@@ -37,20 +38,24 @@ evolución del portal **Rioja 25** desde una PWA estática informativa hacia una
 - **Frontend:** React + Vite (SPA, mobile-first, PWA). Uso mayoritario en móvil,
   pero también funciona en PC (responsive).
 - **Hosting:** Vercel (despliegue automático desde GitHub).
-- **Login:** Google **y** enlace mágico por correo (ambos).
+- **Login:** sin contraseña — **código OTP de 6 dígitos por correo** (solo a
+  vecinos ya aprobados). Sin Google ni enlace mágico.
 - **Emisor de correos:** SMTP propio con la cuenta `cdelarioja25@gmail.com`
   (contraseña de aplicación de Google). Sin servicios de pago.
 - **Altas:** el vecino **solicita acceso**; un administrador aprueba cada alta,
   asigna vivienda y rol. Nadie entra sin aprobación.
-- **Roles (6):** `app_admin`, `presidente`, `vicepresidente`,
-  `administrador_finca`, `junta`, `vecino` (detalle en módulo 03).
+- **Roles (7):** `app_admin` (SUPERADMIN), `presidente`, `vicepresidente`,
+  `administrador_finca`, `junta`, `conserje`, `vecino`. **Permisos
+  personalizables** por rol desde el panel (tabla `role_permissions`; módulo 03).
 - **Cuentas por vivienda:** hasta **2**. En votos/encuestas y necesidad de
   parking cuenta **1 por vivienda**.
-- **Alcance v1:** login + gestión de usuarios, incidencias, encuestas, reservas
-  de zonas comunes (con aprobación), parking (rotación + donación de plaza),
-  contactos, tablón de anuncios (con aprobación) y sugerencias sobre la app.
-- **Junta:** fuera de la v1 como sección propia; cuando haga falta será un
-  **anuncio** en el tablón.
+- **Alcance actual:** login + gestión de usuarios, **mensajes/tablón** (avisos/
+  anuncios/incidencias que publica la gestión; módulo 16), **buzón privado** por
+  canales (módulo 17), encuestas, reservas de zonas comunes multi-zona (con
+  aprobación), parking (rotación + cesión), contactos y sugerencias.
+- **Incidencias y anuncios de vecinos:** RETIRADOS; ahora todo pasa por el modelo
+  de **mensajes** (los publica la gestión) y el **buzón** (para reportar en
+  privado). Ver módulos 16 y 17.
 - **Reglas anti-abuso (módulo 15):** 1 reserva vigente por vivienda (cualquier
   zona), sin límite de antelación, aprobadas por el **presidente**; 1 anuncio
   pendiente por vivienda con fecha de inicio/fin obligatorias (≤ 1 año o revisión

@@ -2,8 +2,19 @@
 
 ## Objetivo
 Reservar espacios comunes indicando fecha, horario y nº de invitados. Toda
-reserva queda **pendiente de aprobación por el presidente** antes de confirmarse
-(el `app_admin` puede aprobar también como respaldo).
+reserva queda **pendiente de aprobación** (permiso `aprobar_reservas`, por
+defecto presidente/app_admin) antes de confirmarse.
+
+## Estado actual (multi-zona)
+
+- **Calendario libre** (hasta 6 meses vista) + **hora libre** (desde/hasta).
+- Una reserva puede abarcar **una o varias zonas** en el mismo horario: se
+  guardan como **N filas con un `grupo_id`** común y se crean/aprueban/cancelan
+  en bloque (migraciones 0006/0008). Se valida disponibilidad por zona.
+- **1 reserva vigente por vivienda** (puede incluir varias zonas). El anti-solape
+  por zona lo impone un constraint de BD.
+- Al aprobar/rechazar → **correo + push** al solicitante (`notificar-reserva`).
+- Privacidad: los vecinos ven solo la ocupación (libre/ocupada) sin identidad.
 
 ## Zonas (configurables por app_admin)
 - **Jardín**

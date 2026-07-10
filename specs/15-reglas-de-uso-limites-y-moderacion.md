@@ -1,5 +1,13 @@
 # 15 · Reglas de uso, límites y moderación
 
+> **Actualización:** la moderación de contenido creado por vecinos ya no aplica
+> (incidencias/anuncios retirados). Ahora **solo la gestión publica** mensajes
+> (módulo 16), así que no hay cola de moderación de anuncios/incidencias. El
+> vecino reporta en privado por el **buzón** (módulo 17). Siguen vigentes: **1
+> reserva vigente por vivienda** (módulo 07), **máx. 2 cuentas por vivienda** y
+> **1 voto por vivienda**. Las normas de convivencia se muestran y aceptan en el
+> primer acceso.
+
 Objetivo: prevenir **abusos** (acaparar, saturar, spam) y **disputas** entre
 vecinos, dejando reglas claras y aplicadas por el sistema (no solo por buena
 voluntad). Estas reglas complementan la seguridad técnica del módulo 11.

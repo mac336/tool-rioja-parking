@@ -1,16 +1,26 @@
 import { NavLink } from 'react-router-dom'
-import { Home, Megaphone, CalendarDays, SquareParking, Menu } from 'lucide-react'
+import { Home, Megaphone, CalendarDays, SquareParking, Menu, ShieldCheck } from 'lucide-react'
 import { cx } from '@/components/ui'
+import { puedeAdmin } from '@/lib/roles'
+import { useApp } from '@/store'
 
-const tabs = [
-  { to: '/', label: 'Inicio', Icon: Home, end: true },
-  { to: '/mensajes', label: 'Mensajes', Icon: Megaphone },
-  { to: '/reservas', label: 'Reservas', Icon: CalendarDays },
-  { to: '/parking', label: 'Parking Exterior', Icon: SquareParking },
-  { to: '/mas', label: 'Más', Icon: Menu },
-]
+type Tab = { to: string; label: string; Icon: typeof Home; end?: boolean }
+const INICIO: Tab = { to: '/', label: 'Inicio', Icon: Home, end: true }
+const MENSAJES: Tab = { to: '/mensajes', label: 'Mensajes', Icon: Megaphone }
+const RESERVAS: Tab = { to: '/reservas', label: 'Reservas', Icon: CalendarDays }
+const PARKING: Tab = { to: '/parking', label: 'Parking Exterior', Icon: SquareParking }
+const MAS: Tab = { to: '/mas', label: 'Más', Icon: Menu }
+const GESTION: Tab = { to: '/admin', label: 'Gestión', Icon: ShieldCheck }
 
 export function TabBar() {
+  const { user } = useApp()
+  // Para gestión (superadmin o rol con permiso de panel): "Gestión" entra a la
+  // izquierda y empuja Mensajes a la derecha; se cede el sitio de Parking (que
+  // sigue accesible desde "Más").
+  const tabs = puedeAdmin(user.rol)
+    ? [INICIO, GESTION, MENSAJES, RESERVAS, MAS]
+    : [INICIO, MENSAJES, RESERVAS, PARKING, MAS]
+
   return (
     <nav className="z-20 flex h-[78px] shrink-0 items-stretch border-t border-border bg-surface safe-bottom md:hidden"
       aria-label="Navegación principal">

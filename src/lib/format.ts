@@ -41,6 +41,15 @@ export function rangoFechas(iniIso: string, finIso: string): string {
   return `${dIni} ${MESES[mIni]} al ${dFin} ${MESES[mFin]}`
 }
 
+/** Clave de día 'YYYY-MM-DD' en Europe/Madrid (para agrupar reservas por día). */
+export function claveDia(iso: string): string {
+  const p = new Intl.DateTimeFormat('en-CA', {
+    timeZone: TZ, year: 'numeric', month: '2-digit', day: '2-digit',
+  }).formatToParts(new Date(iso))
+  const g = (t: string) => p.find((x) => x.type === t)?.value ?? ''
+  return `${g('year')}-${g('month')}-${g('day')}`
+}
+
 /** Días restantes hasta una fecha (para "cierra en X días"). */
 export function diasRestantes(iso: string, ahora = new Date()): number {
   const ms = new Date(iso).getTime() - ahora.getTime()

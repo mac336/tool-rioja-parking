@@ -163,24 +163,40 @@ export async function cancelarReserva(grupoId: string): Promise<void> {
 }
 
 // ---- Gestión (cola del presidente) ------------------------------------------
+// Adjunta el nombre del solicitante (vía vista `directorio`, id → nombre) a cada grupo.
+async function conNombres(grupos: ReservaGrupo[]): Promise<ReservaGrupo[]> {
+  const ids = [...new Set(grupos.map((g) => g.solicitada_por))]
+  if (ids.length === 0) return grupos
+  const { data: dir, error } = await supabase.from('directorio')
+    .select('id, nombre').in('id', ids)
+  if (error) throw error
+  const nombrePorId = new Map<string, string>()
+  for (const d of dir ?? []) nombrePorId.set(d.id as string, d.nombre as string)
+  return grupos.map((g) => ({ ...g, nombre: nombrePorId.get(g.solicitada_por) }))
+}
+
 export async function reservasPendientesGestion(): Promise<ReservaGrupo[]> {
   const { data, error } = await supabase.from('reservas')
     .select(RESERVA_SELECT)
     .eq('estado', 'pendiente')
     .order('inicio', { ascending: true })
   if (error) throw error
-  const grupos = agrupar((data ?? []).map((r) => toReserva(r as ReservaRow)))
+  return conNombres(agrupar((data ?? []).map((r) => toReserva(r as ReservaRow))))
+}
 
-  // Nombre del solicitante vía vista `directorio` (id → nombre), para mostrar quién pide.
-  const ids = [...new Set(grupos.map((g) => g.solicitada_por))]
-  const nombrePorId = new Map<string, string>()
-  if (ids.length > 0) {
-    const { data: dir, error: dirErr } = await supabase.from('directorio')
-      .select('id, nombre').in('id', ids)
-    if (dirErr) throw dirErr
-    for (const d of dir ?? []) nombrePorId.set(d.id as string, d.nombre as string)
-  }
-  return grupos.map((g) => ({ ...g, nombre: nombrePorId.get(g.solicitada_por) }))
+/** Reservas (pendientes + aprobadas) cuyo inicio cae en [desdeISO, hastaISO).
+ *  Para la agenda mensual del panel de gestión. */
+export async function reservasGestion(desdeISO: string, hastaISO: string): Promise<ReservaGrupo[]> {
+  const { data, error } = await supabase.from('reservas')
+    .select(RESERVA_SELECT)
+    .in('estado', ['pendiente', 'aprobada'])
+    .gte('inicio', desdeISO)
+    .lt('inicio', hastaISO)
+    .order('inicio', { ascending: true })
+  if (error) throw error
+  const grupos = agrupar((data ?? []).map((r) => toReserva(r as ReservaRow)))
+    .sort((a, b) => a.inicio.localeCompare(b.inicio))
+  return conNombres(grupos)
 }
 
 export async function resolverReserva(grupoId: string, aprobar: boolean, motivo?: string): Promise<void> {

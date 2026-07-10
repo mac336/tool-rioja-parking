@@ -195,6 +195,13 @@ export const reservasPendientesGestion = (): Promise<ReservaGrupo[]> =>
     .map((g) => ({ ...g, nombre: nombreDe(g.solicitada_por) }))
     .sort((a, b) => a.inicio.localeCompare(b.inicio)))
 
+// Agenda mensual de gestión: pendientes + aprobadas cuyo inicio cae en el rango.
+export const reservasGestion = (desdeISO: string, hastaISO: string): Promise<ReservaGrupo[]> =>
+  delay(agrupar(db.reservas.filter((r) =>
+    (r.estado === 'pendiente' || r.estado === 'aprobada') && r.inicio >= desdeISO && r.inicio < hastaISO))
+    .map((g) => ({ ...g, nombre: nombreDe(g.solicitada_por) }))
+    .sort((a, b) => a.inicio.localeCompare(b.inicio)))
+
 export function resolverReserva(grupoId: string, aprobar: boolean, motivo?: string): Promise<void> {
   for (const r of db.reservas) {
     if (claveGrupo(r) !== grupoId) continue

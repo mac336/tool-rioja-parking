@@ -10,7 +10,7 @@ export {
 } from './db/encuestas'
 export {
   listZonas, misReservas, reservaVigente, ocupacionZonaDia, ocupacionDia, crearReserva, cancelarReserva,
-  reservasPendientesGestion, resolverReserva,
+  reservasPendientesGestion, reservasGestion, resolverReserva,
 } from './db/reservas'
 export {
   parkingMisTurnos, listCesiones, misCesiones, cesionesActivas,

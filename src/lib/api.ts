@@ -14,7 +14,7 @@ export const {
   listViviendas,
   listEncuestas, getEncuesta, votarPregunta, crearEncuesta, cerrarEncuesta, borrarEncuesta,
   listZonas, misReservas, reservaVigente, ocupacionZonaDia, ocupacionDia, crearReserva, cancelarReserva,
-  reservasPendientesGestion, resolverReserva,
+  reservasPendientesGestion, reservasGestion, resolverReserva,
   parkingProximas, parkingMisTurnos, listCesiones, misCesiones, cesionesActivas,
   crearCesion, cancelarCesion, reasignarCesion, demandaParking,
   listContactos, crearContacto, editarContacto, borrarContacto,

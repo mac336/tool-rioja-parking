@@ -1,14 +1,15 @@
-import { useState } from 'react'
+import { useMemo, useState } from 'react'
 import {
   Shield, Check, X, Clock, Users, MapPin,
-  UserX, UserCheck, UserMinus, Pencil,
+  UserX, UserCheck, Pencil, Trash2, Search,
+  ChevronLeft, ChevronRight, CalendarDays,
 } from 'lucide-react'
 import {
   Avatar, Button, Card, Field, RoleBadge, SelectField, Alert,
-  EmptyState, ErrorState, SkeletonList, cx,
+  EmptyState, ErrorState, SkeletonList, SectionTitle, cx,
 } from '@/components/ui'
 import { useAsync } from '@/lib/useAsync'
-import { fechaCorta, fechaHora, hora, iniciales } from '@/lib/format'
+import { fechaCorta, fechaHora, hora, claveDia, iniciales } from '@/lib/format'
 import {
   ROLE_LABEL, roleBadgeKind, esAppAdmin, CATALOGO_PERMISOS,
   puedeAprobarAltas, puedeAprobarReservas,
@@ -19,11 +20,11 @@ import { useApp } from '@/store'
 import {
   listAccessRequests, resolverSolicitud, listVecinos, suspenderVecino, cambiarRolVecino,
   editarVecino, darDeBajaVecino,
-  reservasPendientesGestion, resolverReserva,
+  reservasPendientesGestion, reservasGestion, resolverReserva,
   listRolePermisos, setRolePermiso,
 } from '@/lib/api'
 
-type TabKey = 'cuentas' | 'reservas' | 'vecinos' | 'permisos'
+type TabKey = 'acceso' | 'reservas' | 'vecinos' | 'permisos'
 type Seleccion = { vivienda: string; rol: Role }
 type Toast = (t: string, tipo?: 'ok' | 'error' | 'info') => void
 
@@ -39,13 +40,13 @@ export function AdminPage() {
       puedeAprobarAltas(rol) ? listAccessRequests() : Promise.resolve([]),
       puedeAprobarReservas(rol) ? reservasPendientesGestion() : Promise.resolve([]),
     ])
-    return { cuentas: c.length, reservas: r.length }
+    return { acceso: c.length, reservas: r.length }
   }, [])
-  const n = conteos.data ?? { cuentas: 0, reservas: 0 }
+  const n = conteos.data ?? { acceso: 0, reservas: 0 }
   const refrescar = () => conteos.refetch()
 
   const tabs = ([
-    { key: 'cuentas', label: 'Cuentas', show: puedeAprobarAltas(rol), count: n.cuentas },
+    { key: 'acceso', label: 'Acceso', show: puedeAprobarAltas(rol), count: n.acceso },
     { key: 'reservas', label: 'Reservas', show: puedeAprobarReservas(rol), count: n.reservas },
     { key: 'vecinos', label: 'Vecinos', show: puedeAprobarAltas(rol), count: 0 },
     { key: 'permisos', label: 'Permisos', show: true, count: 0 },
@@ -55,36 +56,34 @@ export function AdminPage() {
 
   return (
     <div>
-      <header className="px-4 pb-4 pt-6 text-white" style={{ background: '#14262B' }}>
-        <div className="flex items-center gap-2">
-          <span className="flex h-9 w-9 items-center justify-center rounded-[12px] bg-white/10">
-            <Shield size={20} className="text-accent" />
-          </span>
-          <span className="rounded-pill bg-accent px-2.5 py-1 text-[11px] font-extrabold uppercase tracking-wide text-accent-ink">
-            {esAppAdmin(rol) ? 'Administración' : 'Gestión'}
-          </span>
-        </div>
-        <h1 className="mt-3 font-display text-[26px] font-extrabold">Panel de gestión</h1>
-        <p className="mt-1 text-[13px] text-white/70">Aprueba cuentas y reservas, gestiona vecinos y permisos.</p>
+      {/* Cabecera fija: icono + título + pestañas. Solo el contenido scrollea. */}
+      <header className="sticky top-0 z-20 text-white safe-top" style={{ background: '#14262B' }}>
+        <div className="px-4 pb-2.5 pt-3">
+          <div className="flex items-center gap-2.5">
+            <span className="flex h-9 w-9 shrink-0 items-center justify-center rounded-[12px] bg-white/10">
+              <Shield size={20} className="text-accent" />
+            </span>
+            <h1 className="font-display text-[22px] font-extrabold">Panel de gestión</h1>
+          </div>
 
-        {/* Selector de secciones (scroll horizontal en móvil) */}
-        <div className="-mx-4 mt-4 flex gap-2 overflow-x-auto px-4 pb-1">
-          {tabs.map((t) => (
-            <button key={t.key} type="button" onClick={() => setTab(t.key)}
-              className={cx('inline-flex shrink-0 items-center gap-1.5 rounded-pill px-4 py-1.5 text-[13px] font-bold transition-colors',
-                tab === t.key ? 'bg-white text-[#14262B]' : 'bg-white/10 text-white/70 hover:text-white')}>
-              {t.label}
-              {t.count > 0 && (
-                <span className={cx('inline-flex h-5 min-w-[20px] items-center justify-center rounded-full px-1 text-[11px] font-extrabold',
-                  tab === t.key ? 'bg-accent text-accent-ink' : 'bg-accent text-accent-ink')}>{t.count}</span>
-              )}
-            </button>
-          ))}
+          {/* Selector de secciones (scroll horizontal en móvil) */}
+          <div className="-mx-4 mt-3 flex gap-2 overflow-x-auto px-4 pb-0.5">
+            {tabs.map((t) => (
+              <button key={t.key} type="button" onClick={() => setTab(t.key)}
+                className={cx('inline-flex shrink-0 items-center gap-1.5 rounded-pill px-4 py-1.5 text-[13px] font-bold transition-colors',
+                  tab === t.key ? 'bg-white text-[#14262B]' : 'bg-white/10 text-white/70 hover:text-white')}>
+                {t.label}
+                {t.count > 0 && (
+                  <span className="inline-flex h-5 min-w-[20px] items-center justify-center rounded-full bg-accent px-1 text-[11px] font-extrabold text-accent-ink">{t.count}</span>
+                )}
+              </button>
+            ))}
+          </div>
         </div>
       </header>
 
       <div className="px-4 py-4">
-        {tab === 'cuentas' && <CuentasTab canApprove={puedeAprobarAltas(rol)} onToast={toast} onChanged={refrescar} />}
+        {tab === 'acceso' && <AccesoTab canApprove={puedeAprobarAltas(rol)} onToast={toast} onChanged={refrescar} />}
         {tab === 'reservas' && <ReservasTab onToast={toast} onChanged={refrescar} />}
         {tab === 'vecinos' && <VecinosTab canManage={puedeAprobarAltas(rol)} currentUserId={user.id} onToast={toast} />}
         {tab === 'permisos' && <PermisosTab canEdit={esAppAdmin(rol)} onToast={toast} />}
@@ -93,8 +92,8 @@ export function AdminPage() {
   )
 }
 
-// ---- Cuentas (altas de acceso) -----------------------------------------------
-function CuentasTab({ canApprove, onToast, onChanged }: { canApprove: boolean; onToast: Toast; onChanged: () => void }) {
+// ---- Acceso (altas de acceso) ------------------------------------------------
+function AccesoTab({ canApprove, onToast, onChanged }: { canApprove: boolean; onToast: Toast; onChanged: () => void }) {
   const { data, state, refetch } = useAsync(listAccessRequests, [])
   const [sel, setSel] = useState<Record<string, Seleccion>>({})
   const [pendingId, setPendingId] = useState<string | null>(null)
@@ -163,23 +162,72 @@ function CuentasTab({ canApprove, onToast, onChanged }: { canApprove: boolean; o
   )
 }
 
-// ---- Reservas (aprobación) ---------------------------------------------------
+// ---- Reservas (aprobación + agenda mensual) ----------------------------------
+const DIAS_SEMANA = ['L', 'M', 'X', 'J', 'V', 'S', 'D']
+
+function ReservaCard({ g, children }: { g: ReservaGrupo; children?: React.ReactNode }) {
+  const aprobada = g.estado === 'aprobada'
+  return (
+    <Card>
+      <div className="flex items-center justify-between gap-2">
+        <div className="flex min-w-0 items-center gap-2">
+          <MapPin size={16} className="shrink-0 text-primary" />
+          <div className="truncate font-display text-[16px] font-bold text-ink">{g.zonas.map((z) => z.nombre).join(' + ')}</div>
+        </div>
+        <span className={cx('shrink-0 rounded-pill px-2 py-0.5 text-[11.5px] font-bold',
+          aprobada ? 'bg-success-soft text-success-ink' : 'bg-warn-soft text-warn-ink')}>
+          {aprobada ? 'Aprobada' : 'Pendiente'}
+        </span>
+      </div>
+      <p className="mt-1 text-[13px] text-muted">{g.nombre ? `${g.nombre} · ` : ''}Vivienda {g.vivienda}</p>
+      <p className="mt-0.5 flex items-center gap-1.5 text-[13px] text-muted"><Clock size={14} /> {fechaHora(g.inicio)}–{hora(g.fin)}</p>
+      {g.num_invitados > 0 && <p className="mt-0.5 flex items-center gap-1.5 text-[13px] text-muted"><Users size={14} /> {g.num_invitados} invitados</p>}
+      {children}
+    </Card>
+  )
+}
+
 function ReservasTab({ onToast, onChanged }: { onToast: Toast; onChanged: () => void }) {
-  const { data, state, refetch } = useAsync(reservasPendientesGestion, [])
+  const pend = useAsync(reservasPendientesGestion, [])
   const [busy, setBusy] = useState<string | null>(null)
 
-  if (state === 'loading') return <SkeletonList n={2} />
-  if (state === 'error') return <ErrorState onRetry={refetch} />
-  if (state === 'empty' || !data || data.length === 0) {
-    return <EmptyState titulo="Nada pendiente" texto="No hay reservas esperando aprobación." />
-  }
+  // Agenda mensual: `cursor` = primer día del mes mostrado; `sel` = día YYYY-MM-DD elegido.
+  const [cursor, setCursor] = useState(() => { const d = new Date(); return new Date(d.getFullYear(), d.getMonth(), 1) })
+  const [sel, setSel] = useState<string>(() => claveDia(new Date().toISOString()))
+
+  const y = cursor.getFullYear()
+  const m = cursor.getMonth()
+  const desdeISO = new Date(y, m, 1).toISOString()
+  const hastaISO = new Date(y, m + 1, 1).toISOString()
+  const mes = useAsync(() => reservasGestion(desdeISO, hastaISO), [desdeISO])
+
+  // Reservas del mes agrupadas por día (YYYY-MM-DD).
+  const porDia = useMemo(() => {
+    const map = new Map<string, ReservaGrupo[]>()
+    for (const g of mes.data ?? []) {
+      const k = claveDia(g.inicio)
+      if (!map.has(k)) map.set(k, [])
+      map.get(k)!.push(g)
+    }
+    return map
+  }, [mes.data])
+
+  const diasEnMes = new Date(y, m + 1, 0).getDate()
+  const offset = (new Date(y, m, 1).getDay() + 6) % 7 // 0 = lunes
+  const celdas: (number | null)[] = [...Array(offset).fill(null), ...Array.from({ length: diasEnMes }, (_, i) => i + 1)]
+  const claveCelda = (d: number) => `${y}-${String(m + 1).padStart(2, '0')}-${String(d).padStart(2, '0')}`
+  const hoyKey = claveDia(new Date().toISOString())
+  const mesLabel = new Intl.DateTimeFormat('es-ES', { month: 'long', year: 'numeric', timeZone: 'Europe/Madrid' }).format(cursor)
+
+  const cambiarMes = (delta: number) => setCursor(new Date(y, m + delta, 1))
+  const delDia = porDia.get(sel) ?? []
 
   async function resolver(g: ReservaGrupo, aprobar: boolean) {
     setBusy(g.grupo_id)
     try {
       await resolverReserva(g.grupo_id, aprobar)
       onToast(aprobar ? 'Reserva aprobada' : 'Reserva rechazada', aprobar ? 'ok' : 'info')
-      refetch(); onChanged()
+      pend.refetch(); mes.refetch(); onChanged()
     } catch {
       onToast('No se ha podido completar la acción', 'error')
     } finally {
@@ -187,42 +235,109 @@ function ReservasTab({ onToast, onChanged }: { onToast: Toast; onChanged: () => 
     }
   }
 
+  const pendientes = pend.data ?? []
+
   return (
-    <div className="flex flex-col gap-3">
-      {data.map((g: ReservaGrupo) => {
-        const b = busy === g.grupo_id
-        return (
-          <Card key={g.grupo_id}>
-            <div className="flex items-center gap-2">
-              <MapPin size={16} className="text-primary" />
-              <div className="font-display text-[16px] font-bold text-ink">{g.zonas.map((z) => z.nombre).join(' + ')}</div>
-            </div>
-            <p className="mt-1 text-[13px] text-muted">{g.nombre ? `${g.nombre} · ` : ''}Vivienda {g.vivienda}</p>
-            <p className="mt-0.5 flex items-center gap-1.5 text-[13px] text-muted"><Clock size={14} /> {fechaHora(g.inicio)}–{hora(g.fin)}</p>
-            {g.num_invitados > 0 && <p className="mt-0.5 flex items-center gap-1.5 text-[13px] text-muted"><Users size={14} /> {g.num_invitados} invitados</p>}
-            <div className="mt-3 flex gap-2">
-              <Button block disabled={b} onClick={() => resolver(g, true)}><Check size={17} /> Aprobar</Button>
-              <Button block variant="danger-outline" disabled={b} onClick={() => resolver(g, false)}><X size={17} /> Rechazar</Button>
-            </div>
-          </Card>
-        )
-      })}
+    <div className="flex flex-col gap-5">
+      {/* Cola de aprobación */}
+      {pendientes.length > 0 && (
+        <section>
+          <SectionTitle icon={<Clock size={15} />}>Pendientes de aprobar</SectionTitle>
+          <div className="flex flex-col gap-3">
+            {pendientes.map((g) => (
+              <ReservaCard key={g.grupo_id} g={g}>
+                <div className="mt-3 flex gap-2">
+                  <Button block disabled={busy === g.grupo_id} onClick={() => resolver(g, true)}><Check size={17} /> Aprobar</Button>
+                  <Button block variant="danger-outline" disabled={busy === g.grupo_id} onClick={() => resolver(g, false)}><X size={17} /> Rechazar</Button>
+                </div>
+              </ReservaCard>
+            ))}
+          </div>
+        </section>
+      )}
+
+      {/* Agenda mensual */}
+      <section>
+        <SectionTitle icon={<CalendarDays size={15} />}>Agenda del mes</SectionTitle>
+
+        <Card className="p-3">
+          <div className="mb-2 flex items-center justify-between">
+            <button type="button" aria-label="Mes anterior" onClick={() => cambiarMes(-1)}
+              className="flex h-9 w-9 items-center justify-center rounded-full text-muted hover:bg-surface-2">
+              <ChevronLeft size={20} />
+            </button>
+            <span className="font-display text-[15px] font-bold capitalize text-ink">{mesLabel}</span>
+            <button type="button" aria-label="Mes siguiente" onClick={() => cambiarMes(1)}
+              className="flex h-9 w-9 items-center justify-center rounded-full text-muted hover:bg-surface-2">
+              <ChevronRight size={20} />
+            </button>
+          </div>
+
+          <div className="grid grid-cols-7 gap-1 text-center">
+            {DIAS_SEMANA.map((d) => <div key={d} className="pb-1 text-[11px] font-bold text-faint">{d}</div>)}
+            {celdas.map((d, i) => {
+              if (d === null) return <div key={`e${i}`} />
+              const k = claveCelda(d)
+              const items = porDia.get(k)
+              const seleccionado = k === sel
+              const esHoy = k === hoyKey
+              return (
+                <button key={k} type="button" onClick={() => setSel(k)}
+                  className={cx('relative flex aspect-square flex-col items-center justify-center rounded-[12px] text-[14px] font-semibold transition-colors',
+                    seleccionado ? 'bg-primary text-white'
+                      : esHoy ? 'bg-primary-soft text-primary-700'
+                      : 'text-ink hover:bg-surface-2')}>
+                  {d}
+                  {items && (
+                    <span className={cx('absolute bottom-1 h-1.5 w-1.5 rounded-full',
+                      seleccionado ? 'bg-white' : 'bg-primary')} />
+                  )}
+                </button>
+              )
+            })}
+          </div>
+        </Card>
+
+        {/* Reservas del día elegido */}
+        <div className="mt-3">
+          {mes.state === 'loading' && <SkeletonList n={2} />}
+          {mes.state === 'error' && <ErrorState onRetry={mes.refetch} />}
+          {mes.state !== 'loading' && mes.state !== 'error' && (
+            delDia.length === 0 ? (
+              <p className="rounded-[14px] bg-surface-2 px-4 py-6 text-center text-[13px] text-muted">
+                Sin reservas el {fechaCorta(sel)}.
+              </p>
+            ) : (
+              <div className="flex flex-col gap-3">
+                <p className="text-[13px] font-semibold text-muted">{fechaCorta(sel)} · {delDia.length} {delDia.length === 1 ? 'reserva' : 'reservas'}</p>
+                {delDia.map((g) => <ReservaCard key={g.grupo_id} g={g} />)}
+              </div>
+            )
+          )}
+        </div>
+      </section>
     </div>
   )
 }
 
-// ---- Vecinos (editar, roles, suspensión y baja) ------------------------------
+// ---- Vecinos (buscar, editar, roles, suspensión y baja) ----------------------
 function VecinosTab({ canManage, currentUserId, onToast }: { canManage: boolean; currentUserId: string; onToast: Toast }) {
   const { data, state, refetch } = useAsync(listVecinos, [])
   const [pendingId, setPendingId] = useState<string | null>(null)
   const [editId, setEditId] = useState<string | null>(null)
   const [form, setForm] = useState<{ nombre: string; vivienda: string }>({ nombre: '', vivienda: '' })
+  const [q, setQ] = useState('')
 
   if (state === 'loading') return <SkeletonList n={4} />
   if (state === 'error') return <ErrorState onRetry={refetch} />
   if (state === 'empty' || !data || data.length === 0) {
     return <EmptyState titulo="Sin vecinos" texto="Todavía no hay vecinos dados de alta." />
   }
+
+  const s = q.trim().toLowerCase()
+  const filtrados = s
+    ? data.filter((v) => v.vivienda.toLowerCase().includes(s) || v.nombre.toLowerCase().includes(s))
+    : data
 
   function abrirEdicion(v: Profile) {
     setEditId(v.id); setForm({ nombre: v.nombre, vivienda: v.vivienda })
@@ -277,7 +392,19 @@ function VecinosTab({ canManage, currentUserId, onToast }: { canManage: boolean;
 
   return (
     <div className="flex flex-col gap-3">
-      {data.map((vecino) => {
+      {/* Buscador por piso (o nombre) */}
+      <div className="relative">
+        <Search size={17} className="pointer-events-none absolute left-3.5 top-1/2 -translate-y-1/2 text-faint" />
+        <input value={q} onChange={(e) => setQ(e.target.value)} inputMode="search"
+          placeholder="Buscar por piso (ej. Bajo C)"
+          className="min-h-[46px] w-full rounded-[14px] border border-border bg-surface pl-10 pr-3 text-[15px] text-ink placeholder:text-faint shadow-neu-inset focus:border-primary focus:outline-none" />
+      </div>
+
+      {filtrados.length === 0 && (
+        <p className="rounded-[14px] bg-surface-2 px-4 py-6 text-center text-[13px] text-muted">Ningún vecino coincide con «{q}».</p>
+      )}
+
+      {filtrados.map((vecino) => {
         const busy = pendingId === vecino.id
         const suspendido = vecino.estado === 'suspendido'
         const baja = vecino.estado === 'baja'
@@ -318,7 +445,7 @@ function VecinosTab({ canManage, currentUserId, onToast }: { canManage: boolean;
                 <SelectField label="Rol" value={vecino.rol} onChange={(e) => cambiarRol(vecino, e.target.value as Role)} disabled={busy || baja}>
                   {ROLES.map((r) => <option key={r} value={r}>{ROLE_LABEL[r]}</option>)}
                 </SelectField>
-                <div className="flex flex-wrap gap-2">
+                <div className="flex flex-wrap items-center gap-2">
                   <Button variant="secondary" className="flex-1" disabled={busy} onClick={() => abrirEdicion(vecino)}><Pencil size={16} /> Editar</Button>
                   {!esYo && !baja && !suspendido && (
                     <Button variant="secondary" className="flex-1" disabled={busy} onClick={() => accionEstado(vecino, 'suspender')}><UserX size={16} /> Suspender</Button>
@@ -329,7 +456,7 @@ function VecinosTab({ canManage, currentUserId, onToast }: { canManage: boolean;
                   {!esYo && baja ? (
                     <Button variant="primary" className="flex-1" disabled={busy} onClick={() => accionEstado(vecino, 'reactivar')}><UserCheck size={16} /> Reactivar</Button>
                   ) : !esYo && (
-                    <Button variant="danger-outline" className="flex-1" disabled={busy} onClick={() => accionEstado(vecino, 'baja')}><UserMinus size={16} /> Dar de baja</Button>
+                    <Button variant="danger-outline" disabled={busy} aria-label="Dar de baja" onClick={() => accionEstado(vecino, 'baja')}><Trash2 size={17} /></Button>
                   )}
                 </div>
               </div>

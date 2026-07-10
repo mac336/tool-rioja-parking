@@ -47,6 +47,10 @@ export function SplashScreen({ onDone }: { onDone: () => void }) {
           Siguiente <ArrowRight size={19} />
         </button>
       </div>
+
+      <p className="absolute inset-x-0 bottom-0 pb-[calc(env(safe-area-inset-bottom)+18px)] text-center text-[12px] font-medium tracking-wide text-white/70">
+        Designed and developed by mac336
+      </p>
     </div>
   )
 }

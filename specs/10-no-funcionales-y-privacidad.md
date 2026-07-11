@@ -49,6 +49,12 @@
   origen deja de estar vigente (mensaje borrado/caducado, hilo leído, votación
   cerrada…). Contador de "no vistos" en la campana de la Home comparando `ts`
   con la última visita a /avisos (localStorage, por dispositivo).
+- **Home = panel de GADGETS (sin scroll en móvil):** cabecera → [encuesta] →
+  **tablón elástico** (absorbe el hueco libre; ver `specs/16`) → [parking, solo
+  si toca] → **Servicios** (pieza clave: SIEMPRE visible, pegada al footer,
+  nunca scrollea; todo lo nuevo debe caber en el espacio de arriba). La barra
+  inferior queda con **solo Inicio y Más**; "Más" contiene únicamente lo que no
+  está en la Home (ajustes, gestión, dashboard, normas).
 - **Bienvenida** al abrir (una vez por sesión de pestaña) en **dos pasos**:
   (1) mensaje de bienvenida; (2) **invitación a instalar la app** en el móvil
   (Android: instalador nativo; iPhone: guía Compartir → Añadir a pantalla de

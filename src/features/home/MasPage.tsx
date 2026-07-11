@@ -1,5 +1,5 @@
 import { Link } from 'react-router-dom'
-import { Megaphone, MessageSquare, SquareCheckBig, Phone, Leaf, Lightbulb, Shield, FileText, Settings, ChevronRight, LayoutDashboard, Eye } from 'lucide-react'
+import { Shield, FileText, Settings, ChevronRight, LayoutDashboard, Eye } from 'lucide-react'
 import { useApp } from '@/store'
 import { RoleBadge } from '@/components/ui'
 import { roleBadgeKind, ROLE_LABEL, puedeAdmin, esAppAdmin } from '@/lib/roles'
@@ -7,13 +7,9 @@ import type { Role } from '@/types'
 import { iniciales } from '@/lib/format'
 import { usingSupabase } from '@/lib/supabase'
 
+// "Más" solo tiene lo que NO está en la Home (los servicios viven en el panel
+// de la Home, que es la pieza central de la app).
 const links = [
-  { to: '/mensajes', label: 'Mensajes de la comunidad', Icon: Megaphone },
-  { to: '/buzon', label: 'Contactar con administración', Icon: MessageSquare },
-  { to: '/votaciones', label: 'Votaciones', Icon: SquareCheckBig },
-  { to: '/contactos', label: 'Contactos', Icon: Phone },
-  { to: '/reciclaje', label: 'Reciclaje', Icon: Leaf },
-  { to: '/sugerencias', label: 'Comentarios y sugerencias', Icon: Lightbulb },
   { to: '/normas', label: 'Normas de uso', Icon: FileText },
 ]
 

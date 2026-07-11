@@ -50,6 +50,9 @@ Al implementar algo nuevo o cambiar algo existente:
 - **PWA:** instalable; Android con botón nativo, iPhone con guía (solo Safari).
   Layout app-shell: la app se fija al viewport visible (`--app-h`), cabecera y
   TabBar siempre fijos, solo scrollea el contenido.
+- **Home = panel de gadgets SIN scroll** (tablón elástico de 1 línea + visor;
+  servicios como pieza clave pegada al footer; TabBar solo Inicio y Más; "Más"
+  solo con lo que no está en la Home). Ver `specs/10` y `specs/16`.
 - **PII:** NO se cifra el nombre por columna (decisión tomada); se protege con
   cifrado de disco en reposo + RLS + minimización (solo nombre/alias).
 - **Zona horaria:** Europe/Madrid para toda la lógica de fechas.

@@ -72,3 +72,20 @@ Al publicar un mensaje → **notificación push a todos** los vecinos activos
   `PostItNote`, `PostItPadModal`, `postit.ts`). Colores en el store (`msgColors`).
 - Datos: `src/lib/db/mensajes.ts` (real) / mock. Edge: `notificar`.
 - BD: migraciones 0012 (tabla+RLS+permiso), 0014 (expira_at), 0015 (firma).
+
+## Tablón en la Home (gadget, rediseño 2026-07-11)
+
+La Home es un **panel de gadgets sin scroll** (ver `specs/10`). El tablón:
+
+- **Una línea**: se ve **un post-it** grande (con asomo del siguiente) y se
+  desliza horizontalmente (snap + puntitos). "Ver todo ›" abre el visor.
+- **Altura elástica**: el gadget absorbe el hueco libre de la Home (`flex-1`);
+  el texto muestra tantas líneas como quepan (clamp dinámico por medición).
+  Si no hay parking/encuesta, el post-it crece; en pantallas pequeñas se comprime.
+- **Visor a pantalla completa** al tocar un post-it: se pasan con el dedo
+  (izquierda/derecha o deslizar hacia arriba = siguiente), contador
+  "Incidencia · 1 de N", puntitos coloreados por tipo, texto completo con firma
+  y caducidad. Toca fuera para cerrar.
+- **Orden**: **incidencias → avisos → anuncios** (recientes primero en cada tipo).
+- Componente: `src/features/mensajes/TablonGadget.tsx` (sustituye a
+  TablonBoard/PostItNote/PostItPadModal, retirados).

@@ -129,7 +129,15 @@ al implementar el cambio (ver `CLAUDE.md` → Forma de trabajo).
 - Esqueleto de la app (React+Vite+Supabase), esquema inicial, RLS, triggers,
   vistas y storage (migraciones 0001–0005). Módulos: incidencias, encuestas,
   reservas, parking, contactos, anuncios, sugerencias. Despliegue en Vercel +
-  Supabase. Ver specs 01–15.- **v1.8.0 · Buzón:** Administración y Conserje aparecen como contactos **pausados (solo lectura)**; al tocarlos, aviso de que la función está pausada hasta aprobar el uso completo de la app.
+  Supabase. Ver specs 01–15.- **v1.9.0 · Home rediseñada como panel de gadgets (sin scroll):** el tablón
+  pasa a **una línea** (un post-it grande deslizable; al tocarlo, **visor a
+  pantalla completa** que se pasa con el dedo; orden incidencias → avisos →
+  anuncios) y es **elástico**: crece o se comprime según la pantalla y según
+  haya encuesta/parking. **Servicios** queda como pieza clave pegada al footer,
+  siempre visible. La barra inferior queda con **solo Inicio y Más**, y "Más"
+  solo contiene lo que no está en la Home. Retirados TablonBoard/PostItNote/
+  PostItPadModal.
+- **v1.8.0 · Buzón:** Administración y Conserje aparecen como contactos **pausados (solo lectura)**; al tocarlos, aviso de que la función está pausada hasta aprobar el uso completo de la app.
 - **v1.7.3 · Buzón:** descripción de uso al entrar (chat privado para contactar con la comunidad) + rótulo "Contactar con".
 - **v1.7.2 · Textos de sugerencias:** la sección pasa a **"Comentarios y
   sugerencias"** (comentario / sugerencia / mejora, no solo mejoras). Añadida

@@ -6,7 +6,7 @@ import { saludo, diasRestantes } from '@/lib/format'
 import { parkingMisTurnos, listEncuestas, listMensajes, listAvisos } from '@/lib/api'
 import { contarAvisosNuevos } from '@/lib/avisosVistos'
 import { Logo } from '@/components/Logo'
-import { TablonBoard } from '@/features/mensajes/TablonBoard'
+import { TablonGadget } from '@/features/mensajes/TablonGadget'
 
 // Servicios (accesos a módulos) en círculo — colores fijos de cada módulo.
 const servicios = [
@@ -72,9 +72,14 @@ export function HomePage() {
   })
 
   return (
-    <div className="min-h-full bg-bg">
+    // HOME = panel de GADGETS, fijada a la pantalla (sin scroll en móvil):
+    //   cabecera → [encuesta] → TABLÓN (elástico: absorbe el hueco libre)
+    //   → [parking, solo si toca] → SERVICIOS (pieza clave, SIEMPRE visible
+    //   pegada al footer). Todo lo nuevo debe caber en el espacio de arriba;
+    //   el panel de servicios no se mueve ni scrollea.
+    <div className="flex h-full flex-col overflow-hidden bg-bg px-4">
       {/* Header compacto claro */}
-      <header className="px-4 pb-2 pt-[calc(env(safe-area-inset-top)+20px)]">
+      <header className="shrink-0 pb-2 pt-[calc(env(safe-area-inset-top)+16px)]">
         <div className="flex items-center justify-between">
           <div className="flex items-center gap-2.5">
             <Logo size={42} />
@@ -99,12 +104,11 @@ export function HomePage() {
         </div>
       </header>
 
-      <div className="px-4 pb-6 pt-2">
-        {/* Encuesta protagonista: hero azul (o ámbar si urge) antes del tablón */}
-        {encuestaHero && (
+      {/* Encuesta protagonista: hero azul (o ámbar si urge) antes del tablón */}
+      {encuestaHero && (
           <Link to={`/votaciones/${encuestaHero.id}`}
             aria-label={`${encuestaHero.titulo}, ${cierraTxt.toLowerCase()}, votar ahora`}
-            className="mb-3.5 block rounded-[20px] p-4 text-white"
+            className="mb-2.5 block shrink-0 rounded-[20px] p-4 text-white"
             style={encuestaUrgente
               ? { background: 'linear-gradient(160deg,#C97E2F,color-mix(in srgb,#8A5A0F 80%,#170f00))', boxShadow: '0 14px 30px -14px rgba(207,138,23,.45)' }
               : { background: 'linear-gradient(160deg,#2F76C9,color-mix(in srgb,#1F5AA3 75%,#001217))', boxShadow: '0 14px 30px -14px rgba(47,118,201,.5)' }}>
@@ -128,14 +132,14 @@ export function HomePage() {
               </span>
             </div>
           </Link>
-        )}
+      )}
 
-        {/* Tablón de la comunidad */}
-        <TablonBoard mensajes={actividad} />
+      {/* Tablón (gadget elástico: crece/encoge según el hueco de la pantalla) */}
+      <TablonGadget mensajes={actividad} className="min-h-0 flex-1" />
 
-        {/* Parking strip (solo cuando toca: dentro del turno o ≤7 días antes) */}
-        {parking && (
-          <Link to="/parking" className="mt-3.5 flex items-center gap-3 rounded-[16px] px-4 py-[13px] text-white" style={{ background: 'var(--grad-hero)' }}>
+      {/* Parking (gadget, solo cuando toca: dentro del turno o ≤7 días antes) */}
+      {parking && (
+          <Link to="/parking" className="mt-2.5 flex shrink-0 items-center gap-3 rounded-[16px] px-4 py-[13px] text-white" style={{ background: 'var(--grad-hero)' }}>
             <Car size={26} strokeWidth={1.9} />
             <div className="min-w-0 flex-1">
               <div className="flex items-center gap-1.5 text-[11px] font-bold uppercase tracking-[0.12em] text-white/65">
@@ -145,22 +149,25 @@ export function HomePage() {
             </div>
             <span className="text-[18px] opacity-70">›</span>
           </Link>
-        )}
+      )}
 
-        {/* Servicios en círculo */}
-        <div className="section-title mb-2.5 mt-[22px]">Servicios</div>
+      {/* SERVICIOS — PIEZA CLAVE de la Home: siempre visible, pegado al footer,
+          NUNCA scrollea. El menú "Más" solo tiene lo que NO está aquí. Si se
+          añade algo nuevo a la Home, debe caber en el espacio de arriba. */}
+      <section className="shrink-0 pb-2.5 pt-3">
+        <div className="section-title mb-3">Servicios</div>
         <div className="grid grid-cols-4 gap-x-2 gap-y-3.5">
           {servicios.map(({ to, short, Icon, color }) => (
             <Link key={to} to={to} className="flex flex-col items-center gap-1.5">
-              <span className="flex h-[54px] w-[54px] items-center justify-center rounded-full border border-border bg-surface"
+              <span className="flex h-[56px] w-[56px] items-center justify-center rounded-full border border-border bg-surface"
                 style={{ boxShadow: '0 4px 10px -5px rgba(30,50,60,.35)', color }}>
-                <Icon size={22} strokeWidth={1.9} />
+                <Icon size={23} strokeWidth={1.9} />
               </span>
               <span className="text-center text-[11px] font-semibold leading-[1.1] text-muted">{short}</span>
             </Link>
           ))}
         </div>
-      </div>
+      </section>
     </div>
   )
 }

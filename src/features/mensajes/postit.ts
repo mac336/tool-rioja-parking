@@ -19,9 +19,6 @@ export const POSTIT: Record<MensajeTipo, EstiloPostit> = {
   incidencia: { etiqueta: 'Incidencia', paper: '#FFF1EE', paperBajo: '#F2DBD5', pin: '#1B9E5A', pinHi: '#7FD3A2', tint: '#A3341F', autor: 'Conserjería' },
 }
 
-export const ORDEN_TIPOS: MensajeTipo[] = ['aviso', 'anuncio', 'incidencia']
-export const PLURAL: Record<MensajeTipo, string> = { aviso: 'Avisos', anuncio: 'Anuncios', incidencia: 'Incidencias' }
-
 const MES = ['ene', 'feb', 'mar', 'abr', 'may', 'jun', 'jul', 'ago', 'sep', 'oct', 'nov', 'dic']
 
 /** Fecha manuscrita: "hoy" / "ayer" / "10 jul". */

@@ -5,6 +5,13 @@ al implementar el cambio (ver `CLAUDE.md` → Forma de trabajo).
 
 ## 2026-07-11
 
+- **v1.22.0 · Avisos de moderación y reservas:** al **crear una reserva** ahora
+  llega **push a los aprobadores** (`aprobar_reservas`); al **rechazar** una
+  publicación, el **autor recibe push** ("Tu incidencia/anuncio/sugerencia no se
+  ha publicado"). Y una publicación **ya enviada a aprobar (pendiente) deja de
+  ser editable** por el autor: solo la tocan los moderadores (puede retirarla
+  borrándola). Migración 0035; Edge `notificar` con kinds `reserva_nueva` y
+  `publicacion_rechazada`.
 - **v1.21.0 · Auditoría integral (código muerto, RLS y coherencia):** revisión
   completa de la app con arreglos: **RLS endurecida** (mig. 0034: el tester vuelve
   a ser solo lectura en mensajes/likes; el autor no puede borrar su publicación ya

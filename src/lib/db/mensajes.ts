@@ -153,7 +153,8 @@ export async function moderarPublicacion(id: string, aprobar: boolean): Promise<
   if (aprobar) patch.publica_at = new Date().toISOString()
   const { error } = await supabase.from('mensajes').update(patch).eq('id', id)
   if (error) throw error
-  if (aprobar) void supabase.functions.invoke('notificar', { body: { kind: 'mensaje', id } }).catch(() => undefined)
+  const kind = aprobar ? 'mensaje' : 'publicacion_rechazada'
+  void supabase.functions.invoke('notificar', { body: { kind, id } }).catch(() => undefined)
 }
 
 export async function editarMensaje(id: string, input: MensajeInput): Promise<void> {

@@ -275,10 +275,12 @@ select assert_falla(
 insert into mensajes (id, tipo, titulo, cuerpo, destino, estado, created_by)
   values ('99999999-aaaa-0000-0000-000000000001','sugerencia','__sug A__','quiero 3 presupuestos','todos','pendiente', auth.uid());
 select assert_igual((select count(*) from mensajes where titulo='__sug A__'), 1, 'PUB: vecino SÍ envía pendiente');
--- vecino A: NO puede auto-aprobarse (WITH CHECK de msg_upd)
-select assert_falla(
-  $f$update mensajes set estado='publicado' where id='99999999-aaaa-0000-0000-000000000001'$f$,
-  'PUB: vecino NO se auto-aprueba');
+-- una vez ENVIADA a aprobar (pendiente), el autor NO se auto-aprueba ni la edita
+-- (0035; la RLS filtra el UPDATE en silencio → 0 filas, sin excepción).
+update mensajes set estado='publicado' where id='99999999-aaaa-0000-0000-000000000001';
+select assert_igual((select count(*) from mensajes where id='99999999-aaaa-0000-0000-000000000001' and estado='pendiente'), 1, 'PUB: vecino NO se auto-aprueba');
+update mensajes set titulo='__sug A EDIT__' where id='99999999-aaaa-0000-0000-000000000001';
+select assert_igual((select count(*) from mensajes where titulo='__sug A EDIT__'), 0, 'PUB: autor NO edita una pendiente');
 -- vecino A: NO puede cambiar su propio rol/estado (grants por columna, 0028)
 select assert_falla(
   $f$update profiles set rol='app_admin' where id=auth.uid()$f$,

@@ -138,3 +138,12 @@ La pantalla **Servicios → Sugerencias** es el **tablón de estas sugerencias**
 lista las aprobadas (autor + me gusta) y el **administrador** puede añadir una
 directamente. El feedback privado al desarrollador ya NO vive aquí: se hace por
 el **chat del buzón** (canal Desarrollador).
+
+## Moderación: avisos y edición (mig. 0035)
+
+- Al **aprobar** una publicación → push masivo a todos (kind `mensaje`).
+- Al **rechazar** → push al **autor** (kind `publicacion_rechazada`): "Tu
+  incidencia/anuncio/sugerencia no se ha publicado".
+- Una publicación **pendiente** (ya enviada a aprobar) **no la edita el autor**;
+  solo la editan los moderadores. El autor puede **retirarla borrándola**
+  (RLS `msg_upd`/`msg_del`, mig. 0034/0035).

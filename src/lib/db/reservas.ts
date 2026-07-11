@@ -136,6 +136,8 @@ export async function crearReserva(input: CrearReservaInput): Promise<ReservaGru
     if (error.code === '23P01') throw new Error('Ese horario ya está ocupado en alguna de las zonas elegidas.')
     throw error
   }
+  // Aviso push a los aprobadores (best-effort; la reserva ya está creada).
+  void supabase.functions.invoke('notificar', { body: { kind: 'reserva_nueva', id: grupo_id } }).catch(() => undefined)
   return agrupar((data ?? []).map((r) => toReserva(r as ReservaRow)))[0]
 }
 

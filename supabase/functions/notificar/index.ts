@@ -144,6 +144,57 @@ Deno.serve(async (req) => {
       return json({ ok: true })
     }
 
+    if (kind === 'publicacion_rechazada') {
+      // Un moderador rechazó una publicación → avisar al AUTOR.
+      // Autoriza: quien llama debe poder moderar (app_admin o permiso de aprobar).
+      let puede = perfil.rol === 'app_admin'
+      if (!puede) {
+        const { data: perms } = await admin.from('role_permissions')
+          .select('permiso').eq('rol', perfil.rol)
+          .in('permiso', ['aprobar_incidencias', 'aprobar_anuncios', 'publicar_mensajes'])
+        puede = (perms ?? []).length > 0
+      }
+      if (!puede) return json({ error: 'Sin permiso.' }, 403)
+      const { data: m } = await admin.from('mensajes')
+        .select('tipo, titulo, estado, created_by').eq('id', id).single()
+      if (!m || !m.created_by) return json({ ok: true, skipped: 'sin autor' })
+      const que = m.tipo === 'incidencia' ? 'incidencia' : m.tipo === 'sugerencia' ? 'sugerencia' : 'anuncio'
+      await enviarPushAUsuarios(admin, [m.created_by as string], {
+        title: `Tu ${que} no se ha publicado`,
+        body: m.titulo as string,
+        url: '/buzon',
+      })
+      return json({ ok: true })
+    }
+
+    if (kind === 'reserva_nueva') {
+      // Un vecino creó una reserva pendiente → avisar a los APROBADORES.
+      const { data: filas } = await admin.from('reservas')
+        .select('vivienda, inicio, solicitada_por, zona:zonas_comunes(nombre)')
+        .eq('grupo_id', id)
+      const r = (filas ?? [])[0] as
+        { vivienda: string; inicio: string; solicitada_por: string; zona?: { nombre: string } | { nombre: string }[] | null } | undefined
+      if (!r) return json({ ok: true, skipped: 'sin reserva' })
+      if (r.solicitada_por !== user.id) return json({ error: 'Sin permiso.' }, 403)
+      const roles = new Set<string>(['app_admin'])
+      const { data: perms } = await admin.from('role_permissions')
+        .select('rol').eq('permiso', 'aprobar_reservas')
+      for (const p of perms ?? []) roles.add(p.rol as string)
+      const ids = await idsPorRoles(admin, [...roles])
+      const zonas = (filas ?? [])
+        .map((f) => { const z = (f as { zona?: { nombre: string } | { nombre: string }[] | null }).zona; return Array.isArray(z) ? z[0]?.nombre : z?.nombre })
+        .filter(Boolean).join(' + ')
+      const cuando = new Date(r.inicio).toLocaleString('es-ES', {
+        timeZone: 'Europe/Madrid', weekday: 'short', day: 'numeric', month: 'short', hour: '2-digit', minute: '2-digit',
+      })
+      await enviarPushAUsuarios(admin, ids, {
+        title: '📅 Nueva reserva por aprobar',
+        body: `${zonas || 'Zona común'} · ${r.vivienda} · ${cuando}`,
+        url: '/reservas',
+      })
+      return json({ ok: true })
+    }
+
     return json({ error: 'kind no reconocido.' }, 400)
   } catch (_e) {
     return json({ error: 'No se pudo notificar.' }, 500)

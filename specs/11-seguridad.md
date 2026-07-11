@@ -140,3 +140,11 @@ Checklist a pasar antes de publicar:
 > Recomendación: al terminar el desarrollo, hacer una **revisión de seguridad
 > dedicada** (revisión de políticas RLS + pruebas de intrusión básicas) antes de
 > abrir la app a los vecinos.
+
+## Endurecimiento de grants (mig. 0028, 2026-07-11)
+
+`authenticated` tenía `UPDATE` sobre TODAS las columnas de `profiles`; junto a la
+política "actualiza tu propia fila", permitía a un usuario cambiarse su propio
+`rol`/`estado` (escalada de privilegios). Corregido: `UPDATE` solo sobre
+`nombre`, `normas_aceptadas_at` y `avisos_vistos_at`. Rol/estado/vivienda siguen
+siendo exclusivos de las Edge Functions (service_role).

@@ -29,7 +29,7 @@ export function HomePage() {
   const mensajes = useAsync(listMensajes, [])
   const avisos = useAsync(listAvisos, [])
   const reserva = useAsync(reservaVigente, [])
-  const nuevos = contarAvisosNuevos(avisos.data ?? [])
+  const nuevos = contarAvisosNuevos(avisos.data ?? [], user.avisos_vistos_at)
 
   const abierta = encuestas.data?.find((e) => e.estado === 'abierta')
   const ahora = Date.now()

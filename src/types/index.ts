@@ -24,6 +24,7 @@ export interface Profile {
   rol: Role
   estado: UserStatus
   normas_aceptadas_at: string | null
+  avisos_vistos_at?: string | null
   iniciales: string
 }
 

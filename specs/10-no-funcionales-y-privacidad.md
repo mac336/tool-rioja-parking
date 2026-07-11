@@ -48,7 +48,9 @@
   ordenado del más nuevo al más antiguo (`ts`). Un aviso desaparece cuando su
   origen deja de estar vigente (mensaje borrado/caducado, hilo leído, votación
   cerrada…). Contador de "no vistos" en la campana de la Home comparando `ts`
-  con la última visita a /avisos (localStorage, por dispositivo).
+  con la última visita a /avisos, guardada **en el perfil**
+  (`profiles.avisos_vistos_at`, mig. 0028) → consistente entre dispositivos;
+  localStorage solo como respaldo (demo/offline).
 - **Home = panel de GADGETS (sin scroll en móvil):** cabecera → [encuesta] →
   **tablón elástico** (absorbe el hueco libre con tope de altura; sin mensajes
   muestra "no hay novedades"; ver `specs/16`) → [parking, solo si toca] →

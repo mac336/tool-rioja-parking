@@ -129,7 +129,12 @@ al implementar el cambio (ver `CLAUDE.md` → Forma de trabajo).
 - Esqueleto de la app (React+Vite+Supabase), esquema inicial, RLS, triggers,
   vistas y storage (migraciones 0001–0005). Módulos: incidencias, encuestas,
   reservas, parking, contactos, anuncios, sugerencias. Despliegue en Vercel +
-  Supabase. Ver specs 01–15.- **v1.13.1 · Guía de instalación en iPhone corregida:** 3 pasos reales del
+  Supabase. Ver specs 01–15.- **v1.14.0 · Avisos vistos en BD + seguridad:** la última visita a la campana
+  se guarda en el perfil (`avisos_vistos_at`) → el contador de avisos nuevos es
+  el mismo en el móvil y en la web. De paso, **cerrado un agujero de seguridad**:
+  el UPDATE de `profiles` queda limitado a nombre/normas/avisos (antes permitía
+  a un usuario cambiarse su propio rol). Migración 0028.
+- **v1.13.1 · Guía de instalación en iPhone corregida:** 3 pasos reales del
   Safari actual — tres puntos (⋯) abajo a la derecha → Compartir → bajar hasta
   "Añadir a pantalla de inicio". Flecha animada apuntando al botón ⋯.
 - **v1.13.0 · La gestión escribe a los vecinos:** nuevo permiso configurable

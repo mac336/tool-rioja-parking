@@ -6,11 +6,14 @@ import { Card, EmptyState, ErrorState, SkeletonList } from '@/components/ui'
 import { useAsync } from '@/lib/useAsync'
 import { listAvisos } from '@/lib/api'
 import { marcarAvisosVistos } from '@/lib/avisosVistos'
+import { useApp } from '@/store'
 
 export function AvisosPage() {
   const { data, state, refetch } = useAsync(listAvisos, [])
-  // Al abrir la campana, lo actual queda como "visto" (se borra el contador).
-  useEffect(() => { marcarAvisosVistos() }, [])
+  const refreshAuth = useApp((s) => s.refreshAuth)
+  // Al abrir la campana, todo queda "visto": fecha en el PERFIL (BD, válido en
+  // todos los dispositivos) y refresco del perfil para que el badge se borre.
+  useEffect(() => { void marcarAvisosVistos().then(() => refreshAuth()) }, [refreshAuth])
 
   return (
     <div className="min-h-full bg-bg">

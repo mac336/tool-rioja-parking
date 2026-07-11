@@ -488,9 +488,10 @@ export function listAvisos(): Promise<Aviso[]> {
   const avisos: Aviso[] = []
   const abierta = db.encuestas.find((e) => e.estado === 'abierta')
   if (abierta) avisos.push({ id: 'av-enc', texto: `Votación abierta: ${abierta.titulo}`, cuando: 'Ahora', to: `/votaciones/${abierta.id}`, ts: abierta.apertura })
-  for (const m of db.mensajes.filter((x) => x.activo).slice(0, 3)) {
-    const etiqueta = m.tipo === 'aviso' ? 'Aviso' : m.tipo === 'anuncio' ? 'Anuncio' : 'Incidencia'
-    avisos.push({ id: `av-msg-${m.id}`, texto: `${etiqueta}: ${m.titulo}`, cuando: fechaCorta(m.created_at), to: '/mensajes', ts: m.created_at })
+  const ETIQ: Record<string, string> = { aviso: 'Aviso', anuncio: 'Anuncio', incidencia: 'Incidencia', sugerencia: 'Sugerencia' }
+  const publicados = db.mensajes.filter((x) => x.activo && (x.estado ?? 'publicado') === 'publicado' && (x.destino ?? 'todos') === 'todos')
+  for (const m of publicados.slice(0, 3)) {
+    avisos.push({ id: `av-msg-${m.id}`, texto: `${ETIQ[m.tipo] ?? 'Mensaje'}: ${m.titulo}`, cuando: fechaCorta(m.created_at), to: '/', ts: m.created_at })
   }
   const miReserva = db.reservas.find((r) => r.solicitada_por === currentUser.id && r.estado === 'aprobada')
   if (miReserva) avisos.push({ id: 'av-res', texto: `Tu reserva de ${miReserva.zona_nombre} está aprobada`, cuando: fechaCorta(miReserva.inicio), to: '/reservas/mias', ts: miReserva.created_at })

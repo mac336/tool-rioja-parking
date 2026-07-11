@@ -176,6 +176,12 @@ al implementar el cambio (ver `CLAUDE.md` → Forma de trabajo).
 - **v1.16.0 · Purga de cesiones de parking:** las cesiones canceladas o ya
   pasadas quedan como histórico y se **borran automáticamente a los 10 días**
   (job diario `pg_cron`, migración 0030). Aviso en la UI.
+- **v1.19.1 · Arreglos de coherencia (mensajes/campana):** al tocar una
+  notificación de mensaje ahora abre el **tablón** (Home, los post-its), no la
+  pantalla Mensajes. La campana solo muestra mensajes **publicados y para todos**
+  (ya no cuela borradores/pendientes ni los privados a administración) y etiqueta
+  bien las **sugerencias**. La pantalla Mensajes de gestión añade pestaña
+  **Sugerencias** (solo lectura; se aprueban en Gestión → Publicaciones).
 - **v1.19.0 · Sugerencias de la comunidad (autor + likes):** nueva clase de
   mensaje "sugerencia" (Buzón → Publicar → Sugerencia), con el **autor visible**
   y **likes (1 por vivienda)**. Mismo flujo de moderación que incidencias/

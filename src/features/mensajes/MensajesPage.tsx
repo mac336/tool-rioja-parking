@@ -10,7 +10,11 @@ import { listMensajes, crearMensaje, editarMensaje, borrarMensaje } from '@/lib/
 import type { Mensaje, MensajeTipo } from '@/types'
 import { MensajeCard, TIPO_META } from './MensajeCard'
 
-const ORDEN: MensajeTipo[] = ['aviso', 'anuncio', 'incidencia']
+// Pestañas visibles (incluye Sugerencias, en modo lectura). CREABLES = tipos que
+// la gestión redacta aquí; las sugerencias las publican los vecinos (buzón) y se
+// aprueban en el panel de Gestión → Publicaciones, no se escriben en esta pantalla.
+const ORDEN: MensajeTipo[] = ['aviso', 'anuncio', 'incidencia', 'sugerencia']
+const CREABLES: MensajeTipo[] = ['aviso', 'anuncio', 'incidencia']
 const SECCION: Record<MensajeTipo, string> = { aviso: 'Avisos', anuncio: 'Anuncios', incidencia: 'Incidencias', sugerencia: 'Sugerencias' }
 const FIRMAS = ['Administrador', 'Conserje', 'la Junta', 'Vecinos', ...PISOS]
 
@@ -30,7 +34,8 @@ export function MensajesPage() {
   const [form, setForm] = useState<FormState | null>(null)
   const [saving, setSaving] = useState(false)
 
-  const abrirNuevo = () => setForm({ tipo: tab, titulo: '', cuerpo: '', expira: mananaStr(), firma: 'Administrador' })
+  const nuevoTipo = CREABLES.includes(tab) ? tab : 'aviso'
+  const abrirNuevo = () => setForm({ tipo: nuevoTipo, titulo: '', cuerpo: '', expira: mananaStr(), firma: 'Administrador' })
   const abrirEditar = (m: Mensaje) => setForm({ id: m.id, tipo: m.tipo, titulo: m.titulo, cuerpo: m.cuerpo, expira: m.expira_at ? m.expira_at.slice(0, 10) : '', firma: m.firma || 'Administrador' })
 
   const guardar = async () => {
@@ -61,7 +66,7 @@ export function MensajesPage() {
       <header className="sticky top-0 z-10 border-b border-border bg-surface/95 backdrop-blur safe-top">
         <div className="flex items-center justify-between gap-2 px-4 pb-2 pt-3.5">
           <h1 className="font-display text-[22px] font-extrabold text-ink">Mensajes</h1>
-          {puede && (
+          {puede && tab !== 'sugerencia' && (
             <button onClick={abrirNuevo} className="flex h-10 items-center gap-1.5 rounded-pill bg-primary px-3.5 text-[14px] font-bold text-white shadow-primary">
               <Plus size={18} /> Nuevo
             </button>
@@ -84,12 +89,18 @@ export function MensajesPage() {
       <Page className="flex flex-col gap-2.5">
         {state === 'loading' && <SkeletonList n={3} />}
         {state === 'error' && <ErrorState onRetry={refetch} />}
+        {tab === 'sugerencia' && items.length > 0 && (
+          <p className="rounded-[12px] bg-surface-2 px-3 py-2 text-[12.5px] text-muted">
+            Las sugerencias las publican los vecinos desde el buzón. Para aprobarlas o rechazarlas ve a <b>Gestión → Publicaciones</b>.
+          </p>
+        )}
         {state !== 'loading' && state !== 'error' && items.length === 0 && (
-          <EmptyState titulo={`Sin ${SECCION[tab].toLowerCase()}`} texto={puede ? 'Pulsa “Nuevo” para publicar uno.' : 'No hay nada por ahora.'} />
+          <EmptyState titulo={`Sin ${SECCION[tab].toLowerCase()}`}
+            texto={tab === 'sugerencia' ? 'Las sugerencias las envían los vecinos desde el buzón y se aprueban en Publicaciones.' : puede ? 'Pulsa “Nuevo” para publicar uno.' : 'No hay nada por ahora.'} />
         )}
         {items.map((m) => (
           <MensajeCard key={m.id} m={m} color={msgColors[m.tipo]}
-            onEdit={puede ? abrirEditar : undefined} onDelete={puede ? borrar : undefined} />
+            onEdit={puede && m.tipo !== 'sugerencia' ? abrirEditar : undefined} onDelete={puede ? borrar : undefined} />
         ))}
       </Page>
 
@@ -103,7 +114,7 @@ export function MensajesPage() {
             </div>
             <div className="flex flex-col gap-3">
               <SelectField label="Tipo" value={form.tipo} onChange={(e) => setForm({ ...form, tipo: e.target.value as MensajeTipo })}>
-                {ORDEN.map((t) => <option key={t} value={t}>{TIPO_META[t].label}</option>)}
+                {CREABLES.map((t) => <option key={t} value={t}>{TIPO_META[t].label}</option>)}
               </SelectField>
               <Field label="Título" value={form.titulo} maxLength={140} onChange={(e) => setForm({ ...form, titulo: e.target.value })} placeholder="Ej. Corte de agua el martes" />
               <Textarea label="Mensaje" value={form.cuerpo} maxLength={4000} rows={5} onChange={(e) => setForm({ ...form, cuerpo: e.target.value })} placeholder="Escribe el mensaje para la comunidad…" />

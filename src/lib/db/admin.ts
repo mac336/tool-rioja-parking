@@ -128,13 +128,18 @@ export async function listAvisos(): Promise<Aviso[]> {
     .select('rol, vivienda').eq('id', user.id).single()
   const esGestion = !!perfil && perfil.rol !== 'vecino'
 
-  // Mensajes recientes de la comunidad (aviso/anuncio/incidencia).
+  // Mensajes recientes del tablón: SOLO los ya publicados y para todos (no
+  // borradores/pendientes ni los privados a administración, que la RLS deja ver
+  // a gestión/autor pero NO deben salir en la campana). El toque abre el tablón
+  // (Home), que es donde el vecino los lee como post-its — no la pantalla Mensajes.
   const { data: msgs } = await supabase.from('mensajes')
     .select('id, tipo, titulo, created_at').eq('activo', true)
+    .eq('estado', 'publicado').eq('destino', 'todos')
+    .or(`publica_at.is.null,publica_at.lte.${nowISO}`)
     .order('created_at', { ascending: false }).limit(3)
+  const ETIQ: Record<string, string> = { aviso: 'Aviso', anuncio: 'Anuncio', incidencia: 'Incidencia', sugerencia: 'Sugerencia' }
   for (const m of msgs ?? []) {
-    const etiqueta = m.tipo === 'aviso' ? 'Aviso' : m.tipo === 'anuncio' ? 'Anuncio' : 'Incidencia'
-    avisos.push({ id: `msg-${m.id}`, texto: `${etiqueta}: ${m.titulo}`, cuando: fechaCorta(m.created_at as string), to: '/mensajes', ts: m.created_at as string })
+    avisos.push({ id: `msg-${m.id}`, texto: `${ETIQ[m.tipo as string] ?? 'Mensaje'}: ${m.titulo}`, cuando: fechaCorta(m.created_at as string), to: '/', ts: m.created_at as string })
   }
 
   // Buzón: respuestas a mis hilos (como vecino) y mensajes nuevos de mi canal

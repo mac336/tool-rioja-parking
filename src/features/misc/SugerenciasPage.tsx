@@ -68,15 +68,10 @@ export function SugerenciasPage() {
         </button>
       )} />
       <Page className="flex flex-col gap-3">
-        <div className="flex items-start gap-3 rounded-[16px] border border-border bg-surface p-3.5">
-          <span className="flex h-11 w-11 shrink-0 items-center justify-center rounded-[14px]" style={{ background: '#F1ECFB', color: LILA }}>
-            <Lightbulb size={22} strokeWidth={1.9} />
-          </span>
-          <p className="text-[13px] leading-snug text-muted">
-            Ideas que los vecinos proponen para mejorar la comunidad. Dale a <b>me gusta</b> (uno por vivienda) a las que te convenzan.
-            {' '}Para proponer la tuya, ve al <b>buzón → Publicar → Sugerencia</b>; la revisará la administración antes de verse aquí.
-          </p>
-        </div>
+        <p className="px-1 text-[12.5px] leading-snug text-faint">
+          Ideas que los vecinos proponen para mejorar la comunidad. Dale a <b className="text-muted">me gusta</b> (uno por vivienda) a las que te convenzan.
+          {' '}¿La tuya? Ve al <b className="text-muted">buzón → Publicar → Sugerencia</b>; la revisa la administración antes de verse aquí.
+        </p>
 
         {state === 'loading' && <SkeletonList n={3} />}
         {state === 'error' && <ErrorState onRetry={refetch} />}

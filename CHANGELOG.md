@@ -176,4 +176,9 @@ al implementar el cambio (ver `CLAUDE.md` → Forma de trabajo).
 - **v1.16.0 · Purga de cesiones de parking:** las cesiones canceladas o ya
   pasadas quedan como histórico y se **borran automáticamente a los 10 días**
   (job diario `pg_cron`, migración 0030). Aviso en la UI.
+- **v1.17.0 · Notificaciones y limpieza:** la campana pasa a llamarse
+  **"Notificaciones"**; las ya vistas se muestran en gris (leído) y las nuevas
+  resaltadas con etiqueta **"Nuevo"**. El icono 💬 de la cabecera muestra un
+  **punto rojo** cuando hay un mensaje de buzón sin leer. **Reciclaje** sale de
+  Servicios y pasa al menú **Más**.
 

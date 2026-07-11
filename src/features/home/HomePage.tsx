@@ -1,5 +1,5 @@
 import { Link } from 'react-router-dom'
-import { Bell, Car, SquareCheckBig, CalendarDays, SquareParking, Phone, Leaf, Megaphone, MessageSquare, Lightbulb, Hourglass } from 'lucide-react'
+import { Bell, Car, SquareCheckBig, CalendarDays, SquareParking, Phone, Megaphone, MessageSquare, Lightbulb, Hourglass } from 'lucide-react'
 import { useApp } from '@/store'
 import { useAsync } from '@/lib/useAsync'
 import { saludo, diasRestantes, fechaHora, hora } from '@/lib/format'
@@ -19,7 +19,6 @@ const servicios = [
   { to: '/reservas', short: 'Reservas', Icon: CalendarDays, color: '#2E8E79' },
   { to: '/parking', short: 'Parking', Icon: SquareParking, color: '#8A6FD1' },
   { to: '/contactos', short: 'Contactos', Icon: Phone, color: '#D98A3D' },
-  { to: '/reciclaje', short: 'Reciclaje', Icon: Leaf, color: '#6BAA4E' },
   { to: '/sugerencias', short: 'Sugerencias', Icon: Lightbulb, color: '#C879A9' },
 ]
 
@@ -33,6 +32,9 @@ export function HomePage() {
   const avisos = useAsync(listAvisos, [])
   const reserva = useAsync(reservaVigente, [])
   const nuevos = contarAvisosNuevos(avisos.data ?? [], user.avisos_vistos_at)
+  // Mensaje nuevo del buzón: listAvisos añade avisos con destino '/buzon' cuando
+  // hay hilos sin leer (respuesta al vecino o mensaje nuevo para la gestión).
+  const buzonNuevo = (avisos.data ?? []).some((a) => a.to === '/buzon')
 
   const abierta = encuestas.data?.find((e) => e.estado === 'abierta')
   const ahora = Date.now()
@@ -93,10 +95,13 @@ export function HomePage() {
             </div>
           </div>
           <div className="flex items-center gap-2">
-            <Link to="/buzon" aria-label="Buzón" className="flex h-10 w-10 items-center justify-center rounded-full border border-border bg-surface text-ink">
+            <Link to="/buzon" aria-label={buzonNuevo ? 'Mensajes (nuevo)' : 'Mensajes'} className="relative flex h-10 w-10 items-center justify-center rounded-full border border-border bg-surface text-ink">
               <MessageSquare size={20} strokeWidth={1.9} />
+              {buzonNuevo && (
+                <span className="absolute -right-1 -top-1 h-3 w-3 rounded-full border-2 border-surface bg-danger" />
+              )}
             </Link>
-            <Link to="/avisos" aria-label={nuevos > 0 ? `Avisos (${nuevos} nuevos)` : 'Avisos'} className="relative flex h-10 w-10 items-center justify-center rounded-full border border-border bg-surface text-ink">
+            <Link to="/avisos" aria-label={nuevos > 0 ? `Notificaciones (${nuevos} nuevas)` : 'Notificaciones'} className="relative flex h-10 w-10 items-center justify-center rounded-full border border-border bg-surface text-ink">
               <Bell size={20} strokeWidth={1.9} />
               {nuevos > 0 && (
                 <span className="absolute -right-1 -top-1 flex h-[18px] min-w-[18px] items-center justify-center rounded-full border-2 border-surface bg-danger px-1 text-[10px] font-extrabold leading-none text-white">

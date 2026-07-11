@@ -11,7 +11,7 @@ import type { Mensaje, MensajeTipo } from '@/types'
 import { MensajeCard, TIPO_META } from './MensajeCard'
 
 const ORDEN: MensajeTipo[] = ['aviso', 'anuncio', 'incidencia']
-const SECCION: Record<MensajeTipo, string> = { aviso: 'Avisos', anuncio: 'Anuncios', incidencia: 'Incidencias' }
+const SECCION: Record<MensajeTipo, string> = { aviso: 'Avisos', anuncio: 'Anuncios', incidencia: 'Incidencias', sugerencia: 'Sugerencias' }
 const FIRMAS = ['Administrador', 'Conserje', 'la Junta', 'Vecinos', ...PISOS]
 
 const pad = (n: number) => String(n).padStart(2, '0')

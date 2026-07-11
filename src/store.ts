@@ -21,6 +21,7 @@ export const DEFAULT_MSG_COLORS: MsgColors = {
   aviso: '#F6E2B3',      // ámbar claro
   anuncio: '#C9DEF6',    // azul claro
   incidencia: '#F3C9C9', // rojo claro
+  sugerencia: '#E4DAF7', // lavanda claro
 }
 
 interface AppState {

@@ -1,4 +1,4 @@
-import { Megaphone, TriangleAlert, Bell, Pencil, Trash2 } from 'lucide-react'
+import { Megaphone, TriangleAlert, Bell, Pencil, Trash2, Lightbulb } from 'lucide-react'
 import type { Mensaje, MensajeTipo } from '@/types'
 import { fechaCorta } from '@/lib/format'
 import { cx } from '@/components/ui'
@@ -7,6 +7,7 @@ export const TIPO_META: Record<MensajeTipo, { label: string; Icon: typeof Bell }
   aviso: { label: 'Aviso', Icon: Bell },
   anuncio: { label: 'Anuncio', Icon: Megaphone },
   incidencia: { label: 'Incidencia', Icon: TriangleAlert },
+  sugerencia: { label: 'Sugerencia', Icon: Lightbulb },
 }
 
 export function MensajeCard({ m, color, onEdit, onDelete, clamp }: {

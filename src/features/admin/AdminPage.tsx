@@ -2,7 +2,7 @@ import { useMemo, useState } from 'react'
 import {
   Shield, Check, X, Clock, Users, MapPin,
   UserX, UserCheck, Pencil, Trash2, Search, UserPlus,
-  ChevronLeft, ChevronRight, CalendarDays, Megaphone, TriangleAlert, Inbox,
+  ChevronLeft, ChevronRight, CalendarDays, Megaphone, TriangleAlert, Inbox, Lightbulb,
 } from 'lucide-react'
 import {
   Avatar, Button, Card, Field, RoleBadge, SelectField, Alert,
@@ -617,8 +617,8 @@ function PermisosTab({ canEdit, onToast }: { canEdit: boolean; onToast: Toast })
 // ---- Publicaciones (moderación de incidencias/anuncios de vecinos) ------------
 const PUB_ICON = (t: string) => t === 'incidencia'
   ? <TriangleAlert size={16} className="shrink-0 text-danger" />
-  : t === 'anuncio' ? <Megaphone size={16} className="shrink-0 text-primary" />
-  : <Megaphone size={16} className="shrink-0 text-warn-ink" />
+  : t === 'sugerencia' ? <Lightbulb size={16} className="shrink-0" style={{ color: '#6D4AA3' }} />
+  : <Megaphone size={16} className="shrink-0 text-primary" />
 
 function PublicacionCard({ m, children }: { m: Mensaje; children?: React.ReactNode }) {
   return (

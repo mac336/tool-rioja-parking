@@ -22,7 +22,7 @@ export const {
   listVecinos, suspenderVecino, cambiarRolVecino, editarVecino, darDeBajaVecino, crearVecinoDirecto, statsAcceso, statsAccesoPorVivienda,
   listRolePermisos, setRolePermiso, enviarSugerencia, listSugerencias,
   guardarSuscripcionPush, quitarSuscripcionPush,
-  listMensajes, crearMensaje, editarMensaje, borrarMensaje, crearPublicacion, misPublicaciones, publicacionesGestion, moderarPublicacion,
+  listMensajes, crearMensaje, editarMensaje, borrarMensaje, crearPublicacion, misPublicaciones, publicacionesGestion, moderarPublicacion, alternarLike,
   listHilos, getHilo, crearHilo, crearHiloComoGestion, listDirectorio, responderHilo, cerrarHilo, borrarHilo, convertirEnMensaje,
   listAvisos,
 } = A

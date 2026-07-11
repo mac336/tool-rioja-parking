@@ -6,7 +6,8 @@
 import { supabase } from '@/lib/supabase'
 import type { Mensaje, MensajeTipo, MensajeDestino } from '@/types'
 
-/** Tablón público de la Home: solo publicado, para todos, vigente. */
+/** Tablón público de la Home: solo publicado, para todos, vigente. A las
+ *  SUGERENCIAS les adjunta autor (nombre/piso) y likes (total + si di el mío). */
 export async function listMensajes(): Promise<Mensaje[]> {
   const nowISO = new Date().toISOString()
   const { data, error } = await supabase.from('mensajes')
@@ -14,7 +15,53 @@ export async function listMensajes(): Promise<Mensaje[]> {
     .lte('publica_at', nowISO)
     .order('created_at', { ascending: false })
   if (error) throw error
-  return (data ?? []) as Mensaje[]
+  const msgs = (data ?? []) as Mensaje[]
+
+  const sugerencias = msgs.filter((m) => m.tipo === 'sugerencia')
+  if (sugerencias.length === 0) return msgs
+
+  // Autor de cada sugerencia (directorio).
+  const autorIds = [...new Set(sugerencias.map((m) => m.created_by).filter(Boolean) as string[])]
+  const autores = new Map<string, { nombre: string; vivienda: string }>()
+  if (autorIds.length > 0) {
+    const { data: dir } = await supabase.from('directorio').select('id, nombre, vivienda').in('id', autorIds)
+    for (const d of dir ?? []) autores.set(d.id as string, { nombre: d.nombre as string, vivienda: (d.vivienda as string) ?? '' })
+  }
+  // Likes de esas sugerencias.
+  const ids = sugerencias.map((m) => m.id)
+  const { data: { user } } = await supabase.auth.getUser()
+  let miVivienda = ''
+  if (user) { const { data: p } = await supabase.from('profiles').select('vivienda').eq('id', user.id).single(); miVivienda = (p?.vivienda as string) ?? '' }
+  const { data: likes } = await supabase.from('mensaje_likes').select('mensaje_id, vivienda').in('mensaje_id', ids)
+  const total = new Map<string, number>()
+  const mio = new Set<string>()
+  for (const l of likes ?? []) {
+    total.set(l.mensaje_id as string, (total.get(l.mensaje_id as string) ?? 0) + 1)
+    if (miVivienda && l.vivienda === miVivienda) mio.add(l.mensaje_id as string)
+  }
+  return msgs.map((m) => m.tipo !== 'sugerencia' ? m : {
+    ...m,
+    autor_nombre: m.created_by ? autores.get(m.created_by)?.nombre : undefined,
+    autor_vivienda: m.created_by ? autores.get(m.created_by)?.vivienda : undefined,
+    likes: total.get(m.id) ?? 0,
+    yo_like: mio.has(m.id),
+  })
+}
+
+/** Da o quita el "me gusta" de mi vivienda a una sugerencia. */
+export async function alternarLike(mensajeId: string, dar: boolean): Promise<void> {
+  const { data: { user } } = await supabase.auth.getUser()
+  if (!user) throw new Error('No autenticado')
+  const { data: perfil } = await supabase.from('profiles').select('vivienda').eq('id', user.id).single()
+  const vivienda = perfil?.vivienda as string | null
+  if (!vivienda) throw new Error('Sin vivienda')
+  if (dar) {
+    const { error } = await supabase.from('mensaje_likes').insert({ mensaje_id: mensajeId, vivienda })
+    if (error && error.code !== '23505') throw error // 23505 = ya existe (idempotente)
+  } else {
+    const { error } = await supabase.from('mensaje_likes').delete().eq('mensaje_id', mensajeId).eq('vivienda', vivienda)
+    if (error) throw error
+  }
 }
 
 export interface MensajeInput { tipo: MensajeTipo; titulo: string; cuerpo: string; expira_at?: string | null; firma?: string | null }
@@ -35,7 +82,7 @@ export async function crearMensaje(input: MensajeInput): Promise<Mensaje> {
 }
 
 export interface PublicacionInput {
-  tipo: 'incidencia' | 'anuncio'
+  tipo: 'incidencia' | 'anuncio' | 'sugerencia'
   titulo: string
   cuerpo: string
   destino: MensajeDestino

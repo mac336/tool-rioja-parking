@@ -1,5 +1,5 @@
 import { useState } from 'react'
-import { TriangleAlert, Megaphone, X, Send, FileEdit, Clock, Check, Ban } from 'lucide-react'
+import { TriangleAlert, Megaphone, Lightbulb, X, Send, FileEdit, Clock, Check, Ban } from 'lucide-react'
 import { Card, Field, Textarea, Button, cx } from '@/components/ui'
 import { useAsync } from '@/lib/useAsync'
 import { useApp } from '@/store'
@@ -18,7 +18,7 @@ const ESTADO_META: Record<MensajeEstado, { label: string; cls: string; Icon: typ
 }
 
 type FormState = {
-  tipo: 'incidencia' | 'anuncio'
+  tipo: 'incidencia' | 'anuncio' | 'sugerencia'
   titulo: string
   cuerpo: string
   destino: MensajeDestino
@@ -34,7 +34,7 @@ export function PublicarPanel() {
   const [form, setForm] = useState<FormState | null>(null)
   const [busy, setBusy] = useState(false)
 
-  const abrir = (tipo: 'incidencia' | 'anuncio') =>
+  const abrir = (tipo: 'incidencia' | 'anuncio' | 'sugerencia') =>
     setForm({ tipo, titulo: '', cuerpo: '', destino: 'todos', publica: hoyStr(), expira: '' })
 
   const valido = !!form && form.titulo.trim().length >= 3 && form.cuerpo.trim().length >= 3
@@ -52,7 +52,7 @@ export function PublicarPanel() {
         expira_at: form.tipo === 'anuncio' && form.expira ? new Date(form.expira).toISOString() : undefined,
         borrador,
       })
-      const queTipo = form.tipo === 'incidencia' ? 'incidencia' : 'anuncio'
+      const queTipo = form.tipo
       if (borrador) toast('Guardado como borrador', 'info')
       else if (form.destino === 'administracion') toast('Enviado a administración', 'ok')
       else toast(`Se ha levantado tu ${queTipo}. Se publicará en cuanto la apruebe la administración.`, 'ok')
@@ -70,14 +70,18 @@ export function PublicarPanel() {
       <h2 className="section-title">Publicar</h2>
       <p className="-mt-1 text-[12.5px] text-muted">Reporta una incidencia o publica un anuncio. Antes de verse en la app lo revisa la administración.</p>
 
-      <div className="grid grid-cols-2 gap-2">
+      <div className="grid grid-cols-3 gap-2">
         <button type="button" onClick={() => abrir('incidencia')}
-          className="flex items-center justify-center gap-2 rounded-[14px] border border-border bg-surface px-3 py-3 text-[14px] font-bold text-ink hover:bg-surface-2">
-          <TriangleAlert size={18} className="text-danger" /> Incidencia
+          className="flex flex-col items-center justify-center gap-1 rounded-[14px] border border-border bg-surface px-2 py-2.5 text-[12.5px] font-bold text-ink hover:bg-surface-2">
+          <TriangleAlert size={19} className="text-danger" /> Incidencia
         </button>
         <button type="button" onClick={() => abrir('anuncio')}
-          className="flex items-center justify-center gap-2 rounded-[14px] border border-border bg-surface px-3 py-3 text-[14px] font-bold text-ink hover:bg-surface-2">
-          <Megaphone size={18} className="text-primary" /> Anuncio
+          className="flex flex-col items-center justify-center gap-1 rounded-[14px] border border-border bg-surface px-2 py-2.5 text-[12.5px] font-bold text-ink hover:bg-surface-2">
+          <Megaphone size={19} className="text-primary" /> Anuncio
+        </button>
+        <button type="button" onClick={() => abrir('sugerencia')}
+          className="flex flex-col items-center justify-center gap-1 rounded-[14px] border border-border bg-surface px-2 py-2.5 text-[12.5px] font-bold text-ink hover:bg-surface-2">
+          <Lightbulb size={19} style={{ color: '#6D4AA3' }} /> Sugerencia
         </button>
       </div>
 
@@ -91,6 +95,8 @@ export function PublicarPanel() {
               <Card key={m.id} className="flex items-center gap-3 py-3">
                 {m.tipo === 'incidencia'
                   ? <TriangleAlert size={18} className="shrink-0 text-danger" />
+                  : m.tipo === 'sugerencia'
+                  ? <Lightbulb size={18} className="shrink-0" style={{ color: '#6D4AA3' }} />
                   : <Megaphone size={18} className="shrink-0 text-primary" />}
                 <div className="min-w-0 flex-1">
                   <div className="truncate text-[14px] font-semibold text-ink">{m.titulo}</div>
@@ -111,17 +117,17 @@ export function PublicarPanel() {
           <div className="max-h-full w-full max-w-[520px] overflow-y-auto rounded-t-[20px] bg-surface p-5 shadow-xl sm:rounded-[20px]" onClick={(e) => e.stopPropagation()}>
             <div className="mb-3 flex items-center justify-between">
               <h3 className="font-display text-[18px] font-bold text-ink">
-                {form.tipo === 'incidencia' ? 'Reportar incidencia' : 'Publicar anuncio'}
+                {form.tipo === 'incidencia' ? 'Reportar incidencia' : form.tipo === 'sugerencia' ? 'Nueva sugerencia' : 'Publicar anuncio'}
               </h3>
               <button onClick={() => setForm(null)} aria-label="Cerrar" className="rounded-full p-1.5 text-faint hover:bg-surface-2"><X size={20} /></button>
             </div>
 
             <div className="flex flex-col gap-3">
-              <Field label={form.tipo === 'incidencia' ? '¿Qué quieres reportar?' : '¿Qué quieres anunciar?'}
+              <Field label={form.tipo === 'incidencia' ? '¿Qué quieres reportar?' : form.tipo === 'sugerencia' ? '¿Qué quieres sugerir?' : '¿Qué quieres anunciar?'}
                 value={form.titulo} maxLength={140}
                 onChange={(e) => setForm({ ...form, titulo: e.target.value })}
-                placeholder={form.tipo === 'incidencia' ? 'Ej. Luz fundida en el portal 2' : 'Ej. Vendo bicicleta de niño'} />
-              <Textarea label={form.tipo === 'incidencia' ? 'Describe el problema' : 'Describe tu anuncio'}
+                placeholder={form.tipo === 'incidencia' ? 'Ej. Luz fundida en el portal 2' : form.tipo === 'sugerencia' ? 'Ej. Pedir 3 presupuestos antes de contratar' : 'Ej. Vendo bicicleta de niño'} />
+              <Textarea label={form.tipo === 'incidencia' ? 'Describe el problema' : form.tipo === 'sugerencia' ? 'Explica tu sugerencia' : 'Describe tu anuncio'}
                 value={form.cuerpo} maxLength={4000} rows={5}
                 onChange={(e) => setForm({ ...form, cuerpo: e.target.value })}
                 placeholder="Cuéntanos los detalles…" />

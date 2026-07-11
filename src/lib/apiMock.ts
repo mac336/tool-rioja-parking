@@ -34,6 +34,7 @@ const db = {
   hilos: [] as Hilo[],
   hiloMensajes: [] as HiloMensaje[],
   cesiones: [] as ParkingCesion[],
+  likes: [] as { mensaje_id: string; vivienda: string }[],
 }
 
 // ---- Sesión ------------------------------------------------------------------
@@ -370,7 +371,22 @@ export function quitarSuscripcionPush(_endpoint: string): Promise<void> {
 }
 
 // ---- Mensajes públicos (demo) ------------------------------------------------
-export const listMensajes = () => delay(db.mensajes.filter((m) => m.activo).slice().sort((a, b) => b.created_at.localeCompare(a.created_at)))
+export const listMensajes = (): Promise<Mensaje[]> => delay(
+  db.mensajes.filter((m) => m.activo && (m.estado ?? 'publicado') === 'publicado' && (m.destino ?? 'todos') === 'todos')
+    .slice().sort((a, b) => b.created_at.localeCompare(a.created_at))
+    .map((m) => m.tipo !== 'sugerencia' ? m : {
+      ...m,
+      autor_nombre: nombreDe(m.created_by ?? ''),
+      autor_vivienda: db.profiles.find((p) => p.id === m.created_by)?.vivienda ?? '',
+      likes: db.likes.filter((l) => l.mensaje_id === m.id).length,
+      yo_like: db.likes.some((l) => l.mensaje_id === m.id && l.vivienda === currentUser.vivienda),
+    }))
+export function alternarLike(mensajeId: string, dar: boolean): Promise<void> {
+  const viv = currentUser.vivienda ?? ''
+  if (dar) { if (!db.likes.some((l) => l.mensaje_id === mensajeId && l.vivienda === viv)) db.likes.push({ mensaje_id: mensajeId, vivienda: viv }) }
+  else { db.likes = db.likes.filter((l) => !(l.mensaje_id === mensajeId && l.vivienda === viv)) }
+  return delay(undefined)
+}
 type MensajeInput = { tipo: MensajeTipo; titulo: string; cuerpo: string; expira_at?: string | null; firma?: string | null }
 export function crearMensaje(input: MensajeInput): Promise<Mensaje> {
   const m: Mensaje = { id: uid(), tipo: input.tipo, titulo: input.titulo, cuerpo: input.cuerpo, expira_at: input.expira_at ?? null, firma: input.firma ?? null, created_by: currentUser.id, activo: true, created_at: now() }
@@ -386,7 +402,7 @@ export function borrarMensaje(id: string): Promise<void> {
   db.mensajes = db.mensajes.filter((m) => m.id !== id)
   return delay(undefined)
 }
-type PublicacionInput = { tipo: 'incidencia' | 'anuncio'; titulo: string; cuerpo: string; destino: 'todos' | 'administracion'; publica_at?: string | null; expira_at?: string | null; borrador?: boolean }
+type PublicacionInput = { tipo: 'incidencia' | 'anuncio' | 'sugerencia'; titulo: string; cuerpo: string; destino: 'todos' | 'administracion'; publica_at?: string | null; expira_at?: string | null; borrador?: boolean }
 export function crearPublicacion(input: PublicacionInput): Promise<Mensaje> {
   const estado = input.destino === 'administracion' ? 'publicado' : (input.borrador ? 'borrador' : 'pendiente')
   const m: Mensaje = { id: uid(), tipo: input.tipo, titulo: input.titulo, cuerpo: input.cuerpo, destino: input.destino, estado, publica_at: input.publica_at ?? now(), expira_at: input.expira_at ?? null, created_by: currentUser.id, activo: true, created_at: now() }

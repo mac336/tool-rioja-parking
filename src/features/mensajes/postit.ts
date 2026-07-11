@@ -17,6 +17,7 @@ export const POSTIT: Record<MensajeTipo, EstiloPostit> = {
   aviso: { etiqueta: 'Aviso', paper: '#FFF7DF', paperBajo: '#F3E7BF', pin: '#C33B2C', pinHi: '#F08A7E', tint: '#8A5A0F', autor: 'la Junta' },
   anuncio: { etiqueta: 'Anuncio', paper: '#FFFFFF', paperBajo: '#E8ECEF', pin: '#2F5FA3', pinHi: '#7FB4E8', tint: '#177E8B', autor: 'la Junta' },
   incidencia: { etiqueta: 'Incidencia', paper: '#FFF1EE', paperBajo: '#F2DBD5', pin: '#1B9E5A', pinHi: '#7FD3A2', tint: '#A3341F', autor: 'Conserjería' },
+  sugerencia: { etiqueta: 'Sugerencia', paper: '#F1ECFB', paperBajo: '#E1D8F3', pin: '#7A4FC0', pinHi: '#B79BEA', tint: '#6D4AA3', autor: 'un vecino' },
 }
 
 const MES = ['ene', 'feb', 'mar', 'abr', 'may', 'jun', 'jul', 'ago', 'sep', 'oct', 'nov', 'dic']

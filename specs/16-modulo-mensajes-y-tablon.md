@@ -113,3 +113,18 @@ muestra `publicado` + `todos` + vigente (`publica_at ≤ ahora`, no caducado).
 `aprobar_incidencias`/`aprobar_anuncios`, roletizable): cola de pendientes
 (Aprobar/Rechazar) + reportes privados a administración. Aprobar → publicado +
 push a todos.
+
+## Sugerencias de la comunidad (con autor y likes) — mig. 0032/0033
+
+Nueva clase de mensaje **`sugerencia`** (junto a aviso/anuncio/incidencia), pensada
+para propuestas que un vecino quiere mostrar al resto. Se envía desde **Buzón →
+Publicar → Sugerencia** (mismo flujo de moderación: pendiente → aprobada →
+tablón). A diferencia de los demás:
+- **Se muestra el autor** (nombre + piso) en el post-it y en el visor.
+- **Likes: uno por vivienda** (`mensaje_likes`, RLS: piso real, sobre sugerencia
+  publicada). Botón de like con contador en el visor del tablón; `alternarLike`.
+- NO tiene fechas (como la incidencia).
+
+Nota: la pantalla **"Comentarios y sugerencias"** (Servicios → Sugerencias) es
+OTRA cosa: feedback **privado** sobre la app hacia el desarrollador; no se mezcla
+con estas sugerencias comunitarias.

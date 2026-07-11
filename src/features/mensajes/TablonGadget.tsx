@@ -1,8 +1,9 @@
 import { useLayoutEffect, useRef, useState } from 'react'
 import { useNavigate } from 'react-router-dom'
-import { X, ChevronLeft, ChevronRight, TriangleAlert, Megaphone } from 'lucide-react'
+import { X, ChevronLeft, ChevronRight, TriangleAlert, Megaphone, Lightbulb, Heart } from 'lucide-react'
 import type { Mensaje, MensajeTipo } from '@/types'
 import { POSTIT, fechaMano, caducaTexto } from './postit'
+import { alternarLike } from '@/lib/api'
 import { cx } from '@/components/ui'
 
 // Tablón "gadget" de la Home (rediseño aprobado por mockup):
@@ -13,12 +14,13 @@ import { cx } from '@/components/ui'
 //    que se pasa con el dedo (izquierda/derecha o hacia arriba = siguiente).
 //  - Orden: incidencias → avisos → anuncios (recientes primero dentro de cada tipo).
 
-const ORDEN_HOME: MensajeTipo[] = ['incidencia', 'aviso', 'anuncio']
+const ORDEN_HOME: MensajeTipo[] = ['incidencia', 'aviso', 'anuncio', 'sugerencia']
 
 /** Icono del tipo (mismos que el resto de la app). */
 function TipoIcono({ tipo, color, size = 18 }: { tipo: MensajeTipo; color: string; size?: number }) {
   if (tipo === 'aviso') return <TriangleAlert size={size} style={{ color }} />
   if (tipo === 'anuncio') return <Megaphone size={size} style={{ color }} />
+  if (tipo === 'sugerencia') return <Lightbulb size={size} style={{ color }} />
   return (
     <svg width={size} height={size} viewBox="0 0 24 24" fill="none" stroke={color} strokeWidth={2}
       strokeLinecap="round" strokeLinejoin="round" role="img" aria-label="Incidencia">
@@ -90,13 +92,21 @@ function PostItHome({ m, rot, onClick }: { m: Mensaje; rot: string; onClick: () 
       </div>
 
       <div className="mt-1 flex shrink-0 items-center justify-between gap-2">
-        <span className="truncate text-[11px] font-bold" style={{ color: '#8B9DAA' }}>{m.firma ? `— ${m.firma}` : ''}</span>
-        {m.tipo === 'aviso' && m.expira_at && (
+        <span className="truncate text-[11px] font-bold" style={{ color: '#8B9DAA' }}>
+          {m.tipo === 'sugerencia'
+            ? `— ${m.autor_nombre ?? 'Vecino'}${m.autor_vivienda ? ` · ${m.autor_vivienda}` : ''}`
+            : (m.firma ? `— ${m.firma}` : '')}
+        </span>
+        {m.tipo === 'sugerencia' ? (
+          <span className="flex shrink-0 items-center gap-1 text-[12px] font-bold" style={{ color: e.tint }}>
+            <Heart size={13} fill={m.yo_like ? e.tint : 'none'} /> {m.likes ?? 0}
+          </span>
+        ) : m.tipo === 'aviso' && m.expira_at ? (
           <span className="inline-block shrink-0 px-[7px] py-0.5 text-[9.5px] font-extrabold uppercase tracking-[0.1em]"
             style={{ color: e.tint, border: `1px dashed ${e.tint}`, borderRadius: '3px', transform: 'rotate(-1.5deg)', opacity: 0.75 }}>
             {caducaTexto(m.expira_at)}
           </span>
-        )}
+        ) : null}
       </div>
     </div>
   )
@@ -156,15 +166,27 @@ export function TablonGadget({ mensajes, className }: { mensajes: Mensaje[]; cla
 }
 
 // ---- Visor a pantalla completa -------------------------------------------------
-const TIPO_LABEL: Record<MensajeTipo, string> = { incidencia: 'Incidencia', aviso: 'Aviso', anuncio: 'Anuncio' }
+const TIPO_LABEL: Record<MensajeTipo, string> = { incidencia: 'Incidencia', aviso: 'Aviso', anuncio: 'Anuncio', sugerencia: 'Sugerencia' }
 
 function PostItVisor({ lista, inicial, onClose }: { lista: Mensaje[]; inicial: number; onClose: () => void }) {
   const [idx, setIdx] = useState(inicial)
   const toque = useRef<{ x: number; y: number } | null>(null)
   const m = lista[idx]
-  const e = POSTIT[m.tipo]
 
   const ir = (n: number) => setIdx((i) => Math.max(0, Math.min(lista.length - 1, i + n)))
+
+  // Likes (optimista): estado local por sugerencia; se persiste con alternarLike.
+  const [likes, setLikes] = useState<Record<string, { n: number; yo: boolean }>>(() => {
+    const o: Record<string, { n: number; yo: boolean }> = {}
+    for (const msg of lista) if (msg.tipo === 'sugerencia') o[msg.id] = { n: msg.likes ?? 0, yo: !!msg.yo_like }
+    return o
+  })
+  const toggleLike = async (id: string) => {
+    const cur = likes[id] ?? { n: 0, yo: false }
+    const yo = !cur.yo
+    setLikes((s) => ({ ...s, [id]: { n: Math.max(0, cur.n + (yo ? 1 : -1)), yo } }))
+    try { await alternarLike(id, yo) } catch { setLikes((s) => ({ ...s, [id]: cur })) }
+  }
 
   return (
     <div className="app-viewport z-[60] flex flex-col" style={{ background: 'rgba(9,13,17,.94)' }} onClick={onClose}>
@@ -218,14 +240,22 @@ function PostItVisor({ lista, inicial, onClose }: { lista: Mensaje[]; inicial: n
                   </div>
                   <div className="mt-4 flex shrink-0 items-end justify-between gap-2">
                     <span style={{ fontFamily: 'var(--font-hand)', fontSize: '18px', color: '#5C7180', opacity: 0.9 }}>
-                      {msg.firma ? `— ${msg.firma}` : ''}
+                      {msg.tipo === 'sugerencia'
+                        ? `— ${msg.autor_nombre ?? 'Vecino'}${msg.autor_vivienda ? ` · ${msg.autor_vivienda}` : ''}`
+                        : (msg.firma ? `— ${msg.firma}` : '')}
                     </span>
-                    {msg.tipo === 'aviso' && msg.expira_at && (
+                    {msg.tipo === 'sugerencia' ? (
+                      <button type="button" onClick={() => toggleLike(msg.id)}
+                        className="flex shrink-0 items-center gap-1.5 rounded-pill px-3 py-1.5 text-[14px] font-extrabold active:scale-95"
+                        style={{ color: pe.tint, background: `${pe.tint}1a` }}>
+                        <Heart size={17} fill={likes[msg.id]?.yo ? pe.tint : 'none'} /> {likes[msg.id]?.n ?? 0}
+                      </button>
+                    ) : msg.tipo === 'aviso' && msg.expira_at ? (
                       <span className="inline-block shrink-0 px-2 py-0.5 text-[10px] font-extrabold uppercase tracking-[0.1em]"
                         style={{ color: pe.tint, border: `1px dashed ${pe.tint}`, borderRadius: '3px', transform: 'rotate(-1.5deg)', opacity: 0.75 }}>
                         {caducaTexto(msg.expira_at)}
                       </span>
-                    )}
+                    ) : null}
                   </div>
                 </div>
               </div>

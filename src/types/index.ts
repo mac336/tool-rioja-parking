@@ -80,7 +80,7 @@ export interface Encuesta {
 }
 
 // ---- Mensajería: mensajes públicos + buzón privado --------------------------
-export type MensajeTipo = 'aviso' | 'anuncio' | 'incidencia'
+export type MensajeTipo = 'aviso' | 'anuncio' | 'incidencia' | 'sugerencia'
 export type MensajeEstado = 'borrador' | 'pendiente' | 'publicado' | 'rechazado'
 export type MensajeDestino = 'todos' | 'administracion'
 export interface Mensaje {
@@ -97,6 +97,8 @@ export interface Mensaje {
   publica_at?: string | null // fecha desde la que se publica (anuncios)
   expira_at?: string | null // fecha de expiración / finalización
   firma?: string | null // quién firma (Administrador / Conserje / la Junta / vivienda)
+  likes?: number // nº de "me gusta" (sugerencias)
+  yo_like?: boolean // mi vivienda ya dio like
   created_at: string
 }
 

@@ -73,6 +73,7 @@ export function HomePage() {
   const reciente = (m: { created_at: string }) => ahora - new Date(m.created_at).getTime() <= DOS_DIAS
   const actividad = (mensajes.data ?? []).filter((m) => {
     if (m.tipo === 'incidencia') return true
+    if (m.tipo === 'sugerencia') return true
     if (m.tipo === 'aviso') return m.expira_at ? new Date(m.expira_at).getTime() >= ahora : reciente(m)
     return reciente(m)
   })

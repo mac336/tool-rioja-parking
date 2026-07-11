@@ -176,6 +176,12 @@ al implementar el cambio (ver `CLAUDE.md` → Forma de trabajo).
 - **v1.16.0 · Purga de cesiones de parking:** las cesiones canceladas o ya
   pasadas quedan como histórico y se **borran automáticamente a los 10 días**
   (job diario `pg_cron`, migración 0030). Aviso en la UI.
+- **v1.19.0 · Sugerencias de la comunidad (autor + likes):** nueva clase de
+  mensaje "sugerencia" (Buzón → Publicar → Sugerencia), con el **autor visible**
+  y **likes (1 por vivienda)**. Mismo flujo de moderación que incidencias/
+  anuncios; el tablón muestra un botón de me gusta en el visor. Migraciones
+  0032/0033 (tipo + tabla `mensaje_likes`). No se toca la pantalla privada de
+  "Comentarios y sugerencias" (feedback al desarrollador).
 - **v1.18.0 · Publicaciones de vecinos (incidencias/anuncios con moderación):**
   desde el Buzón, sección "Publicar", el vecino reporta una incidencia o publica
   un anuncio (con fechas, máx. 2 meses) y elige si va **para todos** (pendiente

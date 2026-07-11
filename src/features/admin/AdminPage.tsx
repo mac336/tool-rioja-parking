@@ -340,7 +340,7 @@ function VecinosTab({ canManage, currentUserId, onToast, onChanged }: { canManag
     setAltaBusy(true)
     try {
       await crearVecinoDirecto({ ...alta, nombre: alta.nombre.trim(), email: alta.email.trim().toLowerCase() })
-      onToast(`${alta.nombre.trim()} dado de alta (entrará con su código por correo)`, 'ok')
+      onToast(`${alta.nombre.trim()} dado de alta · invitación enviada a su correo`, 'ok')
       setAlta(null); refetch()
     } catch (e) {
       onToast(e instanceof Error ? e.message : 'No se pudo crear el usuario', 'error')
@@ -426,7 +426,7 @@ function VecinosTab({ canManage, currentUserId, onToast, onChanged }: { canManag
             <SectionTitle icon={<UserPlus size={15} />} className="mb-0">Añadir vecino (alta directa)</SectionTitle>
             <button onClick={() => setAlta(null)} aria-label="Cerrar" className="rounded-full p-1.5 text-faint hover:bg-surface-2"><X size={18} /></button>
           </div>
-          <p className="text-[12.5px] text-muted">Crea la cuenta sin proceso de registro. La persona entrará con el código que le llegue a su correo. Para cuentas de prueba usa el rol <b>Tester</b> (solo lectura + chat).</p>
+          <p className="text-[12.5px] text-muted">Crea la cuenta sin proceso de registro y le envía una <b>invitación por correo</b> con un enlace que abre la app. Para cuentas de prueba usa el rol <b>Tester</b> (solo lectura + chat).</p>
           <Field label="Nombre o alias" value={alta.nombre} maxLength={80} placeholder="Ej. Nico"
             onChange={(e) => setAlta({ ...alta, nombre: e.target.value })} />
           <Field label="Correo" type="email" value={alta.email} placeholder="correo@ejemplo.com"

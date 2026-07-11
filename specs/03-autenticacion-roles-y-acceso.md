@@ -92,8 +92,9 @@ Mensajes; cede el sitio a Parking, que sigue en "Más"). Pestañas:
 - **Vecinos** (unifica el antiguo "Acceso") — arriba del todo las **solicitudes
   de acceso pendientes** (se aprueban primero); botón **"Añadir vecino"** para
   **alta directa sin registro** (nombre, correo, vivienda y rol; crea Auth +
-  perfil activo vía `gestionar-usuario` accion `crear`; la persona entra luego
-  con su código OTP — útil para cuentas de prueba con rol **Tester**). En el alta directa —y **solo
+  perfil activo vía `gestionar-usuario` accion `crear` y envía una **invitación
+  por correo** con un enlace que abre la app — plantilla "invite" en español,
+  `redirectTo=APP_ORIGIN` — útil para cuentas de prueba con rol **Tester**). En el alta directa —y **solo
   ahí**— el desplegable de vivienda ofrece además tres **viviendas especiales**
   (Conserje / Administrador / Tester) para cuentas que **no** representan un piso:
   `es_piso=false`, **no cuentan** como vivienda en votaciones, censo de vecinos

@@ -8,6 +8,7 @@ import { corsHeaders, json } from '../_shared/cors.ts'
 const SUPABASE_URL = Deno.env.get('SUPABASE_URL')!
 const SERVICE_ROLE = Deno.env.get('SUPABASE_SERVICE_ROLE_KEY')!
 const ANON = Deno.env.get('SUPABASE_ANON_KEY')!
+const APP_ORIGIN = Deno.env.get('APP_ORIGIN') ?? ''
 
 const ROLES_VALIDOS = ['app_admin', 'presidente', 'vicepresidente', 'administrador_finca', 'junta', 'conserje', 'vecino', 'tester']
 
@@ -51,12 +52,14 @@ Deno.serve(async (req) => {
         viviendaFinal = viv.codigo
       }
 
-      // Crear en Auth (o localizarlo si ya existía).
-      const { data: created, error: createErr } = await admin.auth.admin.createUser({
-        email: emailT, email_confirm: true,
+      // INVITAR por correo: crea el usuario en Auth y le envía una invitación
+      // con un enlace que abre directamente la app (redirectTo=APP_ORIGIN).
+      // Si ya existía en Auth, se localiza y no se reenvía nada.
+      const { data: invited, error: invErr } = await admin.auth.admin.inviteUserByEmail(emailT, {
+        redirectTo: APP_ORIGIN || undefined,
       })
-      let nuevoId = created?.user?.id
-      if (createErr || !nuevoId) {
+      let nuevoId = invited?.user?.id
+      if (invErr || !nuevoId) {
         const { data: list } = await admin.auth.admin.listUsers()
         nuevoId = list.users.find((u) => u.email?.toLowerCase() === emailT)?.id
         if (!nuevoId) return json({ error: 'No se pudo crear el usuario.' }, 500)

@@ -129,7 +129,10 @@ al implementar el cambio (ver `CLAUDE.md` → Forma de trabajo).
 - Esqueleto de la app (React+Vite+Supabase), esquema inicial, RLS, triggers,
   vistas y storage (migraciones 0001–0005). Módulos: incidencias, encuestas,
   reservas, parking, contactos, anuncios, sugerencias. Despliegue en Vercel +
-  Supabase. Ver specs 01–15.- **v1.10.0 · Gadget de reserva en la Home:** si la vivienda tiene una reserva
+  Supabase. Ver specs 01–15.- **v1.11.0 · Alta directa con invitación:** al dar de alta a alguien desde el
+  panel se le envía un correo de **invitación en español** con botón "Entrar en
+  la app" (enlace directo a la app). Plantilla de invitación personalizada.
+- **v1.10.0 · Gadget de reserva en la Home:** si la vivienda tiene una reserva
   vigente aparece bajo el parking (zonas, fecha/hora, estado → Mis reservas).
   El hueco libre se reparte entre tablón, parking/reserva y servicios; sin
   parking ni reserva queda aire y los servicios abajo.

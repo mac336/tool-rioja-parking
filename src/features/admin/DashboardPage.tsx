@@ -1,13 +1,13 @@
 import { useState } from 'react'
-import { TrendingUp, CalendarCheck, XCircle, CalendarRange, Trophy } from 'lucide-react'
+import { CalendarCheck, XCircle, CalendarRange, Trophy, Lightbulb } from 'lucide-react'
 import { Page } from '@/components/layout/AppShell'
 import { ScreenHeader, Card, SectionTitle, Avatar, ErrorState, SkeletonList, cx } from '@/components/ui'
 import { useAsync } from '@/lib/useAsync'
-import { iniciales } from '@/lib/format'
-import { estadisticasReservas } from '@/lib/api'
+import { iniciales, fechaHora } from '@/lib/format'
+import { estadisticasReservas, listSugerencias } from '@/lib/api'
 import { AdopcionView } from './AdopcionPage'
 
-type Seccion = 'adopcion' | 'reservas'
+type Seccion = 'adopcion' | 'reservas' | 'sugerencias'
 
 const MESES = ['enero', 'febrero', 'marzo', 'abril', 'mayo', 'junio', 'julio', 'agosto', 'septiembre', 'octubre', 'noviembre', 'diciembre']
 
@@ -19,7 +19,7 @@ export function DashboardPage() {
       <Page className="flex flex-col gap-4">
         {/* Selector de sección */}
         <div className="flex gap-2 rounded-pill bg-surface-2 p-1">
-          {([['adopcion', 'Adopción'], ['reservas', 'Reservas']] as [Seccion, string][]).map(([key, label]) => (
+          {([['adopcion', 'Adopción'], ['reservas', 'Reservas'], ['sugerencias', 'Sugerencias']] as [Seccion, string][]).map(([key, label]) => (
             <button key={key} type="button" onClick={() => setSec(key)}
               className={cx('flex-1 rounded-pill py-2 text-[13.5px] font-bold transition-colors',
                 sec === key ? 'bg-surface text-ink shadow-neu-sm' : 'text-muted')}>
@@ -28,7 +28,9 @@ export function DashboardPage() {
           ))}
         </div>
 
-        {sec === 'adopcion' ? <AdopcionView /> : <ReservasStats />}
+        {sec === 'adopcion' && <AdopcionView />}
+        {sec === 'reservas' && <ReservasStats />}
+        {sec === 'sugerencias' && <SugerenciasView />}
       </Page>
     </div>
   )
@@ -86,6 +88,35 @@ function ReservasStats() {
           </Card>
         )}
       </section>
+    </div>
+  )
+}
+
+// ---- Sugerencias recibidas (solo app_admin) ----------------------------------
+function SugerenciasView() {
+  const { data, state, refetch } = useAsync(listSugerencias, [])
+  if (state === 'loading') return <SkeletonList n={3} />
+  if (state === 'error') return <ErrorState onRetry={refetch} />
+  const lista = data ?? []
+  return (
+    <div className="flex flex-col gap-3">
+      <SectionTitle icon={<Lightbulb size={15} />}>Sugerencias recibidas ({lista.length})</SectionTitle>
+      {lista.length === 0 ? (
+        <p className="rounded-[14px] bg-surface-2 px-4 py-6 text-center text-[13px] text-muted">
+          Todavía no hay sugerencias guardadas. (Las anteriores a esta versión no se almacenaban.)
+        </p>
+      ) : lista.map((sg) => (
+        <Card key={sg.id}>
+          <div className="flex items-center gap-2.5">
+            <Avatar text={iniciales(sg.nombre)} size={36} />
+            <div className="min-w-0 flex-1">
+              <div className="truncate text-[14px] font-semibold text-ink">{sg.nombre} <span className="font-normal text-muted">· {sg.vivienda || 'Sin vivienda'}</span></div>
+              <div className="text-[11.5px] text-faint">{fechaHora(sg.created_at)}</div>
+            </div>
+          </div>
+          <p className="mt-2.5 whitespace-pre-wrap text-[14px] leading-relaxed text-ink">{sg.texto}</p>
+        </Card>
+      ))}
     </div>
   )
 }

@@ -39,3 +39,11 @@ tablón (módulo 16) y de las encuestas (módulo 06).
 ## Seguridad
 - Con `mailto:` no hay superficie de servidor. Con formulario propio: validar y
   limitar (captcha/rate-limit), no exponer el correo a scraping innecesario.
+
+## Persistencia y lectura (2026-07-11)
+
+- Toda sugerencia se **guarda en la tabla `sugerencias`** (migración 0026; la
+  inserta la Edge Function con service_role). Antes solo se enviaba por
+  correo/push y podía perderse.
+- El **app_admin las lee en Dashboard → Sugerencias** (RLS: solo `es_app_admin`).
+- El push "💡 Nueva sugerencia" lleva a `/dashboard`.

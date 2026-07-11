@@ -129,7 +129,10 @@ al implementar el cambio (ver `CLAUDE.md` → Forma de trabajo).
 - Esqueleto de la app (React+Vite+Supabase), esquema inicial, RLS, triggers,
   vistas y storage (migraciones 0001–0005). Módulos: incidencias, encuestas,
   reservas, parking, contactos, anuncios, sugerencias. Despliegue en Vercel +
-  Supabase. Ver specs 01–15.- **v1.11.0 · Alta directa con invitación:** al dar de alta a alguien desde el
+  Supabase. Ver specs 01–15.- **v1.12.0 · Sugerencias guardadas y visibles:** cada sugerencia se guarda en
+  BD (tabla `sugerencias`, mig. 0026) y el app_admin las lee en **Dashboard →
+  Sugerencias**. Antes solo viajaban en el push/correo y podían perderse (bug).
+- **v1.11.0 · Alta directa con invitación:** al dar de alta a alguien desde el
   panel se le envía un correo de **invitación en español** con botón "Entrar en
   la app" (enlace directo a la app). Plantilla de invitación personalizada.
 - **v1.10.0 · Gadget de reserva en la Home:** si la vivienda tiene una reserva

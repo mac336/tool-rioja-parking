@@ -38,13 +38,18 @@ Deno.serve(async (req) => {
     const cuerpo = typeof texto === 'string' ? texto.trim() : ''
     if (cuerpo.length < 3 || cuerpo.length > 4000) return json({ error: 'La sugerencia debe tener entre 3 y 4000 caracteres.' }, 400)
 
-    // 3) Aviso al desarrollador (app_admin) por PUSH — canal principal ahora que
+    // 3) GUARDAR la sugerencia en BD (fuente de verdad: el push puede perderse).
+    await admin.from('sugerencias').insert({
+      autor_id: user.id, nombre: perfil.nombre, vivienda: perfil.vivienda, texto: cuerpo,
+    })
+
+    // 4) Aviso al desarrollador (app_admin) por PUSH — canal principal ahora que
     //    los correos de notificación están desactivados.
     const idsDev = await idsPorRoles(admin, ['app_admin'])
     await enviarPushAUsuarios(admin, idsDev, {
       title: '💡 Nueva sugerencia',
-      body: `${perfil.nombre} (${perfil.vivienda}): ${cuerpo.slice(0, 140)}`,
-      url: '/',
+      body: `${perfil.nombre} (${perfil.vivienda ?? 'sin vivienda'}): ${cuerpo.slice(0, 140)}`,
+      url: '/dashboard',
     }).catch(() => undefined)
 
     // 4) Correo (solo si los correos de notificación están activados y hay SMTP).

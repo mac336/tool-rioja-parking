@@ -24,7 +24,7 @@ export {
   editarVecino, darDeBajaVecino, crearVecinoDirecto, statsAcceso, statsAccesoPorVivienda, listAvisos,
 } from './db/admin'
 export { listRolePermisos, setRolePermiso } from './db/permisos'
-export { enviarSugerencia } from './db/sugerencias'
+export { enviarSugerencia, listSugerencias } from './db/sugerencias'
 export { guardarSuscripcionPush, quitarSuscripcionPush } from './db/push'
 export { listMensajes, crearMensaje, editarMensaje, borrarMensaje } from './db/mensajes'
 export { listHilos, getHilo, crearHilo, responderHilo, cerrarHilo, borrarHilo, convertirEnMensaje } from './db/buzon'

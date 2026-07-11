@@ -314,6 +314,9 @@ export function editarVecino(id: string, patch: { nombre?: string; vivienda?: st
   }
   return delay(undefined)
 }
+export interface Sugerencia { id: string; nombre: string; vivienda: string | null; texto: string; created_at: string }
+const sugerenciasDemo: Sugerencia[] = []
+export function listSugerencias(): Promise<Sugerencia[]> { return delay(sugerenciasDemo.slice()) }
 export function statsAcceso(): Promise<{ creados: number; entrados: number }> {
   const activos = db.profiles.filter((p) => p.estado === 'activo').length
   return delay({ creados: activos, entrados: activos })

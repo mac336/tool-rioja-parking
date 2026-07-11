@@ -20,7 +20,7 @@ export const {
   listContactos, crearContacto, editarContacto, borrarContacto,
   listAccessRequests, resolverSolicitud, crearSolicitud,
   listVecinos, suspenderVecino, cambiarRolVecino, editarVecino, darDeBajaVecino, crearVecinoDirecto, statsAcceso, statsAccesoPorVivienda,
-  listRolePermisos, setRolePermiso, enviarSugerencia,
+  listRolePermisos, setRolePermiso, enviarSugerencia, listSugerencias,
   guardarSuscripcionPush, quitarSuscripcionPush,
   listMensajes, crearMensaje, editarMensaje, borrarMensaje,
   listHilos, getHilo, crearHilo, responderHilo, cerrarHilo, borrarHilo, convertirEnMensaje,

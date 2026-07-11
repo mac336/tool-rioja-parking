@@ -61,7 +61,12 @@ export function SugerenciasPage() {
 
   return (
     <div className="min-h-full bg-bg">
-      <SubHeader titulo="Sugerencias" />
+      <SubHeader titulo="Sugerencias" right={puede && (
+        <button onClick={() => setForm({ titulo: '', cuerpo: '' })} disabled={tester}
+          className="flex h-10 items-center gap-1.5 rounded-pill bg-primary px-3.5 text-[14px] font-bold text-white shadow-primary disabled:opacity-50">
+          <Plus size={18} /> Nueva
+        </button>
+      )} />
       <Page className="flex flex-col gap-3">
         <div className="flex items-start gap-3 rounded-[16px] border border-border bg-surface p-3.5">
           <span className="flex h-11 w-11 shrink-0 items-center justify-center rounded-[14px]" style={{ background: '#F1ECFB', color: LILA }}>
@@ -72,12 +77,6 @@ export function SugerenciasPage() {
             {' '}Para proponer la tuya, ve al <b>buzón → Publicar → Sugerencia</b>; la revisará la administración antes de verse aquí.
           </p>
         </div>
-
-        {puede && (
-          <Button block onClick={() => setForm({ titulo: '', cuerpo: '' })} disabled={tester}>
-            <Plus size={18} /> Nueva sugerencia
-          </Button>
-        )}
 
         {state === 'loading' && <SkeletonList n={3} />}
         {state === 'error' && <ErrorState onRetry={refetch} />}

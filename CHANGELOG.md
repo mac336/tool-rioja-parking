@@ -176,6 +176,8 @@ al implementar el cambio (ver `CLAUDE.md` → Forma de trabajo).
 - **v1.16.0 · Purga de cesiones de parking:** las cesiones canceladas o ya
   pasadas quedan como histórico y se **borran automáticamente a los 10 días**
   (job diario `pg_cron`, migración 0030). Aviso en la UI.
+- **v1.20.1 · Sugerencias:** el botón de alta pasa a la cabecera (“+ Nueva”),
+  como en Mensajes.
 - **v1.20.0 · "Sugerencias" pasa a ser el tablón de la comunidad:** la pantalla
   de Sugerencias ya no es el formulario de feedback al desarrollador (eso ahora
   se hace por el chat del buzón). Ahora **lista las sugerencias aprobadas** con su

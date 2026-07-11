@@ -1,16 +1,21 @@
 import { NavLink } from 'react-router-dom'
-import { Home, Menu } from 'lucide-react'
+import { Home, Menu, ShieldCheck } from 'lucide-react'
 import { cx } from '@/components/ui'
 import { resetViewport } from '@/lib/viewport'
+import { puedeAdmin } from '@/lib/roles'
+import { useApp } from '@/store'
 
 // La Home es el centro de la app (panel de gadgets con todos los servicios),
-// así que el footer solo necesita dos accesos: Inicio y Más.
-const tabs = [
-  { to: '/', label: 'Inicio', Icon: Home, end: true },
-  { to: '/mas', label: 'Más', Icon: Menu, end: false },
-]
+// así que el footer solo necesita Inicio y Más. Para la gestión, se intercala
+// "Gestión" en MEDIO (solo si el rol tiene panel).
+const INICIO = { to: '/', label: 'Inicio', Icon: Home, end: true }
+const GESTION = { to: '/admin', label: 'Gestión', Icon: ShieldCheck, end: false }
+const MAS = { to: '/mas', label: 'Más', Icon: Menu, end: false }
 
 export function TabBar() {
+  const { user } = useApp()
+  const tabs = puedeAdmin(user.rol) ? [INICIO, GESTION, MAS] : [INICIO, MAS]
+
   return (
     <nav className="z-20 flex h-[78px] shrink-0 items-stretch border-t border-border bg-surface safe-bottom md:hidden"
       aria-label="Navegación principal">

@@ -176,6 +176,12 @@ al implementar el cambio (ver `CLAUDE.md` → Forma de trabajo).
 - **v1.16.0 · Purga de cesiones de parking:** las cesiones canceladas o ya
   pasadas quedan como histórico y se **borran automáticamente a los 10 días**
   (job diario `pg_cron`, migración 0030). Aviso en la UI.
+- **v1.20.0 · "Sugerencias" pasa a ser el tablón de la comunidad:** la pantalla
+  de Sugerencias ya no es el formulario de feedback al desarrollador (eso ahora
+  se hace por el chat del buzón). Ahora **lista las sugerencias aprobadas** con su
+  autor y un botón de **me gusta** (uno por vivienda), y el **administrador**
+  (permiso `publicar_mensajes`) puede **añadir una nueva** directamente publicada.
+  Los vecinos siguen proponiendo desde el buzón (Publicar → Sugerencia, moderado).
 - **v1.19.1 · Arreglos de coherencia (mensajes/campana):** al tocar una
   notificación de mensaje ahora abre el **tablón** (Home, los post-its), no la
   pantalla Mensajes. La campana solo muestra mensajes **publicados y para todos**

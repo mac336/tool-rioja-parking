@@ -125,6 +125,7 @@ tablón). A diferencia de los demás:
   publicada). Botón de like con contador en el visor del tablón; `alternarLike`.
 - NO tiene fechas (como la incidencia).
 
-Nota: la pantalla **"Comentarios y sugerencias"** (Servicios → Sugerencias) es
-OTRA cosa: feedback **privado** sobre la app hacia el desarrollador; no se mezcla
-con estas sugerencias comunitarias.
+La pantalla **Servicios → Sugerencias** es el **tablón de estas sugerencias**:
+lista las aprobadas (autor + me gusta) y el **administrador** puede añadir una
+directamente. El feedback privado al desarrollador ya NO vive aquí: se hace por
+el **chat del buzón** (canal Desarrollador).

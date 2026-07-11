@@ -2,8 +2,8 @@ import { Link } from 'react-router-dom'
 import { Bell, Car, SquareCheckBig, CalendarDays, SquareParking, Phone, Leaf, Megaphone, MessageSquare, Lightbulb, Hourglass } from 'lucide-react'
 import { useApp } from '@/store'
 import { useAsync } from '@/lib/useAsync'
-import { saludo, diasRestantes } from '@/lib/format'
-import { parkingMisTurnos, listEncuestas, listMensajes, listAvisos } from '@/lib/api'
+import { saludo, diasRestantes, fechaHora, hora } from '@/lib/format'
+import { parkingMisTurnos, listEncuestas, listMensajes, listAvisos, reservaVigente } from '@/lib/api'
 import { contarAvisosNuevos } from '@/lib/avisosVistos'
 import { Logo } from '@/components/Logo'
 import { TablonGadget } from '@/features/mensajes/TablonGadget'
@@ -28,6 +28,7 @@ export function HomePage() {
   const encuestas = useAsync(listEncuestas, [])
   const mensajes = useAsync(listMensajes, [])
   const avisos = useAsync(listAvisos, [])
+  const reserva = useAsync(reservaVigente, [])
   const nuevos = contarAvisosNuevos(avisos.data ?? [])
 
   const abierta = encuestas.data?.find((e) => e.estado === 'abierta')
@@ -137,18 +138,41 @@ export function HomePage() {
       {/* Tablón (gadget elástico: crece/encoge según el hueco de la pantalla) */}
       <TablonGadget mensajes={actividad} className="mb-auto min-h-0 max-h-[300px] flex-1" />
 
-      {/* Parking (gadget, solo cuando toca: dentro del turno o ≤7 días antes) */}
-      {parking && (
-          <Link to="/parking" className="my-auto flex shrink-0 items-center gap-3 rounded-[16px] px-4 py-[13px] text-white" style={{ background: 'var(--grad-hero)' }}>
-            <Car size={26} strokeWidth={1.9} />
-            <div className="min-w-0 flex-1">
-              <div className="flex items-center gap-1.5 text-[11px] font-bold uppercase tracking-[0.12em] text-white/65">
-                Parking exterior {parking.urgente && <span className="rounded-full bg-white/20 px-1.5 py-px text-[10px]">⏳</span>}
+      {/* Gadgets contextuales: parking (si toca) + reserva activa. Flotan en el
+          hueco entre el tablón y los servicios repartiendo el espacio libre. */}
+      {(parking || reserva.data) && (
+        <div className="my-auto flex shrink-0 flex-col gap-2.5">
+          {parking && (
+            <Link to="/parking" className="flex items-center gap-3 rounded-[16px] px-4 py-[13px] text-white" style={{ background: 'var(--grad-hero)' }}>
+              <Car size={26} strokeWidth={1.9} />
+              <div className="min-w-0 flex-1">
+                <div className="flex items-center gap-1.5 text-[11px] font-bold uppercase tracking-[0.12em] text-white/65">
+                  Parking exterior {parking.urgente && <span className="rounded-full bg-white/20 px-1.5 py-px text-[10px]">⏳</span>}
+                </div>
+                <div className="text-[14.5px]">{parking.texto}</div>
               </div>
-              <div className="text-[14.5px]">{parking.texto}</div>
-            </div>
-            <span className="text-[18px] opacity-70">›</span>
-          </Link>
+              <span className="text-[18px] opacity-70">›</span>
+            </Link>
+          )}
+          {reserva.data && (
+            <Link to="/reservas/mias" className="flex items-center gap-3 rounded-[16px] px-4 py-[13px] text-white"
+              style={{ background: 'linear-gradient(150deg,#2E8E79,#123f34)' }}>
+              <CalendarDays size={24} strokeWidth={1.9} />
+              <div className="min-w-0 flex-1">
+                <div className="flex items-center gap-1.5 text-[11px] font-bold uppercase tracking-[0.12em] text-white/65">
+                  Tu reserva
+                  <span className="rounded-full bg-white/20 px-1.5 py-px text-[10px] font-extrabold normal-case tracking-normal">
+                    {reserva.data.estado === 'aprobada' ? 'Aprobada' : 'Pendiente'}
+                  </span>
+                </div>
+                <div className="truncate text-[14.5px]">
+                  <b>{reserva.data.zonas.map((z) => z.nombre).join(' + ')}</b> · {fechaHora(reserva.data.inicio)}–{hora(reserva.data.fin)}
+                </div>
+              </div>
+              <span className="text-[18px] opacity-70">›</span>
+            </Link>
+          )}
+        </div>
       )}
 
       {/* SERVICIOS — PIEZA CLAVE de la Home: siempre visible, pegado al footer,

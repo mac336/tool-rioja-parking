@@ -50,8 +50,10 @@
   cerrada…). Contador de "no vistos" en la campana de la Home comparando `ts`
   con la última visita a /avisos (localStorage, por dispositivo).
 - **Home = panel de GADGETS (sin scroll en móvil):** cabecera → [encuesta] →
-  **tablón elástico** (absorbe el hueco libre; ver `specs/16`) → [parking, solo
-  si toca] → **Servicios** (pieza clave: SIEMPRE visible, pegada al footer,
+  **tablón elástico** (absorbe el hueco libre con tope de altura; sin mensajes
+  muestra "no hay novedades"; ver `specs/16`) → [parking, solo si toca] →
+  [**reserva activa**, si la vivienda tiene una vigente: zonas, fecha/hora y
+  estado, → Mis reservas] → **Servicios** (pieza clave: SIEMPRE visible, pegada al footer,
   nunca scrollea; todo lo nuevo debe caber en el espacio de arriba). La barra
   inferior queda con **solo Inicio y Más**; "Más" contiene únicamente lo que no
   está en la Home (ajustes, gestión, dashboard, normas).

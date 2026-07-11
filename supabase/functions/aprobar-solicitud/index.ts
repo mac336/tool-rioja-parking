@@ -34,6 +34,13 @@ Deno.serve(async (req) => {
     // 2) Datos de la solicitud
     const { requestId, vivienda, rol } = await req.json()
     const rolFinal = String(rol ?? 'vecino')
+    // SEGURIDAD: solo el app_admin puede asignar roles de GESTIÓN. Quien solo
+    // tiene 'aprobar_altas' (presidente/administrador_finca) puede aprobar altas
+    // pero NO fabricar administradores → evita escalada de privilegios.
+    const ROLES_BASICOS = ['vecino', 'tester']
+    if (perfil.rol !== 'app_admin' && !ROLES_BASICOS.includes(rolFinal)) {
+      return json({ error: 'Solo el administrador de la app puede asignar roles de gestión.' }, 403)
+    }
     const { data: solicitud } = await admin.from('access_requests').select('*').eq('id', requestId).single()
     if (!solicitud) return json({ error: 'Solicitud no encontrada.' }, 404)
     const viviendaFinal = String(vivienda ?? solicitud.vivienda)

@@ -36,12 +36,21 @@ Deno.serve(async (req) => {
     if (!user) return json({ error: 'No autenticado.' }, 401)
 
     const admin = createClient(SUPABASE_URL, SERVICE_ROLE)
-    const { data: perfil } = await admin.from('profiles').select('estado').eq('id', user.id).single()
+    const { data: perfil } = await admin.from('profiles').select('rol, estado').eq('id', user.id).single()
     if (!perfil || perfil.estado !== 'activo') return json({ error: 'Sin permiso.' }, 403)
 
     const { kind, id } = await req.json()
 
     if (kind === 'mensaje') {
+      // SEGURIDAD: solo quien puede publicar mensajes dispara el push masivo
+      // (si no, cualquier vecino podría spamear a todo el edificio).
+      let puede = perfil.rol === 'app_admin'
+      if (!puede) {
+        const { data: perm } = await admin.from('role_permissions')
+          .select('permiso').eq('rol', perfil.rol).eq('permiso', 'publicar_mensajes').maybeSingle()
+        puede = !!perm
+      }
+      if (!puede) return json({ error: 'Sin permiso.' }, 403)
       const { data: m } = await admin.from('mensajes').select('tipo, titulo').eq('id', id).single()
       if (!m) return json({ ok: true, skipped: 'sin mensaje' })
       await enviarPushATodos(admin, {
@@ -53,6 +62,11 @@ Deno.serve(async (req) => {
     }
 
     if (kind === 'buzon') {
+      // SEGURIDAD: solo puede disparar el aviso quien PUEDE VER el hilo (su
+      // dueño o el rol del canal). Se comprueba con el cliente del usuario, que
+      // pasa por la RLS (hilo_sel): si no lo ve, no autoriza.
+      const { data: visible } = await asUser.from('hilos').select('id').eq('id', id).maybeSingle()
+      if (!visible) return json({ error: 'Sin permiso.' }, 403)
       const { data: h } = await admin.from('hilos').select('id, vecino_id, asunto, canal').eq('id', id).single()
       if (!h) return json({ ok: true, skipped: 'sin hilo' })
       const canal = h.canal as string

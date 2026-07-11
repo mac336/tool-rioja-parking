@@ -148,3 +148,36 @@ política "actualiza tu propia fila", permitía a un usuario cambiarse su propio
 `rol`/`estado` (escalada de privilegios). Corregido: `UPDATE` solo sobre
 `nombre`, `normas_aceptadas_at` y `avisos_vistos_at`. Rol/estado/vivienda siguen
 siendo exclusivos de las Edge Functions (service_role).
+
+## Auditoría de seguridad (2026-07-11) y correcciones
+
+Revisión de RLS, grants y Edge Functions. Estado y arreglos:
+
+**RLS/BD (bien):** todas las tablas con RLS; escritura gateada por permisos
+(publicar_mensajes, es_gestion, es_app_admin, aprobar_*); un vecino ve solo su
+propio `profiles` (sin emails ajenos); votos/reservas protegidos; vistas
+(`directorio`, `ocupacion_reservas`, `encuesta_participacion`) exponen solo
+columnas no sensibles (sin email).
+
+**Corregido:**
+- **profiles (mig. 0028):** el UPDATE de `authenticated` estaba abierto a TODAS
+  las columnas → un usuario podía cambiarse su `rol`/`estado`. Limitado a
+  `nombre`, `normas_aceptadas_at`, `avisos_vistos_at`.
+- **Escalada de rol (Edge `gestionar-usuario`, `aprobar-solicitud`):** quien
+  tenía `aprobar_altas` podía crear/asignar `app_admin`. Ahora **solo el
+  app_admin** puede asignar/crear roles de gestión (el resto: `vecino`/`tester`);
+  y nadie que no sea app_admin puede gestionar a un app_admin.
+- **`notificar-admin`:** era anónimo (spam/phishing a admins). Ahora solo se
+  acepta la llamada INTERNA (clave de servicio).
+- **`notificar`:** exige `publicar_mensajes` para el push masivo y visibilidad
+  del hilo (RLS) para el aviso de buzón.
+- **`notificar-reserva` + cliente:** `grupoId` validado como UUID antes de
+  interpolar en `.or()` (evita inyección de filtro PostgREST).
+- **`log_audit` (mig. 0029):** revocado EXECUTE público (los triggers lo siguen
+  usando); `role_permissions` SELECT restringido a usuarios activos.
+
+**Pendiente / aceptado:** `acceso-directo` (login solo con correo) es una
+relajación **temporal y deliberada** (flag `ACCESO_DIRECTO`, ver `specs/03`);
+mientras esté activo, quien conozca el correo de un vecino aprobado puede entrar
+como él. Recomendado volver a OTP (`ACCESO_DIRECTO=false`) cuando termine la fase
+de adopción, o añadir captcha + rate-limit si debe seguir.

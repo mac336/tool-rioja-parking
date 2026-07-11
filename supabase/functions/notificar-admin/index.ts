@@ -20,6 +20,12 @@ Deno.serve(async (req) => {
   if (req.method !== 'POST') return json({ error: 'Método no permitido' }, 405)
 
   try {
+    // SEGURIDAD: solo se llama INTERNAMENTE (desde solicitar-acceso con la clave
+    // de servicio). Rechaza llamadas del cliente (anon/usuario) para evitar spam
+    // y phishing a los administradores.
+    const authHeader = req.headers.get('Authorization') ?? ''
+    if (authHeader !== `Bearer ${SERVICE_ROLE}`) return json({ error: 'No autorizado.' }, 403)
+
     const { nombre, vivienda } = await req.json()
 
     // Destinatarios: perfiles de gestión (roles con altas) activos.

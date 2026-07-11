@@ -167,4 +167,10 @@ al implementar el cambio (ver `CLAUDE.md` → Forma de trabajo).
 - **v1.7.2 · Textos de sugerencias:** la sección pasa a **"Comentarios y
   sugerencias"** (comentario / sugerencia / mejora, no solo mejoras). Añadida
   una 4ª opción ("Es muy difícil de usar") a la encuesta de satisfacción.
+- **v1.15.0 · Auditoría de seguridad y correcciones:** revisadas RLS, grants y
+  Edge Functions. Cerrada la **escalada de privilegios**: solo el app_admin puede
+  asignar/crear roles de gestión (antes cualquiera con `aprobar_altas` podía
+  fabricar un `app_admin`); `notificar-admin` deja de ser anónimo; `notificar`
+  exige permiso/visibilidad; `grupoId` validado como UUID; `log_audit` sin
+  EXECUTE público (migración 0029). Ver `specs/11`.
 

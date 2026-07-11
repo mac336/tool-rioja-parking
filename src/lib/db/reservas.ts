@@ -154,8 +154,10 @@ export async function crearReserva(input: CrearReservaInput): Promise<ReservaGru
   return agrupar((data ?? []).map((r) => toReserva(r as ReservaRow)))[0]
 }
 
+const UUID_RE = /^[0-9a-fA-F-]{36}$/
 /** Cancela un grupo entero (todas sus zonas). */
 export async function cancelarReserva(grupoId: string): Promise<void> {
+  if (!UUID_RE.test(grupoId)) throw new Error('Identificador de reserva no válido.')
   const { error } = await supabase.from('reservas')
     .update({ estado: 'cancelada' })
     .or(`grupo_id.eq.${grupoId},id.eq.${grupoId}`)
@@ -257,6 +259,7 @@ export async function estadisticasReservas(): Promise<EstadisticasReservas> {
 }
 
 export async function resolverReserva(grupoId: string, aprobar: boolean, motivo?: string): Promise<void> {
+  if (!UUID_RE.test(grupoId)) throw new Error('Identificador de reserva no válido.')
   const { data: { user } } = await supabase.auth.getUser()
   if (!user) throw new Error('No autenticado')
   const { error } = await supabase.from('reservas')

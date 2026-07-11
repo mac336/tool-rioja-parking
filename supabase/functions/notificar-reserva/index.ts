@@ -41,7 +41,9 @@ Deno.serve(async (req) => {
 
     // 2) Leer el grupo de reserva y su solicitante.
     const { grupoId, aprobar } = await req.json()
-    if (!grupoId) return json({ error: 'grupoId requerido.' }, 400)
+    // Validar UUID antes de interpolarlo en el filtro .or() (evita inyección
+    // de sintaxis de filtro PostgREST).
+    if (!grupoId || !/^[0-9a-fA-F-]{36}$/.test(String(grupoId))) return json({ error: 'grupoId no válido.' }, 400)
     const { data: filas } = await admin.from('reservas')
       .select('solicitada_por, inicio, fin, zona:zonas_comunes(nombre)')
       .or(`grupo_id.eq.${grupoId},id.eq.${grupoId}`)

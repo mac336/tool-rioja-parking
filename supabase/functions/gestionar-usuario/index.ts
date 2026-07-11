@@ -25,12 +25,17 @@ Deno.serve(async (req) => {
     const admin = createClient(SUPABASE_URL, SERVICE_ROLE)
     const { data: perfil } = await admin.from('profiles').select('rol, estado').eq('id', user.id).single()
     if (!perfil || perfil.estado !== 'activo') return json({ error: 'Sin permiso para gestionar usuarios.' }, 403)
+    const esAdmin = perfil.rol === 'app_admin'
     // Permiso 'aprobar_altas' (personalizable). app_admin siempre puede.
-    if (perfil.rol !== 'app_admin') {
+    if (!esAdmin) {
       const { data: perm } = await admin.from('role_permissions')
         .select('permiso').eq('rol', perfil.rol).eq('permiso', 'aprobar_altas').maybeSingle()
       if (!perm) return json({ error: 'Sin permiso para gestionar usuarios.' }, 403)
     }
+
+    // SEGURIDAD: solo el app_admin puede asignar/crear roles de GESTIÓN. El
+    // resto (aprobar_altas) solo puede manejar 'vecino'/'tester' → sin escalada.
+    const ROLES_BASICOS = ['vecino', 'tester']
 
     const { accion, userId, rol, nombre, vivienda, email } = await req.json()
 
@@ -43,6 +48,7 @@ Deno.serve(async (req) => {
       const rolT = String(rol ?? 'vecino')
       if (!nombreT || !/.+@.+\..+/.test(emailT)) return json({ error: 'Nombre o correo no válidos.' }, 400)
       if (!ROLES_VALIDOS.includes(rolT)) return json({ error: 'Rol no válido.' }, 400)
+      if (!esAdmin && !ROLES_BASICOS.includes(rolT)) return json({ error: 'Solo el administrador de la app puede crear cuentas de gestión.' }, 403)
       // Vivienda OPCIONAL: una cuenta puede no tener piso (p. ej. un tester).
       const viviendaRaw = String(vivienda ?? '').trim()
       let viviendaFinal: string | null = null
@@ -73,6 +79,13 @@ Deno.serve(async (req) => {
 
     if (!userId || userId === user.id) return json({ error: 'Objetivo no válido.' }, 400)
 
+    // SEGURIDAD: nadie que no sea app_admin puede tocar (suspender/baja/rol/
+    // editar) a un administrador de la app.
+    const { data: objetivo } = await admin.from('profiles').select('rol').eq('id', userId).single()
+    if (objetivo?.rol === 'app_admin' && !esAdmin) {
+      return json({ error: 'No puedes gestionar a un administrador de la app.' }, 403)
+    }
+
     if (accion === 'suspender') {
       await admin.from('profiles').update({ estado: 'suspendido' }).eq('id', userId)
     } else if (accion === 'baja') {
@@ -82,6 +95,7 @@ Deno.serve(async (req) => {
       await admin.from('profiles').update({ estado: 'activo' }).eq('id', userId)
     } else if (accion === 'rol') {
       if (!ROLES_VALIDOS.includes(rol)) return json({ error: 'Rol no válido.' }, 400)
+      if (!esAdmin && !ROLES_BASICOS.includes(rol)) return json({ error: 'Solo el administrador de la app puede asignar roles de gestión.' }, 403)
       await admin.from('profiles').update({ rol }).eq('id', userId)
     } else if (accion === 'editar') {
       // Corrige datos del vecino (nombre/alias y/o vivienda).

@@ -1,12 +1,12 @@
 import { useState } from 'react'
-import { Send, X, ChevronLeft, Megaphone, ShieldCheck, Trash2, Code2, Building2, BellRing, Lock } from 'lucide-react'
+import { Send, X, ChevronLeft, Megaphone, ShieldCheck, Trash2, Code2, Building2, BellRing, Lock, PenSquare, Search } from 'lucide-react'
 import { SubHeader, Page } from '@/components/layout/AppShell'
 import { Button, Card, Field, Textarea, SelectField, Avatar, ErrorState, SkeletonList, cx } from '@/components/ui'
 import { useAsync } from '@/lib/useAsync'
 import { useApp } from '@/store'
-import { puedePublicarMensajes } from '@/lib/roles'
+import { puedePublicarMensajes, puedeEscribirVecinos, canalDeRol } from '@/lib/roles'
 import { fechaHora, iniciales } from '@/lib/format'
-import { listHilos, getHilo, crearHilo, responderHilo, cerrarHilo, borrarHilo, convertirEnMensaje } from '@/lib/api'
+import { listHilos, getHilo, crearHilo, crearHiloComoGestion, listDirectorio, responderHilo, cerrarHilo, borrarHilo, convertirEnMensaje } from '@/lib/api'
 import type { Hilo, HiloCanal, MensajeTipo } from '@/types'
 import { TIPO_META } from '@/features/mensajes/MensajeCard'
 
@@ -18,8 +18,9 @@ const CANALES: HiloCanal[] = ['desarrollador']
 // avisan de que están pausados hasta que se apruebe el uso de la app.
 const CANALES_PAUSADOS: HiloCanal[] = ['administrador', 'conserje']
 
-// Chat abierto: hilo existente (id) o conversación nueva con un canal.
-type ChatSel = { id?: string; canal: HiloCanal; titulo: string }
+// Chat abierto: hilo existente (id), conversación nueva con un canal (vecino →
+// gestión) o chat dirigido a un vecino (gestión → vecino, requiere permiso).
+type ChatSel = { id?: string; canal: HiloCanal; titulo: string; vecinoId?: string }
 
 export function BuzonPage() {
   const [chat, setChat] = useState<ChatSel | null>(null)
@@ -32,7 +33,11 @@ function Bandeja({ onOpen }: { onOpen: (c: ChatSel) => void }) {
   const { user } = useApp()
   const { data, state, refetch } = useAsync(listHilos, [])
   const [pausado, setPausado] = useState<HiloCanal | null>(null)
+  const [eligiendo, setEligiendo] = useState(false)
   const hilos = data ?? []
+  // Gestión: puede iniciar chat con cualquier vecino (permiso escribir_vecinos).
+  const miCanal = canalDeRol(user.rol)
+  const puedoEscribir = puedeEscribirVecinos(user.rol) && !!miCanal
 
   // Mis chats como vecino: 1 conversación por canal (el hilo más reciente).
   const mioPorCanal = new Map<HiloCanal, Hilo>()
@@ -102,6 +107,14 @@ function Bandeja({ onOpen }: { onOpen: (c: ChatSel) => void }) {
               })}
             </section>
 
+            {/* Gestión: iniciar chat con cualquier vecino */}
+            {puedoEscribir && (
+              <button type="button" onClick={() => setEligiendo(true)}
+                className="flex items-center justify-center gap-2 rounded-pill border-[1.5px] border-primary bg-primary-soft px-4 py-2.5 text-[14px] font-bold text-primary-700">
+                <PenSquare size={17} /> Escribir a un vecino
+              </button>
+            )}
+
             {/* Conversaciones que atiendo (staff del canal) */}
             {deMiCanal.length > 0 && (
               <section className="flex flex-col gap-2">
@@ -123,6 +136,19 @@ function Bandeja({ onOpen }: { onOpen: (c: ChatSel) => void }) {
           </>
         )}
       </Page>
+
+      {/* Selector de vecino (gestión → vecino) */}
+      {eligiendo && miCanal && (
+        <SelectorVecino
+          onClose={() => setEligiendo(false)}
+          onPick={(v) => {
+            setEligiendo(false)
+            // Si ya hay conversación con ese vecino en mi canal, se retoma.
+            const existente = hilos.find((h) => h.vecino_id === v.id && h.canal === miCanal)
+            onOpen({ id: existente?.id, canal: miCanal, titulo: `${v.nombre}${v.vivienda ? ` · ${v.vivienda}` : ''}`, vecinoId: v.id })
+          }}
+        />
+      )}
 
       {/* Aviso: contacto pausado hasta que se apruebe el uso de la app */}
       {pausado && (
@@ -157,8 +183,8 @@ function ChatVista({ sel, onBack }: { sel: ChatSel; onBack: () => void }) {
   const [convertir, setConvertir] = useState<null | { tipo: MensajeTipo; titulo: string; cuerpo: string }>(null)
 
   const hilo = data?.hilo
-  const soyDueño = !hilo || hilo.vecino_id === user.id
-  const staff = !!hilo && !soyDueño
+  const soyDueño = hilo ? hilo.vecino_id === user.id : !sel.vecinoId
+  const staff = !soyDueño
   const cerrado = hilo?.estado === 'cerrado'
 
   // Enviar: si aún no existe conversación, se crea con este primer mensaje.
@@ -170,6 +196,10 @@ function ChatVista({ sel, onBack }: { sel: ChatSel; onBack: () => void }) {
       if (hiloId) {
         await responderHilo(hiloId, t)
         refetch()
+      } else if (sel.vecinoId) {
+        // Gestión → vecino (permiso escribir_vecinos, en mi canal).
+        const id = await crearHiloComoGestion({ vecinoId: sel.vecinoId, texto: t, canal: sel.canal })
+        setHiloId(id)
       } else {
         const id = await crearHilo({ asunto: sel.titulo, texto: t, canal: sel.canal })
         setHiloId(id) // el useAsync recarga con el hilo nuevo
@@ -211,7 +241,7 @@ function ChatVista({ sel, onBack }: { sel: ChatSel; onBack: () => void }) {
         <div className="min-w-0 flex-1">
           <h1 className="truncate font-display text-[16.5px] font-bold leading-tight text-ink">{sel.titulo}</h1>
           <div className="text-[11.5px] text-faint">
-            {staff ? `${hilo?.vecino_vivienda ?? ''} · ${CANAL_LABEL[sel.canal]}` : 'Chat privado · solo lo veis vosotros'}
+            {staff ? `${hilo?.vecino_vivienda ? hilo.vecino_vivienda + ' · ' : ''}${CANAL_LABEL[sel.canal]}` : 'Chat privado · solo lo veis vosotros'}
           </div>
         </div>
         {staff && <button onClick={alternarCierre} className="shrink-0 rounded-pill px-2.5 py-1.5 text-[12px] font-bold text-muted hover:bg-surface-2">{cerrado ? 'Reabrir' : 'Cerrar'}</button>}
@@ -223,8 +253,14 @@ function ChatVista({ sel, onBack }: { sel: ChatSel; onBack: () => void }) {
         {state === 'error' && <ErrorState onRetry={refetch} />}
         {!hiloId && (
           <div className="flex h-full flex-col items-center justify-center gap-2 text-center">
-            <span className="flex h-16 w-16 items-center justify-center rounded-full bg-primary-soft text-primary-700"><Code2 size={30} /></span>
-            <p className="max-w-[260px] text-[14px] text-muted">Escríbele al <b>{sel.titulo}</b>. Es un chat privado: solo lo veréis vosotros.</p>
+            {sel.vecinoId
+              ? <Avatar text={iniciales(sel.titulo)} size={64} />
+              : <span className="flex h-16 w-16 items-center justify-center rounded-full bg-primary-soft text-primary-700"><Code2 size={30} /></span>}
+            <p className="max-w-[280px] text-[14px] text-muted">
+              {sel.vecinoId
+                ? <>Escríbele a <b>{sel.titulo}</b>. Le llegará por notificación y también a su correo.</>
+                : <>Escríbele al <b>{sel.titulo}</b>. Es un chat privado: solo lo veréis vosotros.</>}
+            </p>
           </div>
         )}
         {hiloId && state === 'ready' && data && (
@@ -287,6 +323,57 @@ function ChatVista({ sel, onBack }: { sel: ChatSel; onBack: () => void }) {
           </div>
         </div>
       )}
+    </div>
+  )
+}
+
+// ---- Selector de vecino (gestión → vecino) -------------------------------------
+function SelectorVecino({ onClose, onPick }: {
+  onClose: () => void
+  onPick: (v: { id: string; nombre: string; vivienda: string | null }) => void
+}) {
+  const { user } = useApp()
+  const { data, state, refetch } = useAsync(listDirectorio, [])
+  const [q, setQ] = useState('')
+  const s = q.trim().toLowerCase()
+  const lista = (data ?? [])
+    .filter((v) => v.id !== user.id)
+    .filter((v) => !s || (v.nombre ?? '').toLowerCase().includes(s) || (v.vivienda ?? '').toLowerCase().includes(s))
+
+  return (
+    <div className="app-viewport z-50 flex items-end justify-center bg-black/40 sm:items-center" onClick={onClose}>
+      <div className="flex max-h-[80%] w-full max-w-[520px] flex-col rounded-t-[20px] bg-surface p-5 shadow-xl sm:rounded-[20px]" onClick={(e) => e.stopPropagation()}>
+        <div className="mb-3 flex shrink-0 items-center justify-between">
+          <h3 className="font-display text-[18px] font-bold text-ink">Escribir a un vecino</h3>
+          <button onClick={onClose} aria-label="Cerrar" className="rounded-full p-1.5 text-faint hover:bg-surface-2"><X size={20} /></button>
+        </div>
+        <div className="relative shrink-0">
+          <Search size={17} className="pointer-events-none absolute left-3.5 top-1/2 -translate-y-1/2 text-faint" />
+          <input value={q} onChange={(e) => setQ(e.target.value)} inputMode="search" autoFocus
+            placeholder="Buscar por nombre o piso"
+            className="min-h-[46px] w-full rounded-[14px] border border-border bg-surface pl-10 pr-3 text-[15px] text-ink placeholder:text-faint shadow-neu-inset focus:border-primary focus:outline-none" />
+        </div>
+        <div className="mt-3 min-h-0 flex-1 overflow-y-auto">
+          {state === 'loading' && <SkeletonList n={4} />}
+          {state === 'error' && <ErrorState onRetry={refetch} />}
+          {state !== 'loading' && lista.length === 0 && (
+            <p className="rounded-[14px] bg-surface-2 px-4 py-6 text-center text-[13px] text-muted">Ningún vecino coincide.</p>
+          )}
+          <div className="flex flex-col divide-y divide-border">
+            {lista.map((v) => (
+              <button key={v.id} type="button" onClick={() => onPick(v)}
+                className="flex items-center gap-3 px-1 py-2.5 text-left hover:bg-surface-2">
+                <Avatar text={iniciales(v.nombre ?? 'V')} size={38} />
+                <div className="min-w-0 flex-1">
+                  <div className="truncate text-[14.5px] font-semibold text-ink">{v.nombre}</div>
+                  <div className="text-[12px] text-muted">{v.vivienda || 'Sin vivienda'}</div>
+                </div>
+              </button>
+            ))}
+          </div>
+        </div>
+        <p className="mt-2 shrink-0 text-center text-[11.5px] text-faint">El vecino recibirá tu mensaje por push y también en su correo.</p>
+      </div>
     </div>
   )
 }

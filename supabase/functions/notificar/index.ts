@@ -5,6 +5,7 @@
 //                    del hilo; si lo escribió el vecino, push a la gestión.
 // La app la llama tras crear el elemento. Requiere usuario activo.
 import { createClient } from 'jsr:@supabase/supabase-js@2'
+import { SMTPClient } from 'https://deno.land/x/denomailer@1.6.0/mod.ts'
 import { corsHeaders, json } from '../_shared/cors.ts'
 import { enviarPush, enviarPushATodos, enviarPushAUsuarios, idsPorRoles } from '../_shared/push.ts'
 
@@ -19,6 +20,8 @@ const CANAL_LABEL: Record<string, string> = { administrador: 'Administración', 
 const SUPABASE_URL = Deno.env.get('SUPABASE_URL')!
 const SERVICE_ROLE = Deno.env.get('SUPABASE_SERVICE_ROLE_KEY')!
 const ANON = Deno.env.get('SUPABASE_ANON_KEY')!
+const GMAIL_USER = Deno.env.get('GMAIL_USER') ?? ''
+const GMAIL_APP_PASSWORD = Deno.env.get('GMAIL_APP_PASSWORD') ?? ''
 
 const TIPO_LABEL: Record<string, string> = { aviso: 'aviso', anuncio: 'anuncio', incidencia: 'incidencia' }
 
@@ -59,8 +62,34 @@ Deno.serve(async (req) => {
       if (!ultimo) return json({ ok: true, skipped: 'sin mensajes' })
       const body = (ultimo.texto as string).slice(0, 120)
       if (ultimo.de_gestion) {
-        // Responde el canal → avisa al vecino del hilo.
-        await enviarPush(admin, h.vecino_id as string, { title: `Respuesta de ${CANAL_LABEL[canal] ?? 'administración'}`, body, url: '/buzon' })
+        // Escribe la gestión → push al vecino del hilo y, además, CORREO a los
+        // correos registrados de su piso (petición explícita: un mensaje directo
+        // de gestión debe llegar aunque el vecino no use la app; no lo gobierna
+        // el flag CORREOS_NOTIFICACION porque no es una notificación masiva).
+        await enviarPush(admin, h.vecino_id as string, { title: `Mensaje de ${CANAL_LABEL[canal] ?? 'administración'}`, body, url: '/buzon' })
+        try {
+          if (GMAIL_USER && GMAIL_APP_PASSWORD) {
+            const { data: dueño } = await admin.from('profiles').select('email, vivienda').eq('id', h.vecino_id).single()
+            let correos: string[] = dueño?.email ? [dueño.email as string] : []
+            if (dueño?.vivienda) {
+              const { data: delPiso } = await admin.from('profiles')
+                .select('email').eq('vivienda', dueño.vivienda).eq('estado', 'activo')
+              correos = [...new Set((delPiso ?? []).map((p) => p.email as string).filter(Boolean).concat(correos))]
+            }
+            if (correos.length > 0) {
+              const client = new SMTPClient({
+                connection: { hostname: 'smtp.gmail.com', port: 465, tls: true, auth: { username: GMAIL_USER, password: GMAIL_APP_PASSWORD } },
+              })
+              await client.send({
+                from: `Comunidad Rioja 25 <${GMAIL_USER}>`,
+                to: correos,
+                subject: `Tienes un mensaje de ${CANAL_LABEL[canal] ?? 'la gestión'} — Rioja 25`,
+                content: `${CANAL_LABEL[canal] ?? 'La gestión'} te ha escrito por el buzón de la app:\n\n«${(ultimo.texto as string).slice(0, 500)}»\n\nEntra en la app para leerlo y responder:\nhttps://tool-rioja-parking.vercel.app/buzon\n\n— Comunidad Rioja 25`,
+              })
+              await client.close()
+            }
+          }
+        } catch (_e) { /* el correo es best-effort; el push ya salió */ }
       } else {
         // Escribe el vecino → avisa SOLO a los roles del canal (privacidad).
         const destinatarios = await idsPorRoles(admin, ROLES_CANAL[canal] ?? [])

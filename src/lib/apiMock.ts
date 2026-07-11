@@ -427,6 +427,14 @@ export function cerrarHilo(hiloId: string, cerrar = true): Promise<void> {
   if (h) h.estado = cerrar ? 'cerrado' : 'abierto'
   return delay(undefined)
 }
+export function crearHiloComoGestion(input: { vecinoId: string; texto: string; canal: HiloCanal }): Promise<string> {
+  const id = uid()
+  db.hilos.unshift({ id, vecino_id: input.vecinoId, asunto: 'Mensaje de la gestión', canal: input.canal, estado: 'abierto', no_leido_gestion: false, no_leido_vecino: true, created_at: now(), updated_at: now() })
+  db.hiloMensajes.push({ id: uid(), hilo_id: id, autor_id: currentUser.id, de_gestion: true, texto: input.texto, created_at: now() })
+  return delay(id)
+}
+export const listDirectorio = (): Promise<{ id: string; nombre: string; vivienda: string | null }[]> =>
+  delay(db.profiles.filter((p) => p.estado === 'activo').map((p) => ({ id: p.id, nombre: p.nombre, vivienda: p.vivienda ?? null })))
 export function borrarHilo(hiloId: string): Promise<void> {
   db.hilos = db.hilos.filter((x) => x.id !== hiloId)
   db.hiloMensajes = db.hiloMensajes.filter((m) => m.hilo_id !== hiloId)

@@ -37,7 +37,7 @@ export const BADGE_LABEL: Record<RoleBadgeKind, string> = {
 // La verdad la tiene la BD (tabla role_permissions + RLS). En el cliente cacheamos
 // los permisos del USUARIO ACTUAL para adaptar la interfaz; app_admin = SUPERADMIN
 // (siempre todo). En modo demo (sin backend) no hay caché → se usan los defaults.
-export type Permiso = 'panel' | 'aprobar_altas' | 'aprobar_reservas' | 'publicar_mensajes' | 'usar_buzon' | 'votar_encuestas' | 'realizar_reservas'
+export type Permiso = 'panel' | 'aprobar_altas' | 'aprobar_reservas' | 'publicar_mensajes' | 'usar_buzon' | 'votar_encuestas' | 'realizar_reservas' | 'escribir_vecinos'
 
 export const CATALOGO_PERMISOS: { key: Permiso; label: string; desc: string }[] = [
   { key: 'panel', label: 'Panel de gestión', desc: 'Acceder al panel y al buzón de administración' },
@@ -47,6 +47,7 @@ export const CATALOGO_PERMISOS: { key: Permiso; label: string; desc: string }[] 
   { key: 'usar_buzon', label: 'Chatear por el buzón', desc: 'Escribir mensajes privados por los canales del buzón' },
   { key: 'votar_encuestas', label: 'Votar en encuestas', desc: 'Emitir voto en las votaciones de la comunidad' },
   { key: 'realizar_reservas', label: 'Realizar reservas', desc: 'Solicitar reservas de zonas comunes' },
+  { key: 'escribir_vecinos', label: 'Escribir a los vecinos', desc: 'Iniciar chats del buzón con cualquier vecino (en su canal: Administración/Conserje/Presidencia/Desarrollador)' },
 ]
 
 // Defaults (deben coincidir con la semilla de la migración 0010) — solo se usan
@@ -59,6 +60,7 @@ const DEFAULTS: Record<Permiso, Role[]> = {
   usar_buzon: ['app_admin', 'presidente', 'vicepresidente', 'administrador_finca', 'junta', 'conserje', 'vecino', 'tester'],
   votar_encuestas: ['app_admin', 'presidente', 'vicepresidente', 'administrador_finca', 'junta', 'conserje', 'vecino'],
   realizar_reservas: ['app_admin', 'presidente', 'vicepresidente', 'administrador_finca', 'junta', 'conserje', 'vecino'],
+  escribir_vecinos: ['app_admin', 'administrador_finca', 'conserje'],
 }
 
 /** Matriz de permisos por defecto (para el modo demo / semilla del mock). */
@@ -129,4 +131,22 @@ export function puedeVotar(rol: Role): boolean {
 /** Puede solicitar reservas de zonas comunes (permiso configurable). */
 export function puedeReservar(rol: Role): boolean {
   return tienePermiso(rol, 'realizar_reservas')
+}
+
+/** Puede iniciar chats del buzón con cualquier vecino (permiso configurable).
+ *  Escribe siempre por SU canal (ver canalDeRol). */
+export function puedeEscribirVecinos(rol: Role): boolean {
+  return tienePermiso(rol, 'escribir_vecinos') && canalDeRol(rol) !== null
+}
+
+/** Canal del buzón que atiende cada rol (null = no atiende ninguno). */
+export function canalDeRol(rol: Role): 'administrador' | 'presidencia' | 'conserje' | 'desarrollador' | null {
+  switch (rol) {
+    case 'app_admin': return 'desarrollador'
+    case 'administrador_finca': return 'administrador'
+    case 'conserje': return 'conserje'
+    case 'presidente':
+    case 'vicepresidente': return 'presidencia'
+    default: return null
+  }
 }

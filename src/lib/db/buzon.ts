@@ -56,6 +56,27 @@ export async function crearHilo(input: { asunto: string; texto: string; canal: H
   return hilo.id as string
 }
 
+/** La GESTIÓN inicia un chat con un vecino (permiso escribir_vecinos; RLS
+ *  exige que el canal sea el suyo). El primer mensaje lo firma la gestión. */
+export async function crearHiloComoGestion(input: { vecinoId: string; texto: string; canal: HiloCanal }): Promise<string> {
+  const { data: { user } } = await supabase.auth.getUser()
+  if (!user) throw new Error('No autenticado')
+  const { data: hilo, error } = await supabase.from('hilos')
+    .insert({ vecino_id: input.vecinoId, asunto: 'Mensaje de la gestión', canal: input.canal }).select('id').single()
+  if (error) throw error
+  const { error: e2 } = await supabase.from('hilo_mensajes').insert({ hilo_id: hilo.id, autor_id: user.id, texto: input.texto })
+  if (e2) throw e2
+  void supabase.functions.invoke('notificar', { body: { kind: 'buzon', id: hilo.id } }).catch(() => undefined)
+  return hilo.id as string
+}
+
+/** Directorio de vecinos activos (id, nombre, vivienda) para elegir destinatario. */
+export async function listDirectorio(): Promise<{ id: string; nombre: string; vivienda: string | null }[]> {
+  const { data, error } = await supabase.from('directorio').select('id, nombre, vivienda').order('vivienda')
+  if (error) throw error
+  return (data ?? []) as { id: string; nombre: string; vivienda: string | null }[]
+}
+
 /** Añade un mensaje a un hilo (vecino o gestión). */
 export async function responderHilo(hiloId: string, texto: string): Promise<void> {
   const { data: { user } } = await supabase.auth.getUser()

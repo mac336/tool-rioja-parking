@@ -129,7 +129,12 @@ al implementar el cambio (ver `CLAUDE.md` → Forma de trabajo).
 - Esqueleto de la app (React+Vite+Supabase), esquema inicial, RLS, triggers,
   vistas y storage (migraciones 0001–0005). Módulos: incidencias, encuestas,
   reservas, parking, contactos, anuncios, sugerencias. Despliegue en Vercel +
-  Supabase. Ver specs 01–15.- **v1.12.0 · Sugerencias guardadas y visibles:** cada sugerencia se guarda en
+  Supabase. Ver specs 01–15.- **v1.13.0 · La gestión escribe a los vecinos:** nuevo permiso configurable
+  `escribir_vecinos` (desarrollador/administrador/conserje por defecto). Botón
+  "Escribir a un vecino" en el buzón con buscador; el chat se crea en el canal
+  del rol (RLS, mig. 0027) y al vecino le llega **push + correo a los correos
+  registrados de su piso**.
+- **v1.12.0 · Sugerencias guardadas y visibles:** cada sugerencia se guarda en
   BD (tabla `sugerencias`, mig. 0026) y el app_admin las lee en **Dashboard →
   Sugerencias**. Antes solo viajaban en el push/correo y podían perderse (bug).
 - **v1.11.0 · Alta directa con invitación:** al dar de alta a alguien desde el

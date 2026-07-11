@@ -52,6 +52,21 @@ vecino que abrió el hilo. El `app_admin` **no** ve Presidencia ni Conserje.
 - `hilo_mensajes`: `hilo_id`, `autor_id`, `de_gestion` (lo fija un trigger:
   `de_gestion = autor ≠ dueño del hilo`), `texto`, `created_at`.
 
+## La gestión escribe a los vecinos (permiso `escribir_vecinos`)
+
+- Nuevo permiso configurable **`escribir_vecinos`** (semilla: administrador_finca
+  y conserje; app_admin siempre; editable en Panel → Permisos): quien lo tiene ve
+  en el buzón el botón **"Escribir a un vecino"** → selector con buscador
+  (directorio de activos) → chat directo.
+- El hilo se crea **en el canal del rol** (`canalDeRol`: app_admin→desarrollador,
+  administrador_finca→administrador, conserje→conserje, presidente/vice→
+  presidencia); la RLS lo exige (`puede_escribir_vecinos()` + `puede_ver_hilo`,
+  migración 0027). Si ya había conversación con ese vecino en el canal, se retoma.
+- **Aviso al vecino:** push y, además, **correo a los correos registrados de su
+  piso** (todas las cuentas activas de la vivienda). Este correo NO lo gobierna
+  `CORREOS_NOTIFICACION` (es un mensaje directo de gestión, no una notificación
+  masiva); se aplica a todo mensaje `de_gestion` del buzón.
+
 ## Seguridad (RLS)
 
 - **Escribir** (crear hilo / responder) exige el permiso **`usar_buzon`**

@@ -135,11 +135,11 @@ export function HomePage() {
       )}
 
       {/* Tablón (gadget elástico: crece/encoge según el hueco de la pantalla) */}
-      <TablonGadget mensajes={actividad} className="min-h-0 flex-1" />
+      <TablonGadget mensajes={actividad} className="mb-auto min-h-0 max-h-[300px] flex-1" />
 
       {/* Parking (gadget, solo cuando toca: dentro del turno o ≤7 días antes) */}
       {parking && (
-          <Link to="/parking" className="mt-2.5 flex shrink-0 items-center gap-3 rounded-[16px] px-4 py-[13px] text-white" style={{ background: 'var(--grad-hero)' }}>
+          <Link to="/parking" className="my-auto flex shrink-0 items-center gap-3 rounded-[16px] px-4 py-[13px] text-white" style={{ background: 'var(--grad-hero)' }}>
             <Car size={26} strokeWidth={1.9} />
             <div className="min-w-0 flex-1">
               <div className="flex items-center gap-1.5 text-[11px] font-bold uppercase tracking-[0.12em] text-white/65">
@@ -154,7 +154,7 @@ export function HomePage() {
       {/* SERVICIOS — PIEZA CLAVE de la Home: siempre visible, pegado al footer,
           NUNCA scrollea. El menú "Más" solo tiene lo que NO está aquí. Si se
           añade algo nuevo a la Home, debe caber en el espacio de arriba. */}
-      <section className="shrink-0 pb-2.5 pt-3">
+      <section className="shrink-0 pb-5 pt-3">
         <div className="section-title mb-3">Servicios</div>
         <div className="grid grid-cols-4 gap-x-2 gap-y-3.5">
           {servicios.map(({ to, short, Icon, color }) => (

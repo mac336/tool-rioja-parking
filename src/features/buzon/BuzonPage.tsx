@@ -9,6 +9,7 @@ import { fechaHora, iniciales } from '@/lib/format'
 import { listHilos, getHilo, crearHilo, crearHiloComoGestion, listDirectorio, responderHilo, cerrarHilo, borrarHilo, convertirEnMensaje } from '@/lib/api'
 import type { Hilo, HiloCanal, MensajeTipo } from '@/types'
 import { TIPO_META } from '@/features/mensajes/MensajeCard'
+import { PublicarPanel } from './PublicarPanel'
 
 const CANAL_LABEL: Record<HiloCanal, string> = { administrador: 'Administración', presidencia: 'Presidencia', conserje: 'Conserje', desarrollador: 'Desarrollador de la app' }
 const CANAL_ICON: Record<HiloCanal, typeof Code2> = { administrador: Building2, presidencia: Building2, conserje: BellRing, desarrollador: Code2 }
@@ -106,6 +107,9 @@ function Bandeja({ onOpen }: { onOpen: (c: ChatSel) => void }) {
                 )
               })}
             </section>
+
+            {/* Publicar: reportar incidencia / publicar anuncio (con moderación) */}
+            <PublicarPanel />
 
             {/* Gestión: iniciar chat con cualquier vecino */}
             {puedoEscribir && (

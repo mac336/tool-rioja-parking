@@ -37,7 +37,7 @@ export const BADGE_LABEL: Record<RoleBadgeKind, string> = {
 // La verdad la tiene la BD (tabla role_permissions + RLS). En el cliente cacheamos
 // los permisos del USUARIO ACTUAL para adaptar la interfaz; app_admin = SUPERADMIN
 // (siempre todo). En modo demo (sin backend) no hay caché → se usan los defaults.
-export type Permiso = 'panel' | 'aprobar_altas' | 'aprobar_reservas' | 'publicar_mensajes' | 'usar_buzon' | 'votar_encuestas' | 'realizar_reservas' | 'escribir_vecinos'
+export type Permiso = 'panel' | 'aprobar_altas' | 'aprobar_reservas' | 'publicar_mensajes' | 'usar_buzon' | 'votar_encuestas' | 'realizar_reservas' | 'escribir_vecinos' | 'aprobar_incidencias' | 'aprobar_anuncios'
 
 export const CATALOGO_PERMISOS: { key: Permiso; label: string; desc: string }[] = [
   { key: 'panel', label: 'Panel de gestión', desc: 'Acceder al panel y al buzón de administración' },
@@ -48,6 +48,8 @@ export const CATALOGO_PERMISOS: { key: Permiso; label: string; desc: string }[] 
   { key: 'votar_encuestas', label: 'Votar en encuestas', desc: 'Emitir voto en las votaciones de la comunidad' },
   { key: 'realizar_reservas', label: 'Realizar reservas', desc: 'Solicitar reservas de zonas comunes' },
   { key: 'escribir_vecinos', label: 'Escribir a los vecinos', desc: 'Iniciar chats del buzón con cualquier vecino (en su canal: Administración/Conserje/Presidencia/Desarrollador)' },
+  { key: 'aprobar_incidencias', label: 'Aprobar incidencias', desc: 'Aprobar o rechazar las incidencias que envían los vecinos' },
+  { key: 'aprobar_anuncios', label: 'Aprobar anuncios', desc: 'Aprobar o rechazar los anuncios que envían los vecinos' },
 ]
 
 // Defaults (deben coincidir con la semilla de la migración 0010) — solo se usan
@@ -61,6 +63,8 @@ const DEFAULTS: Record<Permiso, Role[]> = {
   votar_encuestas: ['app_admin', 'presidente', 'vicepresidente', 'administrador_finca', 'junta', 'conserje', 'vecino'],
   realizar_reservas: ['app_admin', 'presidente', 'vicepresidente', 'administrador_finca', 'junta', 'conserje', 'vecino'],
   escribir_vecinos: ['app_admin', 'administrador_finca', 'conserje'],
+  aprobar_incidencias: ['app_admin', 'presidente', 'vicepresidente', 'administrador_finca', 'junta'],
+  aprobar_anuncios: ['app_admin', 'presidente', 'vicepresidente', 'administrador_finca', 'junta'],
 }
 
 /** Matriz de permisos por defecto (para el modo demo / semilla del mock). */
@@ -137,6 +141,11 @@ export function puedeReservar(rol: Role): boolean {
  *  Escribe siempre por SU canal (ver canalDeRol). */
 export function puedeEscribirVecinos(rol: Role): boolean {
   return tienePermiso(rol, 'escribir_vecinos') && canalDeRol(rol) !== null
+}
+
+/** Puede moderar (aprobar/rechazar) las publicaciones que envían los vecinos. */
+export function puedeModerarPublicaciones(rol: Role): boolean {
+  return tienePermiso(rol, 'aprobar_incidencias') || tienePermiso(rol, 'aprobar_anuncios') || tienePermiso(rol, 'publicar_mensajes')
 }
 
 /** Canal del buzón que atiende cada rol (null = no atiende ninguno). */

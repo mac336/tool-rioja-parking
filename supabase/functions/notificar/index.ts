@@ -112,6 +112,24 @@ Deno.serve(async (req) => {
       return json({ ok: true })
     }
 
+    if (kind === 'publicacion') {
+      // Un vecino envió una incidencia/anuncio → avisar a los MODERADORES.
+      const { data: m } = await admin.from('mensajes')
+        .select('tipo, titulo, destino, created_by').eq('id', id).single()
+      if (!m) return json({ ok: true, skipped: 'sin publicacion' })
+      if (m.created_by !== user.id) return json({ error: 'Sin permiso.' }, 403)
+      const roles = new Set<string>(['app_admin'])
+      const { data: perms } = await admin.from('role_permissions')
+        .select('rol').in('permiso', ['aprobar_incidencias', 'aprobar_anuncios', 'publicar_mensajes'])
+      for (const p of perms ?? []) roles.add(p.rol as string)
+      const ids = await idsPorRoles(admin, [...roles])
+      const etiqueta = m.destino === 'administracion'
+        ? 'Reporte a administración'
+        : (m.tipo === 'incidencia' ? 'Incidencia por aprobar' : 'Anuncio por aprobar')
+      await enviarPushAUsuarios(admin, ids, { title: `📥 ${etiqueta}`, body: m.titulo as string, url: '/admin' })
+      return json({ ok: true })
+    }
+
     return json({ error: 'kind no reconocido.' }, 400)
   } catch (_e) {
     return json({ error: 'No se pudo notificar.' }, 500)

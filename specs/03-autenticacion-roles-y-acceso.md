@@ -76,6 +76,8 @@ no solo en la interfaz.
   - `realizar_reservas` — solicitar reservas de zonas comunes (idem).
   - `escribir_vecinos` — iniciar chats del buzón con cualquier vecino, en su
     canal (por defecto administrador_finca y conserje; ver `specs/17`).
+  - `aprobar_incidencias` / `aprobar_anuncios` — moderar (aprobar/rechazar) las
+    incidencias/anuncios que envían los vecinos (ver `specs/16`).
 - Semilla por defecto: toda la gestión (todos menos `vecino`) tiene `panel` y
   `publicar_mensajes`; `aprobar_altas` = presidente/administrador_finca/app_admin;
   `aprobar_reservas` = presidente/app_admin. `conserje` sin permisos por defecto.

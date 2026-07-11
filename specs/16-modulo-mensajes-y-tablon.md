@@ -89,3 +89,27 @@ La Home es un **panel de gadgets sin scroll** (ver `specs/10`). El tablón:
 - **Orden**: **incidencias → avisos → anuncios** (recientes primero en cada tipo).
 - Componente: `src/features/mensajes/TablonGadget.tsx` (sustituye a
   TablonBoard/PostItNote/PostItPadModal, retirados).
+
+## Publicaciones de vecinos (incidencias/anuncios con moderación) — mig. 0031
+
+Desde el **Buzón → sección "Publicar"** un vecino puede:
+- **Reportar incidencia**: *¿Qué quieres reportar?* + descripción.
+- **Publicar anuncio**: título + descripción + **fecha de publicación** (hoy,
+  editable) y **fecha de finalización** (calendario, **máx. 2 meses**).
+
+En ambos elige **destino**:
+- **Para todos los vecinos** → se guarda `estado=pendiente` y se avisa a los
+  moderadores; se publica en el tablón cuando lo **aprueban** (`estado=publicado`
+  → push a todos). Aviso al vecino: "se ha levantado y se envía a aprobación".
+- **Solo a administración** → `destino=administracion`, `estado=publicado`
+  (privado: no sale en el tablón, solo lo ve la gestión).
+- **Borrador** → `estado=borrador` (queda en "Mis publicaciones", editable).
+
+**Datos:** en `mensajes` con `estado` (borrador/pendiente/publicado/rechazado),
+`destino` (todos/administracion), `publica_at`, `created_by`. El **tablón** solo
+muestra `publicado` + `todos` + vigente (`publica_at ≤ ahora`, no caducado).
+
+**Moderación:** Panel de gestión → pestaña **"Publicaciones"** (permiso
+`aprobar_incidencias`/`aprobar_anuncios`, roletizable): cola de pendientes
+(Aprobar/Rechazar) + reportes privados a administración. Aprobar → publicado +
+push a todos.

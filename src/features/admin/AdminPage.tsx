@@ -2,7 +2,7 @@ import { useMemo, useState } from 'react'
 import {
   Shield, Check, X, Clock, Users, MapPin,
   UserX, UserCheck, Pencil, Trash2, Search, UserPlus,
-  ChevronLeft, ChevronRight, CalendarDays,
+  ChevronLeft, ChevronRight, CalendarDays, Megaphone, TriangleAlert, Inbox,
 } from 'lucide-react'
 import {
   Avatar, Button, Card, Field, RoleBadge, SelectField, Alert,
@@ -12,9 +12,9 @@ import { useAsync } from '@/lib/useAsync'
 import { fechaCorta, fechaHora, hora, claveDia, iniciales } from '@/lib/format'
 import {
   ROLE_LABEL, roleBadgeKind, esAppAdmin, CATALOGO_PERMISOS,
-  puedeAprobarAltas, puedeAprobarReservas,
+  puedeAprobarAltas, puedeAprobarReservas, puedeModerarPublicaciones,
 } from '@/lib/roles'
-import type { Profile, Role, ReservaGrupo } from '@/types'
+import type { Profile, Role, ReservaGrupo, Mensaje } from '@/types'
 import { PISOS, VIVIENDAS_ESPECIALES } from '@/lib/parking'
 import { reservaCelebrada } from '@/lib/reglas'
 import { useApp } from '@/store'
@@ -22,10 +22,11 @@ import {
   listAccessRequests, resolverSolicitud, listVecinos, suspenderVecino, cambiarRolVecino,
   editarVecino, darDeBajaVecino, crearVecinoDirecto,
   reservasPendientesGestion, reservasGestion, resolverReserva,
+  publicacionesGestion, moderarPublicacion,
   listRolePermisos, setRolePermiso,
 } from '@/lib/api'
 
-type TabKey = 'vecinos' | 'reservas' | 'permisos'
+type TabKey = 'vecinos' | 'publicaciones' | 'reservas' | 'permisos'
 type Seleccion = { vivienda: string; rol: Role }
 type Toast = (t: string, tipo?: 'ok' | 'error' | 'info') => void
 
@@ -37,18 +38,20 @@ export function AdminPage() {
 
   // Conteos de cada cola (para las pastillas del selector). Se recalcula tras cada acción.
   const conteos = useAsync(async () => {
-    const [c, r] = await Promise.all([
+    const [c, r, pub] = await Promise.all([
       puedeAprobarAltas(rol) ? listAccessRequests() : Promise.resolve([]),
       puedeAprobarReservas(rol) ? reservasPendientesGestion() : Promise.resolve([]),
+      puedeModerarPublicaciones(rol) ? publicacionesGestion() : Promise.resolve({ pendientes: [], reportes: [] }),
     ])
-    return { acceso: c.length, reservas: r.length }
+    return { acceso: c.length, reservas: r.length, publicaciones: pub.pendientes.length }
   }, [])
-  const n = conteos.data ?? { acceso: 0, reservas: 0 }
+  const n = conteos.data ?? { acceso: 0, reservas: 0, publicaciones: 0 }
   const refrescar = () => conteos.refetch()
 
   const tabs = ([
     // Vecinos unifica las altas de acceso (arriba) con la gestión de vecinos.
     { key: 'vecinos', label: 'Vecinos', show: puedeAprobarAltas(rol), count: n.acceso },
+    { key: 'publicaciones', label: 'Publicaciones', show: puedeModerarPublicaciones(rol), count: n.publicaciones },
     { key: 'reservas', label: 'Reservas', show: puedeAprobarReservas(rol), count: n.reservas },
     { key: 'permisos', label: 'Permisos', show: true, count: 0 },
   ] as { key: TabKey; label: string; show: boolean; count: number }[]).filter((t) => t.show)
@@ -84,6 +87,7 @@ export function AdminPage() {
       </header>
 
       <div className="px-4 py-4">
+        {tab === 'publicaciones' && <PublicacionesTab onToast={toast} onChanged={refrescar} />}
         {tab === 'reservas' && <ReservasTab onToast={toast} onChanged={refrescar} />}
         {tab === 'vecinos' && <VecinosTab canManage={puedeAprobarAltas(rol)} currentUserId={user.id} onToast={toast} onChanged={refrescar} />}
         {tab === 'permisos' && <PermisosTab canEdit={esAppAdmin(rol)} onToast={toast} />}
@@ -606,6 +610,86 @@ function PermisosTab({ canEdit, onToast }: { canEdit: boolean; onToast: Toast })
           </ul>
         </Card>
       ))}
+    </div>
+  )
+}
+
+// ---- Publicaciones (moderación de incidencias/anuncios de vecinos) ------------
+const PUB_ICON = (t: string) => t === 'incidencia'
+  ? <TriangleAlert size={16} className="shrink-0 text-danger" />
+  : t === 'anuncio' ? <Megaphone size={16} className="shrink-0 text-primary" />
+  : <Megaphone size={16} className="shrink-0 text-warn-ink" />
+
+function PublicacionCard({ m, children }: { m: Mensaje; children?: React.ReactNode }) {
+  return (
+    <Card>
+      <div className="flex items-center gap-2">
+        {PUB_ICON(m.tipo)}
+        <span className="text-[11px] font-bold uppercase tracking-wide text-faint">{m.tipo}</span>
+        <span className="ml-auto text-[12px] text-faint">{fechaHora(m.created_at)}</span>
+      </div>
+      <h3 className="mt-1 font-display text-[16px] font-bold text-ink">{m.titulo}</h3>
+      <p className="mt-1 whitespace-pre-wrap text-[13.5px] leading-relaxed text-muted">{m.cuerpo}</p>
+      <div className="mt-1.5 text-[12px] text-faint">
+        Por {m.autor_nombre ?? 'Vecino'}{m.autor_vivienda ? ` · ${m.autor_vivienda}` : ''}
+        {m.tipo === 'anuncio' && m.expira_at ? ` · hasta ${fechaCorta(m.expira_at)}` : ''}
+      </div>
+      {children}
+    </Card>
+  )
+}
+
+function PublicacionesTab({ onToast, onChanged }: { onToast: Toast; onChanged: () => void }) {
+  const { data, state, refetch } = useAsync(publicacionesGestion, [])
+  const [busy, setBusy] = useState<string | null>(null)
+
+  if (state === 'loading') return <SkeletonList n={3} />
+  if (state === 'error' || !data) return <ErrorState onRetry={refetch} />
+
+  async function moderar(id: string, aprobar: boolean) {
+    setBusy(id)
+    try {
+      await moderarPublicacion(id, aprobar)
+      onToast(aprobar ? 'Publicado y notificado a los vecinos' : 'Rechazado (no se publica)', aprobar ? 'ok' : 'info')
+      refetch(); onChanged()
+    } catch {
+      onToast('No se ha podido completar la acción', 'error')
+    } finally { setBusy(null) }
+  }
+
+  const { pendientes, reportes } = data
+  if (pendientes.length === 0 && reportes.length === 0) {
+    return <EmptyState titulo="Nada pendiente" texto="No hay incidencias ni anuncios de vecinos por revisar." />
+  }
+
+  return (
+    <div className="flex flex-col gap-5">
+      <section>
+        <SectionTitle icon={<Inbox size={15} />}>Por aprobar ({pendientes.length})</SectionTitle>
+        {pendientes.length === 0 ? (
+          <p className="rounded-[14px] bg-surface-2 px-4 py-4 text-center text-[13px] text-muted">Nada pendiente de aprobar.</p>
+        ) : (
+          <div className="flex flex-col gap-3">
+            {pendientes.map((m) => (
+              <PublicacionCard key={m.id} m={m}>
+                <div className="mt-3 flex gap-2">
+                  <Button block disabled={busy === m.id} onClick={() => moderar(m.id, true)}><Check size={17} /> Aprobar y publicar</Button>
+                  <Button block variant="danger-outline" disabled={busy === m.id} onClick={() => moderar(m.id, false)}><X size={17} /> Rechazar</Button>
+                </div>
+              </PublicacionCard>
+            ))}
+          </div>
+        )}
+      </section>
+
+      {reportes.length > 0 && (
+        <section>
+          <SectionTitle icon={<Shield size={15} />}>Reportes privados a administración ({reportes.length})</SectionTitle>
+          <div className="flex flex-col gap-3">
+            {reportes.map((m) => <PublicacionCard key={m.id} m={m} />)}
+          </div>
+        </section>
+      )}
     </div>
   )
 }

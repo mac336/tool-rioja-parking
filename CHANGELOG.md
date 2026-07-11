@@ -176,6 +176,13 @@ al implementar el cambio (ver `CLAUDE.md` → Forma de trabajo).
 - **v1.16.0 · Purga de cesiones de parking:** las cesiones canceladas o ya
   pasadas quedan como histórico y se **borran automáticamente a los 10 días**
   (job diario `pg_cron`, migración 0030). Aviso en la UI.
+- **v1.18.0 · Publicaciones de vecinos (incidencias/anuncios con moderación):**
+  desde el Buzón, sección "Publicar", el vecino reporta una incidencia o publica
+  un anuncio (con fechas, máx. 2 meses) y elige si va **para todos** (pendiente
+  de aprobar → tablón) o **solo a administración** (privado). Se guarda en
+  `mensajes` con estado (borrador/pendiente/publicado/rechazado) y destino
+  (migración 0031). Nueva pestaña **"Publicaciones"** en el panel para
+  aprobar/rechazar (permisos `aprobar_incidencias`/`aprobar_anuncios`).
 - **v1.17.0 · Notificaciones y limpieza:** la campana pasa a llamarse
   **"Notificaciones"**; las ya vistas se muestran en gris (leído) y las nuevas
   resaltadas con etiqueta **"Nuevo"**. El icono 💬 de la cabecera muestra un

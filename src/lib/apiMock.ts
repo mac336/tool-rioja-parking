@@ -386,6 +386,25 @@ export function borrarMensaje(id: string): Promise<void> {
   db.mensajes = db.mensajes.filter((m) => m.id !== id)
   return delay(undefined)
 }
+type PublicacionInput = { tipo: 'incidencia' | 'anuncio'; titulo: string; cuerpo: string; destino: 'todos' | 'administracion'; publica_at?: string | null; expira_at?: string | null; borrador?: boolean }
+export function crearPublicacion(input: PublicacionInput): Promise<Mensaje> {
+  const estado = input.destino === 'administracion' ? 'publicado' : (input.borrador ? 'borrador' : 'pendiente')
+  const m: Mensaje = { id: uid(), tipo: input.tipo, titulo: input.titulo, cuerpo: input.cuerpo, destino: input.destino, estado, publica_at: input.publica_at ?? now(), expira_at: input.expira_at ?? null, created_by: currentUser.id, activo: true, created_at: now() }
+  db.mensajes.unshift(m)
+  return delay(m)
+}
+export const misPublicaciones = (): Promise<Mensaje[]> =>
+  delay(db.mensajes.filter((m) => m.created_by === currentUser.id).slice().sort((a, b) => b.created_at.localeCompare(a.created_at)))
+export interface ColaPublicaciones { pendientes: Mensaje[]; reportes: Mensaje[] }
+export const publicacionesGestion = (): Promise<ColaPublicaciones> => delay({
+  pendientes: db.mensajes.filter((m) => m.estado === 'pendiente').map((m) => ({ ...m, autor_nombre: nombreDe(m.created_by ?? ''), autor_vivienda: db.profiles.find((p) => p.id === m.created_by)?.vivienda ?? '' })),
+  reportes: db.mensajes.filter((m) => m.destino === 'administracion').map((m) => ({ ...m, autor_nombre: nombreDe(m.created_by ?? ''), autor_vivienda: db.profiles.find((p) => p.id === m.created_by)?.vivienda ?? '' })),
+})
+export function moderarPublicacion(id: string, aprobar: boolean): Promise<void> {
+  const m = db.mensajes.find((x) => x.id === id)
+  if (m) { m.estado = aprobar ? 'publicado' : 'rechazado'; m.activo = true; if (aprobar) m.publica_at = now() }
+  return delay(undefined)
+}
 
 // ---- Buzón privado por canales (demo) ----------------------------------------
 const ROLES_CANAL: Record<HiloCanal, Role[]> = {

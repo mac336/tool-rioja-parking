@@ -48,8 +48,15 @@ function Bandeja({ onOpen }: { onOpen: (c: ChatSel) => void }) {
 
         {state !== 'loading' && state !== 'error' && (
           <>
+            {/* Qué es el buzón */}
+            <div className="rounded-[14px] bg-primary-soft px-4 py-3 text-[13px] leading-snug text-primary-700">
+              El buzón es tu <b>chat privado</b> para contactar con la comunidad. Toca un contacto y escríbele
+              directamente: dudas, incidencias o cualquier gestión. <b>Solo lo veis tú y el destinatario</b>.
+            </div>
+
             {/* Contactos: toca y escribe (directo al chat) */}
             <section className="flex flex-col gap-2">
+              <h2 className="section-title">Contactar con</h2>
               {CANALES.map((c) => {
                 const h = mioPorCanal.get(c)
                 const sinLeer = !!h?.no_leido_vecino

@@ -20,6 +20,8 @@ vecino que abrió el hilo. El `app_admin` **no** ve Presidencia ni Conserje.
 
 ## Comportamiento (estilo WhatsApp)
 
+- Al entrar, una **descripción** explica que es un chat privado para contactar
+  con la comunidad (solo lo ven el vecino y el destinatario).
 - La bandeja es una **lista de contactos/chats**, sin formulario de asunto:
   - **Vecino:** un contacto por canal disponible (hoy solo "Desarrollador de la
     app"). Tocar el contacto abre **directamente el chat** (si ya existía

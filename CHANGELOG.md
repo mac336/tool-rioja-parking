@@ -173,4 +173,7 @@ al implementar el cambio (ver `CLAUDE.md` → Forma de trabajo).
   fabricar un `app_admin`); `notificar-admin` deja de ser anónimo; `notificar`
   exige permiso/visibilidad; `grupoId` validado como UUID; `log_audit` sin
   EXECUTE público (migración 0029). Ver `specs/11`.
+- **v1.16.0 · Purga de cesiones de parking:** las cesiones canceladas o ya
+  pasadas quedan como histórico y se **borran automáticamente a los 10 días**
+  (job diario `pg_cron`, migración 0030). Aviso en la UI.
 

@@ -214,6 +214,9 @@ export function ParkingPage() {
         {/* Mis avisos de plaza */}
         <section>
           <h2 className="section-title mb-2 flex items-center gap-1.5"><Bell size={14} /> Mis avisos de plaza</h2>
+          {avisosOrdenados.length > 0 && avisosOrdenados.some((c) => c.estado !== 'activa') && (
+            <p className="mb-2 text-[12px] text-faint">Las canceladas y las ya pasadas quedan como histórico y se borran solas a los 10 días.</p>
+          )}
           {avisosOrdenados.length === 0 ? (
             <Card>
               <EmptyState titulo="Sin avisos" texto="Cuando cedas o pidas plaza, tus avisos aparecerán aquí." />

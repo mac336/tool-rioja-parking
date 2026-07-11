@@ -77,3 +77,9 @@ plaza en un periodo concreto. El autor puede **cancelar** su aviso mientras siga
 ## Seguridad
 - Todo el módulo tras login (hoy está en web pública → pasa a requerir sesión).
 - RLS: donar/necesitar = activo para su vivienda; reasignar/gestionar = gestión.
+
+## Purga de cesiones (histórico corto, mig. 0030)
+
+Las cesiones **canceladas/reasignadas** o **ya pasadas** se mantienen como
+histórico en "Mis avisos de plaza", pero un job diario de `pg_cron`
+(`purgar_cesiones`, 03:15) las **borra a los 10 días** para no acumular ruido.

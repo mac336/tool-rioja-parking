@@ -129,7 +129,10 @@ al implementar el cambio (ver `CLAUDE.md` → Forma de trabajo).
 - Esqueleto de la app (React+Vite+Supabase), esquema inicial, RLS, triggers,
   vistas y storage (migraciones 0001–0005). Módulos: incidencias, encuestas,
   reservas, parking, contactos, anuncios, sugerencias. Despliegue en Vercel +
-  Supabase. Ver specs 01–15.- **v1.13.0 · La gestión escribe a los vecinos:** nuevo permiso configurable
+  Supabase. Ver specs 01–15.- **v1.13.1 · Guía de instalación en iPhone corregida:** 3 pasos reales del
+  Safari actual — tres puntos (⋯) abajo a la derecha → Compartir → bajar hasta
+  "Añadir a pantalla de inicio". Flecha animada apuntando al botón ⋯.
+- **v1.13.0 · La gestión escribe a los vecinos:** nuevo permiso configurable
   `escribir_vecinos` (desarrollador/administrador/conserje por defecto). Botón
   "Escribir a un vecino" en el buzón con buscador; el chat se crea en el canal
   del rol (RLS, mig. 0027) y al vecino le llega **push + correo a los correos

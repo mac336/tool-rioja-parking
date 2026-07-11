@@ -1,5 +1,5 @@
 import { useEffect, useState } from 'react'
-import { Download, Share, SquarePlus, X, Smartphone, ArrowDown, Compass } from 'lucide-react'
+import { Download, Share, SquarePlus, X, Smartphone, ArrowDown, Compass, MoreHorizontal } from 'lucide-react'
 import { Button, cx } from '@/components/ui'
 import { getDeferredPrompt, clearDeferredPrompt, isStandalone, getPlataforma, esSafariIOS } from '@/lib/pwa'
 
@@ -59,25 +59,25 @@ export function InstallPrompt() {
             <ol className="flex flex-col gap-3">
               <li className="flex items-center gap-3">
                 <span className="flex h-8 w-8 shrink-0 items-center justify-center rounded-full bg-primary text-[14px] font-bold text-white">1</span>
-                <span className="text-[14px] text-ink">Pulsa el icono <b>Compartir</b> <Share size={16} className="inline align-text-bottom text-primary" /> en la barra de Safari.</span>
+                <span className="text-[14px] text-ink">Pulsa los <b>tres puntos</b> <MoreHorizontal size={16} className="inline rounded-[5px] bg-surface-2 align-text-bottom text-primary" /> abajo a la derecha de Safari.</span>
               </li>
               <li className="flex items-center gap-3">
                 <span className="flex h-8 w-8 shrink-0 items-center justify-center rounded-full bg-primary text-[14px] font-bold text-white">2</span>
-                <span className="text-[14px] text-ink">Elige <b>“Añadir a pantalla de inicio”</b> <SquarePlus size={16} className="inline align-text-bottom text-primary" />.</span>
+                <span className="text-[14px] text-ink">Pulsa <b>Compartir</b> <Share size={16} className="inline align-text-bottom text-primary" />.</span>
               </li>
               <li className="flex items-center gap-3">
                 <span className="flex h-8 w-8 shrink-0 items-center justify-center rounded-full bg-primary text-[14px] font-bold text-white">3</span>
-                <span className="text-[14px] text-ink">Confirma con <b>Añadir</b>. ¡Ya la tienes como app!</span>
+                <span className="text-[14px] text-ink"><b>Baja en la lista</b> hasta <b>“Añadir a pantalla de inicio”</b> <SquarePlus size={16} className="inline align-text-bottom text-primary" /> y confirma con <b>Añadir</b>.</span>
               </li>
             </ol>
           </div>
         </div>
-        {/* Flecha animada apuntando al botón Compartir (abajo-centro en Safari) */}
-        <div className="mb-1 flex flex-col items-center gap-1 pb-[env(safe-area-inset-bottom)] text-white">
+        {/* Flecha animada apuntando al botón ⋯ (abajo a la DERECHA en Safari) */}
+        <div className="mb-1 flex flex-col items-end gap-1 pb-[env(safe-area-inset-bottom)] pr-7 text-white">
           <div className="flex items-center gap-2 rounded-full bg-primary px-3.5 py-1.5 text-[13px] font-bold shadow-primary">
-            <Share size={16} /> Pulsa aquí: Compartir
+            <MoreHorizontal size={16} /> Pulsa aquí: los tres puntos
           </div>
-          <ArrowDown size={30} className="animate-bounce drop-shadow" />
+          <ArrowDown size={30} className="mr-8 animate-bounce drop-shadow" />
         </div>
       </div>
     )

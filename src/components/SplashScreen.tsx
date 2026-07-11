@@ -1,5 +1,5 @@
 import { useEffect, useState } from 'react'
-import { ArrowRight, Share, SquarePlus, Download, Smartphone, Check, Compass } from 'lucide-react'
+import { ArrowRight, Share, SquarePlus, Download, Smartphone, Check, Compass, MoreHorizontal } from 'lucide-react'
 import { Logo } from '@/components/Logo'
 import { cx } from '@/components/ui'
 import { ACCESO_DIRECTO } from '@/lib/session'
@@ -106,15 +106,21 @@ export function SplashScreen({ onDone }: { onDone: () => void }) {
                 <Download size={19} /> Añadir a mi pantalla de inicio
               </button>
             ) : plataforma === 'ios' && safariIOS ? (
-              // iPhone (Safari): guía en 2 pasos (Apple no permite botón directo).
+              // iPhone (Safari): guía en 3 pasos (Apple no permite botón directo).
+              // El Safari actual muestra "⋯" abajo a la derecha (no el icono de
+              // compartir), y "Añadir a pantalla de inicio" exige bajar la lista.
               <div className="mt-6 w-full rounded-[16px] bg-white/12 p-4 text-left">
                 <div className="flex items-center gap-3 text-[14px] text-white">
                   <span className="flex h-7 w-7 shrink-0 items-center justify-center rounded-full bg-white font-bold text-primary-700">1</span>
-                  <span>Pulsa <b>Compartir</b> <Share size={16} className="inline align-text-bottom" /> en la barra de Safari.</span>
+                  <span>Pulsa los <b>tres puntos</b> <MoreHorizontal size={16} className="inline rounded-[5px] bg-white/25 align-text-bottom" /> abajo a la derecha de Safari.</span>
                 </div>
                 <div className="mt-3 flex items-center gap-3 text-[14px] text-white">
                   <span className="flex h-7 w-7 shrink-0 items-center justify-center rounded-full bg-white font-bold text-primary-700">2</span>
-                  <span>Elige <b>“Añadir a pantalla de inicio”</b> <SquarePlus size={16} className="inline align-text-bottom" />.</span>
+                  <span>Pulsa <b>Compartir</b> <Share size={16} className="inline align-text-bottom" />.</span>
+                </div>
+                <div className="mt-3 flex items-center gap-3 text-[14px] text-white">
+                  <span className="flex h-7 w-7 shrink-0 items-center justify-center rounded-full bg-white font-bold text-primary-700">3</span>
+                  <span><b>Baja en la lista</b> hasta <b>“Añadir a pantalla de inicio”</b> <SquarePlus size={16} className="inline align-text-bottom" />.</span>
                 </div>
               </div>
             ) : plataforma === 'ios' ? (

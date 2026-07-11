@@ -1,5 +1,5 @@
 import { useState } from 'react'
-import { Send, X, ChevronLeft, Megaphone, ShieldCheck, Trash2, Code2 } from 'lucide-react'
+import { Send, X, ChevronLeft, Megaphone, ShieldCheck, Trash2, Code2, Building2, BellRing, Lock } from 'lucide-react'
 import { SubHeader, Page } from '@/components/layout/AppShell'
 import { Button, Card, Field, Textarea, SelectField, Avatar, ErrorState, SkeletonList, cx } from '@/components/ui'
 import { useAsync } from '@/lib/useAsync'
@@ -11,10 +11,12 @@ import type { Hilo, HiloCanal, MensajeTipo } from '@/types'
 import { TIPO_META } from '@/features/mensajes/MensajeCard'
 
 const CANAL_LABEL: Record<HiloCanal, string> = { administrador: 'Administración', presidencia: 'Presidencia', conserje: 'Conserje', desarrollador: 'Desarrollador de la app' }
-// Contactos disponibles. Por ahora solo el Desarrollador de la app (fase de
-// pruebas); más adelante se reabren Administración/Presidencia/Conserje
-// añadiéndolos aquí de nuevo.
+const CANAL_ICON: Record<HiloCanal, typeof Code2> = { administrador: Building2, presidencia: Building2, conserje: BellRing, desarrollador: Code2 }
+// Contactos activos (se puede escribir). Por ahora solo el Desarrollador.
 const CANALES: HiloCanal[] = ['desarrollador']
+// Contactos VISIBLES pero PAUSADOS (solo lectura): se muestran, pero al tocarlos
+// avisan de que están pausados hasta que se apruebe el uso de la app.
+const CANALES_PAUSADOS: HiloCanal[] = ['administrador', 'conserje']
 
 // Chat abierto: hilo existente (id) o conversación nueva con un canal.
 type ChatSel = { id?: string; canal: HiloCanal; titulo: string }
@@ -29,6 +31,7 @@ export function BuzonPage() {
 function Bandeja({ onOpen }: { onOpen: (c: ChatSel) => void }) {
   const { user } = useApp()
   const { data, state, refetch } = useAsync(listHilos, [])
+  const [pausado, setPausado] = useState<HiloCanal | null>(null)
   const hilos = data ?? []
 
   // Mis chats como vecino: 1 conversación por canal (el hilo más reciente).
@@ -60,11 +63,12 @@ function Bandeja({ onOpen }: { onOpen: (c: ChatSel) => void }) {
               {CANALES.map((c) => {
                 const h = mioPorCanal.get(c)
                 const sinLeer = !!h?.no_leido_vecino
+                const Icon = CANAL_ICON[c]
                 return (
                   <Card key={c} role="button" onClick={() => onOpen({ id: h?.id, canal: c, titulo: CANAL_LABEL[c] })}
                     className="flex cursor-pointer items-center gap-3 hover:bg-surface-2">
                     <span className="flex h-11 w-11 shrink-0 items-center justify-center rounded-full bg-primary-soft text-primary-700">
-                      <Code2 size={21} strokeWidth={1.9} />
+                      <Icon size={21} strokeWidth={1.9} />
                     </span>
                     <div className="min-w-0 flex-1">
                       <div className="font-semibold text-ink">{CANAL_LABEL[c]}</div>
@@ -73,6 +77,26 @@ function Bandeja({ onOpen }: { onOpen: (c: ChatSel) => void }) {
                       </div>
                     </div>
                     {sinLeer && <span className="h-2.5 w-2.5 shrink-0 rounded-full bg-primary" />}
+                  </Card>
+                )
+              })}
+
+              {/* Contactos pausados (solo lectura): visibles pero no disponibles aún */}
+              {CANALES_PAUSADOS.map((c) => {
+                const Icon = CANAL_ICON[c]
+                return (
+                  <Card key={c} role="button" onClick={() => setPausado(c)}
+                    className="flex cursor-pointer items-center gap-3 opacity-70 hover:bg-surface-2">
+                    <span className="flex h-11 w-11 shrink-0 items-center justify-center rounded-full bg-surface-2 text-muted">
+                      <Icon size={21} strokeWidth={1.9} />
+                    </span>
+                    <div className="min-w-0 flex-1">
+                      <div className="font-semibold text-ink">{CANAL_LABEL[c]}</div>
+                      <div className="truncate text-[12.5px] text-muted">Disponible próximamente</div>
+                    </div>
+                    <span className="flex shrink-0 items-center gap-1 rounded-pill bg-surface-2 px-2.5 py-0.5 text-[11px] font-bold text-muted">
+                      <Lock size={12} /> Pausado
+                    </span>
                   </Card>
                 )
               })}
@@ -99,6 +123,23 @@ function Bandeja({ onOpen }: { onOpen: (c: ChatSel) => void }) {
           </>
         )}
       </Page>
+
+      {/* Aviso: contacto pausado hasta que se apruebe el uso de la app */}
+      {pausado && (
+        <div className="app-viewport z-50 flex items-end justify-center bg-black/40 sm:items-center" onClick={() => setPausado(null)}>
+          <div className="w-full max-w-[460px] rounded-t-[20px] bg-surface p-5 text-center shadow-xl sm:rounded-[20px]" onClick={(e) => e.stopPropagation()}>
+            <span className="mx-auto flex h-14 w-14 items-center justify-center rounded-[18px] bg-warn-soft text-warn-ink">
+              <Lock size={26} strokeWidth={1.9} />
+            </span>
+            <h3 className="mt-3 font-display text-[19px] font-bold text-ink">{CANAL_LABEL[pausado]} · pausado</h3>
+            <p className="mx-auto mt-2 max-w-xs text-[14px] text-muted">
+              Esta función está <b>temporalmente pausada</b> hasta que se apruebe el uso completo de la app en la comunidad.
+              Mientras tanto, para cualquier duda escribe al <b>Desarrollador de la app</b>.
+            </p>
+            <Button block size="lg" className="mt-5" onClick={() => setPausado(null)}>Entendido</Button>
+          </div>
+        </div>
+      )}
     </div>
   )
 }

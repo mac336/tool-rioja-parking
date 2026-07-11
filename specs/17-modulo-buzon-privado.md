@@ -30,9 +30,12 @@ vecino que abrió el hilo. El `app_admin` **no** ve Presidencia ni Conserje.
     del canal); punto azul si hay respuesta sin leer.
   - **Staff del canal:** además ve la sección "Vecinos" con un chat por vecino
     (nombre + vivienda + fecha; punto si hay no leído).
-- **Fase de pruebas (actual):** solo el canal **desarrollador** es contactable;
-  el resto quedan definidos para conservar hilos antiguos. Reabrir canales =
-  añadirlos de nuevo a `CANALES` (`src/features/buzon/BuzonPage.tsx`).
+- **Fase de pruebas (actual):** solo el canal **desarrollador** es contactable.
+  **Administración** y **Conserje** se muestran como contactos **pausados (solo
+  lectura)**: al tocarlos avisan de que la función está pausada hasta que se
+  apruebe el uso completo de la app (`CANALES_PAUSADOS`). Presidencia queda
+  oculta. Reabrir un canal = moverlo de `CANALES_PAUSADOS` a `CANALES`
+  (`src/features/buzon/BuzonPage.tsx`).
 - El staff puede **responder**, **cerrar/reabrir** y **"Convertir en mensaje
   público"** (si tiene `publicar_mensajes`).
 - Estilo **chat fijado al viewport visible** (`--app-h`): cabecera y barra de

@@ -129,4 +129,7 @@ al implementar el cambio (ver `CLAUDE.md` → Forma de trabajo).
 - Esqueleto de la app (React+Vite+Supabase), esquema inicial, RLS, triggers,
   vistas y storage (migraciones 0001–0005). Módulos: incidencias, encuestas,
   reservas, parking, contactos, anuncios, sugerencias. Despliegue en Vercel +
-  Supabase. Ver specs 01–15.
+  Supabase. Ver specs 01–15.- **v1.7.2 · Textos de sugerencias:** la sección pasa a **"Comentarios y
+  sugerencias"** (comentario / sugerencia / mejora, no solo mejoras). Añadida
+  una 4ª opción ("Es muy difícil de usar") a la encuesta de satisfacción.
+

@@ -13,7 +13,7 @@ const links = [
   { to: '/votaciones', label: 'Votaciones', Icon: SquareCheckBig },
   { to: '/contactos', label: 'Contactos', Icon: Phone },
   { to: '/reciclaje', label: 'Reciclaje', Icon: Leaf },
-  { to: '/sugerencias', label: 'Sugerencias sobre la app', Icon: Lightbulb },
+  { to: '/sugerencias', label: 'Comentarios y sugerencias', Icon: Lightbulb },
   { to: '/normas', label: 'Normas de uso', Icon: FileText },
 ]
 

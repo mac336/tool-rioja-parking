@@ -197,14 +197,4 @@ export function SkeletonList({ n = 4 }: { n?: number }) {
   )
 }
 
-// ---- Fab ---------------------------------------------------------------------
-export function Fab({ onClick, label = 'Nuevo' }: { onClick: () => void; label?: string }) {
-  return (
-    <button onClick={onClick} aria-label={label}
-      className="fixed bottom-[92px] right-4 z-30 flex h-[58px] w-[58px] items-center justify-center rounded-[18px] bg-primary text-3xl text-white shadow-primary md:bottom-8">
-      +
-    </button>
-  )
-}
-
 export { cx }

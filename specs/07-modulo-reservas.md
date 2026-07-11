@@ -13,7 +13,8 @@ defecto presidente/app_admin) antes de confirmarse.
   en bloque (migraciones 0006/0008). Se valida disponibilidad por zona.
 - **1 reserva vigente por vivienda** (puede incluir varias zonas). El anti-solape
   por zona lo impone un constraint de BD.
-- Al aprobar/rechazar → **correo + push** al solicitante (`notificar-reserva`).
+- Al aprobar/rechazar → **push** al solicitante (`notificar-reserva`). El correo
+  está desactivado por el flag global `CORREOS_NOTIFICACION=false` (ver CLAUDE.md).
 - Privacidad: los vecinos ven solo la ocupación (libre/ocupada) sin identidad.
 
 ## Zonas (configurables por app_admin)

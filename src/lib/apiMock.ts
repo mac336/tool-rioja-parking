@@ -7,7 +7,7 @@ import type {
   Profile, Role,
   Encuesta, EncuestaFormato, EncuestaTipo, ZonaComun, Reserva, ReservaGrupo, CrearReservaInput,
   Mensaje, MensajeTipo, Hilo, HiloMensaje, HiloCanal,
-  Contact, ContactCategory, AccessRequest, ParkingCesion, CesionTipo, ParkingQuincena,
+  Contact, AccessRequest, ParkingCesion, CesionTipo, ParkingQuincena,
 } from '@/types'
 import * as mock from '@/mock/data'
 import { PISOS, proximasQuincenas, proximosTurnos } from '@/lib/parking'
@@ -140,14 +140,6 @@ export function reservaVigente(): Promise<ReservaGrupo | null> {
   return delay(grupos[0] ?? null)
 }
 
-export function ocupacionZonaDia(zonaId: string, fechaISO: string): Promise<{ inicio: string; fin: string; estado: 'pendiente' | 'aprobada' }[]> {
-  const dia = fechaISO.slice(0, 10)
-  const franjas = db.reservas
-    .filter((r) => r.zona_id === zonaId && (r.estado === 'pendiente' || r.estado === 'aprobada') && r.inicio.slice(0, 10) === dia)
-    .map((r) => ({ inicio: r.inicio, fin: r.fin, estado: r.estado as 'pendiente' | 'aprobada' }))
-  return delay(franjas)
-}
-
 /** Ocupación de TODAS las zonas en un día (para validar varias zonas a la vez). */
 export function ocupacionDia(fechaISO: string): Promise<{ zona_id: string; inicio: string; fin: string; estado: 'pendiente' | 'aprobada' }[]> {
   const dia = fechaISO.slice(0, 10)
@@ -237,7 +229,6 @@ export function parkingProximas(n = 5): Promise<ParkingQuincena[]> { return dela
 export function parkingMisTurnos(): Promise<ReturnType<typeof proximosTurnos>> {
   return delay(proximosTurnos(currentUser.vivienda))
 }
-export const listCesiones = () => delay(db.cesiones.slice())
 export const misCesiones = () => delay(db.cesiones.filter((c) => c.vivienda === currentUser.vivienda))
 export const cesionesActivas = () => delay(db.cesiones.filter((c) => c.estado === 'activa'))
 
@@ -281,7 +272,6 @@ export function borrarContacto(id: string): Promise<void> {
   db.contactos = db.contactos.filter((c) => c.id !== id)
   return delay(undefined)
 }
-export type { ContactCategory }
 
 // ---- Solicitudes de acceso ---------------------------------------------------
 export const listAccessRequests = () => delay(db.requests.filter((r) => r.estado === 'pendiente'))
@@ -354,11 +344,6 @@ export function listRolePermisos(): Promise<{ rol: Role; permiso: string }[]> {
 export function setRolePermiso(rol: Role, permiso: string, on: boolean): Promise<void> {
   const k = `${rol}|${permiso}`
   if (on) permisosSet.add(k); else permisosSet.delete(k)
-  return delay(undefined)
-}
-
-// ---- Sugerencias (demo: no envía correo, solo simula) ------------------------
-export function enviarSugerencia(_texto: string): Promise<void> {
   return delay(undefined)
 }
 

@@ -1,4 +1,4 @@
-import { useEffect, useMemo, useState } from 'react'
+import { useMemo, useState } from 'react'
 import { Link, useNavigate } from 'react-router-dom'
 import { CalendarDays, Check, Clock, MapPin, Users, X } from 'lucide-react'
 import { useApp } from '@/store'

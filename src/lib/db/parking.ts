@@ -23,13 +23,6 @@ export async function parkingMisTurnos(): Promise<ReturnType<typeof proximosTurn
 }
 
 // ---- Cesiones ----------------------------------------------------------------
-export async function listCesiones(): Promise<ParkingCesion[]> {
-  const { data, error } = await supabase.from('parking_cesiones')
-    .select('*').order('created_at', { ascending: false })
-  if (error) throw error
-  return (data ?? []) as ParkingCesion[]
-}
-
 export async function misCesiones(): Promise<ParkingCesion[]> {
   const vivienda = await viviendaActual()
   const { data, error } = await supabase.from('parking_cesiones')

@@ -5,27 +5,34 @@
 
 ## Concepto
 
-Un modelo **unificado de "mensajes"** que publica **solo la gestión**; el vecino
-solo los lee. Cada mensaje tiene un **tipo**:
+Un modelo **unificado de "mensajes"** con **cuatro tipos**:
 
-- **Aviso** (ámbar) — avisos importantes (corte de agua, fumigación…).
-- **Anuncio** (azul) — comunicados generales (piscina abierta…).
-- **Incidencia** (rojo) — problemas de la comunidad (ascensor averiado…).
+- **Aviso** (ámbar) — avisos importantes (corte de agua, fumigación…). Solo gestión.
+- **Anuncio** (azul) — comunicados generales (piscina abierta…). Gestión directo;
+  el vecino puede proponer uno (moderado).
+- **Incidencia** (rojo) — problemas de la comunidad (ascensor averiado…). Gestión
+  directo; el vecino puede reportarla (moderada).
+- **Sugerencia** (lavanda) — propuestas de vecinos para la comunidad (moderadas),
+  con **autor visible** y **likes** (ver sección al final).
 
-Los colores de fondo son **configurables por usuario** (Ajustes), por defecto
-ámbar/azul/rojo claros.
+La gestión (permiso `publicar_mensajes`) publica **directo**; el **vecino** envía
+incidencias/anuncios/sugerencias desde **Buzón → Publicar** y pasan por
+**moderación** antes de verse (mig. 0031, sección "Publicaciones de vecinos").
+Los colores de fondo son **configurables por usuario** (Ajustes).
 
 ## Quién puede publicar
 
-Crear/editar/borrar mensajes requiere el permiso **`publicar_mensajes`**
-(personalizable por rol, ver `specs/03`). El vecino base solo lee. La seguridad
-la impone la RLS (`mensajes` en la migración 0012).
+Publicar **directo** (y editar/borrar cualquier mensaje) requiere el permiso
+**`publicar_mensajes`** (personalizable por rol, ver `specs/03`). El vecino
+envía **propuestas moderadas** (ver "Publicaciones de vecinos"); aprobarlas
+requiere `aprobar_incidencias`/`aprobar_anuncios`. La seguridad la impone la
+RLS (`mensajes`, migraciones 0012/0031/0034).
 
 ## Datos (`mensajes`)
 
 | Campo | Notas |
 |-------|-------|
-| `tipo` | enum `mensaje_tipo`: aviso / anuncio / incidencia |
+| `tipo` | enum `mensaje_tipo`: aviso / anuncio / incidencia / sugerencia (0032) |
 | `titulo`, `cuerpo` | texto (1–140 / 1–4000) |
 | `firma` | quién firma: Administrador / Conserje / la Junta / una vivienda (0015). Aparece como firma manuscrita en el post-it |
 | `expira_at` | fecha de caducidad **opcional** (sobre todo avisos, 0014). En el formulario se prefija a **mañana** con papelera para quitarla |
@@ -34,9 +41,11 @@ la impone la RLS (`mensajes` en la migración 0012).
 
 ## Pantalla "Mensajes"
 
-- **3 pestañas** (Avisos / Anuncios / Incidencias) con **contador** por grupo.
+- **4 pestañas** (Avisos / Anuncios / Incidencias / Sugerencias) con **contador**.
 - Muestra la lista del tipo seleccionado. La gestión ve el botón **Nuevo** y
-  puede editar/borrar cada tarjeta.
+  puede editar/borrar cada tarjeta. La pestaña **Sugerencias es de solo
+  lectura** (las envían los vecinos; se aprueban en Gestión → Publicaciones) —
+  solo permite borrar.
 - Formulario de alta: tipo, título, mensaje, **firma** (desplegable) y **caduca
   el** (opcional, con papelera).
 

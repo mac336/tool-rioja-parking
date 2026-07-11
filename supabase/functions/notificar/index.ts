@@ -23,7 +23,13 @@ const ANON = Deno.env.get('SUPABASE_ANON_KEY')!
 const GMAIL_USER = Deno.env.get('GMAIL_USER') ?? ''
 const GMAIL_APP_PASSWORD = Deno.env.get('GMAIL_APP_PASSWORD') ?? ''
 
-const TIPO_LABEL: Record<string, string> = { aviso: 'aviso', anuncio: 'anuncio', incidencia: 'incidencia' }
+// Título completo por tipo (evita "Nuevo incidencia": el género varía).
+const TIPO_TITULO: Record<string, string> = {
+  aviso: 'Nuevo aviso en la comunidad',
+  anuncio: 'Nuevo anuncio en la comunidad',
+  incidencia: 'Nueva incidencia en la comunidad',
+  sugerencia: 'Nueva sugerencia en la comunidad',
+}
 
 Deno.serve(async (req) => {
   if (req.method === 'OPTIONS') return new Response('ok', { headers: corsHeaders })
@@ -42,21 +48,27 @@ Deno.serve(async (req) => {
     const { kind, id } = await req.json()
 
     if (kind === 'mensaje') {
-      // SEGURIDAD: solo quien puede publicar mensajes dispara el push masivo
-      // (si no, cualquier vecino podría spamear a todo el edificio).
+      // SEGURIDAD: solo quien puede publicar mensajes O moderar publicaciones
+      // (aprobar dispara este mismo push) lanza el envío masivo — si no,
+      // cualquier vecino podría spamear a todo el edificio.
       let puede = perfil.rol === 'app_admin'
       if (!puede) {
-        const { data: perm } = await admin.from('role_permissions')
-          .select('permiso').eq('rol', perfil.rol).eq('permiso', 'publicar_mensajes').maybeSingle()
-        puede = !!perm
+        const { data: perms } = await admin.from('role_permissions')
+          .select('permiso').eq('rol', perfil.rol)
+          .in('permiso', ['publicar_mensajes', 'aprobar_incidencias', 'aprobar_anuncios'])
+        puede = (perms ?? []).length > 0
       }
       if (!puede) return json({ error: 'Sin permiso.' }, 403)
-      const { data: m } = await admin.from('mensajes').select('tipo, titulo').eq('id', id).single()
-      if (!m) return json({ ok: true, skipped: 'sin mensaje' })
+      // Solo se anuncia lo realmente visible en el tablón.
+      const { data: m } = await admin.from('mensajes')
+        .select('tipo, titulo, estado, destino').eq('id', id).single()
+      if (!m || m.estado !== 'publicado' || m.destino !== 'todos') {
+        return json({ ok: true, skipped: 'no publicado para todos' })
+      }
       await enviarPushATodos(admin, {
-        title: `Nuevo ${TIPO_LABEL[m.tipo] ?? 'mensaje'} en la comunidad`,
+        title: TIPO_TITULO[m.tipo] ?? 'Nuevo mensaje en la comunidad',
         body: m.titulo as string,
-        url: '/mensajes',
+        url: '/', // el tablón vive en la Home (post-its)
       })
       return json({ ok: true })
     }
@@ -125,7 +137,9 @@ Deno.serve(async (req) => {
       const ids = await idsPorRoles(admin, [...roles])
       const etiqueta = m.destino === 'administracion'
         ? 'Reporte a administración'
-        : (m.tipo === 'incidencia' ? 'Incidencia por aprobar' : 'Anuncio por aprobar')
+        : m.tipo === 'incidencia' ? 'Incidencia por aprobar'
+        : m.tipo === 'sugerencia' ? 'Sugerencia por aprobar'
+        : 'Anuncio por aprobar'
       await enviarPushAUsuarios(admin, ids, { title: `📥 ${etiqueta}`, body: m.titulo as string, url: '/admin' })
       return json({ ok: true })
     }

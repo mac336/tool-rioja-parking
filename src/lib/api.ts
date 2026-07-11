@@ -5,7 +5,7 @@ import { usingSupabase } from '@/lib/supabase'
 import * as mock from './apiMock'
 import * as sup from './apiSupabase'
 
-export type { ContactCategory, Aviso } from './apiMock'
+export type { Aviso } from './apiMock'
 
 const A: typeof mock = usingSupabase ? (sup as unknown as typeof mock) : mock
 
@@ -13,14 +13,14 @@ export const {
   getUser, setUserRole, actualizarNombre, iniciales,
   listViviendas,
   listEncuestas, getEncuesta, votarPregunta, crearEncuesta, cerrarEncuesta, borrarEncuesta,
-  listZonas, misReservas, reservaVigente, ocupacionZonaDia, ocupacionDia, crearReserva, cancelarReserva,
+  listZonas, misReservas, reservaVigente, ocupacionDia, crearReserva, cancelarReserva,
   reservasPendientesGestion, reservasGestion, estadisticasReservas, resolverReserva,
-  parkingProximas, parkingMisTurnos, listCesiones, misCesiones, cesionesActivas,
+  parkingProximas, parkingMisTurnos, misCesiones, cesionesActivas,
   crearCesion, cancelarCesion, reasignarCesion, demandaParking,
   listContactos, crearContacto, editarContacto, borrarContacto,
   listAccessRequests, resolverSolicitud, crearSolicitud,
   listVecinos, suspenderVecino, cambiarRolVecino, editarVecino, darDeBajaVecino, crearVecinoDirecto, statsAcceso, statsAccesoPorVivienda,
-  listRolePermisos, setRolePermiso, enviarSugerencia, listSugerencias,
+  listRolePermisos, setRolePermiso, listSugerencias,
   guardarSuscripcionPush, quitarSuscripcionPush,
   listMensajes, crearMensaje, editarMensaje, borrarMensaje, crearPublicacion, misPublicaciones, publicacionesGestion, moderarPublicacion, alternarLike,
   listHilos, getHilo, crearHilo, crearHiloComoGestion, listDirectorio, responderHilo, cerrarHilo, borrarHilo, convertirEnMensaje,

@@ -92,4 +92,15 @@ vecino que abrió el hilo. El `app_admin` **no** ve Presidencia ni Conserje.
 - UI: `src/features/buzon/BuzonPage.tsx` (bandeja + chat + "Para").
 - Datos: `src/lib/db/buzon.ts` (`listHilos`, `getHilo`, `crearHilo(canal)`,
   `responderHilo`, `cerrarHilo`, `convertirEnMensaje`) / mock. Edge: `notificar`.
-- Accesos: mosaico "Buzón" e icono de mensajes en Inicio (junto a la campana).
+- Acceso: **icono 💬 en la cabecera de Inicio** (junto a la campana), con punto
+  rojo si hay mensaje sin leer. (El mosaico "Buzón" de Servicios se retiró en
+  v1.16.1 por duplicado.)
+
+## Sección "Publicar" (dentro del buzón)
+
+Bajo los chats, el vecino tiene el panel **Publicar** con tres botones —
+**Incidencia / Anuncio / Sugerencia** — para proponer contenido al tablón
+(pendiente de aprobación) o mandar un reporte **solo a administración**
+(privado). Incluye la lista **"Mis publicaciones"** con su estado (borrador /
+pendiente / publicado / no publicado). El detalle del flujo, estados y RLS
+vive en `specs/16` ("Publicaciones de vecinos" y "Sugerencias de la comunidad").

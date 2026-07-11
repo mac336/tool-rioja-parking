@@ -97,21 +97,6 @@ export async function reservaVigente(): Promise<ReservaGrupo | null> {
   return grupos[0] ?? null
 }
 
-/** Ocupación de una zona en un día, SIN identidad (vista ocupacion_reservas). */
-export async function ocupacionZonaDia(
-  zonaId: string,
-  fechaISO: string,
-): Promise<{ inicio: string; fin: string; estado: 'pendiente' | 'aprobada' }[]> {
-  const dia = fechaISO.slice(0, 10)
-  const { data, error } = await supabase.from('ocupacion_reservas')
-    .select('zona_id, inicio, fin, estado')
-    .eq('zona_id', zonaId)
-  if (error) throw error
-  return (data ?? [])
-    .filter((r) => (r.inicio as string).slice(0, 10) === dia)
-    .map((r) => ({ inicio: r.inicio as string, fin: r.fin as string, estado: r.estado as 'pendiente' | 'aprobada' }))
-}
-
 /** Ocupación de TODAS las zonas en un día (para validar varias zonas a la vez). */
 export async function ocupacionDia(
   fechaISO: string,

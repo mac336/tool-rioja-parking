@@ -1,6 +1,6 @@
 import { useEffect, useState } from 'react'
 import { Download, Share, SquarePlus, X, Smartphone, ArrowDown, Compass, MoreHorizontal } from 'lucide-react'
-import { Button, cx } from '@/components/ui'
+import { Button } from '@/components/ui'
 import { getDeferredPrompt, clearDeferredPrompt, isStandalone, getPlataforma, esSafariIOS } from '@/lib/pwa'
 
 const DISMISS_KEY = 'r25-install-dismissed'

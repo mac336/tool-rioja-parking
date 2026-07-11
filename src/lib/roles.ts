@@ -122,11 +122,6 @@ export function esTester(rol: Role): boolean {
   return rol === 'tester'
 }
 
-/** Puede escribir por el buzón (chat privado). */
-export function puedeUsarBuzon(rol: Role): boolean {
-  return tienePermiso(rol, 'usar_buzon')
-}
-
 /** Puede votar en encuestas (permiso configurable). */
 export function puedeVotar(rol: Role): boolean {
   return tienePermiso(rol, 'votar_encuestas')

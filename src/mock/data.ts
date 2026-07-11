@@ -4,7 +4,6 @@
 import type {
   Profile, Encuesta, ZonaComun, Reserva, Contact, AccessRequest,
 } from '@/types'
-import { quincenaGlobal } from '@/lib/parking'
 
 export const MOCK_USER: Profile = {
   id: 'u_marta',
@@ -143,4 +142,3 @@ export const MOCK_CONTACTS: Contact[] = [
 ]
 
 /** Quincena actual para el mock de parking (usa la matemática real). */
-export const MOCK_QUINCENA_ACTUAL = quincenaGlobal()

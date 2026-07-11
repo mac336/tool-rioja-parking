@@ -43,11 +43,15 @@
 - **Sin zoom:** `maximum-scale=1, user-scalable=no` (index.html) +
   `touch-action: manipulation` (body). Interfaz mobile-first; el zoom por
   pellizco/doble toque descuadraba la app instalada.
-- **Campana de avisos:** feed DERIVADO (se calcula al vuelo: últimos 3 mensajes
+- **Campana "Notificaciones":** feed DERIVADO (se calcula al vuelo: últimos 3
+  mensajes ya **publicados para todos**
   activos, buzón sin leer, votación abierta, reserva aprobada, cola de gestión),
   ordenado del más nuevo al más antiguo (`ts`). Un aviso desaparece cuando su
   origen deja de estar vigente (mensaje borrado/caducado, hilo leído, votación
-  cerrada…). Contador de "no vistos" en la campana de la Home comparando `ts`
+  cerrada…). Tocar una notificación de mensaje abre el **tablón** (Home). Las ya
+  vistas se pintan en gris (leído) y las nuevas resaltadas con "Nuevo". La cola
+  de reservas por aprobar solo aparece a quien tiene `aprobar_reservas`.
+  Contador de "no vistos" en la campana de la Home comparando `ts`
   con la última visita a /avisos, guardada **en el perfil**
   (`profiles.avisos_vistos_at`, mig. 0028) → consistente entre dispositivos;
   localStorage solo como respaldo (demo/offline).
@@ -57,7 +61,8 @@
   [**reserva activa**, si la vivienda tiene una vigente: zonas, fecha/hora y
   estado, → Mis reservas] → **Servicios** (pieza clave: SIEMPRE visible, pegada al footer,
   nunca scrollea; todo lo nuevo debe caber en el espacio de arriba). La barra
-  inferior queda con **solo Inicio y Más**; "Más" contiene únicamente lo que no
+  inferior queda con **Inicio y Más** (y **Gestión** en medio para roles con
+  panel, v1.14.1); "Más" contiene únicamente lo que no
   está en la Home (ajustes, gestión, dashboard, normas).
 - **Bienvenida** al abrir (una vez por sesión de pestaña) en **dos pasos**:
   (1) mensaje de bienvenida; (2) **invitación a instalar la app** en el móvil

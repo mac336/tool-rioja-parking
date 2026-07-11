@@ -1,12 +1,7 @@
-// Sugerencias sobre la app — implementación real (Supabase Edge Function).
-// El envío del correo lo hace el servidor (SMTP), no el cliente. Firma idéntica
-// al mock (src/lib/apiMock.ts).
+// Sugerencias sobre la app — HISTÓRICO de solo lectura. El formulario de envío
+// se retiró (el feedback al desarrollador va por el chat del buzón); esta tabla
+// conserva lo recibido antes y lo lee el Dashboard del app_admin.
 import { supabase } from '@/lib/supabase'
-
-export async function enviarSugerencia(texto: string): Promise<void> {
-  const { error } = await supabase.functions.invoke('enviar-sugerencia', { body: { texto } })
-  if (error) throw error
-}
 
 export interface Sugerencia { id: string; nombre: string; vivienda: string | null; texto: string; created_at: string }
 

@@ -37,11 +37,16 @@ Al implementar algo nuevo o cambiar algo existente:
 - **Permisos personalizables:** el app_admin activa/desactiva permisos por rol
   (tabla `role_permissions`). Los helpers RLS los leen en vivo. Ver `specs/03`.
 - **Estados de cuenta:** `pendiente`, `activo`, `suspendido`, `baja` (reversible).
-- **Mensajes (tablón):** avisos/anuncios/incidencias los publica solo la gestión
-  con permiso `publicar_mensajes`; el vecino solo lee. Sustituyen al viejo sistema
-  de incidencias y anuncios (RETIRADOS). Ver `specs/16`.
+- **Mensajes (tablón):** 4 tipos (aviso/anuncio/incidencia/**sugerencia**). La
+  gestión (`publicar_mensajes`) publica directo; el **vecino propone** desde
+  Buzón → Publicar (incidencia/anuncio/sugerencia) con **moderación**
+  (`aprobar_incidencias`/`aprobar_anuncios`) o manda reportes privados a
+  administración. Las **sugerencias** llevan autor visible y **likes 1/vivienda**
+  (`mensaje_likes`). Sustituye al viejo sistema pre-0013 (RETIRADO). Ver `specs/16`.
 - **Buzón privado por canales:** vecino↔(Administración/Presidencia/Conserje/
-  Desarrollador de la app), dirigido y privado por rol. Ver `specs/17`.
+  Desarrollador de la app), dirigido y privado por rol; incluye la sección
+  **Publicar** (propuestas de vecinos al tablón). El feedback sobre la app va por
+  el chat del canal Desarrollador (el formulario viejo se retiró). Ver `specs/17`.
 - **Notificaciones:** push (Web Push/VAPID) para casi todo (mensajes, buzón,
   reservas, nuevas solicitudes, sugerencias). Los **correos de notificación están
   desactivados** (flag `supabase/functions/_shared/config.ts`); solo se envían por

@@ -181,14 +181,6 @@ export interface CrearReservaInput {
   numInvitados: number
 }
 
-/** Vista de ocupación sin identidad (para vecinos): solo franja + estado. */
-export interface OcupacionFranja {
-  zona_id: string
-  inicio: string
-  fin: string
-  estado: 'pendiente' | 'aprobada'
-}
-
 export type CesionTipo = 'cede' | 'no_necesita' | 'necesita'
 export type CesionEstado = 'activa' | 'reasignada' | 'cancelada'
 

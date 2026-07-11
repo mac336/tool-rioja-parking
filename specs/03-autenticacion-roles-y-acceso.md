@@ -89,9 +89,10 @@ no solo en la interfaz.
 ## Panel de gestión
 
 Acceso con permiso `panel` (o app_admin). Cabecera **fija y compacta** (icono +
-"Panel de gestión" + pestañas); solo el contenido scrollea. Los usuarios de
-gestión tienen además un acceso **"Gestión"** en la barra inferior (empuja
-Mensajes; cede el sitio a Parking, que sigue en "Más"). Pestañas:
+"Panel de gestión" + pestañas **Vecinos / Reservas / Publicaciones / Permisos**);
+solo el contenido scrollea. Los usuarios de
+gestión tienen además un acceso **"Gestión"** en la barra inferior (en
+medio: Inicio / Gestión / Más, que sigue en "Más"). Pestañas:
 
 - **Vecinos** (unifica el antiguo "Acceso") — arriba del todo las **solicitudes
   de acceso pendientes** (se aprueban primero); botón **"Añadir vecino"** para

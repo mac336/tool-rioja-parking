@@ -1,13 +1,16 @@
-# 14 · Módulo Sugerencias sobre la app
+# 14 · Módulo Sugerencias sobre la app — **RETIRADO** (v1.20.0)
 
-> **Estado actual:** implementado con **Opción B** (formulario que envía correo
-> real por Gmail SMTP vía Edge Function `enviar-sugerencia`). El texto aclara que
-> la app la desarrolla un **vecino del Bajo C** y que la sugerencia le llega a él.
-> Solo vecinos activos; el nombre/vivienda los pone el servidor (no el cliente).
-> El correo llega a `cdelarioja25@gmail.com` con reply-to del vecino.
+> **RETIRADO.** El formulario de feedback y su Edge Function `enviar-sugerencia`
+> se eliminaron: el feedback sobre la app se hace por el **chat del buzón**,
+> canal **"Desarrollador de la app"** (ver `specs/17`).
 >
-> Nota: para reportar fallos/ideas de la app en **privado** y con conversación,
-> existe además el canal **"Desarrollador de la app"** del buzón (ver `specs/17`).
+> La tabla `sugerencias` (mig. 0026) queda como **histórico de solo lectura**,
+> visible para el app_admin en **Dashboard → Sugerencias** (`listSugerencias`).
+>
+> La pantalla **"Sugerencias"** de Servicios es hoy el **tablón de sugerencias
+> de la comunidad** (autor + likes), documentado en `specs/16`.
+>
+> Lo que sigue es la spec histórica del formulario retirado.
 
 ## Objetivo
 Un apartado sencillo para que cualquier vecino envíe **feedback sobre la propia

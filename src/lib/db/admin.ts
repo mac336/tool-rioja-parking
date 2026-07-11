@@ -5,6 +5,7 @@
 import { supabase } from '@/lib/supabase'
 import type { AccessRequest, Profile, Role } from '@/types'
 import { iniciales, fechaCorta } from '@/lib/format'
+import { puedeAprobarReservas } from '@/lib/roles'
 
 // ---- Solicitudes de acceso ---------------------------------------------------
 export async function listAccessRequests(): Promise<AccessRequest[]> {
@@ -123,10 +124,12 @@ export async function listAvisos(): Promise<Aviso[]> {
   const { data: { user } } = await supabase.auth.getUser()
   if (!user) return avisos
 
-  // Perfil del usuario (rol + vivienda) para saber si es gestión.
+  // Perfil del usuario (rol) para los avisos de gestión: por PERMISO real
+  // (aprobar_reservas), no por "rol distinto de vecino" — así un tester o un
+  // conserje sin ese permiso no ve la cola de reservas por aprobar.
   const { data: perfil } = await supabase.from('profiles')
     .select('rol, vivienda').eq('id', user.id).single()
-  const esGestion = !!perfil && perfil.rol !== 'vecino'
+  const esGestion = !!perfil && puedeAprobarReservas(perfil.rol as Role)
 
   // Mensajes recientes del tablón: SOLO los ya publicados y para todos (no
   // borradores/pendientes ni los privados a administración, que la RLS deja ver

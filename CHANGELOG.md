@@ -3,6 +3,111 @@
 Cambios funcionales relevantes, más recientes arriba. Cada entrada nueva se añade
 al implementar el cambio (ver `CLAUDE.md` → Forma de trabajo).
 
+## 2026-07-11
+
+- **v1.21.0 · Auditoría integral (código muerto, RLS y coherencia):** revisión
+  completa de la app con arreglos: **RLS endurecida** (mig. 0034: el tester vuelve
+  a ser solo lectura en mensajes/likes; el autor no puede borrar su publicación ya
+  publicada; quitar un "me gusta" lo puede hacer cualquier cuenta de la vivienda;
+  los moderadores ven la cola aunque no tengan permiso `panel`). `notificar`
+  autoriza también a los aprobadores (el push de "publicado" ya no se pierde),
+  etiqueta bien las sugerencias y solo anuncia lo realmente publicado. La campana
+  muestra la cola de reservas solo a quien tiene `aprobar_reservas` (antes, a
+  cualquier rol ≠ vecino). **Limpieza de código muerto**: retirados el formulario
+  y la Edge Function `enviar-sugerencia` (el feedback va por el chat del buzón;
+  el histórico sigue legible en el Dashboard), `ocupacionZonaDia`, `listCesiones`,
+  `puedeUsarBuzon`, `Fab` y tipos sin uso. **Tests RLS ampliados** (publicaciones,
+  auto-aprobación, likes por vivienda, tester, grants de profiles). Specs y
+  CHANGELOG reestructurados y puestos al día.
+- **v1.20.2 · Sugerencias:** el texto introductorio pasa a ser una nota de
+  ayuda (sin recuadro ni icono) para no confundirse con una sugerencia más.
+- **v1.20.1 · Sugerencias:** el botón de alta pasa a la cabecera (“+ Nueva”),
+  como en Mensajes.
+- **v1.20.0 · "Sugerencias" pasa a ser el tablón de la comunidad:** la pantalla
+  de Sugerencias ya no es el formulario de feedback al desarrollador (eso ahora
+  se hace por el chat del buzón). Ahora **lista las sugerencias aprobadas** con su
+  autor y un botón de **me gusta** (uno por vivienda), y el **administrador**
+  (permiso `publicar_mensajes`) puede **añadir una nueva** directamente publicada.
+  Los vecinos siguen proponiendo desde el buzón (Publicar → Sugerencia, moderado).
+- **v1.19.1 · Arreglos de coherencia (mensajes/campana):** al tocar una
+  notificación de mensaje ahora abre el **tablón** (Home, los post-its), no la
+  pantalla Mensajes. La campana solo muestra mensajes **publicados y para todos**
+  (ya no cuela borradores/pendientes ni los privados a administración) y etiqueta
+  bien las **sugerencias**. La pantalla Mensajes de gestión añade pestaña
+  **Sugerencias** (solo lectura; se aprueban en Gestión → Publicaciones).
+- **v1.19.0 · Sugerencias de la comunidad (autor + likes):** nueva clase de
+  mensaje "sugerencia" (Buzón → Publicar → Sugerencia), con el **autor visible**
+  y **likes (1 por vivienda)**. Mismo flujo de moderación que incidencias/
+  anuncios; el tablón muestra un botón de me gusta en el visor. Migraciones
+  0032/0033 (tipo + tabla `mensaje_likes`). No se toca la pantalla privada de
+  "Comentarios y sugerencias" (feedback al desarrollador).
+- **v1.18.0 · Publicaciones de vecinos (incidencias/anuncios con moderación):**
+  desde el Buzón, sección "Publicar", el vecino reporta una incidencia o publica
+  un anuncio (con fechas, máx. 2 meses) y elige si va **para todos** (pendiente
+  de aprobar → tablón) o **solo a administración** (privado). Se guarda en
+  `mensajes` con estado (borrador/pendiente/publicado/rechazado) y destino
+  (migración 0031). Nueva pestaña **"Publicaciones"** en el panel para
+  aprobar/rechazar (permisos `aprobar_incidencias`/`aprobar_anuncios`).
+- **v1.17.0 · Notificaciones y limpieza:** la campana pasa a llamarse
+  **"Notificaciones"**; las ya vistas se muestran en gris (leído) y las nuevas
+  resaltadas con etiqueta **"Nuevo"**. El icono 💬 de la cabecera muestra un
+  **punto rojo** cuando hay un mensaje de buzón sin leer. **Reciclaje** sale de
+  Servicios y pasa al menú **Más**.
+- **v1.16.1 · Limpieza de Servicios (Home):** fuera **Buzón** (duplicado: ya está
+  arriba en la cabecera como 💬) y **Mensajes** para quien no publica (el vecino
+  ya lo lee en el tablón).
+- **v1.16.0 · Purga de cesiones de parking:** las cesiones canceladas o ya
+  pasadas quedan como histórico y se **borran automáticamente a los 10 días**
+  (job diario `pg_cron`, migración 0030). Aviso en la UI.
+- **v1.15.1 · Firma "Vecinos":** nueva opción de firma en los mensajes del
+  tablón (junto a Administrador/Conserje/la Junta y los pisos).
+- **v1.15.0 · Auditoría de seguridad y correcciones:** revisadas RLS, grants y
+  Edge Functions. Cerrada la **escalada de privilegios**: solo el app_admin puede
+  asignar/crear roles de gestión (antes cualquiera con `aprobar_altas` podía
+  fabricar un `app_admin`); `notificar-admin` deja de ser anónimo; `notificar`
+  exige permiso/visibilidad; `grupoId` validado como UUID; `log_audit` sin
+  EXECUTE público (migración 0029). Ver `specs/11`.
+- **v1.14.1 · Botón "Gestión" en el footer:** los roles con panel ven la barra
+  inferior como **Inicio / Gestión / Más**; el resto sigue con Inicio y Más.
+- **v1.14.0 · Avisos vistos en BD + seguridad:** la última visita a la campana
+  se guarda en el perfil (`avisos_vistos_at`) → el contador de avisos nuevos es
+  el mismo en el móvil y en la web. De paso, **cerrado un agujero de seguridad**:
+  el UPDATE de `profiles` queda limitado a nombre/normas/avisos (antes permitía
+  a un usuario cambiarse su propio rol). Migración 0028.
+- **v1.13.1 · Guía de instalación en iPhone corregida:** 3 pasos reales del
+  Safari actual — tres puntos (⋯) abajo a la derecha → Compartir → bajar hasta
+  "Añadir a pantalla de inicio". Flecha animada apuntando al botón ⋯.
+- **v1.13.0 · La gestión escribe a los vecinos:** nuevo permiso configurable
+  `escribir_vecinos` (desarrollador/administrador/conserje por defecto). Botón
+  "Escribir a un vecino" en el buzón con buscador; el chat se crea en el canal
+  del rol (RLS, mig. 0027) y al vecino le llega **push + correo a los correos
+  registrados de su piso**.
+- **v1.12.0 · Sugerencias guardadas y visibles:** cada sugerencia se guarda en
+  BD (tabla `sugerencias`, mig. 0026) y el app_admin las lee en **Dashboard →
+  Sugerencias**. Antes solo viajaban en el push/correo y podían perderse (bug).
+- **v1.11.0 · Alta directa con invitación:** al dar de alta a alguien desde el
+  panel se le envía un correo de **invitación en español** con botón "Entrar en
+  la app" (enlace directo a la app). Plantilla de invitación personalizada.
+- **v1.10.0 · Gadget de reserva en la Home:** si la vivienda tiene una reserva
+  vigente aparece bajo el parking (zonas, fecha/hora, estado → Mis reservas).
+  El hueco libre se reparte entre tablón, parking/reserva y servicios; sin
+  parking ni reserva queda aire y los servicios abajo.
+- **v1.9.1 · Home:** post-its con tope de altura, espacio repartido y servicios
+  con aire sobre el footer.
+- **v1.9.0 · Home rediseñada como panel de gadgets (sin scroll):** el tablón
+  pasa a **una línea** (un post-it grande deslizable; al tocarlo, **visor a
+  pantalla completa** que se pasa con el dedo; orden incidencias → avisos →
+  anuncios) y es **elástico**: crece o se comprime según la pantalla y según
+  haya encuesta/parking. **Servicios** queda como pieza clave pegada al footer,
+  siempre visible. La barra inferior queda con **solo Inicio y Más**, y "Más"
+  solo contiene lo que no está en la Home. Retirados TablonBoard/PostItNote/
+  PostItPadModal.
+- **v1.8.0 · Buzón:** Administración y Conserje aparecen como contactos **pausados (solo lectura)**; al tocarlos, aviso de que la función está pausada hasta aprobar el uso completo de la app.
+- **v1.7.3 · Buzón:** descripción de uso al entrar (chat privado para contactar con la comunidad) + rótulo "Contactar con".
+- **v1.7.2 · Textos de sugerencias:** la sección pasa a **"Comentarios y
+  sugerencias"** (comentario / sugerencia / mejora, no solo mejoras). Añadida
+  una 4ª opción ("Es muy difícil de usar") a la encuesta de satisfacción.
+
 ## 2026-07-10
 
 - **v1.7.0 · Acceso directo (temporal) + bienvenida en 2 pasos:** los vecinos ya
@@ -10,6 +115,8 @@ al implementar el cambio (ver `CLAUDE.md` → Forma de trabajo).
   Edge `acceso-directo` genera sesión sin enviar correo), para no liar a la gente
   mayor. Reversible poniendo el flag a `false`. La **bienvenida** añade un
   segundo paso que invita a **instalar la app** en el móvil.
+- **v1.7.1 · Recordar el correo:** el login prefija el último correo usado
+  (no hay que reescribirlo cada vez).
 - **v1.6.0 · Adopción por piso: entrado vs sin entrar:** la tabla de Adopción
   marca en cada vivienda con cuenta si **ha entrado** (ya inició sesión) o está
   **sin entrar** (aprobada pero no ha accedido — típicamente correo en spam).
@@ -19,6 +126,7 @@ al implementar el cambio (ver `CLAUDE.md` → Forma de trabajo).
   **cuántas cuentas han conseguido entrar** alguna vez (`stats_acceso`, mig.
   0024). La pantalla de **normas** (primer acceso) fija el botón "Acepto" abajo,
   siempre visible, arreglando el problema de scroll en Android.
+- **v1.5.1 · Aviso de spam (login):** también en el paso de escribir el correo.
 - **v1.4.1 · Aviso de spam:** la pantalla de bienvenida y el paso del código de
   acceso recuerdan revisar la carpeta de spam si el correo no llega.
 - **v1.4.0 · Dashboard de la app:** el menú "Adopción" pasa a **Dashboard** (solo
@@ -129,85 +237,4 @@ al implementar el cambio (ver `CLAUDE.md` → Forma de trabajo).
 - Esqueleto de la app (React+Vite+Supabase), esquema inicial, RLS, triggers,
   vistas y storage (migraciones 0001–0005). Módulos: incidencias, encuestas,
   reservas, parking, contactos, anuncios, sugerencias. Despliegue en Vercel +
-  Supabase. Ver specs 01–15.- **v1.14.0 · Avisos vistos en BD + seguridad:** la última visita a la campana
-  se guarda en el perfil (`avisos_vistos_at`) → el contador de avisos nuevos es
-  el mismo en el móvil y en la web. De paso, **cerrado un agujero de seguridad**:
-  el UPDATE de `profiles` queda limitado a nombre/normas/avisos (antes permitía
-  a un usuario cambiarse su propio rol). Migración 0028.
-- **v1.13.1 · Guía de instalación en iPhone corregida:** 3 pasos reales del
-  Safari actual — tres puntos (⋯) abajo a la derecha → Compartir → bajar hasta
-  "Añadir a pantalla de inicio". Flecha animada apuntando al botón ⋯.
-- **v1.13.0 · La gestión escribe a los vecinos:** nuevo permiso configurable
-  `escribir_vecinos` (desarrollador/administrador/conserje por defecto). Botón
-  "Escribir a un vecino" en el buzón con buscador; el chat se crea en el canal
-  del rol (RLS, mig. 0027) y al vecino le llega **push + correo a los correos
-  registrados de su piso**.
-- **v1.12.0 · Sugerencias guardadas y visibles:** cada sugerencia se guarda en
-  BD (tabla `sugerencias`, mig. 0026) y el app_admin las lee en **Dashboard →
-  Sugerencias**. Antes solo viajaban en el push/correo y podían perderse (bug).
-- **v1.11.0 · Alta directa con invitación:** al dar de alta a alguien desde el
-  panel se le envía un correo de **invitación en español** con botón "Entrar en
-  la app" (enlace directo a la app). Plantilla de invitación personalizada.
-- **v1.10.0 · Gadget de reserva en la Home:** si la vivienda tiene una reserva
-  vigente aparece bajo el parking (zonas, fecha/hora, estado → Mis reservas).
-  El hueco libre se reparte entre tablón, parking/reserva y servicios; sin
-  parking ni reserva queda aire y los servicios abajo.
-- **v1.9.1 · Home:** post-its con tope de altura, espacio repartido y servicios
-  con aire sobre el footer.
-- **v1.9.0 · Home rediseñada como panel de gadgets (sin scroll):** el tablón
-  pasa a **una línea** (un post-it grande deslizable; al tocarlo, **visor a
-  pantalla completa** que se pasa con el dedo; orden incidencias → avisos →
-  anuncios) y es **elástico**: crece o se comprime según la pantalla y según
-  haya encuesta/parking. **Servicios** queda como pieza clave pegada al footer,
-  siempre visible. La barra inferior queda con **solo Inicio y Más**, y "Más"
-  solo contiene lo que no está en la Home. Retirados TablonBoard/PostItNote/
-  PostItPadModal.
-- **v1.8.0 · Buzón:** Administración y Conserje aparecen como contactos **pausados (solo lectura)**; al tocarlos, aviso de que la función está pausada hasta aprobar el uso completo de la app.
-- **v1.7.3 · Buzón:** descripción de uso al entrar (chat privado para contactar con la comunidad) + rótulo "Contactar con".
-- **v1.7.2 · Textos de sugerencias:** la sección pasa a **"Comentarios y
-  sugerencias"** (comentario / sugerencia / mejora, no solo mejoras). Añadida
-  una 4ª opción ("Es muy difícil de usar") a la encuesta de satisfacción.
-- **v1.15.0 · Auditoría de seguridad y correcciones:** revisadas RLS, grants y
-  Edge Functions. Cerrada la **escalada de privilegios**: solo el app_admin puede
-  asignar/crear roles de gestión (antes cualquiera con `aprobar_altas` podía
-  fabricar un `app_admin`); `notificar-admin` deja de ser anónimo; `notificar`
-  exige permiso/visibilidad; `grupoId` validado como UUID; `log_audit` sin
-  EXECUTE público (migración 0029). Ver `specs/11`.
-- **v1.16.0 · Purga de cesiones de parking:** las cesiones canceladas o ya
-  pasadas quedan como histórico y se **borran automáticamente a los 10 días**
-  (job diario `pg_cron`, migración 0030). Aviso en la UI.
-- **v1.20.2 · Sugerencias:** el texto introductorio pasa a ser una nota de
-  ayuda (sin recuadro ni icono) para no confundirse con una sugerencia más.
-- **v1.20.1 · Sugerencias:** el botón de alta pasa a la cabecera (“+ Nueva”),
-  como en Mensajes.
-- **v1.20.0 · "Sugerencias" pasa a ser el tablón de la comunidad:** la pantalla
-  de Sugerencias ya no es el formulario de feedback al desarrollador (eso ahora
-  se hace por el chat del buzón). Ahora **lista las sugerencias aprobadas** con su
-  autor y un botón de **me gusta** (uno por vivienda), y el **administrador**
-  (permiso `publicar_mensajes`) puede **añadir una nueva** directamente publicada.
-  Los vecinos siguen proponiendo desde el buzón (Publicar → Sugerencia, moderado).
-- **v1.19.1 · Arreglos de coherencia (mensajes/campana):** al tocar una
-  notificación de mensaje ahora abre el **tablón** (Home, los post-its), no la
-  pantalla Mensajes. La campana solo muestra mensajes **publicados y para todos**
-  (ya no cuela borradores/pendientes ni los privados a administración) y etiqueta
-  bien las **sugerencias**. La pantalla Mensajes de gestión añade pestaña
-  **Sugerencias** (solo lectura; se aprueban en Gestión → Publicaciones).
-- **v1.19.0 · Sugerencias de la comunidad (autor + likes):** nueva clase de
-  mensaje "sugerencia" (Buzón → Publicar → Sugerencia), con el **autor visible**
-  y **likes (1 por vivienda)**. Mismo flujo de moderación que incidencias/
-  anuncios; el tablón muestra un botón de me gusta en el visor. Migraciones
-  0032/0033 (tipo + tabla `mensaje_likes`). No se toca la pantalla privada de
-  "Comentarios y sugerencias" (feedback al desarrollador).
-- **v1.18.0 · Publicaciones de vecinos (incidencias/anuncios con moderación):**
-  desde el Buzón, sección "Publicar", el vecino reporta una incidencia o publica
-  un anuncio (con fechas, máx. 2 meses) y elige si va **para todos** (pendiente
-  de aprobar → tablón) o **solo a administración** (privado). Se guarda en
-  `mensajes` con estado (borrador/pendiente/publicado/rechazado) y destino
-  (migración 0031). Nueva pestaña **"Publicaciones"** en el panel para
-  aprobar/rechazar (permisos `aprobar_incidencias`/`aprobar_anuncios`).
-- **v1.17.0 · Notificaciones y limpieza:** la campana pasa a llamarse
-  **"Notificaciones"**; las ya vistas se muestran en gris (leído) y las nuevas
-  resaltadas con etiqueta **"Nuevo"**. El icono 💬 de la cabecera muestra un
-  **punto rojo** cuando hay un mensaje de buzón sin leer. **Reciclaje** sale de
-  Servicios y pasa al menú **Más**.
-
+  Supabase. Ver specs 01–15.

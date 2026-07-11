@@ -5,13 +5,16 @@ import { useAsync } from '@/lib/useAsync'
 import { saludo, diasRestantes, fechaHora, hora } from '@/lib/format'
 import { parkingMisTurnos, listEncuestas, listMensajes, listAvisos, reservaVigente } from '@/lib/api'
 import { contarAvisosNuevos } from '@/lib/avisosVistos'
+import { puedePublicarMensajes } from '@/lib/roles'
 import { Logo } from '@/components/Logo'
 import { TablonGadget } from '@/features/mensajes/TablonGadget'
 
 // Servicios (accesos a módulos) en círculo — colores fijos de cada módulo.
+// - "Buzón" NO va aquí: está arriba en la cabecera (icono 💬), sería duplicado.
+// - "Mensajes" solo para quien PUBLICA (gestión): el vecino solo lee, y ya lo
+//   ve en el tablón, así que no necesita el acceso.
 const servicios = [
-  { to: '/mensajes', short: 'Mensajes', Icon: Megaphone, color: '#E0A22E' },
-  { to: '/buzon', short: 'Buzón', Icon: MessageSquare, color: '#3E7CB1' },
+  { to: '/mensajes', short: 'Mensajes', Icon: Megaphone, color: '#E0A22E', soloPublica: true },
   { to: '/votaciones', short: 'Votaciones', Icon: SquareCheckBig, color: '#5B7FD4' },
   { to: '/reservas', short: 'Reservas', Icon: CalendarDays, color: '#2E8E79' },
   { to: '/parking', short: 'Parking', Icon: SquareParking, color: '#8A6FD1' },
@@ -181,7 +184,7 @@ export function HomePage() {
       <section className="shrink-0 pb-5 pt-3">
         <div className="section-title mb-3">Servicios</div>
         <div className="grid grid-cols-4 gap-x-2 gap-y-3.5">
-          {servicios.map(({ to, short, Icon, color }) => (
+          {servicios.filter((s) => !s.soloPublica || puedePublicarMensajes(user.rol)).map(({ to, short, Icon, color }) => (
             <Link key={to} to={to} className="flex flex-col items-center gap-1.5">
               <span className="flex h-[56px] w-[56px] items-center justify-center rounded-full border border-border bg-surface"
                 style={{ boxShadow: '0 4px 10px -5px rgba(30,50,60,.35)', color }}>

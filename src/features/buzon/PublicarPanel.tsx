@@ -1,11 +1,14 @@
 import { useState } from 'react'
-import { TriangleAlert, Megaphone, Lightbulb, X, Send, FileEdit, Clock, Check, Ban } from 'lucide-react'
+import { TriangleAlert, Megaphone, Lightbulb, X, Send, FileEdit, Clock, Check, Ban, ImagePlus } from 'lucide-react'
 import { Card, Field, Textarea, Button, cx } from '@/components/ui'
 import { useAsync } from '@/lib/useAsync'
 import { useApp } from '@/store'
 import { fechaHora } from '@/lib/format'
+import { comprimirImagen, type FotoComprimida } from '@/lib/imagen'
 import { crearPublicacion, misPublicaciones } from '@/lib/api'
 import type { Mensaje, MensajeEstado, MensajeDestino } from '@/types'
+
+const MAX_FOTOS = 2
 
 const hoyStr = () => { const d = new Date(); d.setHours(0, 0, 0, 0); return d.toISOString().slice(0, 10) }
 const masMeses = (n: number) => { const d = new Date(); d.setMonth(d.getMonth() + n); return d.toISOString().slice(0, 10) }
@@ -33,9 +36,29 @@ export function PublicarPanel() {
   const mias = useAsync(misPublicaciones, [])
   const [form, setForm] = useState<FormState | null>(null)
   const [busy, setBusy] = useState(false)
+  const [fotos, setFotos] = useState<FotoComprimida[]>([])
+  const [procesando, setProcesando] = useState(false)
 
-  const abrir = (tipo: 'incidencia' | 'anuncio' | 'sugerencia') =>
+  const limpiarFotos = () => { fotos.forEach((f) => URL.revokeObjectURL(f.url)); setFotos([]) }
+  const cerrar = () => { setForm(null); limpiarFotos() }
+
+  const abrir = (tipo: 'incidencia' | 'anuncio' | 'sugerencia') => {
+    limpiarFotos()
     setForm({ tipo, titulo: '', cuerpo: '', destino: 'todos', publica: hoyStr(), expira: '' })
+  }
+
+  const añadirFotos = async (files: FileList | null) => {
+    if (!files || files.length === 0) return
+    setProcesando(true)
+    try {
+      const hueco = MAX_FOTOS - fotos.length
+      for (const file of Array.from(files).slice(0, hueco)) {
+        try { const f = await comprimirImagen(file); setFotos((prev) => [...prev, f]) }
+        catch (e) { toast(e instanceof Error ? e.message : 'No se pudo añadir la foto', 'error') }
+      }
+    } finally { setProcesando(false) }
+  }
+  const quitarFoto = (i: number) => setFotos((prev) => { URL.revokeObjectURL(prev[i].url); return prev.filter((_, j) => j !== i) })
 
   const valido = !!form && form.titulo.trim().length >= 3 && form.cuerpo.trim().length >= 3
 
@@ -51,12 +74,13 @@ export function PublicarPanel() {
         publica_at: form.tipo === 'anuncio' && form.publica ? new Date(form.publica).toISOString() : undefined,
         expira_at: form.tipo === 'anuncio' && form.expira ? new Date(form.expira).toISOString() : undefined,
         borrador,
+        fotos: form.tipo === 'incidencia' && fotos.length ? fotos.map((f) => f.blob) : undefined,
       })
       const queTipo = form.tipo
       if (borrador) toast('Guardado como borrador', 'info')
       else if (form.destino === 'administracion') toast('Enviado a administración', 'ok')
       else toast(`Se ha levantado tu ${queTipo}. Se publicará en cuanto la apruebe la administración.`, 'ok')
-      setForm(null)
+      cerrar()
       mias.refetch()
     } catch {
       toast('No se pudo enviar. Inténtalo de nuevo.', 'error')
@@ -113,13 +137,13 @@ export function PublicarPanel() {
 
       {/* Formulario */}
       {form && (
-        <div className="app-viewport z-50 flex items-end justify-center bg-black/40 sm:items-center" onClick={() => setForm(null)}>
+        <div className="app-viewport z-50 flex items-end justify-center bg-black/40 sm:items-center" onClick={cerrar}>
           <div className="max-h-full w-full max-w-[520px] overflow-y-auto rounded-t-[20px] bg-surface p-5 shadow-xl sm:rounded-[20px]" onClick={(e) => e.stopPropagation()}>
             <div className="mb-3 flex items-center justify-between">
               <h3 className="font-display text-[18px] font-bold text-ink">
                 {form.tipo === 'incidencia' ? 'Reportar incidencia' : form.tipo === 'sugerencia' ? 'Nueva sugerencia' : 'Publicar anuncio'}
               </h3>
-              <button onClick={() => setForm(null)} aria-label="Cerrar" className="rounded-full p-1.5 text-faint hover:bg-surface-2"><X size={20} /></button>
+              <button onClick={cerrar} aria-label="Cerrar" className="rounded-full p-1.5 text-faint hover:bg-surface-2"><X size={20} /></button>
             </div>
 
             <div className="flex flex-col gap-3">
@@ -131,6 +155,32 @@ export function PublicarPanel() {
                 value={form.cuerpo} maxLength={4000} rows={5}
                 onChange={(e) => setForm({ ...form, cuerpo: e.target.value })}
                 placeholder="Cuéntanos los detalles…" />
+
+              {form.tipo === 'incidencia' && (
+                <div>
+                  <div className="mb-1.5 text-[13px] font-semibold text-muted">Fotos (opcional, máx. {MAX_FOTOS})</div>
+                  <div className="flex flex-wrap gap-2">
+                    {fotos.map((f, i) => (
+                      <div key={f.url} className="relative h-20 w-20 overflow-hidden rounded-[12px] border border-border">
+                        <img src={f.url} alt={`Foto ${i + 1}`} className="h-full w-full object-cover" />
+                        <button type="button" onClick={() => quitarFoto(i)} aria-label="Quitar foto"
+                          className="absolute right-1 top-1 flex h-6 w-6 items-center justify-center rounded-full bg-black/60 text-white">
+                          <X size={14} />
+                        </button>
+                      </div>
+                    ))}
+                    {fotos.length < MAX_FOTOS && (
+                      <label className={cx('flex h-20 w-20 cursor-pointer flex-col items-center justify-center gap-1 rounded-[12px] border border-dashed border-border text-faint hover:bg-surface-2', procesando && 'pointer-events-none opacity-60')}>
+                        <ImagePlus size={20} />
+                        <span className="text-[10.5px] font-semibold">{procesando ? 'Procesando…' : 'Añadir'}</span>
+                        <input type="file" accept="image/*" multiple className="hidden"
+                          onChange={(e) => { void añadirFotos(e.target.files); e.target.value = '' }} />
+                      </label>
+                    )}
+                  </div>
+                  <p className="mt-1 text-[11.5px] text-faint">Se optimizan en tu móvil antes de subir y se elimina la ubicación de la foto.</p>
+                </div>
+              )}
 
               {form.tipo === 'anuncio' && (
                 <div className="grid grid-cols-2 gap-3">
@@ -170,8 +220,8 @@ export function PublicarPanel() {
               )}
 
               <div className="flex gap-2">
-                <Button variant="secondary" disabled={busy || !valido} onClick={() => enviar(true)}><FileEdit size={17} /> Borrador</Button>
-                <Button block disabled={busy || !valido} onClick={() => enviar(false)}><Send size={17} /> {busy ? 'Enviando…' : 'Enviar'}</Button>
+                <Button variant="secondary" disabled={busy || procesando || !valido} onClick={() => enviar(true)}><FileEdit size={17} /> Borrador</Button>
+                <Button block disabled={busy || procesando || !valido} onClick={() => enviar(false)}><Send size={17} /> {busy ? 'Enviando…' : 'Enviar'}</Button>
               </div>
             </div>
           </div>

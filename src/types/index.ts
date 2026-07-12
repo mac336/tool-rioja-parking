@@ -99,6 +99,7 @@ export interface Mensaje {
   firma?: string | null // quién firma (Administrador / Conserje / la Junta / vivienda)
   likes?: number // nº de "me gusta" (sugerencias)
   yo_like?: boolean // mi vivienda ya dio like
+  adjuntos?: string[] // URLs firmadas de las fotos (incidencias); se rellena al listar
   created_at: string
 }
 

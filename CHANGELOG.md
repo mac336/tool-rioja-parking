@@ -5,6 +5,13 @@ al implementar el cambio (ver `CLAUDE.md` → Forma de trabajo).
 
 ## 2026-07-11
 
+- **v1.23.0 · Fotos en las incidencias:** al reportar una incidencia (Buzón →
+  Publicar → Incidencia) se pueden adjuntar **1–2 fotos**. Se **optimizan en el
+  propio móvil** antes de subir (WebP, lado máx. 1600px, ≤~800 KB) y se les
+  **borra el EXIF/geolocalización**. Se guardan en un bucket **privado** y se
+  muestran con URL firmada de caducidad corta en el tablón, en "Mis
+  publicaciones" y en el panel de moderación. Al borrar la incidencia se borran
+  también las fotos (cascade + trigger a Storage). Migración 0036.
 - **v1.22.0 · Avisos de moderación y reservas:** al **crear una reserva** ahora
   llega **push a los aprobadores** (`aprobar_reservas`); al **rechazar** una
   publicación, el **autor recibe push** ("Tu incidencia/anuncio/sugerencia no se

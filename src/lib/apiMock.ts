@@ -387,10 +387,11 @@ export function borrarMensaje(id: string): Promise<void> {
   db.mensajes = db.mensajes.filter((m) => m.id !== id)
   return delay(undefined)
 }
-type PublicacionInput = { tipo: 'incidencia' | 'anuncio' | 'sugerencia'; titulo: string; cuerpo: string; destino: 'todos' | 'administracion'; publica_at?: string | null; expira_at?: string | null; borrador?: boolean }
+type PublicacionInput = { tipo: 'incidencia' | 'anuncio' | 'sugerencia'; titulo: string; cuerpo: string; destino: 'todos' | 'administracion'; publica_at?: string | null; expira_at?: string | null; borrador?: boolean; fotos?: Blob[] }
 export function crearPublicacion(input: PublicacionInput): Promise<Mensaje> {
   const estado = input.destino === 'administracion' ? 'publicado' : (input.borrador ? 'borrador' : 'pendiente')
-  const m: Mensaje = { id: uid(), tipo: input.tipo, titulo: input.titulo, cuerpo: input.cuerpo, destino: input.destino, estado, publica_at: input.publica_at ?? now(), expira_at: input.expira_at ?? null, created_by: currentUser.id, activo: true, created_at: now() }
+  const adjuntos = (input.fotos ?? []).slice(0, 2).map((b) => URL.createObjectURL(b))
+  const m: Mensaje = { id: uid(), tipo: input.tipo, titulo: input.titulo, cuerpo: input.cuerpo, destino: input.destino, estado, publica_at: input.publica_at ?? now(), expira_at: input.expira_at ?? null, created_by: currentUser.id, activo: true, created_at: now(), adjuntos: adjuntos.length ? adjuntos : undefined }
   db.mensajes.unshift(m)
   return delay(m)
 }

@@ -29,7 +29,8 @@ Base de datos PostgreSQL en Supabase. **RLS activado en todas las tablas.**
 **Tablas RETIRADAS (migración 0013):** `incidencias` (+ `incidencia_adjuntos`/
 `_comentarios`/`_eventos`), `anuncios`, `reportes`, y sus enums. Se sustituyeron
 por `mensajes` + buzón. La columna `viviendas.puede_publicar_anuncios` se
-conservó inerte. El bucket de Storage `adjuntos` se eliminó.
+conservó inerte. El bucket de Storage `adjuntos` se **recreó en 0036** (privado)
+para las fotos de incidencias, con la tabla `mensaje_adjuntos`.
 
 **Helpers RLS (SECURITY DEFINER):** `es_activo()`, `rol_actual()`,
 `mi_vivienda()`, `tiene_permiso(p)`, `es_gestion()` (= panel),

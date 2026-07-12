@@ -2,6 +2,7 @@ import { Megaphone, TriangleAlert, Bell, Pencil, Trash2, Lightbulb } from 'lucid
 import type { Mensaje, MensajeTipo } from '@/types'
 import { fechaCorta } from '@/lib/format'
 import { cx } from '@/components/ui'
+import { Adjuntos } from '@/components/Adjuntos'
 
 export const TIPO_META: Record<MensajeTipo, { label: string; Icon: typeof Bell }> = {
   aviso: { label: 'Aviso', Icon: Bell },
@@ -33,6 +34,7 @@ export function MensajeCard({ m, color, onEdit, onDelete, clamp }: {
       </div>
       <h3 className={cx('mt-2 font-display text-[16px] font-extrabold leading-snug', clamp && 'line-clamp-1')}>{m.titulo}</h3>
       <p className={cx('mt-1 text-[13.5px] leading-relaxed text-[#172323]/85', clamp ? 'line-clamp-2' : 'whitespace-pre-wrap')}>{m.cuerpo}</p>
+      {!clamp && <Adjuntos urls={m.adjuntos} />}
       <div className={cx('mt-2 text-[11px] text-[#172323]/55', clamp && 'mt-auto pt-1')}>{fechaCorta(m.created_at)}</div>
     </div>
   )

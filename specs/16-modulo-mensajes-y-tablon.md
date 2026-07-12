@@ -147,3 +147,19 @@ el **chat del buzón** (canal Desarrollador).
 - Una publicación **pendiente** (ya enviada a aprobar) **no la edita el autor**;
   solo la editan los moderadores. El autor puede **retirarla borrándola**
   (RLS `msg_upd`/`msg_del`, mig. 0034/0035).
+
+## Fotos en incidencias (mig. 0036)
+
+Al reportar una **incidencia** desde Buzón → Publicar se pueden adjuntar **1–2
+fotos**:
+- **Compresión en el cliente** (`src/lib/imagen.ts`): redimensiona a lado máx.
+  1600px y reencoda a **WebP** (≤~800 KB). El paso por `<canvas>` **elimina el
+  EXIF**, incluida la geolocalización.
+- **Bucket privado `adjuntos`** (tope duro 3 MB, solo webp/jpeg/png). Rutas
+  `{mensaje_id}/{orden}.webp`. Tabla `mensaje_adjuntos` (RLS: se ve la foto si se
+  ve el mensaje; sube el autor mientras está sin publicar o un moderador; nunca
+  el tester). Se sirven con **URL firmada** (5 min).
+- **Limpieza:** al borrar el mensaje, el cascade borra las filas y un **trigger**
+  borra el objeto de Storage. Los ficheros no quedan huérfanos.
+- Se ven en el tablón (visor), en "Mis publicaciones" y en Gestión →
+  Publicaciones (el moderador ve la foto antes de aprobar).

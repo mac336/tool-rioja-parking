@@ -1,4 +1,5 @@
 import { useLayoutEffect, useRef, useState } from 'react'
+import { Adjuntos } from '@/components/Adjuntos'
 import { useNavigate } from 'react-router-dom'
 import { X, ChevronLeft, ChevronRight, TriangleAlert, Megaphone, Lightbulb, Heart } from 'lucide-react'
 import type { Mensaje, MensajeTipo } from '@/types'
@@ -237,6 +238,7 @@ function PostItVisor({ lista, inicial, onClose }: { lista: Mensaje[]; inicial: n
                   <h3 className="mt-3 shrink-0 font-display text-[22px] font-extrabold leading-[1.2]" style={{ color: '#26363F' }}>{msg.titulo}</h3>
                   <div className="mt-3 min-h-0 flex-1 overflow-y-auto">
                     <p className="whitespace-pre-wrap text-[15px] leading-[1.55]" style={{ color: '#4A5B66' }}>{msg.cuerpo}</p>
+                    <Adjuntos urls={msg.adjuntos} />
                   </div>
                   <div className="mt-4 flex shrink-0 items-end justify-between gap-2">
                     <span style={{ fontFamily: 'var(--font-hand)', fontSize: '18px', color: '#5C7180', opacity: 0.9 }}>

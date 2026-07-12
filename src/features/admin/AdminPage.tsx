@@ -1,4 +1,5 @@
 import { useMemo, useState } from 'react'
+import { Adjuntos } from '@/components/Adjuntos'
 import {
   Shield, Check, X, Clock, Users, MapPin,
   UserX, UserCheck, Pencil, Trash2, Search, UserPlus,
@@ -630,6 +631,7 @@ function PublicacionCard({ m, children }: { m: Mensaje; children?: React.ReactNo
       </div>
       <h3 className="mt-1 font-display text-[16px] font-bold text-ink">{m.titulo}</h3>
       <p className="mt-1 whitespace-pre-wrap text-[13.5px] leading-relaxed text-muted">{m.cuerpo}</p>
+      <Adjuntos urls={m.adjuntos} />
       <div className="mt-1.5 text-[12px] text-faint">
         Por {m.autor_nombre ?? 'Vecino'}{m.autor_vivienda ? ` · ${m.autor_vivienda}` : ''}
         {m.tipo === 'anuncio' && m.expira_at ? ` · hasta ${fechaCorta(m.expira_at)}` : ''}

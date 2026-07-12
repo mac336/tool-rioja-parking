@@ -15,7 +15,7 @@ export async function listMensajes(): Promise<Mensaje[]> {
     .lte('publica_at', nowISO)
     .order('created_at', { ascending: false })
   if (error) throw error
-  const msgs = (data ?? []) as Mensaje[]
+  const msgs = await conAdjuntos((data ?? []) as Mensaje[])
 
   const sugerencias = msgs.filter((m) => m.tipo === 'sugerencia')
   if (sugerencias.length === 0) return msgs
@@ -89,6 +89,7 @@ export interface PublicacionInput {
   publica_at?: string | null
   expira_at?: string | null
   borrador?: boolean
+  fotos?: Blob[] // solo incidencias, máx. 2 (WebP ya comprimidos en el cliente)
 }
 
 /** Un VECINO envía una incidencia/anuncio. destino=todos → pendiente de aprobar
@@ -108,10 +109,44 @@ export async function crearPublicacion(input: PublicacionInput): Promise<Mensaje
     })
     .select('*').single()
   if (error) throw error
+
+  // Fotos (incidencias): subir al bucket bajo {mensaje_id}/{orden}.webp y
+  // registrar en mensaje_adjuntos. Best-effort: si una falla, la incidencia queda
+  // igualmente creada (no dejamos el mensaje a medias por una foto).
+  const fotos = (input.fotos ?? []).slice(0, 2)
+  for (let i = 0; i < fotos.length; i++) {
+    const path = `${data.id}/${i}.webp`
+    const up = await supabase.storage.from('adjuntos').upload(path, fotos[i], { contentType: 'image/webp', upsert: true })
+    if (up.error) continue
+    await supabase.from('mensaje_adjuntos').insert({ mensaje_id: data.id, path, orden: i })
+  }
+
   if (estado !== 'borrador') {
     void supabase.functions.invoke('notificar', { body: { kind: 'publicacion', id: data.id } }).catch(() => undefined)
   }
   return data as Mensaje
+}
+
+/** Adjunta a cada mensaje las URLs firmadas de sus fotos (bucket privado, TTL corto). */
+async function conAdjuntos(msgs: Mensaje[]): Promise<Mensaje[]> {
+  const ids = msgs.map((m) => m.id)
+  if (ids.length === 0) return msgs
+  const { data: adj } = await supabase.from('mensaje_adjuntos')
+    .select('mensaje_id, path, orden').in('mensaje_id', ids).order('orden', { ascending: true })
+  if (!adj || adj.length === 0) return msgs
+  const paths = adj.map((a) => a.path as string)
+  const { data: firmadas } = await supabase.storage.from('adjuntos').createSignedUrls(paths, 300)
+  const urlDe = new Map<string, string>()
+  for (const f of firmadas ?? []) if (f.signedUrl && f.path) urlDe.set(f.path, f.signedUrl)
+  const porMensaje = new Map<string, string[]>()
+  for (const a of adj) {
+    const u = urlDe.get(a.path as string)
+    if (!u) continue
+    const arr = porMensaje.get(a.mensaje_id as string) ?? []
+    arr.push(u)
+    porMensaje.set(a.mensaje_id as string, arr)
+  }
+  return msgs.map((m) => porMensaje.has(m.id) ? { ...m, adjuntos: porMensaje.get(m.id) } : m)
 }
 
 /** Mis publicaciones (las que yo he enviado): borradores, pendientes, etc. */
@@ -121,7 +156,7 @@ export async function misPublicaciones(): Promise<Mensaje[]> {
   const { data, error } = await supabase.from('mensajes')
     .select('*').eq('created_by', user.id).order('created_at', { ascending: false })
   if (error) throw error
-  return (data ?? []) as Mensaje[]
+  return conAdjuntos((data ?? []) as Mensaje[])
 }
 
 export interface ColaPublicaciones { pendientes: Mensaje[]; reportes: Mensaje[] }
@@ -142,8 +177,8 @@ export async function publicacionesGestion(): Promise<ColaPublicaciones> {
   const { data: rep } = await supabase.from('mensajes')
     .select('*').eq('destino', 'administracion').order('created_at', { ascending: false })
   return {
-    pendientes: await conNombres((pend ?? []) as Mensaje[]),
-    reportes: await conNombres((rep ?? []) as Mensaje[]),
+    pendientes: await conAdjuntos(await conNombres((pend ?? []) as Mensaje[])),
+    reportes: await conAdjuntos(await conNombres((rep ?? []) as Mensaje[])),
   }
 }
 

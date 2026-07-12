@@ -5,6 +5,9 @@ al implementar el cambio (ver `CLAUDE.md` → Forma de trabajo).
 
 ## 2026-07-11
 
+- **v1.24.0 · Fotos también en anuncios:** el adjuntar 1–2 fotos (mismo flujo
+  optimizado y privado que las incidencias) se habilita también en los anuncios
+  de vecinos (p. ej. “vendo bici” con foto).
 - **v1.23.0 · Fotos en las incidencias:** al reportar una incidencia (Buzón →
   Publicar → Incidencia) se pueden adjuntar **1–2 fotos**. Se **optimizan en el
   propio móvil** antes de subir (WebP, lado máx. 1600px, ≤~800 KB) y se les

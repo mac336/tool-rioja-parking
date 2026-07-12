@@ -150,8 +150,8 @@ el **chat del buzón** (canal Desarrollador).
 
 ## Fotos en incidencias (mig. 0036)
 
-Al reportar una **incidencia** desde Buzón → Publicar se pueden adjuntar **1–2
-fotos**:
+Al reportar una **incidencia** o publicar un **anuncio** desde Buzón → Publicar
+se pueden adjuntar **1–2 fotos**:
 - **Compresión en el cliente** (`src/lib/imagen.ts`): redimensiona a lado máx.
   1600px y reencoda a **WebP** (≤~800 KB). El paso por `<canvas>` **elimina el
   EXIF**, incluida la geolocalización.

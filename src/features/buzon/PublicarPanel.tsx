@@ -74,7 +74,7 @@ export function PublicarPanel() {
         publica_at: form.tipo === 'anuncio' && form.publica ? new Date(form.publica).toISOString() : undefined,
         expira_at: form.tipo === 'anuncio' && form.expira ? new Date(form.expira).toISOString() : undefined,
         borrador,
-        fotos: form.tipo === 'incidencia' && fotos.length ? fotos.map((f) => f.blob) : undefined,
+        fotos: form.tipo !== 'sugerencia' && fotos.length ? fotos.map((f) => f.blob) : undefined,
       })
       const queTipo = form.tipo
       if (borrador) toast('Guardado como borrador', 'info')
@@ -156,7 +156,7 @@ export function PublicarPanel() {
                 onChange={(e) => setForm({ ...form, cuerpo: e.target.value })}
                 placeholder="Cuéntanos los detalles…" />
 
-              {form.tipo === 'incidencia' && (
+              {form.tipo !== 'sugerencia' && (
                 <div>
                   <div className="mb-1.5 text-[13px] font-semibold text-muted">Fotos (opcional, máx. {MAX_FOTOS})</div>
                   <div className="flex flex-wrap gap-2">

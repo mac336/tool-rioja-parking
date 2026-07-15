@@ -5,6 +5,9 @@ al implementar el cambio (ver `CLAUDE.md` → Forma de trabajo).
 
 ## 2026-07-15
 
+- **v1.29.1 · Firma "Developer":** se añade "Developer" a las firmas elegibles del
+  formulario de mensajes (el "atte." del post-it).
+
 - **v1.29.0 · Post-its de temporada + importancia:** los mensajes del tablón
   pueden llevar un **estilo estacional** opcional (Primavera, Verano, Otoño,
   Halloween, Navidad, S. Valentín, Carnaval, S. Santa): papel de temporada, cinta

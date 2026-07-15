@@ -17,7 +17,7 @@ import { MotivoTemporada } from './MotivoTemporada'
 // se aprueban en Gestión → Publicaciones, no se escriben aquí.
 const ORDEN: MensajeTipo[] = ['aviso', 'anuncio', 'incidencia', 'sugerencia']
 const SECCION: Record<MensajeTipo, string> = { aviso: 'Avisos', anuncio: 'Anuncios', incidencia: 'Incidencias', sugerencia: 'Sugerencias' }
-const FIRMAS = ['Administrador', 'Conserje', 'la Junta', 'Vecinos', ...PISOS]
+const FIRMAS = ['Administrador', 'Conserje', 'la Junta', 'Vecinos', 'Developer', ...PISOS]
 
 const pad = (n: number) => String(n).padStart(2, '0')
 const claveDia = (d: Date) => `${d.getFullYear()}-${pad(d.getMonth() + 1)}-${pad(d.getDate())}`

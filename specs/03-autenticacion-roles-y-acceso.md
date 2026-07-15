@@ -37,11 +37,18 @@ en `profiles.estado`:
 
 ## Alta de vecinos
 
-- El vecino **solicita acceso** (formulario: **nombre o alias** —sin apellidos—
-  y correo; sin comentario), vía Edge Function `solicitar-acceso` (captcha +
-  rate-limit + service_role). Avisa a la gestión (`notificar-admin`).
+- El vecino **solicita acceso** (formulario: **nombre o alias** —sin apellidos—,
+  vivienda y correo; sin comentario), vía Edge Function `solicitar-acceso`
+  (captcha + rate-limit + service_role). Avisa a la gestión (`notificar-admin`).
+- **Invitar vecino** (Más → Invitar vecino, para cualquier usuario activo salvo
+  `tester`): un vecino ya dentro de la app da de alta la solicitud de **otro**
+  vecino en su nombre — mismos datos y mismo circuito (`solicitar-acceso` →
+  `access_requests` pendiente → aviso a la gestión). La vivienda se elige del
+  catálogo real de la finca (mismo desplegable que la autoregistración) para no
+  admitir direcciones ajenas a la comunidad. `src/features/misc/InvitarVecinoPage.tsx`.
 - La gestión con permiso `aprobar_altas` la **aprueba** asignando **vivienda** y
   **rol** (Edge `aprobar-solicitud`, crea el usuario + profile activo + correo).
+  Da igual si la solicitud llegó por autoregistro o por invitación de un vecino.
 - **Máx. 2 cuentas por vivienda** (estados activo/pendiente). **1 voto/postura
   por vivienda** en encuestas y parking.
 

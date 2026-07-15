@@ -1,8 +1,8 @@
 import { Link } from 'react-router-dom'
-import { Shield, FileText, Settings, ChevronRight, LayoutDashboard, Eye, Leaf, ScrollText } from 'lucide-react'
+import { Shield, FileText, Settings, ChevronRight, LayoutDashboard, Eye, Leaf, ScrollText, UserPlus } from 'lucide-react'
 import { useApp } from '@/store'
 import { RoleBadge } from '@/components/ui'
-import { roleBadgeKind, ROLE_LABEL, puedeAdmin, esAppAdmin } from '@/lib/roles'
+import { roleBadgeKind, ROLE_LABEL, puedeAdmin, esAppAdmin, esTester } from '@/lib/roles'
 import type { Role } from '@/types'
 import { iniciales } from '@/lib/format'
 import { usingSupabase } from '@/lib/supabase'
@@ -10,6 +10,7 @@ import { usingSupabase } from '@/lib/supabase'
 // "Más" solo tiene lo que NO está en la Home (los servicios viven en el panel
 // de la Home, que es la pieza central de la app).
 const links = [
+  { to: '/invitar-vecino', label: 'Invitar vecino', desc: 'Invita a un vecino de la comunidad a unirse a la app', Icon: UserPlus, soloActivos: true },
   { to: '/circulares', label: 'Circulares', Icon: ScrollText },
   { to: '/reciclaje', label: 'Reciclaje', Icon: Leaf },
   { to: '/normas', label: 'Normas de uso', Icon: FileText },
@@ -46,11 +47,17 @@ export function MasPage() {
             <LayoutDashboard size={20} /> Dashboard de la app
           </Link>
         )}
-        {links.map(({ to, label, Icon }) => (
-          <Link key={to} to={to} className="flex items-center gap-3 border-b border-border px-4 py-3.5 text-[15px] text-ink last:border-0">
-            <Icon size={20} className="text-muted" /> {label}
-          </Link>
-        ))}
+        {links
+          .filter((l) => !l.soloActivos || !esTester(user.rol))
+          .map(({ to, label, desc, Icon }) => (
+            <Link key={to} to={to} className="flex items-center gap-3 border-b border-border px-4 py-3.5 text-[15px] text-ink last:border-0">
+              <Icon size={20} className="shrink-0 text-muted" />
+              <span className="min-w-0 flex-1">
+                <span className="block">{label}</span>
+                {desc && <span className="mt-0.5 block text-[12px] font-normal leading-snug text-muted">{desc}</span>}
+              </span>
+            </Link>
+          ))}
       </nav>
 
       {/* Ver como: el app_admin previsualiza la app con otro rol (solo interfaz). */}

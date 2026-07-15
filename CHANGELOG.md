@@ -5,6 +5,15 @@ al implementar el cambio (ver `CLAUDE.md` → Forma de trabajo).
 
 ## 2026-07-15
 
+- **v1.30.0 · Invitar vecino:** nueva opción en **Más → Invitar vecino** para que
+  cualquier vecino activo (no el tester, que es solo lectura) dé de alta la
+  solicitud de acceso de **otro** vecino de la comunidad — igual que si esa
+  persona se registrara ella misma, pero la registra alguien más. La vivienda se
+  elige del catálogo real de la finca (no admite direcciones externas, por
+  privacidad); la solicitud queda **pendiente de aprobación** y avisa a la
+  gestión, exactamente como una autoregistración. Reutiliza `crearSolicitud` /
+  Edge `solicitar-acceso` — sin cambios de backend.
+
 - **v1.29.3 · Estilos "Warning" y "Problem":** dos estilos de post-it nuevos con
   la misma estructura que las temporadas — **Warning** (amarillo, triángulo con
   admiración) y **Problem** (rojo, círculo con aspa). Solo interfaz, sin BD.

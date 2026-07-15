@@ -82,6 +82,17 @@ export async function darDeBajaVecino(id: string): Promise<void> {
   if (error) throw error
 }
 
+/** Borrado DEFINITIVO e IRREVERSIBLE (solo cuentas suspendidas o de baja). Borra
+ *  el usuario de Auth; profiles cascada. Falla con mensaje claro si el vecino
+ *  tiene actividad registrada en tablas sin cascada (reservas, votos, buzón…). */
+export async function eliminarVecinoDefinitivo(id: string): Promise<void> {
+  const { data, error } = await supabase.functions.invoke('gestionar-usuario', {
+    body: { accion: 'eliminar', userId: id },
+  })
+  if (error) throw error
+  if (data?.error) throw new Error(data.error as string)
+}
+
 /** Alta DIRECTA por el admin (sin registro): crea Auth + perfil activo.
  *  El vecino/tester entra después con su código OTP. */
 export async function crearVecinoDirecto(input: { nombre: string; email: string; vivienda: string; rol: Role }): Promise<void> {

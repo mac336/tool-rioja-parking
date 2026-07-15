@@ -43,7 +43,7 @@ export type Permiso =
   | 'publicar_aviso' | 'publicar_anuncio' | 'publicar_incidencia' | 'publicar_sugerencia'
   | 'aprobar_incidencias' | 'aprobar_anuncios'
   // Reservas
-  | 'realizar_reservas' | 'reservar_otras_viviendas'
+  | 'realizar_reservas' | 'reservar_otras_viviendas' | 'ver_agenda_reservas'
   // Buzón
   | 'usar_buzon' | 'escribir_vecinos'
   // Encuestas
@@ -73,6 +73,7 @@ export const GRUPOS_PERMISOS: { grupo: string; permisos: { key: Permiso; label: 
   { grupo: 'Reservas', permisos: [
     { key: 'realizar_reservas', label: 'Realizar reservas', desc: 'Reservar zonas comunes' },
     { key: 'reservar_otras_viviendas', label: 'Reservar para otras viviendas', desc: 'Al reservar, elegir la vivienda a nombre de la que se hace (p. ej. el conserje)' },
+    { key: 'ver_agenda_reservas', label: 'Ver la agenda de reservas', desc: 'Ver el calendario con las reservas de todas las viviendas y zonas, para ayudar a los vecinos a encontrar hueco libre' },
   ] },
   { grupo: 'Buzón', permisos: [
     { key: 'usar_buzon', label: 'Chatear por el buzón', desc: 'Escribir mensajes privados por los canales del buzón' },
@@ -112,6 +113,7 @@ const DEFAULTS: Record<Permiso, Role[]> = {
   aprobar_anuncios: GESTION,
   realizar_reservas: ['app_admin', 'presidente', 'vicepresidente', 'administrador_finca', 'junta', 'conserje', 'vecino'],
   reservar_otras_viviendas: ['app_admin', 'conserje'],
+  ver_agenda_reservas: [...GESTION, 'conserje'],
   usar_buzon: TODOS,
   escribir_vecinos: ['app_admin', 'administrador_finca', 'conserje'],
   votar_encuestas: ['app_admin', 'presidente', 'vicepresidente', 'administrador_finca', 'junta', 'conserje', 'vecino'],
@@ -180,6 +182,12 @@ export function puedePublicarAlgo(rol: Role): boolean {
 /** Puede reservar a nombre de OTRA vivienda (elige el piso al reservar). */
 export function puedeReservarOtras(rol: Role): boolean {
   return tienePermiso(rol, 'reservar_otras_viviendas')
+}
+
+/** Puede ver la agenda de reservas (todas las viviendas y zonas) desde el
+ *  propio servicio de Reservas (no hace falta acceso al panel de gestión). */
+export function puedeVerAgendaReservas(rol: Role): boolean {
+  return tienePermiso(rol, 'ver_agenda_reservas')
 }
 
 /** Acceso al panel de administración (= tiene panel de gestión). */

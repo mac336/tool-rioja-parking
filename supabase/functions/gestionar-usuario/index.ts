@@ -80,8 +80,8 @@ Deno.serve(async (req) => {
     if (!userId || userId === user.id) return json({ error: 'Objetivo no válido.' }, 400)
 
     // SEGURIDAD: nadie que no sea app_admin puede tocar (suspender/baja/rol/
-    // editar) a un administrador de la app.
-    const { data: objetivo } = await admin.from('profiles').select('rol').eq('id', userId).single()
+    // editar/eliminar) a un administrador de la app.
+    const { data: objetivo } = await admin.from('profiles').select('rol, estado').eq('id', userId).single()
     if (objetivo?.rol === 'app_admin' && !esAdmin) {
       return json({ error: 'No puedes gestionar a un administrador de la app.' }, 403)
     }
@@ -97,6 +97,20 @@ Deno.serve(async (req) => {
       if (!ROLES_VALIDOS.includes(rol)) return json({ error: 'Rol no válido.' }, 400)
       if (!esAdmin && !ROLES_BASICOS.includes(rol)) return json({ error: 'Solo el administrador de la app puede asignar roles de gestión.' }, 403)
       await admin.from('profiles').update({ rol }).eq('id', userId)
+    } else if (accion === 'eliminar') {
+      // Borrado DEFINITIVO (irreversible): solo cuentas ya inactivas (suspendida
+      // o de baja), nunca una cuenta activa (por seguridad ante error humano).
+      if (objetivo?.estado === 'activo' || objetivo?.estado === 'pendiente') {
+        return json({ error: 'Solo se puede eliminar definitivamente una cuenta suspendida o de baja.' }, 400)
+      }
+      // profiles.id → auth.users(id) ON DELETE CASCADE: borrar el usuario de Auth
+      // borra también su fila de profiles. Si el vecino tiene actividad en tablas
+      // sin cascada (reservas, encuestas, mensajes del buzón…), la FK lo impide y
+      // la llamada falla — se informa con un mensaje claro en vez de forzarlo.
+      const { error: delErr } = await admin.auth.admin.deleteUser(userId)
+      if (delErr) {
+        return json({ error: 'No se puede eliminar: tiene actividad registrada en la app (reservas, mensajes, votos…). Puedes dejarlo "De baja".' }, 400)
+      }
     } else if (accion === 'editar') {
       // Corrige datos del vecino (nombre/alias y/o vivienda).
       const patch: Record<string, string | null> = {}

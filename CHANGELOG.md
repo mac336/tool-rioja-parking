@@ -5,6 +5,25 @@ al implementar el cambio (ver `CLAUDE.md` → Forma de trabajo).
 
 ## 2026-07-15
 
+- **v1.31.0 · Agenda de reservas con colores por zona + eliminar cuenta
+  definitivamente:**
+  - **Agenda de reservas por zona**: el calendario mensual marca cada día con
+    un **punto de color por zona** reservada ese día (con leyenda), en vez de un
+    punto genérico. Componente compartido `AgendaMensual.tsx`.
+  - **Agenda accesible desde el propio servicio de Reservas** (enlace "Agenda"
+    junto a "Mis reservas", ruta `/reservas/agenda`), sin necesitar el panel de
+    gestión. Nuevo permiso configurable **`ver_agenda_reservas`** (grupo
+    Reservas; por defecto gestión + **conserje**), para que pueda ayudar a los
+    vecinos a encontrar hueco libre. RLS actualizada (mig. 0044).
+  - **Eliminar vecino definitivamente**: en el panel (Vecinos), una cuenta
+    **suspendida o de baja** ahora se puede **borrar por completo** (no solo
+    marcar como de baja) con el botón "Eliminar definitivamente" — pensado para
+    limpiar cuentas de prueba (tester) sin actividad real. Si tiene actividad
+    registrada (reservas, mensajes, votos…), se bloquea con un aviso claro en
+    vez de forzar el borrado. Vía Edge `gestionar-usuario` (`accion: 'eliminar'`,
+    borra el usuario de Auth; `profiles` cascada). Requiere
+    `supabase functions deploy gestionar-usuario`.
+
 - **v1.30.0 · Invitar vecino:** nueva opción en **Más → Invitar vecino** para que
   cualquier vecino activo (no el tester, que es solo lectura) dé de alta la
   solicitud de acceso de **otro** vecino de la comunidad — igual que si esa

@@ -4,7 +4,7 @@ import { CalendarDays, Check, Clock, MapPin } from 'lucide-react'
 import { useApp } from '@/store'
 import { useAsync } from '@/lib/useAsync'
 import { fechaHora, hora } from '@/lib/format'
-import { esTester, puedeReservar, puedeReservarOtras } from '@/lib/roles'
+import { esTester, puedeReservar, puedeReservarOtras, puedeVerAgendaReservas } from '@/lib/roles'
 import { puedeAnularReserva, HORAS_MIN_ANULACION } from '@/lib/reglas'
 import { listZonas, reservaVigente, ocupacionDia, crearReserva, cancelarReserva, listViviendas } from '@/lib/api'
 import { Button, Card, Field, SelectField, Alert, ErrorState, SkeletonList, cx } from '@/components/ui'
@@ -140,7 +140,12 @@ export function BookingsPage() {
     <div>
       <header className="sticky top-0 z-10 flex items-center justify-between gap-2 border-b border-border bg-surface/95 px-4 py-3.5 backdrop-blur safe-top">
         <h1 className="font-display text-[22px] font-extrabold text-ink">Reservas</h1>
-        <Link to="/reservas/mias" className="text-[14px] font-bold text-primary hover:underline">Mis reservas</Link>
+        <div className="flex items-center gap-3">
+          {puedeVerAgendaReservas(user.rol) && (
+            <Link to="/reservas/agenda" className="text-[14px] font-bold text-primary hover:underline">Agenda</Link>
+          )}
+          <Link to="/reservas/mias" className="text-[14px] font-bold text-primary hover:underline">Mis reservas</Link>
+        </div>
       </header>
 
       <div className="px-4 py-4 pb-8">

@@ -1,7 +1,7 @@
 import { createBrowserRouter, Navigate, Outlet } from 'react-router-dom'
 import { AppShell } from '@/components/layout/AppShell'
 import { useApp } from '@/store'
-import { puedeAdmin, esAppAdmin, puedeVerMiComunidad } from '@/lib/roles'
+import { puedeAdmin, esAppAdmin, puedeVerMiComunidad, puedeVerAgendaReservas } from '@/lib/roles'
 import { usingSupabase } from '@/lib/supabase'
 
 import { LoginPage } from '@/features/auth/LoginPage'
@@ -21,6 +21,7 @@ import { VotePage } from '@/features/encuestas/VotePage'
 import { ResultsPage } from '@/features/encuestas/ResultsPage'
 import { BookingsPage } from '@/features/bookings/BookingsPage'
 import { MyBookingsPage } from '@/features/bookings/MyBookingsPage'
+import { AgendaReservasPage } from '@/features/bookings/AgendaReservasPage'
 import { ParkingPage } from '@/features/parking/ParkingPage'
 import { ContactsPage } from '@/features/contacts/ContactsPage'
 import { SettingsPage } from '@/features/settings/SettingsPage'
@@ -52,6 +53,12 @@ function RequireAppAdmin() {
 function RequireVerMiComunidad() {
   const { user } = useApp()
   if (!puedeVerMiComunidad(user.rol)) return <Navigate to="/" replace />
+  return <Outlet />
+}
+
+function RequireVerAgendaReservas() {
+  const { user } = useApp()
+  if (!puedeVerAgendaReservas(user.rol)) return <Navigate to="/" replace />
   return <Outlet />
 }
 
@@ -112,6 +119,9 @@ export const router = createBrowserRouter([
       }, {
         element: <RequireVerMiComunidad />,
         children: [{ path: '/mi-comunidad', element: <MiComunidadPage /> }],
+      }, {
+        element: <RequireVerAgendaReservas />,
+        children: [{ path: '/reservas/agenda', element: <AgendaReservasPage /> }],
       },
     ],
     }],

@@ -46,10 +46,19 @@ conserje) puede reservar **a nombre de otra vivienda**.
 2. **Sin aprobación**: no hay cola de aprobación (retirado el permiso
    `aprobar_reservas`, mig. 0039). Las solicitudes que un vecino sin app haga en
    persona las mete el **conserje** con `reservar_otras_viviendas`.
-2b. **Agenda mensual (panel de gestión → Reservas)**: un **calendario del mes**
-   marca los días con reservas confirmadas; se navega entre meses (‹ / ›) y al
-   **elegir un día** se listan sus reservas (zona, horario, vivienda,
-   solicitante). API `reservasGestion(desdeISO, hastaISO)` (RLS: `es_gestion`).
+2b. **Agenda mensual**: un **calendario del mes** marca cada día con reservas
+   con un **punto de color por zona** distinta reservada ese día (varias zonas
+   el mismo día = varios puntos; leyenda de colores debajo del calendario); se
+   navega entre meses (‹ / ›) y al **elegir un día** se listan sus reservas
+   (zona, horario, vivienda, solicitante). Componente compartido
+   `src/features/bookings/AgendaMensual.tsx`, usado en **dos sitios**:
+   - **Panel de gestión → Reservas** (siempre, si se tiene acceso al panel).
+   - **Dentro del propio servicio de Reservas** (`/reservas/agenda`, enlace
+     "Agenda" junto a "Mis reservas"), para quien tenga el permiso
+     **`ver_agenda_reservas`** (configurable; por defecto gestión + **conserje**)
+     **sin** necesitar acceso al panel — así el conserje puede ayudar a un
+     vecino a encontrar hueco libre. API `reservasGestion(desdeISO, hastaISO)`
+     (RLS mig. 0044: `es_gestion()` **o** `tiene_permiso('ver_agenda_reservas')`).
 3. **Visibilidad de ocupación**:
    - Una franja con reserva `aprobada` aparece como **ocupada**.
    - **Privacidad:** los vecinos ven solo el **estado** de cada franja (libre /

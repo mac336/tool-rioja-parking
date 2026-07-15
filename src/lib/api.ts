@@ -19,7 +19,7 @@ export const {
   crearCesion, cancelarCesion, reasignarCesion, demandaParking,
   listContactos, crearContacto, editarContacto, borrarContacto,
   listAccessRequests, resolverSolicitud, crearSolicitud,
-  listVecinos, suspenderVecino, cambiarRolVecino, editarVecino, darDeBajaVecino, crearVecinoDirecto, statsAcceso, statsAccesoPorVivienda,
+  listVecinos, suspenderVecino, cambiarRolVecino, editarVecino, darDeBajaVecino, eliminarVecinoDefinitivo, crearVecinoDirecto, statsAcceso, statsAccesoPorVivienda,
   listRolePermisos, setRolePermiso, listSugerencias,
   guardarSuscripcionPush, quitarSuscripcionPush,
   listMensajes, crearMensaje, editarMensaje, borrarMensaje, crearPublicacion, misPublicaciones, publicacionesGestion, moderarPublicacion, alternarLike,

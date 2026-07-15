@@ -1,28 +1,27 @@
-import { useMemo, useState } from 'react'
+import { useState } from 'react'
 import { Adjuntos } from '@/components/Adjuntos'
 import {
-  Shield, Check, X, Clock, Users, MapPin,
+  Shield, Check, X, Clock, Users,
   UserX, UserCheck, Pencil, Trash2, Search, UserPlus,
-  ChevronLeft, ChevronRight, CalendarDays, Megaphone, TriangleAlert, Inbox, Lightbulb,
+  CalendarDays, Megaphone, TriangleAlert, Inbox, Lightbulb,
 } from 'lucide-react'
 import {
   Avatar, Button, Card, Field, RoleBadge, SelectField, Alert,
   EmptyState, ErrorState, SkeletonList, SectionTitle, cx,
 } from '@/components/ui'
 import { useAsync } from '@/lib/useAsync'
-import { fechaCorta, fechaHora, hora, claveDia, iniciales } from '@/lib/format'
+import { fechaCorta, fechaHora, iniciales } from '@/lib/format'
 import {
   ROLE_LABEL, roleBadgeKind, esAppAdmin, GRUPOS_PERMISOS,
   puedeAprobarAltas, puedeAdmin, puedeModerarPublicaciones,
 } from '@/lib/roles'
-import type { Profile, Role, ReservaGrupo, Mensaje } from '@/types'
+import type { Profile, Role, Mensaje } from '@/types'
 import { PISOS, VIVIENDAS_ESPECIALES } from '@/lib/parking'
-import { reservaCelebrada } from '@/lib/reglas'
 import { useApp } from '@/store'
+import { AgendaMensual } from '@/features/bookings/AgendaMensual'
 import {
   listAccessRequests, resolverSolicitud, listVecinos, suspenderVecino, cambiarRolVecino,
-  editarVecino, darDeBajaVecino, crearVecinoDirecto,
-  reservasGestion,
+  editarVecino, darDeBajaVecino, eliminarVecinoDefinitivo, crearVecinoDirecto,
   publicacionesGestion, moderarPublicacion,
   listRolePermisos, setRolePermiso,
 } from '@/lib/api'
@@ -166,128 +165,13 @@ function SolicitudesPendientes({ canApprove, onToast, onChanged }: { canApprove:
   )
 }
 
-// ---- Reservas (aprobación + agenda mensual) ----------------------------------
-const DIAS_SEMANA = ['L', 'M', 'X', 'J', 'V', 'S', 'D']
-
-function ReservaCard({ g, children }: { g: ReservaGrupo; children?: React.ReactNode }) {
-  const aprobada = g.estado === 'aprobada'
-  // Celebrada = aprobada y ya terminada → queda archivada (quién usó la zona y cuándo).
-  const celebrada = reservaCelebrada(g.estado, g.fin)
-  return (
-    <Card>
-      <div className="flex items-center justify-between gap-2">
-        <div className="flex min-w-0 items-center gap-2">
-          <MapPin size={16} className="shrink-0 text-primary" />
-          <div className="truncate font-display text-[16px] font-bold text-ink">{g.zonas.map((z) => z.nombre).join(' + ')}</div>
-        </div>
-        <span className={cx('shrink-0 rounded-pill px-2 py-0.5 text-[11.5px] font-bold',
-          celebrada ? 'bg-info-soft text-info-ink' : aprobada ? 'bg-success-soft text-success-ink' : 'bg-warn-soft text-warn-ink')}>
-          {celebrada ? 'Celebrada' : aprobada ? 'Aprobada' : 'Pendiente'}
-        </span>
-      </div>
-      <p className="mt-1 text-[13px] text-muted">{g.nombre ? `${g.nombre} · ` : ''}Vivienda {g.vivienda}</p>
-      <p className="mt-0.5 flex items-center gap-1.5 text-[13px] text-muted"><Clock size={14} /> {fechaHora(g.inicio)}–{hora(g.fin)}</p>
-      {g.num_invitados > 0 && <p className="mt-0.5 flex items-center gap-1.5 text-[13px] text-muted"><Users size={14} /> {g.num_invitados} invitados</p>}
-      {children}
-    </Card>
-  )
-}
-
+// ---- Reservas (agenda mensual, componente compartido con el servicio) -------
 function ReservasTab() {
-  // Agenda mensual: `cursor` = primer día del mes mostrado; `sel` = día YYYY-MM-DD elegido.
-  const [cursor, setCursor] = useState(() => { const d = new Date(); return new Date(d.getFullYear(), d.getMonth(), 1) })
-  const [sel, setSel] = useState<string>(() => claveDia(new Date().toISOString()))
-
-  const y = cursor.getFullYear()
-  const m = cursor.getMonth()
-  const desdeISO = new Date(y, m, 1).toISOString()
-  const hastaISO = new Date(y, m + 1, 1).toISOString()
-  const mes = useAsync(() => reservasGestion(desdeISO, hastaISO), [desdeISO])
-
-  // Reservas del mes agrupadas por día (YYYY-MM-DD).
-  const porDia = useMemo(() => {
-    const map = new Map<string, ReservaGrupo[]>()
-    for (const g of mes.data ?? []) {
-      const k = claveDia(g.inicio)
-      if (!map.has(k)) map.set(k, [])
-      map.get(k)!.push(g)
-    }
-    return map
-  }, [mes.data])
-
-  const diasEnMes = new Date(y, m + 1, 0).getDate()
-  const offset = (new Date(y, m, 1).getDay() + 6) % 7 // 0 = lunes
-  const celdas: (number | null)[] = [...Array(offset).fill(null), ...Array.from({ length: diasEnMes }, (_, i) => i + 1)]
-  const claveCelda = (d: number) => `${y}-${String(m + 1).padStart(2, '0')}-${String(d).padStart(2, '0')}`
-  const hoyKey = claveDia(new Date().toISOString())
-  const mesLabel = new Intl.DateTimeFormat('es-ES', { month: 'long', year: 'numeric', timeZone: 'Europe/Madrid' }).format(cursor)
-
-  const cambiarMes = (delta: number) => setCursor(new Date(y, m + delta, 1))
-  const delDia = porDia.get(sel) ?? []
-
   return (
-    <div className="flex flex-col gap-5">
-      {/* Agenda mensual (las reservas ya son de aprobación directa) */}
-      <section>
-        <SectionTitle icon={<CalendarDays size={15} />}>Agenda del mes</SectionTitle>
-
-        <Card className="p-3">
-          <div className="mb-2 flex items-center justify-between">
-            <button type="button" aria-label="Mes anterior" onClick={() => cambiarMes(-1)}
-              className="flex h-9 w-9 items-center justify-center rounded-full text-muted hover:bg-surface-2">
-              <ChevronLeft size={20} />
-            </button>
-            <span className="font-display text-[15px] font-bold capitalize text-ink">{mesLabel}</span>
-            <button type="button" aria-label="Mes siguiente" onClick={() => cambiarMes(1)}
-              className="flex h-9 w-9 items-center justify-center rounded-full text-muted hover:bg-surface-2">
-              <ChevronRight size={20} />
-            </button>
-          </div>
-
-          <div className="grid grid-cols-7 gap-1 text-center">
-            {DIAS_SEMANA.map((d) => <div key={d} className="pb-1 text-[11px] font-bold text-faint">{d}</div>)}
-            {celdas.map((d, i) => {
-              if (d === null) return <div key={`e${i}`} />
-              const k = claveCelda(d)
-              const items = porDia.get(k)
-              const seleccionado = k === sel
-              const esHoy = k === hoyKey
-              return (
-                <button key={k} type="button" onClick={() => setSel(k)}
-                  className={cx('relative flex aspect-square flex-col items-center justify-center rounded-[12px] text-[14px] font-semibold transition-colors',
-                    seleccionado ? 'bg-primary text-white'
-                      : esHoy ? 'bg-primary-soft text-primary-700'
-                      : 'text-ink hover:bg-surface-2')}>
-                  {d}
-                  {items && (
-                    <span className={cx('absolute bottom-1 h-1.5 w-1.5 rounded-full',
-                      seleccionado ? 'bg-white' : 'bg-primary')} />
-                  )}
-                </button>
-              )
-            })}
-          </div>
-        </Card>
-
-        {/* Reservas del día elegido */}
-        <div className="mt-3">
-          {mes.state === 'loading' && <SkeletonList n={2} />}
-          {mes.state === 'error' && <ErrorState onRetry={mes.refetch} />}
-          {mes.state !== 'loading' && mes.state !== 'error' && (
-            delDia.length === 0 ? (
-              <p className="rounded-[14px] bg-surface-2 px-4 py-6 text-center text-[13px] text-muted">
-                Sin reservas el {fechaCorta(sel)}.
-              </p>
-            ) : (
-              <div className="flex flex-col gap-3">
-                <p className="text-[13px] font-semibold text-muted">{fechaCorta(sel)} · {delDia.length} {delDia.length === 1 ? 'reserva' : 'reservas'}</p>
-                {delDia.map((g) => <ReservaCard key={g.grupo_id} g={g} />)}
-              </div>
-            )
-          )}
-        </div>
-      </section>
-    </div>
+    <section>
+      <SectionTitle icon={<CalendarDays size={15} />}>Agenda del mes</SectionTitle>
+      <AgendaMensual />
+    </section>
   )
 }
 
@@ -373,6 +257,20 @@ function VecinosTab({ canManage, currentUserId, onToast, onChanged }: { canManag
       refetch()
     } catch {
       onToast('No se ha podido completar la acción', 'error')
+    } finally {
+      setPendingId(null)
+    }
+  }
+
+  async function eliminarDefinitivo(vecino: Profile) {
+    if (!window.confirm(`Esto BORRARÁ PERMANENTEMENTE la cuenta de ${vecino.nombre} (${vecino.email}). No se puede deshacer. ¿Seguro?`)) return
+    setPendingId(vecino.id)
+    try {
+      await eliminarVecinoDefinitivo(vecino.id)
+      onToast(`${vecino.nombre} eliminado definitivamente`, 'ok')
+      refetch()
+    } catch (e) {
+      onToast(e instanceof Error ? e.message : 'No se ha podido eliminar la cuenta', 'error')
     } finally {
       setPendingId(null)
     }
@@ -491,6 +389,12 @@ function VecinosTab({ canManage, currentUserId, onToast, onChanged }: { canManag
                     <Button variant="danger-outline" disabled={busy} aria-label="Dar de baja" onClick={() => accionEstado(vecino, 'baja')}><Trash2 size={17} /></Button>
                   )}
                 </div>
+                {/* Borrado definitivo: solo para cuentas ya inactivas (baja/suspendido). Irreversible. */}
+                {!esYo && (baja || suspendido) && (
+                  <Button variant="danger" block disabled={busy} onClick={() => eliminarDefinitivo(vecino)}>
+                    <Trash2 size={16} /> Eliminar definitivamente
+                  </Button>
+                )}
               </div>
             )}
           </Card>

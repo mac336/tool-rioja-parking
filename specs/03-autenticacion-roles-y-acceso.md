@@ -35,6 +35,16 @@ en `profiles.estado`:
 **Regla de oro (RLS):** todo acceso a datos exige `estado = 'activo'`
 (helper `es_activo()`). Suspendido/baja quedan bloqueados.
 
+**Borrado DEFINITIVO (irreversible):** desde el panel (Vecinos), una cuenta
+**suspendida o de baja** (nunca activa) se puede **eliminar por completo** con el
+botón "Eliminar definitivamente" — no solo marcarla, desaparece de la BD. Vía
+Edge `gestionar-usuario` (`accion: 'eliminar'`): borra el usuario de **Auth**
+(`profiles.id references auth.users(id) on delete cascade` se lleva el
+`profile` por delante). Si la cuenta tiene actividad real en tablas sin cascada
+(reservas, encuestas, mensajes del buzón…), la propia FK bloquea el borrado y se
+informa con un mensaje claro — pensado sobre todo para limpiar **cuentas de
+prueba (tester)** sin uso real. `src/lib/db/admin.ts::eliminarVecinoDefinitivo`.
+
 ## Alta de vecinos
 
 - El vecino **solicita acceso** (formulario: **nombre o alias** —sin apellidos—,
@@ -81,6 +91,9 @@ no solo en la interfaz.
   - **Reservas** (ver `specs/07`):
     - `realizar_reservas` — reservar zonas comunes.
     - `reservar_otras_viviendas` — reservar a nombre de otra vivienda (p. ej. conserje).
+    - `ver_agenda_reservas` — ver la agenda de reservas de todas las viviendas y
+      zonas desde el propio servicio de Reservas, sin acceso al panel (por
+      defecto gestión + conserje).
   - **Buzón**: `usar_buzon` (por defecto TODOS, tester incluido); `escribir_vecinos`
     — iniciar chats con cualquier vecino en su canal (ver `specs/17`).
   - **Encuestas**: `votar_encuestas` — votar y ver el módulo de votaciones.

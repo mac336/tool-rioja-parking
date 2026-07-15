@@ -320,6 +320,14 @@ export function darDeBajaVecino(id: string): Promise<void> {
   if (p) p.estado = 'baja'
   return delay(undefined)
 }
+export function eliminarVecinoDefinitivo(id: string): Promise<void> {
+  const p = db.profiles.find((p) => p.id === id)
+  if (p && p.estado !== 'baja' && p.estado !== 'suspendido') {
+    return Promise.reject(new Error('Solo se puede eliminar definitivamente una cuenta suspendida o de baja.'))
+  }
+  db.profiles = db.profiles.filter((x) => x.id !== id)
+  return delay(undefined)
+}
 
 // ---- Permisos por rol (personalizables) --------------------------------------
 const permisosSet = new Set<string>(permisosPorDefecto().map((x) => `${x.rol}|${x.permiso}`))

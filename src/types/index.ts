@@ -101,6 +101,7 @@ export interface Mensaje {
   yo_like?: boolean // mi vivienda ya dio like
   adjuntos?: string[] // URLs firmadas de las fotos (incidencias); se rellena al listar
   created_at: string
+  updated_at?: string // fecha de última edición (mig. 0042); "resucita" en Inicio
 }
 
 export type HiloEstado = 'abierto' | 'cerrado'

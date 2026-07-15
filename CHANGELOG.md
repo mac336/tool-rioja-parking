@@ -5,6 +5,16 @@ al implementar el cambio (ver `CLAUDE.md` → Forma de trabajo).
 
 ## 2026-07-15
 
+- **v1.28.0 · Mi Comunidad configurable + anuncios en Inicio:**
+  - **Mi Comunidad** deja de ser solo del desarrollador: ahora la visibilidad la
+    controla el permiso configurable **`ver_mi_comunidad`** (grupo "Mi Comunidad"
+    en el panel). Por defecto lo ven **todos menos el conserje y el administrador
+    de finca**. La RLS de `comunidad_datos` pasa a exigir ese permiso. Mig. 0041.
+  - **Anuncios/avisos en el tablón de Inicio:** si tienen **caducidad** se muestran
+    **hasta que caducan**; si no, solo mientras son recientes. Al **editar** un
+    mensaje **reaparece** en Inicio (nueva columna `mensajes.updated_at` + trigger,
+    mig. 0042).
+
 - **v1.27.0 · Circulares:** nuevo apartado en **Más → Circulares** con las normas
   de uso de la **piscina y zonas comunes** (temporada y horario 2026 + normas por
   bloques). Contenido público, sin datos personales. Ver `specs/20`.

@@ -5,7 +5,7 @@ import { useAsync } from '@/lib/useAsync'
 import { saludo, diasRestantes, fechaHora, hora } from '@/lib/format'
 import { parkingMisTurnos, listEncuestas, listMensajes, listAvisos, reservaVigente } from '@/lib/api'
 import { contarAvisosNuevos } from '@/lib/avisosVistos'
-import { puedePublicarAlgo, esAppAdmin, puedeVotar, puedeReservar } from '@/lib/roles'
+import { puedePublicarAlgo, puedeVotar, puedeReservar, puedeVerMiComunidad } from '@/lib/roles'
 import { Logo } from '@/components/Logo'
 import { TablonGadget } from '@/features/mensajes/TablonGadget'
 
@@ -20,8 +20,8 @@ const servicios = [
   { to: '/parking', short: 'Parking', Icon: SquareParking, color: '#8A6FD1' },
   { to: '/contactos', short: 'Contactos', Icon: Phone, color: '#D98A3D' },
   { to: '/sugerencias', short: 'Sugerencias', Icon: Lightbulb, color: '#C879A9' },
-  // Solo developer (app_admin) por ahora — en pruebas. Ver specs/19.
-  { to: '/mi-comunidad', short: 'Mi Comunidad', Icon: Building2, color: '#2E8E79', soloAppAdmin: true },
+  // Visible según permiso 'ver_mi_comunidad' (configurable). Ver specs/19.
+  { to: '/mi-comunidad', short: 'Mi Comunidad', Icon: Building2, color: '#2E8E79', soloMiComunidad: true },
 ]
 
 const fechaLarga = new Intl.DateTimeFormat('es-ES', { weekday: 'long', day: 'numeric', month: 'long' }).format(new Date())
@@ -73,11 +73,18 @@ export function HomePage() {
   // Actividad reciente para el tablón: incidencias abiertas; avisos vigentes (o
   // sin caducidad, 2 días); anuncios de los últimos 2 días.
   const DOS_DIAS = 2 * 864e5
-  const reciente = (m: { created_at: string }) => ahora - new Date(m.created_at).getTime() <= DOS_DIAS
+  // Fecha de actividad = la más reciente entre creación y edición (mig. 0042):
+  // al editar un mensaje "resucita" en Inicio.
+  const fechaAct = (m: { created_at: string; updated_at?: string }) =>
+    Math.max(new Date(m.created_at).getTime(), m.updated_at ? new Date(m.updated_at).getTime() : 0)
+  const reciente = (m: { created_at: string; updated_at?: string }) => ahora - fechaAct(m) <= DOS_DIAS
+  // Avisos y anuncios: si tienen caducidad se muestran hasta que caducan; si no,
+  // solo mientras son recientes (o se hayan editado).
+  const vigenteOReciente = (m: { created_at: string; updated_at?: string; expira_at?: string | null }) =>
+    m.expira_at ? new Date(m.expira_at).getTime() >= ahora : reciente(m)
   const actividad = (mensajes.data ?? []).filter((m) => {
-    if (m.tipo === 'incidencia') return true
-    if (m.tipo === 'sugerencia') return true
-    if (m.tipo === 'aviso') return m.expira_at ? new Date(m.expira_at).getTime() >= ahora : reciente(m)
+    if (m.tipo === 'incidencia' || m.tipo === 'sugerencia') return true
+    if (m.tipo === 'aviso' || m.tipo === 'anuncio') return vigenteOReciente(m)
     return reciente(m)
   })
 
@@ -195,7 +202,7 @@ export function HomePage() {
         <div className="grid grid-cols-4 gap-x-2 gap-y-3.5">
           {servicios
             .filter((s) => (!s.soloPublica || puedePublicarAlgo(user.rol))
-              && (!s.soloAppAdmin || esAppAdmin(user.rol))
+              && (!s.soloMiComunidad || puedeVerMiComunidad(user.rol))
               && (!s.soloVota || puedeVotar(user.rol))
               && (!s.soloReserva || puedeReservar(user.rol)))
             .map(({ to, short, Icon, color }) => (

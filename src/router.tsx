@@ -1,7 +1,7 @@
 import { createBrowserRouter, Navigate, Outlet } from 'react-router-dom'
 import { AppShell } from '@/components/layout/AppShell'
 import { useApp } from '@/store'
-import { puedeAdmin, esAppAdmin } from '@/lib/roles'
+import { puedeAdmin, esAppAdmin, puedeVerMiComunidad } from '@/lib/roles'
 import { usingSupabase } from '@/lib/supabase'
 
 import { LoginPage } from '@/features/auth/LoginPage'
@@ -45,6 +45,12 @@ function RequireAdmin() {
 function RequireAppAdmin() {
   const { user } = useApp()
   if (!esAppAdmin(user.rol)) return <Navigate to="/" replace />
+  return <Outlet />
+}
+
+function RequireVerMiComunidad() {
+  const { user } = useApp()
+  if (!puedeVerMiComunidad(user.rol)) return <Navigate to="/" replace />
   return <Outlet />
 }
 
@@ -100,10 +106,10 @@ export const router = createBrowserRouter([
         children: [{ path: '/admin', element: <AdminPage /> }],
       }, {
         element: <RequireAppAdmin />,
-        children: [
-          { path: '/dashboard', element: <DashboardPage /> },
-          { path: '/mi-comunidad', element: <MiComunidadPage /> },
-        ],
+        children: [{ path: '/dashboard', element: <DashboardPage /> }],
+      }, {
+        element: <RequireVerMiComunidad />,
+        children: [{ path: '/mi-comunidad', element: <MiComunidadPage /> }],
       },
     ],
     }],

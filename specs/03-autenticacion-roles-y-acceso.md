@@ -79,6 +79,8 @@ no solo en la interfaz.
   - **Encuestas**: `votar_encuestas` — votar y ver el módulo de votaciones.
   - **Gestión**: `panel` — acceder al panel; `aprobar_altas` — aprobar altas y
     gestionar vecinos.
+  - **Mi Comunidad**: `ver_mi_comunidad` — ver el panel económico (por defecto
+    todos menos conserje y administrador de finca; ver `specs/19`).
 - Semilla por defecto: la gestión (presidente/vicepresidente/administrador_finca/
   junta) ve y publica los cuatro tipos, tiene `panel`, modera y vota/reserva;
   `aprobar_altas` = presidente/administrador_finca/app_admin. El **conserje** ve y

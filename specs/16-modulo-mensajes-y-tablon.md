@@ -72,10 +72,12 @@ pinchadas con chincheta**, una **pila por tipo**:
 
 ### Filtro de "Actividad reciente" (solo Inicio)
 
-- **Incidencias:** mientras estén abiertas (activas).
-- **Avisos:** con fecha de caducidad → hasta ese día; **sin** caducidad → los
-  primeros **2 días**.
-- **Anuncios:** los de los **últimos 2 días**.
+- **Incidencias y sugerencias:** siempre.
+- **Avisos y anuncios:** con fecha de **caducidad** → **hasta que caducan**;
+  **sin** caducidad → solo mientras son **recientes** (2 días).
+- **"Reciente" cuenta desde la última actividad** (creación o **edición**): al
+  **editar** un mensaje, su `updated_at` se actualiza (trigger, mig. 0042) y el
+  mensaje **reaparece** en Inicio. Igual al **aprobar** una publicación de vecino.
 
 La pantalla completa de Mensajes muestra **todo** (por pestañas); el filtro es
 solo para el resumen de Inicio.

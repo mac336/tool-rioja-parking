@@ -50,6 +50,8 @@ export type Permiso =
   | 'votar_encuestas'
   // Gestión
   | 'panel' | 'aprobar_altas'
+  // Mi Comunidad (dashboard económico)
+  | 'ver_mi_comunidad'
 
 export type TipoMensaje = 'aviso' | 'anuncio' | 'incidencia' | 'sugerencia'
 
@@ -83,6 +85,9 @@ export const GRUPOS_PERMISOS: { grupo: string; permisos: { key: Permiso; label: 
     { key: 'panel', label: 'Panel de gestión', desc: 'Acceder al panel y al buzón de administración' },
     { key: 'aprobar_altas', label: 'Aprobar altas y gestionar vecinos', desc: 'Aprobar solicitudes, editar, suspender y dar de baja' },
   ] },
+  { grupo: 'Mi Comunidad', permisos: [
+    { key: 'ver_mi_comunidad', label: 'Ver "Mi Comunidad"', desc: 'Acceder al panel económico (cuentas, presupuesto, derramas, decisiones)' },
+  ] },
 ]
 
 // Catálogo plano derivado (compatibilidad con consumidores existentes).
@@ -112,6 +117,8 @@ const DEFAULTS: Record<Permiso, Role[]> = {
   votar_encuestas: ['app_admin', 'presidente', 'vicepresidente', 'administrador_finca', 'junta', 'conserje', 'vecino'],
   panel: GESTION,
   aprobar_altas: ['app_admin', 'presidente', 'administrador_finca'],
+  // Mi Comunidad: todos menos el conserje y el administrador de finca.
+  ver_mi_comunidad: TODOS.filter((r) => r !== 'conserje' && r !== 'administrador_finca'),
 }
 
 /** Matriz de permisos por defecto (para el modo demo / semilla del mock). */
@@ -183,6 +190,11 @@ export function puedeAdmin(rol: Role): boolean {
 /** Configuración de la app y de permisos: solo app_admin (SUPERADMIN). */
 export function esAppAdmin(rol: Role): boolean {
   return rol === 'app_admin'
+}
+
+/** Puede ver el panel "Mi Comunidad" (permiso configurable). */
+export function puedeVerMiComunidad(rol: Role): boolean {
+  return tienePermiso(rol, 'ver_mi_comunidad')
 }
 
 /** Cuenta de pruebas: SOLO LECTURA (no puede reservar, votar, ceder ni sugerir).

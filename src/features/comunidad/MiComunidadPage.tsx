@@ -39,7 +39,7 @@ export function MiComunidadPage() {
         {datos.state === 'loading' && <SkeletonList n={5} />}
         {datos.state === 'error' && <ErrorState onRetry={datos.refetch} />}
         {datos.state !== 'loading' && datos.state !== 'error' && !datos.data?.comparativa && !datos.data?.finanzas && (
-          <EmptyState titulo="Sin datos" texto="Los datos económicos se cargan desde el servidor y solo son visibles para el desarrollador. En modo demo no hay datos." />
+          <EmptyState titulo="Sin datos" texto="Los datos económicos se cargan desde el servidor (protegidos por permiso). En modo demo no hay datos." />
         )}
 
         {datos.state !== 'loading' && datos.data && (datos.data.comparativa || datos.data.finanzas) && (

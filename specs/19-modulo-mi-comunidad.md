@@ -1,8 +1,8 @@
 # 19 · Módulo "Mi Comunidad" (dashboard económico)
 
-> Estado: **en pruebas, solo visible para `app_admin` (developer)**. Pendiente
-> decidir si se abre a los vecinos y en qué forma. Describe el comportamiento
-> actual.
+> Estado: **en pruebas**. La visibilidad la controla el permiso configurable
+> **`ver_mi_comunidad`** (mig. 0041): por defecto lo ven **todos menos el conserje
+> y el administrador de finca**. Describe el comportamiento actual.
 
 ## Objetivo
 
@@ -53,10 +53,11 @@ la administración.
 - **La migración NO contiene datos** (repo y web son públicos). Los datos se
   cargan con un **seed no versionado** (`actas/seed-comunidad-datos.sql`),
   aplicado en local y producción.
-- **RLS**: la lectura de `comunidad_datos` está restringida a **`app_admin`**
-  (`es_app_admin()`). Ni la anon key ni otros roles pueden leerla. La seguridad
-  la impone la RLS, no que la pantalla esté oculta en la interfaz. Cuando se
-  decida abrir a vecinos, se relaja la policy de SELECT (nueva migración).
+- **RLS**: la lectura de `comunidad_datos` exige el permiso **`ver_mi_comunidad`**
+  (`tiene_permiso('ver_mi_comunidad')`, mig. 0041). Ni la anon key ni un rol sin
+  ese permiso pueden leerla. La seguridad la impone la RLS, no que la pantalla
+  esté oculta en la interfaz (el gating de UI —círculo en Inicio y ruta
+  `/mi-comunidad`— usa el mismo permiso).
 - Regla de contenido: **solo datos generales**. Nada por vivienda, ni números de
   cuenta, ni identidades (impagados, proponentes, miembros de la junta).
 

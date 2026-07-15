@@ -360,13 +360,13 @@ export function alternarLike(mensajeId: string, dar: boolean): Promise<void> {
 }
 type MensajeInput = { tipo: MensajeTipo; titulo: string; cuerpo: string; expira_at?: string | null; firma?: string | null }
 export function crearMensaje(input: MensajeInput): Promise<Mensaje> {
-  const m: Mensaje = { id: uid(), tipo: input.tipo, titulo: input.titulo, cuerpo: input.cuerpo, expira_at: input.expira_at ?? null, firma: input.firma ?? null, created_by: currentUser.id, activo: true, created_at: now() }
+  const m: Mensaje = { id: uid(), tipo: input.tipo, titulo: input.titulo, cuerpo: input.cuerpo, expira_at: input.expira_at ?? null, firma: input.firma ?? null, created_by: currentUser.id, activo: true, created_at: now(), updated_at: now() }
   db.mensajes.unshift(m)
   return delay(m)
 }
 export function editarMensaje(id: string, input: MensajeInput): Promise<void> {
   const m = db.mensajes.find((x) => x.id === id)
-  if (m) Object.assign(m, { ...input, expira_at: input.expira_at ?? null, firma: input.firma ?? null })
+  if (m) Object.assign(m, { ...input, expira_at: input.expira_at ?? null, firma: input.firma ?? null, updated_at: now() })
   return delay(undefined)
 }
 export function borrarMensaje(id: string): Promise<void> {

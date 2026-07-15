@@ -44,9 +44,9 @@ export function MensajeCard({ m, color, onEdit, onDelete, clamp }: {
         </div>
         <div className="flex items-center gap-1">
           {t && (
-            <span className="inline-flex items-center gap-1 rounded-pill px-2.5 py-0.5 text-[10.5px] font-extrabold"
-              style={{ color: t.tint, border: `1.5px solid ${t.tint}` }}>
-              <MotivoTemporada estilo={m.estilo!} size={13} color={t.tint} /> {t.etiqueta}
+            <span className="inline-flex h-6 w-6 items-center justify-center rounded-full" aria-label={`Estilo ${t.etiqueta}`}
+              style={{ border: `1.5px solid ${t.tint}` }}>
+              <MotivoTemporada estilo={m.estilo!} size={13} color={t.tint} />
             </span>
           )}
           {onEdit && <button onClick={() => onEdit(m)} aria-label="Editar" className="rounded-full p-1.5 hover:bg-black/10"><Pencil size={15} /></button>}

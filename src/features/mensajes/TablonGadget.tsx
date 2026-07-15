@@ -62,16 +62,17 @@ function CabeceraIcono({ m, tint, size }: { m: Mensaje; tint: string; size: numb
   )
 }
 
-/** Sello del pie derecho: URGENTE / IMPORTANTE, o el nombre de temporada. */
-function SelloPie({ m, tint, lg }: { m: Mensaje; tint: string; lg?: boolean }) {
+/** Sello del pie derecho: solo URGENTE / IMPORTANTE (nunca el nombre de la
+ *  temporada; el estilo se reconoce por papel, motivo y marca de agua). */
+function SelloPie({ m, lg }: { m: Mensaje; lg?: boolean }) {
   const imp = importanciaDe(m)
   const base: React.CSSProperties = {
     display: 'inline-block', fontSize: lg ? '10.5px' : '9.5px', fontWeight: 800,
-    textTransform: 'uppercase', letterSpacing: '0.09em',
+    textTransform: 'uppercase', letterSpacing: '0.09em', borderRadius: '3px',
+    padding: lg ? '3px 8px' : '2px 7px', transform: 'rotate(-2deg)',
   }
-  if (imp === 'alta') return <span style={{ ...base, color: IMPORTANCIA_COLOR.alta, border: `1.5px solid ${IMPORTANCIA_COLOR.alta}`, borderRadius: '3px', padding: lg ? '3px 8px' : '2px 7px', transform: 'rotate(-2deg)' }}>Urgente</span>
-  if (imp === 'media') return <span style={{ ...base, color: IMPORTANCIA_COLOR.media, border: `1.5px dashed ${IMPORTANCIA_COLOR.media}`, borderRadius: '3px', padding: lg ? '3px 8px' : '2px 7px', transform: 'rotate(-2deg)' }}>Importante</span>
-  if (m.estilo) return <span style={{ ...base, color: tint }}>{TEMPORADAS[m.estilo].etiqueta}</span>
+  if (imp === 'alta') return <span style={{ ...base, color: IMPORTANCIA_COLOR.alta, border: `1.5px solid ${IMPORTANCIA_COLOR.alta}` }}>Urgente</span>
+  if (imp === 'media') return <span style={{ ...base, color: IMPORTANCIA_COLOR.media, border: `1.5px dashed ${IMPORTANCIA_COLOR.media}` }}>Importante</span>
   return null
 }
 
@@ -174,7 +175,7 @@ function PostItHome({ m, rot, onClick }: { m: Mensaje; rot: string; onClick: () 
                 {caducaTexto(m.expira_at)}
               </span>
             )}
-            <SelloPie m={m} tint={tint} />
+            <SelloPie m={m} />
           </span>
         )}
       </div>
@@ -348,7 +349,7 @@ function PostItVisor({ lista, inicial, onClose }: { lista: Mensaje[]; inicial: n
                             {caducaTexto(msg.expira_at)}
                           </span>
                         )}
-                        <SelloPie m={msg} tint={tint} lg />
+                        <SelloPie m={msg} lg />
                       </span>
                     )}
                   </div>

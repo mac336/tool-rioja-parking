@@ -5,6 +5,11 @@ al implementar el cambio (ver `CLAUDE.md` → Forma de trabajo).
 
 ## 2026-07-15
 
+- **v1.29.2 · Post-its sin nombre de temporada:** se retira el texto del nombre de
+  la temporada del post-it (pie del tablón/visor y chip de la tarjeta de gestión,
+  que ahora es solo el icono). La temporada se reconoce por el papel, el motivo de
+  la cabecera y la marca de agua. El pie solo muestra IMPORTANTE/URGENTE.
+
 - **v1.29.1 · Firma "Developer":** se añade "Developer" a las firmas elegibles del
   formulario de mensajes (el "atte." del post-it).
 

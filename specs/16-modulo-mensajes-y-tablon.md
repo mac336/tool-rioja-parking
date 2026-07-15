@@ -87,8 +87,9 @@ solo para el resumen de Inicio.
 Dos campos **cosméticos** opcionales en `mensajes` (mismas políticas de escritura;
 sin cambios de RLS). `null`/desconocido ⇒ el post-it se pinta como siempre.
 
-- **`estilo`** (`primavera|verano|otono|halloween|navidad|valentin|carnaval|ssanta`):
-  decoración de temporada. Se elige en el formulario ("Estilo de temporada,
+- **`estilo`** (`primavera|verano|otono|halloween|navidad|valentin|carnaval|ssanta|warning|problem`):
+  decoración del post-it (temporadas + dos semánticos: **warning** amarillo ⚠️ y
+  **problem** rojo ⊗). Se elige en el formulario ("Estilo de temporada,
   opcional"). Receta "Fuerte" (handoff): papel degradado, **cinta washi** en vez
   de chincheta, marco punteado interior y marca de agua con el motivo. El **nombre
   de la temporada NO se muestra** (se reconoce por papel, motivo y marca de agua).

@@ -5,6 +5,10 @@ al implementar el cambio (ver `CLAUDE.md` → Forma de trabajo).
 
 ## 2026-07-15
 
+- **v1.29.3 · Estilos "Warning" y "Problem":** dos estilos de post-it nuevos con
+  la misma estructura que las temporadas — **Warning** (amarillo, triángulo con
+  admiración) y **Problem** (rojo, círculo con aspa). Solo interfaz, sin BD.
+
 - **v1.29.2 · Post-its sin nombre de temporada:** se retira el texto del nombre de
   la temporada del post-it (pie del tablón/visor y chip de la tarjeta de gestión,
   que ahora es solo el icono). La temporada se reconoce por el papel, el motivo de

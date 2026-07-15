@@ -21,7 +21,7 @@ export const POSTIT: Record<MensajeTipo, EstiloPostit> = {
 }
 
 // ---- Estilos estacionales (decoración opcional del post-it) ------------------
-export type MotivoKey = 'flor' | 'sol' | 'hoja' | 'calabaza' | 'copo' | 'mascara' | 'vela' | 'corazon'
+export type MotivoKey = 'flor' | 'sol' | 'hoja' | 'calabaza' | 'copo' | 'mascara' | 'vela' | 'corazon' | 'warning' | 'problem'
 export interface Temporada {
   etiqueta: string
   paper: string
@@ -41,10 +41,12 @@ export const TEMPORADAS: Record<EstiloTemporada, Temporada> = {
   valentin: { etiqueta: 'S. Valentín', paper: '#FDEAF1', tint: '#C2426E', pin: '#C2426E', pinHi: '#F0A2C0', deco: '#E88AB8', motivo: 'corazon' },
   carnaval: { etiqueta: 'Carnaval', paper: '#F3EAFB', tint: '#7A4FC0', pin: '#F5B417', pinHi: '#FFDF80', deco: '#EE7A61', motivo: 'mascara' },
   ssanta: { etiqueta: 'S. Santa', paper: '#F0EDFA', tint: '#6B4E9E', pin: '#6B4E9E', pinHi: '#B79BEA', deco: '#C9A54A', motivo: 'vela' },
+  warning: { etiqueta: 'Warning', paper: '#FFF6D6', tint: '#9A6B12', pin: '#EAB308', pinHi: '#FDE68A', deco: '#E0A22E', motivo: 'warning' },
+  problem: { etiqueta: 'Problem', paper: '#FDECEC', tint: '#C0392B', pin: '#D2453E', pinHi: '#F3A9A2', deco: '#A3341F', motivo: 'problem' },
 }
 
 /** Orden del selector del formulario. */
-export const TEMPORADAS_ORDEN: EstiloTemporada[] = ['primavera', 'verano', 'otono', 'halloween', 'navidad', 'valentin', 'carnaval', 'ssanta']
+export const TEMPORADAS_ORDEN: EstiloTemporada[] = ['primavera', 'verano', 'otono', 'halloween', 'navidad', 'valentin', 'carnaval', 'ssanta', 'warning', 'problem']
 
 /** Colores de importancia (media = importante/ámbar, alta = urgente/rojo). */
 export const IMPORTANCIA_COLOR = { media: '#CF8A17', alta: '#D2453E' } as const

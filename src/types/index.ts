@@ -106,8 +106,8 @@ export interface Mensaje {
   importancia?: ImportanciaMensaje | null // avisos/incidencias: media=IMPORTANTE, alta=URGENTE
 }
 
-/** Estilo estacional (decoración del post-it en el tablón). */
-export type EstiloTemporada = 'primavera' | 'verano' | 'otono' | 'halloween' | 'navidad' | 'valentin' | 'carnaval' | 'ssanta'
+/** Estilo del post-it (decoración): temporadas + semánticos (warning/problem). */
+export type EstiloTemporada = 'primavera' | 'verano' | 'otono' | 'halloween' | 'navidad' | 'valentin' | 'carnaval' | 'ssanta' | 'warning' | 'problem'
 /** Importancia (avisos e incidencias). null/ausente = normal. */
 export type ImportanciaMensaje = 'media' | 'alta'
 

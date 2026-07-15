@@ -65,7 +65,7 @@ export async function alternarLike(mensajeId: string, dar: boolean): Promise<voi
   }
 }
 
-export interface MensajeInput { tipo: MensajeTipo; titulo: string; cuerpo: string; expira_at?: string | null; firma?: string | null }
+export interface MensajeInput { tipo: MensajeTipo; titulo: string; cuerpo: string; expira_at?: string | null; firma?: string | null; estilo?: string | null; importancia?: string | null }
 
 /** Gestión publica directamente (estado=publicado, destino=todos). */
 export async function crearMensaje(input: MensajeInput): Promise<Mensaje> {
@@ -74,6 +74,7 @@ export async function crearMensaje(input: MensajeInput): Promise<Mensaje> {
     .insert({
       tipo: input.tipo, titulo: input.titulo, cuerpo: input.cuerpo,
       expira_at: input.expira_at ?? null, firma: input.firma ?? null,
+      estilo: input.estilo ?? null, importancia: input.importancia ?? null,
       created_by: user?.id ?? null, estado: 'publicado', destino: 'todos',
     })
     .select('*').single()
@@ -195,7 +196,7 @@ export async function moderarPublicacion(id: string, aprobar: boolean): Promise<
 
 export async function editarMensaje(id: string, input: MensajeInput): Promise<void> {
   const { error } = await supabase.from('mensajes')
-    .update({ tipo: input.tipo, titulo: input.titulo, cuerpo: input.cuerpo, expira_at: input.expira_at ?? null, firma: input.firma ?? null }).eq('id', id)
+    .update({ tipo: input.tipo, titulo: input.titulo, cuerpo: input.cuerpo, expira_at: input.expira_at ?? null, firma: input.firma ?? null, estilo: input.estilo ?? null, importancia: input.importancia ?? null }).eq('id', id)
   if (error) throw error
 }
 

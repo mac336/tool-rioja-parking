@@ -102,7 +102,14 @@ export interface Mensaje {
   adjuntos?: string[] // URLs firmadas de las fotos (incidencias); se rellena al listar
   created_at: string
   updated_at?: string // fecha de última edición (mig. 0042); "resucita" en Inicio
+  estilo?: EstiloTemporada | null // decoración estacional del post-it (mig. 0043)
+  importancia?: ImportanciaMensaje | null // avisos/incidencias: media=IMPORTANTE, alta=URGENTE
 }
+
+/** Estilo estacional (decoración del post-it en el tablón). */
+export type EstiloTemporada = 'primavera' | 'verano' | 'otono' | 'halloween' | 'navidad' | 'valentin' | 'carnaval' | 'ssanta'
+/** Importancia (avisos e incidencias). null/ausente = normal. */
+export type ImportanciaMensaje = 'media' | 'alta'
 
 export type HiloEstado = 'abierto' | 'cerrado'
 export type HiloCanal = 'administrador' | 'presidencia' | 'conserje' | 'desarrollador'

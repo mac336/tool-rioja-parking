@@ -7,8 +7,10 @@ import { useApp } from '@/store'
 import { puedePublicarTipo, tiposQueVe } from '@/lib/roles'
 import { PISOS } from '@/lib/parking'
 import { listMensajes, crearMensaje, editarMensaje, borrarMensaje } from '@/lib/api'
-import type { Mensaje, MensajeTipo } from '@/types'
+import type { Mensaje, MensajeTipo, EstiloTemporada, ImportanciaMensaje } from '@/types'
 import { MensajeCard, TIPO_META } from './MensajeCard'
+import { TEMPORADAS, TEMPORADAS_ORDEN, IMPORTANCIA_COLOR } from './postit'
+import { MotivoTemporada } from './MotivoTemporada'
 
 // Orden fijo de las pestañas. Las visibles y las creables dependen de los
 // PERMISOS POR TIPO del rol. Las sugerencias las publican los vecinos (buzón) y
@@ -22,7 +24,13 @@ const claveDia = (d: Date) => `${d.getFullYear()}-${pad(d.getMonth() + 1)}-${pad
 const hoyStr = () => claveDia(new Date())
 const mananaStr = () => { const d = new Date(); d.setDate(d.getDate() + 1); return claveDia(d) }
 
-type FormState = { id?: string; tipo: MensajeTipo; titulo: string; cuerpo: string; expira: string; firma: string }
+type FormState = { id?: string; tipo: MensajeTipo; titulo: string; cuerpo: string; expira: string; firma: string; estilo: EstiloTemporada | ''; importancia: ImportanciaMensaje | '' }
+
+const IMPORTANCIAS: { valor: ImportanciaMensaje | ''; label: string; color?: string }[] = [
+  { valor: '', label: 'Normal' },
+  { valor: 'media', label: 'Importante', color: IMPORTANCIA_COLOR.media },
+  { valor: 'alta', label: 'Urgente', color: IMPORTANCIA_COLOR.alta },
+]
 
 export function MensajesPage() {
   const { user, msgColors, toast } = useApp()
@@ -36,17 +44,20 @@ export function MensajesPage() {
   const [saving, setSaving] = useState(false)
 
   const nuevoTipo = creables.includes(tab) ? tab : (creables[0] ?? 'aviso')
-  const abrirNuevo = () => setForm({ tipo: nuevoTipo, titulo: '', cuerpo: '', expira: mananaStr(), firma: 'Administrador' })
-  const abrirEditar = (m: Mensaje) => setForm({ id: m.id, tipo: m.tipo, titulo: m.titulo, cuerpo: m.cuerpo, expira: m.expira_at ? m.expira_at.slice(0, 10) : '', firma: m.firma || 'Administrador' })
+  const abrirNuevo = () => setForm({ tipo: nuevoTipo, titulo: '', cuerpo: '', expira: mananaStr(), firma: 'Administrador', estilo: '', importancia: '' })
+  const abrirEditar = (m: Mensaje) => setForm({ id: m.id, tipo: m.tipo, titulo: m.titulo, cuerpo: m.cuerpo, expira: m.expira_at ? m.expira_at.slice(0, 10) : '', firma: m.firma || 'Administrador', estilo: m.estilo ?? '', importancia: m.importancia ?? '' })
 
   const guardar = async () => {
     if (!form || form.titulo.trim().length < 1 || form.cuerpo.trim().length < 1) return
     setSaving(true)
     try {
+      const admiteImportancia = form.tipo === 'aviso' || form.tipo === 'incidencia'
       const payload = {
         tipo: form.tipo, titulo: form.titulo.trim(), cuerpo: form.cuerpo.trim(),
         expira_at: form.expira ? new Date(`${form.expira}T23:59:59`).toISOString() : null,
         firma: form.firma,
+        estilo: form.estilo || null,
+        importancia: admiteImportancia ? (form.importancia || null) : null,
       }
       if (form.id) { await editarMensaje(form.id, payload); toast('Mensaje actualizado') }
       else { await crearMensaje(payload); toast('Mensaje publicado y notificado', 'ok') }
@@ -136,6 +147,51 @@ export function MensajesPage() {
                   )}
                 </div>
                 <span className="text-[12px] text-faint">Los avisos con caducidad aparecen en “Actividad reciente” hasta ese día. Bórrala (🗑) para que no caduque.</span>
+              </div>
+
+              {/* Importancia: solo avisos e incidencias */}
+              {(form.tipo === 'aviso' || form.tipo === 'incidencia') && (
+                <div className="flex flex-col gap-1.5">
+                  <label className="text-[13px] font-semibold text-muted">Importancia</label>
+                  <div className="grid grid-cols-3 gap-2">
+                    {IMPORTANCIAS.map((op) => {
+                      const on = form.importancia === op.valor
+                      return (
+                        <button key={op.label} type="button" onClick={() => setForm({ ...form, importancia: op.valor })}
+                          className={cx('min-h-[44px] rounded-[12px] border text-[13px] font-bold transition-colors',
+                            on ? 'text-white' : 'border-border bg-surface-2 text-muted')}
+                          style={on ? { background: op.color ?? 'var(--primary)', borderColor: op.color ?? 'var(--primary)' } : undefined}>
+                          {op.label}
+                        </button>
+                      )
+                    })}
+                  </div>
+                </div>
+              )}
+
+              {/* Estilo de temporada (opcional) */}
+              <div className="flex flex-col gap-1.5">
+                <label className="text-[13px] font-semibold text-muted">Estilo de temporada (opcional)</label>
+                <div className="grid grid-cols-3 gap-2">
+                  <button type="button" onClick={() => setForm({ ...form, estilo: '' })}
+                    className="flex min-h-[56px] flex-col items-center justify-center gap-1 rounded-[12px] border-[1.5px] bg-surface text-[11px] font-bold text-muted"
+                    style={form.estilo === '' ? { borderColor: 'var(--primary)', boxShadow: '0 0 0 3px color-mix(in srgb, var(--primary) 22%, transparent)' } : { borderColor: '#D2DBE4' }}>
+                    <span className="h-5 w-5 rounded border bg-white" style={{ borderColor: '#D2DBE4' }} />
+                    Ninguno
+                  </button>
+                  {TEMPORADAS_ORDEN.map((key) => {
+                    const t = TEMPORADAS[key]; const on = form.estilo === key
+                    return (
+                      <button key={key} type="button" onClick={() => setForm({ ...form, estilo: key })}
+                        className="flex min-h-[56px] flex-col items-center justify-center gap-1 rounded-[12px] border-[1.5px] px-1 pb-1.5 pt-2 text-[11px] font-bold"
+                        style={{ background: t.paper, color: t.tint, borderColor: on ? t.tint : '#D2DBE4', boxShadow: on ? `0 0 0 3px color-mix(in srgb, ${t.tint} 22%, transparent)` : undefined }}>
+                        <MotivoTemporada estilo={key} size={14} color={t.tint} />
+                        {t.etiqueta}
+                      </button>
+                    )
+                  })}
+                </div>
+                <span className="text-[12px] text-faint">El estilo solo decora este post-it en el tablón. No cambia el tipo ni las notificaciones.</span>
               </div>
               <Button block size="lg" disabled={saving || !form.titulo.trim() || !form.cuerpo.trim()} onClick={guardar}>
                 <Send size={18} /> {saving ? 'Guardando…' : form.id ? 'Guardar cambios' : 'Publicar y notificar'}

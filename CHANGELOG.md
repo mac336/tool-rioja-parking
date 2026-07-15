@@ -5,6 +5,15 @@ al implementar el cambio (ver `CLAUDE.md` → Forma de trabajo).
 
 ## 2026-07-15
 
+- **v1.29.0 · Post-its de temporada + importancia:** los mensajes del tablón
+  pueden llevar un **estilo estacional** opcional (Primavera, Verano, Otoño,
+  Halloween, Navidad, S. Valentín, Carnaval, S. Santa): papel de temporada, cinta
+  washi, marca de agua y nombre de temporada, en los 3 sitios (Home, visor y
+  tarjeta de gestión). Avisos e incidencias añaden **importancia** (Normal /
+  **IMPORTANTE** / **URGENTE**), con sello y, en urgente, cinta y marco rojos. Sin
+  estilo, el post-it queda como siempre con su icono de tipo (⚠️/aspa). Campos
+  cosméticos `estilo` e `importancia` (mig. 0043); sin cambios de RLS.
+
 - **v1.28.1 · Fix notificaciones del tablón por tipo:** la Edge Function
   `notificar` seguía comprobando el permiso retirado `publicar_mensajes`, así que
   un aviso/incidencia publicado por el **conserje** no mandaba push a los vecinos.

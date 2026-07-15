@@ -82,10 +82,30 @@ pinchadas con chincheta**, una **pila por tipo**:
 La pantalla completa de Mensajes muestra **todo** (por pestañas); el filtro es
 solo para el resumen de Inicio.
 
+## Estilo estacional e importancia (post-its decorados) — mig. 0043
+
+Dos campos **cosméticos** opcionales en `mensajes` (mismas políticas de escritura;
+sin cambios de RLS). `null`/desconocido ⇒ el post-it se pinta como siempre.
+
+- **`estilo`** (`primavera|verano|otono|halloween|navidad|valentin|carnaval|ssanta`):
+  decoración de temporada. Se elige en el formulario ("Estilo de temporada,
+  opcional"). Receta "Fuerte" (handoff): papel degradado, **cinta washi** en vez
+  de chincheta, marco punteado interior, marca de agua con el motivo y nombre de
+  temporada en el pie. Tokens y motivos en `postit.ts` (`TEMPORADAS`) +
+  `MotivoTemporada.tsx` (SVG; lucide donde existe: Sun/Leaf/Snowflake/Heart).
+- **`importancia`** (`media`=IMPORTANTE / `alta`=URGENTE; solo **avisos e
+  incidencias**): sello en el pie (ámbar/rojo) y color del icono; en **urgente**
+  la cinta pasa a rayas rojas y el marco se enrojece. Convive con "caduca hoy".
+- **Sin estilo**: se mantiene el post-it actual (chincheta + fecha) y el **icono
+  automático del tipo** (aviso = triángulo ⚠️, incidencia = triángulo con aspa).
+- Se aplica en los **3 sitios**: `PostItHome` y `PostItVisor` (TablonGadget) con
+  la receta completa, y `MensajeCard` (gestión) en versión plana (fondo de
+  temporada + chip + marca de agua, sin cinta).
+
 ## Notificaciones
 
-Al publicar un mensaje → **notificación push a todos** los vecinos activos
-(`notificar`, kind `mensaje`) + entra en la campana (`listAvisos`). **Sin correo.**
+Al publicar un mensaje → **push a quien puede ver ese tipo** (`notificar`, kind
+`mensaje`, filtra por `ver_<tipo>`) + entra en la campana (`listAvisos`). **Sin correo.**
 
 ## Implementación
 

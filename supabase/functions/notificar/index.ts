@@ -7,7 +7,7 @@
 import { createClient } from 'jsr:@supabase/supabase-js@2'
 import { SMTPClient } from 'https://deno.land/x/denomailer@1.6.0/mod.ts'
 import { corsHeaders, json } from '../_shared/cors.ts'
-import { enviarPush, enviarPushATodos, enviarPushAUsuarios, idsPorRoles } from '../_shared/push.ts'
+import { enviarPush, enviarPushAUsuarios, idsPorRoles, idsConPermiso } from '../_shared/push.ts'
 
 const ROLES_CANAL: Record<string, string[]> = {
   administrador: ['administrador_finca'],
@@ -48,24 +48,27 @@ Deno.serve(async (req) => {
     const { kind, id } = await req.json()
 
     if (kind === 'mensaje') {
-      // SEGURIDAD: solo quien puede publicar mensajes O moderar publicaciones
-      // (aprobar dispara este mismo push) lanza el envío masivo — si no,
-      // cualquier vecino podría spamear a todo el edificio.
-      let puede = perfil.rol === 'app_admin'
-      if (!puede) {
-        const { data: perms } = await admin.from('role_permissions')
-          .select('permiso').eq('rol', perfil.rol)
-          .in('permiso', ['publicar_mensajes', 'aprobar_incidencias', 'aprobar_anuncios'])
-        puede = (perms ?? []).length > 0
-      }
-      if (!puede) return json({ error: 'Sin permiso.' }, 403)
       // Solo se anuncia lo realmente visible en el tablón.
       const { data: m } = await admin.from('mensajes')
         .select('tipo, titulo, estado, destino').eq('id', id).single()
       if (!m || m.estado !== 'publicado' || m.destino !== 'todos') {
         return json({ ok: true, skipped: 'no publicado para todos' })
       }
-      await enviarPushATodos(admin, {
+      // SEGURIDAD: solo quien puede PUBLICAR ese tipo (publicar_<tipo>) o moderar
+      // (aprobar dispara este mismo push) lanza el envío — si no, cualquier vecino
+      // podría spamear al edificio.
+      let puede = perfil.rol === 'app_admin'
+      if (!puede) {
+        const { data: perms } = await admin.from('role_permissions')
+          .select('permiso').eq('rol', perfil.rol)
+          .in('permiso', [`publicar_${m.tipo}`, 'aprobar_incidencias', 'aprobar_anuncios'])
+        puede = (perms ?? []).length > 0
+      }
+      if (!puede) return json({ error: 'Sin permiso.' }, 403)
+      // Destinatarios: solo quien puede VER ese tipo (ver_<tipo>). Así el conserje
+      // no recibe avisos de anuncios/sugerencias que no ve.
+      const destinatarios = await idsConPermiso(admin, `ver_${m.tipo}`)
+      await enviarPushAUsuarios(admin, destinatarios, {
         title: TIPO_TITULO[m.tipo] ?? 'Nuevo mensaje en la comunidad',
         body: m.titulo as string,
         url: '/', // el tablón vive en la Home (post-its)
@@ -132,7 +135,7 @@ Deno.serve(async (req) => {
       if (m.created_by !== user.id) return json({ error: 'Sin permiso.' }, 403)
       const roles = new Set<string>(['app_admin'])
       const { data: perms } = await admin.from('role_permissions')
-        .select('rol').in('permiso', ['aprobar_incidencias', 'aprobar_anuncios', 'publicar_mensajes'])
+        .select('rol').in('permiso', ['aprobar_incidencias', 'aprobar_anuncios'])
       for (const p of perms ?? []) roles.add(p.rol as string)
       const ids = await idsPorRoles(admin, [...roles])
       const etiqueta = m.destino === 'administracion'
@@ -151,7 +154,7 @@ Deno.serve(async (req) => {
       if (!puede) {
         const { data: perms } = await admin.from('role_permissions')
           .select('permiso').eq('rol', perfil.rol)
-          .in('permiso', ['aprobar_incidencias', 'aprobar_anuncios', 'publicar_mensajes'])
+          .in('permiso', ['aprobar_incidencias', 'aprobar_anuncios'])
         puede = (perms ?? []).length > 0
       }
       if (!puede) return json({ error: 'Sin permiso.' }, 403)

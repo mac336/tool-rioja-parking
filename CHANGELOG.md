@@ -5,6 +5,12 @@ al implementar el cambio (ver `CLAUDE.md` → Forma de trabajo).
 
 ## 2026-07-15
 
+- **v1.28.1 · Fix notificaciones del tablón por tipo:** la Edge Function
+  `notificar` seguía comprobando el permiso retirado `publicar_mensajes`, así que
+  un aviso/incidencia publicado por el **conserje** no mandaba push a los vecinos.
+  Ahora autoriza por `publicar_<tipo>` y **envía solo a quien puede ver ese tipo**
+  (`ver_<tipo>`), no a todos. Requiere `supabase functions deploy notificar`.
+
 - **v1.28.0 · Mi Comunidad configurable + anuncios en Inicio:**
   - **Mi Comunidad** deja de ser solo del desarrollador: ahora la visibilidad la
     controla el permiso configurable **`ver_mi_comunidad`** (grupo "Mi Comunidad"

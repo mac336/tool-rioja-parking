@@ -56,12 +56,17 @@ export async function enviarPushATodos(admin: SupabaseClient, payload: PushPaylo
   await enviarPushAUsuarios(admin, ids, payload)
 }
 
+/** IDs de usuarios activos cuyo ROL tiene el permiso indicado (app_admin siempre). */
+export async function idsConPermiso(admin: SupabaseClient, permiso: string): Promise<string[]> {
+  const { data: perms } = await admin.from('role_permissions').select('rol').eq('permiso', permiso)
+  const roles = new Set((perms ?? []).map((p) => p.rol as string))
+  roles.add('app_admin') // SUPERADMIN: siempre tiene todos los permisos
+  return idsPorRoles(admin, [...roles])
+}
+
 /** IDs de usuarios de gestión (permiso 'panel' o app_admin), activos. */
 export async function idsGestion(admin: SupabaseClient): Promise<string[]> {
-  const { data: perms } = await admin.from('role_permissions').select('rol').eq('permiso', 'panel')
-  const roles = new Set((perms ?? []).map((p) => p.rol as string))
-  roles.add('app_admin')
-  return idsPorRoles(admin, [...roles])
+  return idsConPermiso(admin, 'panel')
 }
 
 /** IDs de usuarios activos con alguno de los roles indicados. */

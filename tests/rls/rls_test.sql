@@ -131,10 +131,12 @@ select assert_falla(
     date_trunc('day', now()+interval '11 day')+interval '12 hour' from zonas_comunes where nombre='Piscina'$f$, :'uidA'),
   'segunda reserva vigente por vivienda');
 
--- 8) A NO puede auto-aprobar su reserva (poner estado='aprobada')
+-- 8) A NO puede reservar a nombre de OTRA vivienda (sin 'reservar_otras_viviendas')
 select assert_falla(
-  $f$update reservas set estado='aprobada' where vivienda='Bajo A'$f$,
-  'vecino auto-aprueba su reserva');
+  format($f$insert into reservas (zona_id, vivienda, solicitada_por, inicio, fin)
+    select id, '2º A Dcha', '%s', date_trunc('day', now()+interval '12 day')+interval '10 hour',
+    date_trunc('day', now()+interval '12 day')+interval '12 hour' from zonas_comunes where nombre='Piscina'$f$, :'uidA'),
+  'vecino NO reserva a nombre de otra vivienda');
 
 -- ===========================================================================
 -- TESTS COMO VECINO B (solapamiento de franja)
@@ -156,14 +158,13 @@ select assert_igual((select count(*) from reservas), 0, 'vecino B no ve reservas
 select assert_min((select count(*) from ocupacion_reservas), 1, 'vecino B ve ocupación sin identidad');
 
 -- ===========================================================================
--- TESTS COMO PRESIDENTE (aprobar reserva)
+-- TESTS COMO PRESIDENTE (reservas de aprobación directa + encuestas)
 -- ===========================================================================
 select set_config('request.jwt.claims', json_build_object('sub',:'uidP','role','authenticated')::text, false);
 
--- 12) Presidente ve la reserva de A (gestión) y la aprueba → OK
+-- 12) Presidente ve la reserva de A (gestión) y ya está aprobada (aprobación directa, sin cola)
 select assert_igual((select count(*) from reservas where vivienda='Bajo A'), 1, 'presidente ve reserva de A');
-update reservas set estado='aprobada', aprobada_por=:'uidP' where vivienda='Bajo A';
-select assert_igual((select count(*) from reservas where vivienda='Bajo A' and estado='aprobada'), 1, 'presidente aprueba reserva');
+select assert_igual((select count(*) from reservas where vivienda='Bajo A' and estado='aprobada'), 1, 'reserva de A queda aprobada directamente');
 
 -- 13) Presidente crea una encuesta → OK (es gestión)
 insert into encuestas (titulo, formato, cierre, creada_por)

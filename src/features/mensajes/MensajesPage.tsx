@@ -4,17 +4,16 @@ import { Page } from '@/components/layout/AppShell'
 import { Button, Field, Textarea, SelectField, EmptyState, ErrorState, SkeletonList, cx } from '@/components/ui'
 import { useAsync } from '@/lib/useAsync'
 import { useApp } from '@/store'
-import { puedePublicarMensajes } from '@/lib/roles'
+import { puedePublicarTipo, tiposQueVe } from '@/lib/roles'
 import { PISOS } from '@/lib/parking'
 import { listMensajes, crearMensaje, editarMensaje, borrarMensaje } from '@/lib/api'
 import type { Mensaje, MensajeTipo } from '@/types'
 import { MensajeCard, TIPO_META } from './MensajeCard'
 
-// Pestañas visibles (incluye Sugerencias, en modo lectura). CREABLES = tipos que
-// la gestión redacta aquí; las sugerencias las publican los vecinos (buzón) y se
-// aprueban en el panel de Gestión → Publicaciones, no se escriben en esta pantalla.
+// Orden fijo de las pestañas. Las visibles y las creables dependen de los
+// PERMISOS POR TIPO del rol. Las sugerencias las publican los vecinos (buzón) y
+// se aprueban en Gestión → Publicaciones, no se escriben aquí.
 const ORDEN: MensajeTipo[] = ['aviso', 'anuncio', 'incidencia', 'sugerencia']
-const CREABLES: MensajeTipo[] = ['aviso', 'anuncio', 'incidencia']
 const SECCION: Record<MensajeTipo, string> = { aviso: 'Avisos', anuncio: 'Anuncios', incidencia: 'Incidencias', sugerencia: 'Sugerencias' }
 const FIRMAS = ['Administrador', 'Conserje', 'la Junta', 'Vecinos', ...PISOS]
 
@@ -27,14 +26,16 @@ type FormState = { id?: string; tipo: MensajeTipo; titulo: string; cuerpo: strin
 
 export function MensajesPage() {
   const { user, msgColors, toast } = useApp()
-  const puede = puedePublicarMensajes(user.rol)
+  // Pestañas visibles y tipos creables según los permisos por tipo del rol.
+  const tabsVisibles = ORDEN.filter((t) => tiposQueVe(user.rol).includes(t))
+  const creables = ORDEN.filter((t) => t !== 'sugerencia' && puedePublicarTipo(user.rol, t))
   const { data, state, refetch } = useAsync(listMensajes, [])
 
-  const [tab, setTab] = useState<MensajeTipo>('aviso')
+  const [tab, setTab] = useState<MensajeTipo>(tabsVisibles[0] ?? 'aviso')
   const [form, setForm] = useState<FormState | null>(null)
   const [saving, setSaving] = useState(false)
 
-  const nuevoTipo = CREABLES.includes(tab) ? tab : 'aviso'
+  const nuevoTipo = creables.includes(tab) ? tab : (creables[0] ?? 'aviso')
   const abrirNuevo = () => setForm({ tipo: nuevoTipo, titulo: '', cuerpo: '', expira: mananaStr(), firma: 'Administrador' })
   const abrirEditar = (m: Mensaje) => setForm({ id: m.id, tipo: m.tipo, titulo: m.titulo, cuerpo: m.cuerpo, expira: m.expira_at ? m.expira_at.slice(0, 10) : '', firma: m.firma || 'Administrador' })
 
@@ -66,7 +67,7 @@ export function MensajesPage() {
       <header className="sticky top-0 z-10 border-b border-border bg-surface/95 backdrop-blur safe-top">
         <div className="flex items-center justify-between gap-2 px-4 pb-2 pt-3.5">
           <h1 className="font-display text-[22px] font-extrabold text-ink">Mensajes</h1>
-          {puede && tab !== 'sugerencia' && (
+          {creables.includes(tab) && (
             <button onClick={abrirNuevo} className="flex h-10 items-center gap-1.5 rounded-pill bg-primary px-3.5 text-[14px] font-bold text-white shadow-primary">
               <Plus size={18} /> Nuevo
             </button>
@@ -74,7 +75,7 @@ export function MensajesPage() {
         </div>
         {/* Pestañas por tipo con contador */}
         <div className="flex gap-2 px-4 pb-2.5">
-          {ORDEN.map((t) => (
+          {tabsVisibles.map((t) => (
             <button key={t} onClick={() => setTab(t)}
               className={cx('inline-flex items-center gap-1.5 rounded-pill px-3.5 py-1.5 text-[13px] font-bold transition-colors',
                 tab === t ? 'bg-primary text-white' : 'bg-surface-2 text-muted')}>
@@ -96,11 +97,12 @@ export function MensajesPage() {
         )}
         {state !== 'loading' && state !== 'error' && items.length === 0 && (
           <EmptyState titulo={`Sin ${SECCION[tab].toLowerCase()}`}
-            texto={tab === 'sugerencia' ? 'Las sugerencias las envían los vecinos desde el buzón y se aprueban en Publicaciones.' : puede ? 'Pulsa “Nuevo” para publicar uno.' : 'No hay nada por ahora.'} />
+            texto={tab === 'sugerencia' ? 'Las sugerencias las envían los vecinos desde el buzón y se aprueban en Publicaciones.' : creables.includes(tab) ? 'Pulsa “Nuevo” para publicar uno.' : 'No hay nada por ahora.'} />
         )}
         {items.map((m) => (
           <MensajeCard key={m.id} m={m} color={msgColors[m.tipo]}
-            onEdit={puede && m.tipo !== 'sugerencia' ? abrirEditar : undefined} onDelete={puede ? borrar : undefined} />
+            onEdit={puedePublicarTipo(user.rol, m.tipo) && m.tipo !== 'sugerencia' ? abrirEditar : undefined}
+            onDelete={puedePublicarTipo(user.rol, m.tipo) ? borrar : undefined} />
         ))}
       </Page>
 
@@ -114,7 +116,7 @@ export function MensajesPage() {
             </div>
             <div className="flex flex-col gap-3">
               <SelectField label="Tipo" value={form.tipo} onChange={(e) => setForm({ ...form, tipo: e.target.value as MensajeTipo })}>
-                {CREABLES.map((t) => <option key={t} value={t}>{TIPO_META[t].label}</option>)}
+                {creables.map((t) => <option key={t} value={t}>{TIPO_META[t].label}</option>)}
               </SelectField>
               <Field label="Título" value={form.titulo} maxLength={140} onChange={(e) => setForm({ ...form, titulo: e.target.value })} placeholder="Ej. Corte de agua el martes" />
               <Textarea label="Mensaje" value={form.cuerpo} maxLength={4000} rows={5} onChange={(e) => setForm({ ...form, cuerpo: e.target.value })} placeholder="Escribe el mensaje para la comunidad…" />

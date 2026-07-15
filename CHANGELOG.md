@@ -3,6 +3,41 @@
 Cambios funcionales relevantes, más recientes arriba. Cada entrada nueva se añade
 al implementar el cambio (ver `CLAUDE.md` → Forma de trabajo).
 
+## 2026-07-15
+
+- **v1.27.0 · Circulares:** nuevo apartado en **Más → Circulares** con las normas
+  de uso de la **piscina y zonas comunes** (temporada y horario 2026 + normas por
+  bloques). Contenido público, sin datos personales. Ver `specs/20`.
+
+- **v1.26.0 · Permisos por tipo y reservas de aprobación directa:**
+  - **Permisos reorganizados** en grupos (Tablón · Reservas · Buzón · Encuestas ·
+    Gestión) en el panel del app_admin, para que escale al crecer.
+  - **Tablón por tipo:** ver y publicar/editar se controlan **por cada tipo**
+    (aviso/anuncio/incidencia/sugerencia) y por rol. Por defecto el **conserje**
+    ve y publica solo **avisos e incidencias** (no ve anuncios ni sugerencias).
+    Retirado el permiso único `publicar_mensajes`. Migraciones 0038 y 0040.
+  - **Reservas de aprobación directa:** se elimina la cola de aprobación; la
+    reserva queda confirmada al crearse. Nuevo permiso **"reservar para otras
+    viviendas"** (p. ej. el conserje elige el piso). El servicio de Reservas se
+    **oculta** a quien no tenga permiso (antes salía el botón deshabilitado).
+    Migración 0039 (pendientes → aprobadas; retirado `aprobar_reservas`).
+  - **Gating de servicios:** Votaciones y Reservas se ocultan en Inicio y en
+    Servicios (y el hero de encuesta) según el permiso del rol.
+
+- **v1.25.0 · "Mi Comunidad" (dashboard económico, en pruebas):** nuevo apartado
+  que resume las cuentas de la comunidad a partir de las actas: presupuesto del
+  año y variación, **en qué se gasta** (por destino), **si sube o baja** cada
+  capítulo, **derramas** (importe/cuota/periodo, sin detallar quién paga),
+  cuentas de cierre (impagados solo como total agregado) y **decisiones de las
+  juntas** (aprobado/rechazado con la votación; Junta Rectora solo por cargos).
+  Cada capítulo de "¿sube o baja?" tiene una **"i" con el motivo** del cambio, y
+  el panel muestra un **aviso** de que es solo informativo (ante dudas, consultar
+  las actas en PDF).
+  Comparativa 2025↔2026. **Solo visible para `app_admin` (developer)** mientras
+  se decide si se abre a los vecinos. Datos en tabla `comunidad_datos` con **RLS
+  de solo lectura para app_admin** (migración 0037); la migración no lleva datos
+  y el seed va **fuera de git** por ser el repo/web públicos.
+
 ## 2026-07-11
 
 - **v1.24.0 · Fotos también en anuncios:** el adjuntar 1–2 fotos (mismo flujo

@@ -15,18 +15,28 @@ Un modelo **unificado de "mensajes"** con **cuatro tipos**:
 - **Sugerencia** (lavanda) — propuestas de vecinos para la comunidad (moderadas),
   con **autor visible** y **likes** (ver sección al final).
 
-La gestión (permiso `publicar_mensajes`) publica **directo**; el **vecino** envía
+Quien tenga permiso publica **directo**; el **vecino** envía
 incidencias/anuncios/sugerencias desde **Buzón → Publicar** y pasan por
 **moderación** antes de verse (mig. 0031, sección "Publicaciones de vecinos").
 Los colores de fondo son **configurables por usuario** (Ajustes).
 
-## Quién puede publicar
+## Quién ve y quién publica — POR TIPO (mig. 0038/0040)
 
-Publicar **directo** (y editar/borrar cualquier mensaje) requiere el permiso
-**`publicar_mensajes`** (personalizable por rol, ver `specs/03`). El vecino
-envía **propuestas moderadas** (ver "Publicaciones de vecinos"); aprobarlas
-requiere `aprobar_incidencias`/`aprobar_anuncios`. La seguridad la impone la
-RLS (`mensajes`, migraciones 0012/0031/0034).
+Desde v1.26.0 el tablón se controla **por tipo de mensaje** y por rol, con dos
+permisos por tipo (personalizables, ver `specs/03`):
+
+- **`ver_<tipo>`** — ver ese tipo en el tablón. Por defecto todos ven avisos e
+  incidencias; anuncios y sugerencias los ven todos **menos el conserje**.
+- **`publicar_<tipo>`** — crear y **editar/borrar** ese tipo. Por defecto la
+  gestión publica los cuatro tipos; el **conserje** solo **avisos e
+  incidencias**. (Retirado el permiso único `publicar_mensajes`.)
+
+El vecino envía **propuestas moderadas** (ver "Publicaciones de vecinos");
+aprobarlas requiere `aprobar_incidencias`/`aprobar_anuncios`. La pantalla de
+Mensajes solo muestra las **pestañas** de los tipos que el rol puede ver, y el
+botón **Nuevo** solo para los tipos que puede publicar. La seguridad la impone la
+RLS (`mensajes`, migraciones 0012/0031/0034/0040): un mensaje publicado solo lo
+lee quien puede ver ese tipo.
 
 ## Datos (`mensajes`)
 

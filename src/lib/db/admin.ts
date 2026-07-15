@@ -5,7 +5,6 @@
 import { supabase } from '@/lib/supabase'
 import type { AccessRequest, Profile, Role } from '@/types'
 import { iniciales, fechaCorta } from '@/lib/format'
-import { puedeAprobarReservas } from '@/lib/roles'
 
 // ---- Solicitudes de acceso ---------------------------------------------------
 export async function listAccessRequests(): Promise<AccessRequest[]> {
@@ -124,13 +123,6 @@ export async function listAvisos(): Promise<Aviso[]> {
   const { data: { user } } = await supabase.auth.getUser()
   if (!user) return avisos
 
-  // Perfil del usuario (rol) para los avisos de gestión: por PERMISO real
-  // (aprobar_reservas), no por "rol distinto de vecino" — así un tester o un
-  // conserje sin ese permiso no ve la cola de reservas por aprobar.
-  const { data: perfil } = await supabase.from('profiles')
-    .select('rol, vivienda').eq('id', user.id).single()
-  const esGestion = !!perfil && puedeAprobarReservas(perfil.rol as Role)
-
   // Mensajes recientes del tablón: SOLO los ya publicados y para todos (no
   // borradores/pendientes ni los privados a administración, que la RLS deja ver
   // a gestión/autor pero NO deben salir en la campana). El toque abre el tablón
@@ -177,13 +169,6 @@ export async function listAvisos(): Promise<Aviso[]> {
   if (miReserva) {
     const z = Array.isArray(miReserva.zona) ? miReserva.zona[0] : miReserva.zona
     avisos.push({ id: 'av-res', texto: `Tu reserva de ${z?.nombre ?? ''} está aprobada`, cuando: fechaCorta(miReserva.inicio), to: '/reservas/mias', ts: miReserva.created_at })
-  }
-
-  // Cola de reservas por aprobar (solo gestión).
-  if (esGestion) {
-    const { count: pendRes } = await supabase.from('reservas')
-      .select('*', { count: 'exact', head: true }).eq('estado', 'pendiente')
-    if (pendRes) avisos.push({ id: 'av-modres', texto: `${pendRes} reserva(s) por aprobar`, cuando: 'Pendiente', to: '/reservas', ts: nowISO })
   }
 
   // Más nuevo arriba.

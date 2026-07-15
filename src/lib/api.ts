@@ -14,7 +14,7 @@ export const {
   listViviendas,
   listEncuestas, getEncuesta, votarPregunta, crearEncuesta, cerrarEncuesta, borrarEncuesta,
   listZonas, misReservas, reservaVigente, ocupacionDia, crearReserva, cancelarReserva,
-  reservasPendientesGestion, reservasGestion, estadisticasReservas, resolverReserva,
+  reservasGestion, estadisticasReservas,
   parkingProximas, parkingMisTurnos, misCesiones, cesionesActivas,
   crearCesion, cancelarCesion, reasignarCesion, demandaParking,
   listContactos, crearContacto, editarContacto, borrarContacto,
@@ -25,4 +25,5 @@ export const {
   listMensajes, crearMensaje, editarMensaje, borrarMensaje, crearPublicacion, misPublicaciones, publicacionesGestion, moderarPublicacion, alternarLike,
   listHilos, getHilo, crearHilo, crearHiloComoGestion, listDirectorio, responderHilo, cerrarHilo, borrarHilo, convertirEnMensaje,
   listAvisos,
+  getComunidadDatos,
 } = A

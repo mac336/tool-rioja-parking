@@ -25,10 +25,12 @@ import { ParkingPage } from '@/features/parking/ParkingPage'
 import { ContactsPage } from '@/features/contacts/ContactsPage'
 import { SettingsPage } from '@/features/settings/SettingsPage'
 import { ReciclajePage } from '@/features/misc/ReciclajePage'
+import { CircularesPage } from '@/features/misc/CircularesPage'
 import { SugerenciasPage } from '@/features/misc/SugerenciasPage'
 import { AvisosPage } from '@/features/misc/AvisosPage'
 import { AdminPage } from '@/features/admin/AdminPage'
 import { DashboardPage } from '@/features/admin/DashboardPage'
+import { MiComunidadPage } from '@/features/comunidad/MiComunidadPage'
 
 function Shell() {
   return <AppShell><Outlet /></AppShell>
@@ -90,6 +92,7 @@ export const router = createBrowserRouter([
       { path: '/contactos', element: <ContactsPage /> },
       { path: '/ajustes', element: <SettingsPage /> },
       { path: '/reciclaje', element: <ReciclajePage /> },
+      { path: '/circulares', element: <CircularesPage /> },
       { path: '/sugerencias', element: <SugerenciasPage /> },
       { path: '/avisos', element: <AvisosPage /> },
       {
@@ -97,7 +100,10 @@ export const router = createBrowserRouter([
         children: [{ path: '/admin', element: <AdminPage /> }],
       }, {
         element: <RequireAppAdmin />,
-        children: [{ path: '/dashboard', element: <DashboardPage /> }],
+        children: [
+          { path: '/dashboard', element: <DashboardPage /> },
+          { path: '/mi-comunidad', element: <MiComunidadPage /> },
+        ],
       },
     ],
     }],

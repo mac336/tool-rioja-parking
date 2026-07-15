@@ -1,11 +1,11 @@
 import { Link } from 'react-router-dom'
-import { Bell, Car, SquareCheckBig, CalendarDays, SquareParking, Phone, Megaphone, MessageSquare, Lightbulb, Hourglass } from 'lucide-react'
+import { Bell, Car, SquareCheckBig, CalendarDays, SquareParking, Phone, Megaphone, MessageSquare, Lightbulb, Hourglass, Building2 } from 'lucide-react'
 import { useApp } from '@/store'
 import { useAsync } from '@/lib/useAsync'
 import { saludo, diasRestantes, fechaHora, hora } from '@/lib/format'
 import { parkingMisTurnos, listEncuestas, listMensajes, listAvisos, reservaVigente } from '@/lib/api'
 import { contarAvisosNuevos } from '@/lib/avisosVistos'
-import { puedePublicarMensajes } from '@/lib/roles'
+import { puedePublicarAlgo, esAppAdmin, puedeVotar, puedeReservar } from '@/lib/roles'
 import { Logo } from '@/components/Logo'
 import { TablonGadget } from '@/features/mensajes/TablonGadget'
 
@@ -15,11 +15,13 @@ import { TablonGadget } from '@/features/mensajes/TablonGadget'
 //   ve en el tablón, así que no necesita el acceso.
 const servicios = [
   { to: '/mensajes', short: 'Mensajes', Icon: Megaphone, color: '#E0A22E', soloPublica: true },
-  { to: '/votaciones', short: 'Votaciones', Icon: SquareCheckBig, color: '#5B7FD4' },
-  { to: '/reservas', short: 'Reservas', Icon: CalendarDays, color: '#2E8E79' },
+  { to: '/votaciones', short: 'Votaciones', Icon: SquareCheckBig, color: '#5B7FD4', soloVota: true },
+  { to: '/reservas', short: 'Reservas', Icon: CalendarDays, color: '#2E8E79', soloReserva: true },
   { to: '/parking', short: 'Parking', Icon: SquareParking, color: '#8A6FD1' },
   { to: '/contactos', short: 'Contactos', Icon: Phone, color: '#D98A3D' },
   { to: '/sugerencias', short: 'Sugerencias', Icon: Lightbulb, color: '#C879A9' },
+  // Solo developer (app_admin) por ahora — en pruebas. Ver specs/19.
+  { to: '/mi-comunidad', short: 'Mi Comunidad', Icon: Building2, color: '#2E8E79', soloAppAdmin: true },
 ]
 
 const fechaLarga = new Intl.DateTimeFormat('es-ES', { weekday: 'long', day: 'numeric', month: 'long' }).format(new Date())
@@ -43,7 +45,8 @@ export function HomePage() {
   // Encuesta protagonista (handoff encuesta_home, 2a): hero arriba del tablón
   // mientras el vecino no haya votado del todo; urgente (ámbar) a ≤3 días.
   const yaVoto = !!abierta && abierta.preguntas.every((p) => p.mi_voto_opcion_ids.length > 0)
-  const encuestaHero = abierta && !yaVoto ? abierta : null
+  // Si el rol no puede votar (permiso), no se le muestra el hero de encuesta.
+  const encuestaHero = abierta && !yaVoto && puedeVotar(user.rol) ? abierta : null
   const diasCierre = encuestaHero ? diasRestantes(encuestaHero.cierre) : 0
   const encuestaUrgente = diasCierre <= 3
   const cierraTxt = diasCierre <= 0 ? 'Cierra hoy' : diasCierre === 1 ? 'Cierra mañana' : `Cierra en ${diasCierre} días`
@@ -190,7 +193,12 @@ export function HomePage() {
       <section className="shrink-0 pb-5 pt-3">
         <div className="section-title mb-3">Servicios</div>
         <div className="grid grid-cols-4 gap-x-2 gap-y-3.5">
-          {servicios.filter((s) => !s.soloPublica || puedePublicarMensajes(user.rol)).map(({ to, short, Icon, color }) => (
+          {servicios
+            .filter((s) => (!s.soloPublica || puedePublicarAlgo(user.rol))
+              && (!s.soloAppAdmin || esAppAdmin(user.rol))
+              && (!s.soloVota || puedeVotar(user.rol))
+              && (!s.soloReserva || puedeReservar(user.rol)))
+            .map(({ to, short, Icon, color }) => (
             <Link key={to} to={to} className="flex flex-col items-center gap-1.5">
               <span className="flex h-[56px] w-[56px] items-center justify-center rounded-full border border-border bg-surface"
                 style={{ boxShadow: '0 4px 10px -5px rgba(30,50,60,.35)', color }}>

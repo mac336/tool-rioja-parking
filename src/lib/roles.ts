@@ -37,40 +37,87 @@ export const BADGE_LABEL: Record<RoleBadgeKind, string> = {
 // La verdad la tiene la BD (tabla role_permissions + RLS). En el cliente cacheamos
 // los permisos del USUARIO ACTUAL para adaptar la interfaz; app_admin = SUPERADMIN
 // (siempre todo). En modo demo (sin backend) no hay caché → se usan los defaults.
-export type Permiso = 'panel' | 'aprobar_altas' | 'aprobar_reservas' | 'publicar_mensajes' | 'usar_buzon' | 'votar_encuestas' | 'realizar_reservas' | 'escribir_vecinos' | 'aprobar_incidencias' | 'aprobar_anuncios'
+export type Permiso =
+  // Tablón — por tipo, ver y publicar/editar por separado
+  | 'ver_aviso' | 'ver_anuncio' | 'ver_incidencia' | 'ver_sugerencia'
+  | 'publicar_aviso' | 'publicar_anuncio' | 'publicar_incidencia' | 'publicar_sugerencia'
+  | 'aprobar_incidencias' | 'aprobar_anuncios'
+  // Reservas
+  | 'realizar_reservas' | 'reservar_otras_viviendas'
+  // Buzón
+  | 'usar_buzon' | 'escribir_vecinos'
+  // Encuestas
+  | 'votar_encuestas'
+  // Gestión
+  | 'panel' | 'aprobar_altas'
 
-export const CATALOGO_PERMISOS: { key: Permiso; label: string; desc: string }[] = [
-  { key: 'panel', label: 'Panel de gestión', desc: 'Acceder al panel y al buzón de administración' },
-  { key: 'publicar_mensajes', label: 'Publicar mensajes', desc: 'Crear avisos, anuncios e incidencias para toda la comunidad' },
-  { key: 'aprobar_altas', label: 'Aprobar altas y gestionar vecinos', desc: 'Aprobar solicitudes, editar, suspender y dar de baja' },
-  { key: 'aprobar_reservas', label: 'Aprobar reservas', desc: 'Aprobar o rechazar reservas de zonas comunes' },
-  { key: 'usar_buzon', label: 'Chatear por el buzón', desc: 'Escribir mensajes privados por los canales del buzón' },
-  { key: 'votar_encuestas', label: 'Votar en encuestas', desc: 'Emitir voto en las votaciones de la comunidad' },
-  { key: 'realizar_reservas', label: 'Realizar reservas', desc: 'Solicitar reservas de zonas comunes' },
-  { key: 'escribir_vecinos', label: 'Escribir a los vecinos', desc: 'Iniciar chats del buzón con cualquier vecino (en su canal: Administración/Conserje/Presidencia/Desarrollador)' },
-  { key: 'aprobar_incidencias', label: 'Aprobar incidencias', desc: 'Aprobar o rechazar las incidencias que envían los vecinos' },
-  { key: 'aprobar_anuncios', label: 'Aprobar anuncios', desc: 'Aprobar o rechazar los anuncios que envían los vecinos' },
+export type TipoMensaje = 'aviso' | 'anuncio' | 'incidencia' | 'sugerencia'
+
+// Catálogo AGRUPADO y ORDENADO. El panel del app_admin lo pinta por secciones.
+// Añadir una función nueva = añadir su permiso al grupo que corresponda.
+export const GRUPOS_PERMISOS: { grupo: string; permisos: { key: Permiso; label: string; desc: string }[] }[] = [
+  { grupo: 'Tablón', permisos: [
+    { key: 'ver_aviso', label: 'Ver avisos', desc: 'Ver los avisos en el tablón' },
+    { key: 'publicar_aviso', label: 'Publicar avisos', desc: 'Crear y editar avisos para la comunidad' },
+    { key: 'ver_incidencia', label: 'Ver incidencias', desc: 'Ver las incidencias en el tablón' },
+    { key: 'publicar_incidencia', label: 'Publicar incidencias', desc: 'Crear y editar incidencias' },
+    { key: 'ver_anuncio', label: 'Ver anuncios', desc: 'Ver los anuncios en el tablón' },
+    { key: 'publicar_anuncio', label: 'Publicar anuncios', desc: 'Crear y editar anuncios' },
+    { key: 'ver_sugerencia', label: 'Ver sugerencias', desc: 'Ver las sugerencias en el tablón' },
+    { key: 'publicar_sugerencia', label: 'Publicar sugerencias', desc: 'Crear y editar sugerencias' },
+    { key: 'aprobar_incidencias', label: 'Aprobar incidencias de vecinos', desc: 'Aprobar o rechazar las incidencias que envían los vecinos' },
+    { key: 'aprobar_anuncios', label: 'Aprobar anuncios de vecinos', desc: 'Aprobar o rechazar los anuncios que envían los vecinos' },
+  ] },
+  { grupo: 'Reservas', permisos: [
+    { key: 'realizar_reservas', label: 'Realizar reservas', desc: 'Reservar zonas comunes' },
+    { key: 'reservar_otras_viviendas', label: 'Reservar para otras viviendas', desc: 'Al reservar, elegir la vivienda a nombre de la que se hace (p. ej. el conserje)' },
+  ] },
+  { grupo: 'Buzón', permisos: [
+    { key: 'usar_buzon', label: 'Chatear por el buzón', desc: 'Escribir mensajes privados por los canales del buzón' },
+    { key: 'escribir_vecinos', label: 'Escribir a los vecinos', desc: 'Iniciar chats del buzón con cualquier vecino (en su canal)' },
+  ] },
+  { grupo: 'Encuestas', permisos: [
+    { key: 'votar_encuestas', label: 'Votar en encuestas', desc: 'Emitir voto y ver el módulo de votaciones' },
+  ] },
+  { grupo: 'Gestión', permisos: [
+    { key: 'panel', label: 'Panel de gestión', desc: 'Acceder al panel y al buzón de administración' },
+    { key: 'aprobar_altas', label: 'Aprobar altas y gestionar vecinos', desc: 'Aprobar solicitudes, editar, suspender y dar de baja' },
+  ] },
 ]
 
-// Defaults (deben coincidir con la semilla de la migración 0010) — solo se usan
-// como respaldo en modo demo o mientras no ha cargado la matriz real.
+// Catálogo plano derivado (compatibilidad con consumidores existentes).
+export const CATALOGO_PERMISOS: { key: Permiso; label: string; desc: string }[] = GRUPOS_PERMISOS.flatMap((g) => g.permisos)
+
+// Defaults — respaldo en modo demo o mientras no ha cargado la matriz real.
+// (app_admin siempre tiene todo por lógica de SUPERADMIN; no hace falta listarlo.)
+const GESTION: Role[] = ['app_admin', 'presidente', 'vicepresidente', 'administrador_finca', 'junta']
+const TODOS: Role[] = ['app_admin', 'presidente', 'vicepresidente', 'administrador_finca', 'junta', 'conserje', 'vecino', 'tester']
 const DEFAULTS: Record<Permiso, Role[]> = {
-  panel: ['app_admin', 'presidente', 'vicepresidente', 'administrador_finca', 'junta'],
-  publicar_mensajes: ['app_admin', 'presidente', 'vicepresidente', 'administrador_finca', 'junta'],
-  aprobar_altas: ['app_admin', 'presidente', 'administrador_finca'],
-  aprobar_reservas: ['app_admin', 'presidente'],
-  usar_buzon: ['app_admin', 'presidente', 'vicepresidente', 'administrador_finca', 'junta', 'conserje', 'vecino', 'tester'],
-  votar_encuestas: ['app_admin', 'presidente', 'vicepresidente', 'administrador_finca', 'junta', 'conserje', 'vecino'],
+  // Ver: todos ven avisos e incidencias; anuncios y sugerencias todos MENOS el conserje.
+  ver_aviso: TODOS,
+  ver_incidencia: TODOS,
+  ver_anuncio: TODOS.filter((r) => r !== 'conserje'),
+  ver_sugerencia: TODOS.filter((r) => r !== 'conserje'),
+  // Publicar: la gestión publica todos los tipos; el conserje solo avisos e incidencias.
+  publicar_aviso: [...GESTION, 'conserje'],
+  publicar_incidencia: [...GESTION, 'conserje'],
+  publicar_anuncio: GESTION,
+  publicar_sugerencia: GESTION,
+  aprobar_incidencias: GESTION,
+  aprobar_anuncios: GESTION,
   realizar_reservas: ['app_admin', 'presidente', 'vicepresidente', 'administrador_finca', 'junta', 'conserje', 'vecino'],
+  reservar_otras_viviendas: ['app_admin', 'conserje'],
+  usar_buzon: TODOS,
   escribir_vecinos: ['app_admin', 'administrador_finca', 'conserje'],
-  aprobar_incidencias: ['app_admin', 'presidente', 'vicepresidente', 'administrador_finca', 'junta'],
-  aprobar_anuncios: ['app_admin', 'presidente', 'vicepresidente', 'administrador_finca', 'junta'],
+  votar_encuestas: ['app_admin', 'presidente', 'vicepresidente', 'administrador_finca', 'junta', 'conserje', 'vecino'],
+  panel: GESTION,
+  aprobar_altas: ['app_admin', 'presidente', 'administrador_finca'],
 }
 
 /** Matriz de permisos por defecto (para el modo demo / semilla del mock). */
 export function permisosPorDefecto(): { rol: Role; permiso: Permiso }[] {
   const out: { rol: Role; permiso: Permiso }[] = []
-  for (const { key } of CATALOGO_PERMISOS) for (const rol of DEFAULTS[key]) out.push({ rol, permiso: key })
+  for (const key of Object.keys(DEFAULTS) as Permiso[]) for (const rol of DEFAULTS[key]) out.push({ rol, permiso: key })
   return out
 }
 
@@ -91,19 +138,41 @@ export function esGestion(rol: Role): boolean {
   return tienePermiso(rol, 'panel')
 }
 
-/** Puede aprobar/rechazar reservas. */
-export function puedeAprobarReservas(rol: Role): boolean {
-  return tienePermiso(rol, 'aprobar_reservas')
-}
-
 /** Puede aprobar altas de acceso y gestionar vecinos. */
 export function puedeAprobarAltas(rol: Role): boolean {
   return tienePermiso(rol, 'aprobar_altas')
 }
 
-/** Puede publicar mensajes (avisos/anuncios/incidencias) a la comunidad. */
-export function puedePublicarMensajes(rol: Role): boolean {
-  return tienePermiso(rol, 'publicar_mensajes')
+const TIPOS_MENSAJE: TipoMensaje[] = ['aviso', 'anuncio', 'incidencia', 'sugerencia']
+
+/** ¿Puede VER en el tablón este tipo de mensaje? */
+export function puedeVerTipo(rol: Role, tipo: TipoMensaje): boolean {
+  return tienePermiso(rol, `ver_${tipo}` as Permiso)
+}
+
+/** ¿Puede PUBLICAR/EDITAR este tipo de mensaje? */
+export function puedePublicarTipo(rol: Role, tipo: TipoMensaje): boolean {
+  return tienePermiso(rol, `publicar_${tipo}` as Permiso)
+}
+
+/** Tipos de mensaje que este rol puede VER en el tablón. */
+export function tiposQueVe(rol: Role): TipoMensaje[] {
+  return TIPOS_MENSAJE.filter((t) => puedeVerTipo(rol, t))
+}
+
+/** Tipos de mensaje que este rol puede publicar (para el formulario de alta). */
+export function tiposQuePublica(rol: Role): TipoMensaje[] {
+  return TIPOS_MENSAJE.filter((t) => puedePublicarTipo(rol, t))
+}
+
+/** ¿Puede publicar/editar algún tipo de mensaje? (para mostrar accesos). */
+export function puedePublicarAlgo(rol: Role): boolean {
+  return tiposQuePublica(rol).length > 0
+}
+
+/** Puede reservar a nombre de OTRA vivienda (elige el piso al reservar). */
+export function puedeReservarOtras(rol: Role): boolean {
+  return tienePermiso(rol, 'reservar_otras_viviendas')
 }
 
 /** Acceso al panel de administración (= tiene panel de gestión). */
@@ -140,7 +209,7 @@ export function puedeEscribirVecinos(rol: Role): boolean {
 
 /** Puede moderar (aprobar/rechazar) las publicaciones que envían los vecinos. */
 export function puedeModerarPublicaciones(rol: Role): boolean {
-  return tienePermiso(rol, 'aprobar_incidencias') || tienePermiso(rol, 'aprobar_anuncios') || tienePermiso(rol, 'publicar_mensajes')
+  return tienePermiso(rol, 'aprobar_incidencias') || tienePermiso(rol, 'aprobar_anuncios')
 }
 
 /** Canal del buzón que atiende cada rol (null = no atiende ninguno). */

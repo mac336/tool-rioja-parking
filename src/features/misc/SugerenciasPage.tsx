@@ -4,7 +4,7 @@ import { SubHeader, Page } from '@/components/layout/AppShell'
 import { Card, Field, Textarea, Button, Alert, EmptyState, ErrorState, SkeletonList, cx } from '@/components/ui'
 import { useAsync } from '@/lib/useAsync'
 import { useApp } from '@/store'
-import { puedePublicarMensajes, esTester } from '@/lib/roles'
+import { puedePublicarTipo, esTester } from '@/lib/roles'
 import { fechaCorta } from '@/lib/format'
 import { listMensajes, alternarLike, crearMensaje } from '@/lib/api'
 import type { Mensaje } from '@/types'
@@ -14,12 +14,12 @@ const LILA = '#6D4AA3'
 /** Tablón de SUGERENCIAS de la comunidad: ideas que un vecino quiere mostrar al
  *  resto (con su nombre) y a las que los demás dan "me gusta" (uno por vivienda).
  *  - El vecino las envía desde el buzón (Publicar → Sugerencia) y se moderan.
- *  - El administrador (permiso `publicar_mensajes`) puede añadir una directamente
- *    desde aquí, ya publicada.
+ *  - Quien pueda publicar sugerencias (permiso `publicar_sugerencias`) puede
+ *    añadir una directamente desde aquí, ya publicada.
  *  El feedback privado al desarrollador ya NO está aquí: va por el chat del buzón. */
 export function SugerenciasPage() {
   const { user, toast } = useApp()
-  const puede = puedePublicarMensajes(user.rol)
+  const puede = puedePublicarTipo(user.rol, 'sugerencia')
   const tester = esTester(user.rol)
   const { data, state, refetch } = useAsync(listMensajes, [])
 

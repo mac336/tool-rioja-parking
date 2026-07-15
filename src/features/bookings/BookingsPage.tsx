@@ -1,17 +1,14 @@
 import { useMemo, useState } from 'react'
 import { Link, useNavigate } from 'react-router-dom'
-import { CalendarDays, Check, Clock, MapPin, Users, X } from 'lucide-react'
+import { CalendarDays, Check, Clock, MapPin } from 'lucide-react'
 import { useApp } from '@/store'
 import { useAsync } from '@/lib/useAsync'
 import { fechaHora, hora } from '@/lib/format'
-import { puedeAprobarReservas, esTester, puedeReservar } from '@/lib/roles'
+import { esTester, puedeReservar, puedeReservarOtras } from '@/lib/roles'
 import { puedeAnularReserva, HORAS_MIN_ANULACION } from '@/lib/reglas'
-import {
-  listZonas, reservaVigente, ocupacionDia, crearReserva,
-  cancelarReserva, reservasPendientesGestion, resolverReserva,
-} from '@/lib/api'
-import { Button, Card, Field, Alert, ErrorState, SkeletonList, cx } from '@/components/ui'
-import type { ReservaGrupo, ReservaEstado, ZonaComun } from '@/types'
+import { listZonas, reservaVigente, ocupacionDia, crearReserva, cancelarReserva, listViviendas } from '@/lib/api'
+import { Button, Card, Field, SelectField, Alert, ErrorState, SkeletonList, cx } from '@/components/ui'
+import type { ReservaEstado, ZonaComun } from '@/types'
 
 // ---- Utilidades de fecha/hora ------------------------------------------------
 
@@ -68,7 +65,8 @@ export function BookingsPage() {
 
   const vigente = useAsync(reservaVigente, [])
   const zonas = useAsync(listZonas, [])
-  const gestion = useAsync(reservasPendientesGestion, [])
+  const reservarOtras = puedeReservarOtras(user.rol)
+  const viviendas = useAsync(() => (reservarOtras ? listViviendas() : Promise.resolve([])), [reservarOtras])
 
   const hoy = useMemo(() => claveDia(new Date()), [])
   const maxDia = useMemo(() => { const d = new Date(); d.setMonth(d.getMonth() + 6); return claveDia(d) }, [])
@@ -78,6 +76,7 @@ export function BookingsPage() {
   const [desde, setDesde] = useState('10:00')
   const [hasta, setHasta] = useState('12:00')
   const [invitados, setInvitados] = useState('')
+  const [viviendaObjetivo, setViviendaObjetivo] = useState('')
   const [saving, setSaving] = useState(false)
   const [err, setErr] = useState('')
 
@@ -124,20 +123,15 @@ export function BookingsPage() {
         inicio: slotISO(dia, desde),
         fin: slotISO(dia, hasta),
         numInvitados: needInv ? Number(invitados) : 0,
+        viviendaObjetivo: reservarOtras && viviendaObjetivo ? viviendaObjetivo : undefined,
       })
-      toast('Reserva solicitada, pendiente de aprobación', 'info')
+      toast('Reserva confirmada', 'ok')
       nav('/reservas/mias')
     } catch (e) {
       setErr(e instanceof Error ? e.message : 'No se pudo crear la reserva.')
     } finally {
       setSaving(false)
     }
-  }
-
-  async function resolver(grupoId: string, aprobar: boolean) {
-    await resolverReserva(grupoId, aprobar)
-    gestion.refetch()
-    toast(aprobar ? 'Reserva aprobada' : 'Reserva rechazada')
   }
 
   const cargando = vigente.state === 'loading' || zonas.state === 'loading'
@@ -153,8 +147,8 @@ export function BookingsPage() {
         {cargando && <SkeletonList />}
         {!cargando && (vigente.state === 'error' || zonas.state === 'error') && <ErrorState onRetry={() => { vigente.refetch(); zonas.refetch() }} />}
 
-        {/* Caso 1: la vivienda ya tiene una reserva vigente */}
-        {!cargando && vigente.data && (
+        {/* Caso 1: la vivienda ya tiene una reserva vigente (no aplica a quien reserva para otras viviendas) */}
+        {!cargando && !reservarOtras && vigente.data && (
           <Card className="border-2 border-primary">
             <div className="flex items-start justify-between gap-3">
               <div>
@@ -183,9 +177,19 @@ export function BookingsPage() {
           </Card>
         )}
 
-        {/* Caso 2: sin reserva vigente → flujo de nueva reserva */}
-        {!cargando && !vigente.data && zonas.state !== 'error' && (
+        {/* Caso 2: flujo de nueva reserva */}
+        {!cargando && (reservarOtras || !vigente.data) && zonas.state !== 'error' && (
           <div className="flex flex-col gap-5">
+            {reservarOtras && (
+              <section>
+                <h2 className="section-title mb-2">¿Para qué vivienda?</h2>
+                <SelectField label="Vivienda" value={viviendaObjetivo} onChange={(e) => setViviendaObjetivo(e.target.value)}>
+                  <option value="">La mía ({user.vivienda || '—'})</option>
+                  {(viviendas.data ?? []).map((v) => <option key={v} value={v}>{v}</option>)}
+                </SelectField>
+                <p className="mt-1 text-[12px] text-faint">Puedes reservar a nombre de otra vivienda (p. ej. para un vecino que lo pide en persona).</p>
+              </section>
+            )}
             <section>
               <h2 className="section-title mb-2">Elige una o varias zonas</h2>
               <div className="flex flex-wrap gap-2">
@@ -244,47 +248,17 @@ export function BookingsPage() {
             )}
 
             {err && <Alert tipo="danger">{err}</Alert>}
-            <Alert tipo="info">Tu reserva quedará pendiente de que el presidente la apruebe.</Alert>
+            <Alert tipo="info">La reserva queda confirmada al momento (ya no hace falta aprobación).</Alert>
 
             {esTester(user.rol)
               ? <div className="mb-2"><Alert tipo="info">Cuenta de pruebas (Tester): solo lectura. Puedes mirarlo todo y chatear por el buzón, pero no realizar acciones.</Alert></div>
               : !puedeReservar(user.rol) && <div className="mb-2"><Alert tipo="warn">Tu rol no tiene permiso para realizar reservas.</Alert></div>}
             <Button block size="lg" disabled={!puedeReservar(user.rol) || !puedeSolicitar} onClick={solicitar}>
-              <CalendarDays size={18} /> {saving ? 'Solicitando…' : 'Solicitar reserva'}
+              <CalendarDays size={18} /> {saving ? 'Reservando…' : 'Reservar'}
             </Button>
           </div>
         )}
 
-        {/* Cola de aprobación (presidente / app_admin) */}
-        {puedeAprobarReservas(user.rol) && (
-          <section className="mt-6">
-            <h2 className="section-title mb-2">Cola de aprobación</h2>
-            {gestion.state === 'loading' && <SkeletonList n={2} />}
-            {gestion.state === 'error' && <ErrorState onRetry={gestion.refetch} />}
-            {gestion.state === 'empty' && <p className="text-[14px] text-muted">No hay reservas pendientes de aprobar.</p>}
-            {gestion.state === 'ready' && (
-              <div className="flex flex-col gap-3">
-                {(gestion.data ?? []).map((g: ReservaGrupo) => (
-                  <Card key={g.grupo_id}>
-                    <div className="flex items-center justify-between gap-2">
-                      <div className="font-display text-[16px] font-bold text-ink">{g.zonas.map((z) => z.nombre).join(' + ')}</div>
-                      <EstadoPill estado={g.estado} />
-                    </div>
-                    <p className="mt-1 text-[13px] text-muted">{g.nombre ? `${g.nombre} · ` : ''}Vivienda {g.vivienda}</p>
-                    <p className="mt-0.5 flex items-center gap-1.5 text-[13px] text-muted"><Clock size={14} /> {fechaHora(g.inicio)}–{hora(g.fin)}</p>
-                    {g.num_invitados > 0 && (
-                      <p className="mt-0.5 flex items-center gap-1.5 text-[13px] text-muted"><Users size={14} /> {g.num_invitados} invitados</p>
-                    )}
-                    <div className="mt-3 flex gap-2">
-                      <Button block onClick={() => resolver(g.grupo_id, true)}><Check size={17} /> Aprobar</Button>
-                      <Button variant="danger-outline" block onClick={() => resolver(g.grupo_id, false)}><X size={17} /> Rechazar</Button>
-                    </div>
-                  </Card>
-                ))}
-              </div>
-            )}
-          </section>
-        )}
       </div>
     </div>
   )

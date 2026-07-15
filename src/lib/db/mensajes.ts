@@ -1,8 +1,9 @@
-// Mensajes (aviso/anuncio/incidencia) — implementación real (Supabase).
-// La gestión con 'publicar_mensajes' publica directo; los vecinos ENVÍAN
-// incidencias/anuncios que quedan pendientes de aprobación (destino=todos) o
-// como reporte privado a administración (destino=administracion). Estado y
-// destino los impone la RLS (migración 0031).
+// Mensajes (aviso/anuncio/incidencia/sugerencia) — implementación real (Supabase).
+// Quien tiene 'publicar_<tipo>' publica ese tipo directo; los vecinos ENVÍAN
+// incidencias/anuncios/sugerencias que quedan pendientes de aprobación
+// (destino=todos) o como reporte privado a administración (destino=administracion).
+// La visibilidad y la edición son POR TIPO (permisos ver_<tipo>/publicar_<tipo>).
+// Estado, destino y visibilidad los impone la RLS (migraciones 0031 y 0040).
 import { supabase } from '@/lib/supabase'
 import type { Mensaje, MensajeTipo, MensajeDestino } from '@/types'
 

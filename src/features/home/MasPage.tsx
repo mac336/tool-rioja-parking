@@ -1,5 +1,5 @@
 import { Link } from 'react-router-dom'
-import { Shield, FileText, Settings, ChevronRight, LayoutDashboard, Eye, Leaf } from 'lucide-react'
+import { Shield, FileText, Settings, ChevronRight, LayoutDashboard, Eye, Leaf, ScrollText } from 'lucide-react'
 import { useApp } from '@/store'
 import { RoleBadge } from '@/components/ui'
 import { roleBadgeKind, ROLE_LABEL, puedeAdmin, esAppAdmin } from '@/lib/roles'
@@ -10,6 +10,7 @@ import { usingSupabase } from '@/lib/supabase'
 // "Más" solo tiene lo que NO está en la Home (los servicios viven en el panel
 // de la Home, que es la pieza central de la app).
 const links = [
+  { to: '/circulares', label: 'Circulares', Icon: ScrollText },
   { to: '/reciclaje', label: 'Reciclaje', Icon: Leaf },
   { to: '/normas', label: 'Normas de uso', Icon: FileText },
 ]

@@ -12,8 +12,8 @@ import {
 import { useAsync } from '@/lib/useAsync'
 import { fechaCorta, fechaHora, hora, claveDia, iniciales } from '@/lib/format'
 import {
-  ROLE_LABEL, roleBadgeKind, esAppAdmin, CATALOGO_PERMISOS,
-  puedeAprobarAltas, puedeAprobarReservas, puedeModerarPublicaciones,
+  ROLE_LABEL, roleBadgeKind, esAppAdmin, GRUPOS_PERMISOS,
+  puedeAprobarAltas, puedeAdmin, puedeModerarPublicaciones,
 } from '@/lib/roles'
 import type { Profile, Role, ReservaGrupo, Mensaje } from '@/types'
 import { PISOS, VIVIENDAS_ESPECIALES } from '@/lib/parking'
@@ -22,7 +22,7 @@ import { useApp } from '@/store'
 import {
   listAccessRequests, resolverSolicitud, listVecinos, suspenderVecino, cambiarRolVecino,
   editarVecino, darDeBajaVecino, crearVecinoDirecto,
-  reservasPendientesGestion, reservasGestion, resolverReserva,
+  reservasGestion,
   publicacionesGestion, moderarPublicacion,
   listRolePermisos, setRolePermiso,
 } from '@/lib/api'
@@ -39,21 +39,20 @@ export function AdminPage() {
 
   // Conteos de cada cola (para las pastillas del selector). Se recalcula tras cada acción.
   const conteos = useAsync(async () => {
-    const [c, r, pub] = await Promise.all([
+    const [c, pub] = await Promise.all([
       puedeAprobarAltas(rol) ? listAccessRequests() : Promise.resolve([]),
-      puedeAprobarReservas(rol) ? reservasPendientesGestion() : Promise.resolve([]),
       puedeModerarPublicaciones(rol) ? publicacionesGestion() : Promise.resolve({ pendientes: [], reportes: [] }),
     ])
-    return { acceso: c.length, reservas: r.length, publicaciones: pub.pendientes.length }
+    return { acceso: c.length, publicaciones: pub.pendientes.length }
   }, [])
-  const n = conteos.data ?? { acceso: 0, reservas: 0, publicaciones: 0 }
+  const n = conteos.data ?? { acceso: 0, publicaciones: 0 }
   const refrescar = () => conteos.refetch()
 
   const tabs = ([
     // Vecinos unifica las altas de acceso (arriba) con la gestión de vecinos.
     { key: 'vecinos', label: 'Vecinos', show: puedeAprobarAltas(rol), count: n.acceso },
     { key: 'publicaciones', label: 'Publicaciones', show: puedeModerarPublicaciones(rol), count: n.publicaciones },
-    { key: 'reservas', label: 'Reservas', show: puedeAprobarReservas(rol), count: n.reservas },
+    { key: 'reservas', label: 'Reservas', show: puedeAdmin(rol), count: 0 },
     { key: 'permisos', label: 'Permisos', show: true, count: 0 },
   ] as { key: TabKey; label: string; show: boolean; count: number }[]).filter((t) => t.show)
 
@@ -89,7 +88,7 @@ export function AdminPage() {
 
       <div className="px-4 py-4">
         {tab === 'publicaciones' && <PublicacionesTab onToast={toast} onChanged={refrescar} />}
-        {tab === 'reservas' && <ReservasTab onToast={toast} onChanged={refrescar} />}
+        {tab === 'reservas' && <ReservasTab />}
         {tab === 'vecinos' && <VecinosTab canManage={puedeAprobarAltas(rol)} currentUserId={user.id} onToast={toast} onChanged={refrescar} />}
         {tab === 'permisos' && <PermisosTab canEdit={esAppAdmin(rol)} onToast={toast} />}
       </div>
@@ -194,10 +193,7 @@ function ReservaCard({ g, children }: { g: ReservaGrupo; children?: React.ReactN
   )
 }
 
-function ReservasTab({ onToast, onChanged }: { onToast: Toast; onChanged: () => void }) {
-  const pend = useAsync(reservasPendientesGestion, [])
-  const [busy, setBusy] = useState<string | null>(null)
-
+function ReservasTab() {
   // Agenda mensual: `cursor` = primer día del mes mostrado; `sel` = día YYYY-MM-DD elegido.
   const [cursor, setCursor] = useState(() => { const d = new Date(); return new Date(d.getFullYear(), d.getMonth(), 1) })
   const [sel, setSel] = useState<string>(() => claveDia(new Date().toISOString()))
@@ -229,41 +225,9 @@ function ReservasTab({ onToast, onChanged }: { onToast: Toast; onChanged: () => 
   const cambiarMes = (delta: number) => setCursor(new Date(y, m + delta, 1))
   const delDia = porDia.get(sel) ?? []
 
-  async function resolver(g: ReservaGrupo, aprobar: boolean) {
-    setBusy(g.grupo_id)
-    try {
-      await resolverReserva(g.grupo_id, aprobar)
-      onToast(aprobar ? 'Reserva aprobada' : 'Reserva rechazada', aprobar ? 'ok' : 'info')
-      pend.refetch(); mes.refetch(); onChanged()
-    } catch {
-      onToast('No se ha podido completar la acción', 'error')
-    } finally {
-      setBusy(null)
-    }
-  }
-
-  const pendientes = pend.data ?? []
-
   return (
     <div className="flex flex-col gap-5">
-      {/* Cola de aprobación */}
-      {pendientes.length > 0 && (
-        <section>
-          <SectionTitle icon={<Clock size={15} />}>Pendientes de aprobar</SectionTitle>
-          <div className="flex flex-col gap-3">
-            {pendientes.map((g) => (
-              <ReservaCard key={g.grupo_id} g={g}>
-                <div className="mt-3 flex gap-2">
-                  <Button block disabled={busy === g.grupo_id} onClick={() => resolver(g, true)}><Check size={17} /> Aprobar</Button>
-                  <Button block variant="danger-outline" disabled={busy === g.grupo_id} onClick={() => resolver(g, false)}><X size={17} /> Rechazar</Button>
-                </div>
-              </ReservaCard>
-            ))}
-          </div>
-        </section>
-      )}
-
-      {/* Agenda mensual */}
+      {/* Agenda mensual (las reservas ya son de aprobación directa) */}
       <section>
         <SectionTitle icon={<CalendarDays size={15} />}>Agenda del mes</SectionTitle>
 
@@ -588,27 +552,34 @@ function PermisosTab({ canEdit, onToast }: { canEdit: boolean; onToast: Toast })
             <RoleBadge kind={roleBadgeKind(r)} />
             <span className="font-display text-[16px] font-bold text-ink">{ROLE_LABEL[r]}</span>
           </div>
-          <ul className="mt-2 flex flex-col divide-y divide-border">
-            {CATALOGO_PERMISOS.map((c) => {
-              const key = `${r}|${c.key}`
-              const on = efectivo.has(key)
-              return (
-                <li key={c.key} className="flex items-center justify-between gap-3 py-2">
-                  <div className="min-w-0">
-                    <div className="text-[14px] font-semibold text-ink">{c.label}</div>
-                    <div className="text-[12px] text-muted">{c.desc}</div>
-                  </div>
-                  <button type="button" role="switch" aria-checked={on} disabled={!canEdit || busy === key}
-                    onClick={() => toggle(r, c.key, !on)}
-                    className={cx('relative h-6 w-11 shrink-0 rounded-full transition-colors',
-                      on ? 'bg-primary' : 'bg-surface-2 border border-border',
-                      (!canEdit || busy === key) && 'opacity-60')}>
-                    <span className={cx('absolute top-0.5 h-5 w-5 rounded-full bg-white shadow transition-all', on ? 'left-[22px]' : 'left-0.5')} />
-                  </button>
-                </li>
-              )
-            })}
-          </ul>
+          <div className="mt-2 flex flex-col gap-3">
+            {GRUPOS_PERMISOS.map((g) => (
+              <div key={g.grupo}>
+                <div className="section-title mb-0.5">{g.grupo}</div>
+                <ul className="flex flex-col divide-y divide-border">
+                  {g.permisos.map((c) => {
+                    const key = `${r}|${c.key}`
+                    const on = efectivo.has(key)
+                    return (
+                      <li key={c.key} className="flex items-center justify-between gap-3 py-2">
+                        <div className="min-w-0">
+                          <div className="text-[14px] font-semibold text-ink">{c.label}</div>
+                          <div className="text-[12px] text-muted">{c.desc}</div>
+                        </div>
+                        <button type="button" role="switch" aria-checked={on} disabled={!canEdit || busy === key}
+                          onClick={() => toggle(r, c.key, !on)}
+                          className={cx('relative h-6 w-11 shrink-0 rounded-full transition-colors',
+                            on ? 'bg-primary' : 'bg-surface-2 border border-border',
+                            (!canEdit || busy === key) && 'opacity-60')}>
+                          <span className={cx('absolute top-0.5 h-5 w-5 rounded-full bg-white shadow transition-all', on ? 'left-[22px]' : 'left-0.5')} />
+                        </button>
+                      </li>
+                    )
+                  })}
+                </ul>
+              </div>
+            ))}
+          </div>
         </Card>
       ))}
     </div>

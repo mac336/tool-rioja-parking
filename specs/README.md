@@ -26,6 +26,8 @@ evolución del portal **Rioja 25** desde una PWA estática informativa hacia una
 | **16** | [16-modulo-mensajes-y-tablon.md](16-modulo-mensajes-y-tablon.md) | **Mensajes (aviso/anuncio/incidencia/sugerencia) + Tablón + publicaciones de vecinos con moderación y likes** |
 | **17** | [17-modulo-buzon-privado.md](17-modulo-buzon-privado.md) | **Buzón privado por canales (vecino ↔ gestión)** |
 | **18** | [18-sistema-de-estilos.md](18-sistema-de-estilos.md) | **Design system: cabeceras, títulos de sección, layout** |
+| **19** | [19-modulo-mi-comunidad.md](19-modulo-mi-comunidad.md) | **Mi Comunidad: dashboard económico de las actas (en pruebas, solo app_admin)** |
+| **20** | [20-modulo-circulares.md](20-modulo-circulares.md) | **Circulares: normas de piscina y zonas comunes (desde Más)** |
 | 10 | [10-no-funcionales-y-privacidad.md](10-no-funcionales-y-privacidad.md) | Rendimiento, PWA, notificaciones, RGPD, layout |
 | 11 | [11-seguridad.md](11-seguridad.md) | Modelo de amenazas y controles |
 | 12 | [12-roadmap.md](12-roadmap.md) | Fases de entrega |

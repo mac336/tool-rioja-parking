@@ -88,7 +88,7 @@ export async function reservaVigente(): Promise<ReservaGrupo | null> {
   const { data, error } = await supabase.from('reservas')
     .select(RESERVA_SELECT)
     .eq('vivienda', vivienda)
-    .in('estado', ['pendiente', 'aprobada'])
+    .eq('estado', 'aprobada')
     .gte('fin', new Date().toISOString())
     .order('inicio', { ascending: true })
   if (error) throw error
@@ -117,16 +117,20 @@ export async function ocupacionDia(
 export async function crearReserva(input: CrearReservaInput): Promise<ReservaGrupo> {
   if (input.zonaIds.length === 0) throw new Error('Selecciona al menos una zona.')
   const { userId, vivienda } = await sesion()
+  // Aprobación directa: la reserva queda confirmada al crearse (ya no hay cola de
+  // aprobación). Con permiso 'reservar_otras_viviendas' se puede reservar a nombre
+  // de otra vivienda (la RLS lo verifica); si no, es la propia.
+  const viviendaReserva = input.viviendaObjetivo?.trim() || vivienda
   const grupo_id = crypto.randomUUID()
   const filas = input.zonaIds.map((zonaId) => ({
     grupo_id,
     zona_id: zonaId,
-    vivienda,
+    vivienda: viviendaReserva,
     solicitada_por: userId,
     inicio: input.inicio,
     fin: input.fin,
     num_invitados: input.numInvitados,
-    estado: 'pendiente' as const,
+    estado: 'aprobada' as const,
   }))
   // Un único INSERT con array → transacción atómica: si una zona solapa, el
   // constraint reservas_no_solapan aborta TODO el grupo (no quedan a medias).
@@ -136,8 +140,6 @@ export async function crearReserva(input: CrearReservaInput): Promise<ReservaGru
     if (error.code === '23P01') throw new Error('Ese horario ya está ocupado en alguna de las zonas elegidas.')
     throw error
   }
-  // Aviso push a los aprobadores (best-effort; la reserva ya está creada).
-  void supabase.functions.invoke('notificar', { body: { kind: 'reserva_nueva', id: grupo_id } }).catch(() => undefined)
   return agrupar((data ?? []).map((r) => toReserva(r as ReservaRow)))[0]
 }
 
@@ -164,21 +166,12 @@ async function conNombres(grupos: ReservaGrupo[]): Promise<ReservaGrupo[]> {
   return grupos.map((g) => ({ ...g, nombre: nombrePorId.get(g.solicitada_por) }))
 }
 
-export async function reservasPendientesGestion(): Promise<ReservaGrupo[]> {
-  const { data, error } = await supabase.from('reservas')
-    .select(RESERVA_SELECT)
-    .eq('estado', 'pendiente')
-    .order('inicio', { ascending: true })
-  if (error) throw error
-  return conNombres(agrupar((data ?? []).map((r) => toReserva(r as ReservaRow))))
-}
-
-/** Reservas (pendientes + aprobadas) cuyo inicio cae en [desdeISO, hastaISO).
+/** Reservas confirmadas cuyo inicio cae en [desdeISO, hastaISO).
  *  Para la agenda mensual del panel de gestión. */
 export async function reservasGestion(desdeISO: string, hastaISO: string): Promise<ReservaGrupo[]> {
   const { data, error } = await supabase.from('reservas')
     .select(RESERVA_SELECT)
-    .in('estado', ['pendiente', 'aprobada'])
+    .eq('estado', 'aprobada')
     .gte('inicio', desdeISO)
     .lt('inicio', hastaISO)
     .order('inicio', { ascending: true })
@@ -245,18 +238,3 @@ export async function estadisticasReservas(): Promise<EstadisticasReservas> {
   return { aprobadasMes, aprobadasAnio, canceladasAnio, totalAnio, ranking }
 }
 
-export async function resolverReserva(grupoId: string, aprobar: boolean, motivo?: string): Promise<void> {
-  if (!UUID_RE.test(grupoId)) throw new Error('Identificador de reserva no válido.')
-  const { data: { user } } = await supabase.auth.getUser()
-  if (!user) throw new Error('No autenticado')
-  const { error } = await supabase.from('reservas')
-    .update({
-      estado: aprobar ? 'aprobada' : 'rechazada',
-      motivo_rechazo: motivo ?? null,
-      aprobada_por: user.id,
-    })
-    .or(`grupo_id.eq.${grupoId},id.eq.${grupoId}`)
-  if (error) throw error
-  // Avisar al solicitante (correo + push) en segundo plano: no bloquea la acción.
-  void supabase.functions.invoke('notificar-reserva', { body: { grupoId, aprobar } }).catch(() => undefined)
-}

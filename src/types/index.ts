@@ -180,6 +180,7 @@ export interface CrearReservaInput {
   inicio: string // ISO
   fin: string // ISO
   numInvitados: number
+  viviendaObjetivo?: string // reservar a nombre de otra vivienda (permiso reservar_otras_viviendas)
 }
 
 export type CesionTipo = 'cede' | 'no_necesita' | 'necesita'

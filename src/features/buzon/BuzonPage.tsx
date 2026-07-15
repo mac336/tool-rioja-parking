@@ -4,7 +4,7 @@ import { SubHeader, Page } from '@/components/layout/AppShell'
 import { Button, Card, Field, Textarea, SelectField, Avatar, ErrorState, SkeletonList, cx } from '@/components/ui'
 import { useAsync } from '@/lib/useAsync'
 import { useApp } from '@/store'
-import { puedePublicarMensajes, puedeEscribirVecinos, canalDeRol } from '@/lib/roles'
+import { puedePublicarAlgo, puedeEscribirVecinos, canalDeRol } from '@/lib/roles'
 import { fechaHora, iniciales } from '@/lib/format'
 import { listHilos, getHilo, crearHilo, crearHiloComoGestion, listDirectorio, responderHilo, cerrarHilo, borrarHilo, convertirEnMensaje } from '@/lib/api'
 import type { Hilo, HiloCanal, MensajeTipo } from '@/types'
@@ -269,7 +269,7 @@ function ChatVista({ sel, onBack }: { sel: ChatSel; onBack: () => void }) {
         )}
         {hiloId && state === 'ready' && data && (
           <>
-            {staff && puedePublicarMensajes(user.rol) && (
+            {staff && puedePublicarAlgo(user.rol) && (
               <Button variant="secondary" block className="mb-4" onClick={abrirConvertir}><Megaphone size={17} /> Convertir en mensaje público</Button>
             )}
             <div className="flex flex-col gap-2.5">

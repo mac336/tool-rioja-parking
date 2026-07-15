@@ -65,22 +65,26 @@ vivo** (migración 0010): un permiso quitado se aplica de verdad en el servidor,
 no solo en la interfaz.
 
 - **`app_admin` = SUPERADMIN**: siempre todos los permisos, no editable.
-- Catálogo:
-  - `panel` — acceder al panel de gestión y moderar.
-  - `usar_buzon` — chatear por el buzón (por defecto TODOS los roles, tester incluido).
-  - `publicar_mensajes` — crear avisos/anuncios/incidencias (ver `specs/16`).
-  - `aprobar_altas` — aprobar solicitudes y gestionar vecinos (editar, suspender,
-    dar de baja, cambiar rol).
-  - `aprobar_reservas` — aprobar/rechazar reservas (ver `specs/07`).
-  - `votar_encuestas` — emitir voto en encuestas (por defecto todos menos tester).
-  - `realizar_reservas` — solicitar reservas de zonas comunes (idem).
-  - `escribir_vecinos` — iniciar chats del buzón con cualquier vecino, en su
-    canal (por defecto administrador_finca y conserje; ver `specs/17`).
-  - `aprobar_incidencias` / `aprobar_anuncios` — moderar (aprobar/rechazar) las
-    incidencias/anuncios que envían los vecinos (ver `specs/16`).
-- Semilla por defecto: toda la gestión (todos menos `vecino`) tiene `panel` y
-  `publicar_mensajes`; `aprobar_altas` = presidente/administrador_finca/app_admin;
-  `aprobar_reservas` = presidente/app_admin. `conserje` sin permisos por defecto.
+- Catálogo (agrupado en el panel: Tablón · Reservas · Buzón · Encuestas · Gestión):
+  - **Tablón — por tipo** (mig. 0038/0040, ver `specs/16`):
+    - `ver_<tipo>` — ver ese tipo en el tablón (`ver_aviso`, `ver_anuncio`,
+      `ver_incidencia`, `ver_sugerencia`).
+    - `publicar_<tipo>` — crear y editar/borrar ese tipo (`publicar_aviso`, …).
+    - `aprobar_incidencias` / `aprobar_anuncios` — moderar las que envían vecinos.
+  - **Reservas** (ver `specs/07`):
+    - `realizar_reservas` — reservar zonas comunes.
+    - `reservar_otras_viviendas` — reservar a nombre de otra vivienda (p. ej. conserje).
+  - **Buzón**: `usar_buzon` (por defecto TODOS, tester incluido); `escribir_vecinos`
+    — iniciar chats con cualquier vecino en su canal (ver `specs/17`).
+  - **Encuestas**: `votar_encuestas` — votar y ver el módulo de votaciones.
+  - **Gestión**: `panel` — acceder al panel; `aprobar_altas` — aprobar altas y
+    gestionar vecinos.
+- Semilla por defecto: la gestión (presidente/vicepresidente/administrador_finca/
+  junta) ve y publica los cuatro tipos, tiene `panel`, modera y vota/reserva;
+  `aprobar_altas` = presidente/administrador_finca/app_admin. El **conserje** ve y
+  publica **avisos e incidencias** (no anuncios ni sugerencias), reserva (incl.
+  `reservar_otras_viviendas`), usa el buzón y escribe a vecinos. Ya **no** existen
+  `publicar_mensajes` ni `aprobar_reservas` (retirados en v1.26.0).
 
 > Operaciones sensibles (rol, estado, alta) → **Edge Functions con service_role**
 > que comprueban el permiso. El cliente nunca escribe rol/estado. Ocultar botones

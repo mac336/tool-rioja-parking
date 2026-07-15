@@ -23,3 +23,6 @@ supabase/.branches/
 make_icons.py
 setup-github.sh
 *.pdf
+
+# Actas originales (fuente para análisis, NUNCA publicar: contienen PII de vecinos)
+actas/

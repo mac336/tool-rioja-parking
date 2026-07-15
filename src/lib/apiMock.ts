@@ -12,7 +12,7 @@ import type {
 import * as mock from '@/mock/data'
 import { PISOS, proximasQuincenas, proximosTurnos } from '@/lib/parking'
 import { iniciales, fechaCorta } from '@/lib/format'
-import { permisosPorDefecto } from '@/lib/roles'
+import { permisosPorDefecto, puedeVerTipo } from '@/lib/roles'
 
 const delay = <T>(v: T, ms = 160): Promise<T> => new Promise((r) => setTimeout(() => r(v), ms))
 const uid = (() => { let n = 1000; return () => `gen_${n++}` })()
@@ -166,9 +166,9 @@ export function crearReserva(input: CrearReservaInput): Promise<ReservaGrupo> {
   const filas = input.zonaIds.map((zonaId) => {
     const zona = db.zonas.find((z) => z.id === zonaId)!
     const r: Reserva = {
-      id: uid(), grupo_id, zona_id: zonaId, zona_nombre: zona.nombre, vivienda: currentUser.vivienda,
+      id: uid(), grupo_id, zona_id: zonaId, zona_nombre: zona.nombre, vivienda: input.viviendaObjetivo?.trim() || currentUser.vivienda,
       solicitada_por: currentUser.id, inicio: input.inicio, fin: input.fin, num_invitados: input.numInvitados,
-      estado: 'pendiente', created_at: now(),
+      estado: 'aprobada', created_at: now(),
     }
     db.reservas.push(r)
     return r
@@ -181,12 +181,6 @@ export function cancelarReserva(grupoId: string): Promise<void> {
   for (const r of db.reservas) if (claveGrupo(r) === grupoId) r.estado = 'cancelada'
   return delay(undefined)
 }
-
-// La cola del presidente ve los grupos pendientes; resolver afecta al grupo entero.
-export const reservasPendientesGestion = (): Promise<ReservaGrupo[]> =>
-  delay(agrupar(db.reservas.filter((r) => r.estado === 'pendiente'))
-    .map((g) => ({ ...g, nombre: nombreDe(g.solicitada_por) }))
-    .sort((a, b) => a.inicio.localeCompare(b.inicio)))
 
 export interface EstadisticasReservas { aprobadasMes: number; aprobadasAnio: number; canceladasAnio: number; totalAnio: number; ranking: { nombre: string; veces: number }[] }
 export function estadisticasReservas(): Promise<EstadisticasReservas> {
@@ -206,22 +200,13 @@ export function estadisticasReservas(): Promise<EstadisticasReservas> {
   return delay({ aprobadasMes, aprobadasAnio, canceladasAnio, totalAnio, ranking })
 }
 
-// Agenda mensual de gestión: pendientes + aprobadas cuyo inicio cae en el rango.
+// Agenda mensual de gestión: reservas confirmadas cuyo inicio cae en el rango.
 export const reservasGestion = (desdeISO: string, hastaISO: string): Promise<ReservaGrupo[]> =>
   delay(agrupar(db.reservas.filter((r) =>
-    (r.estado === 'pendiente' || r.estado === 'aprobada') && r.inicio >= desdeISO && r.inicio < hastaISO))
+    r.estado === 'aprobada' && r.inicio >= desdeISO && r.inicio < hastaISO))
     .map((g) => ({ ...g, nombre: nombreDe(g.solicitada_por) }))
     .sort((a, b) => a.inicio.localeCompare(b.inicio)))
 
-export function resolverReserva(grupoId: string, aprobar: boolean, motivo?: string): Promise<void> {
-  for (const r of db.reservas) {
-    if (claveGrupo(r) !== grupoId) continue
-    r.estado = aprobar ? 'aprobada' : 'rechazada'
-    r.motivo_rechazo = motivo
-    r.aprobada_por = currentUser.id
-  }
-  return delay(undefined)
-}
 const nombreDe = (id: string) => db.profiles.find((p) => p.id === id)?.nombre ?? '—'
 
 // ---- Parking -----------------------------------------------------------------
@@ -357,7 +342,8 @@ export function quitarSuscripcionPush(_endpoint: string): Promise<void> {
 
 // ---- Mensajes públicos (demo) ------------------------------------------------
 export const listMensajes = (): Promise<Mensaje[]> => delay(
-  db.mensajes.filter((m) => m.activo && (m.estado ?? 'publicado') === 'publicado' && (m.destino ?? 'todos') === 'todos')
+  db.mensajes.filter((m) => m.activo && (m.estado ?? 'publicado') === 'publicado' && (m.destino ?? 'todos') === 'todos'
+    && puedeVerTipo(currentUser.rol, m.tipo))
     .slice().sort((a, b) => b.created_at.localeCompare(a.created_at))
     .map((m) => m.tipo !== 'sugerencia' ? m : {
       ...m,
@@ -481,11 +467,14 @@ export function listAvisos(): Promise<Aviso[]> {
   }
   const miReserva = db.reservas.find((r) => r.solicitada_por === currentUser.id && r.estado === 'aprobada')
   if (miReserva) avisos.push({ id: 'av-res', texto: `Tu reserva de ${miReserva.zona_nombre} está aprobada`, cuando: fechaCorta(miReserva.inicio), to: '/reservas/mias', ts: miReserva.created_at })
-  if (esGestionActual()) {
-    const pendRes = db.reservas.filter((r) => r.estado === 'pendiente').length
-    if (pendRes) avisos.push({ id: 'av-modres', texto: `${pendRes} reserva(s) por aprobar`, cuando: 'Pendiente', to: '/reservas', ts: now() })
-  }
   return delay(avisos.sort((a, b) => b.ts.localeCompare(a.ts)))
+}
+
+// ---- Mi Comunidad (dashboard económico) --------------------------------------
+// En modo demo no hay datos reales (viven en Supabase con RLS de app_admin). Se
+// devuelve vacío → la pantalla muestra su estado "sin datos".
+export function getComunidadDatos(): Promise<import('./db/comunidad').ComunidadDatos> {
+  return delay({ finanzas: null, comparativa: null, acuerdos: null })
 }
 
 export { iniciales }

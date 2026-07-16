@@ -129,6 +129,16 @@ export async function statsAccesoPorVivienda(): Promise<{ vivienda: string; cuen
   }))
 }
 
+/** Nº de solicitudes de acceso PENDIENTES. La RLS de access_requests solo deja
+ *  verlas a quien puede aprobar altas → devuelve 0 para el resto. Para el badge
+ *  de la pestaña "Gestión". */
+export async function contarSolicitudesPendientes(): Promise<number> {
+  const { count, error } = await supabase.from('access_requests')
+    .select('*', { count: 'exact', head: true }).eq('estado', 'pendiente')
+  if (error) return 0
+  return count ?? 0
+}
+
 /** Viviendas con al menos una cuenta de INQUILINO activa: el dashboard de
  *  adopción las excluye (no son objetivo de adopción). Solo gestión; mig. 0049. */
 export async function viviendasInquilino(): Promise<string[]> {

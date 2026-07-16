@@ -291,6 +291,8 @@ export function crearSolicitud(input: { nombre: string; email: string; vivienda:
 export const listVecinos = () => delay(db.profiles.slice())
 export const viviendasInquilino = () =>
   delay([...new Set(db.profiles.filter((p) => p.rol === 'inquilino' && p.estado === 'activo' && p.vivienda).map((p) => p.vivienda))])
+export const contarSolicitudesPendientes = () =>
+  delay(puedeAprobarAltas(currentUser.rol) ? db.requests.filter((r) => r.estado === 'pendiente').length : 0)
 export function suspenderVecino(id: string, suspender: boolean): Promise<void> {
   const p = db.profiles.find((p) => p.id === id)
   if (p) p.estado = suspender ? 'suspendido' : 'activo'

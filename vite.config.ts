@@ -9,11 +9,17 @@ import { readFileSync } from 'node:fs'
 // CLAUDE.md → Forma de trabajo) y se muestra en la pantalla de bienvenida.
 const pkg = JSON.parse(readFileSync(path.resolve(__dirname, 'package.json'), 'utf-8')) as { version: string }
 
+// Nº de "mejoras" = versiones publicadas en el CHANGELOG (cada entrada **vX.Y.Z).
+// Se muestra en la pantalla de "Instalando actualización…" como dato de cariño.
+const mejoras = (readFileSync(path.resolve(__dirname, 'CHANGELOG.md'), 'utf-8')
+  .match(/\*\*v\d+\.\d+\.\d+/g) ?? []).length
+
 // PWA: cachea SOLO la App Shell (estáticos). NUNCA datos de Supabase
 // (módulo 10/11 de las specs): las llamadas a la API se dejan network-only.
 export default defineConfig({
   define: {
     __APP_VERSION__: JSON.stringify(pkg.version),
+    __APP_MEJORAS__: JSON.stringify(mejoras),
   },
   resolve: {
     alias: { '@': path.resolve(__dirname, 'src') },

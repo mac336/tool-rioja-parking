@@ -5,6 +5,16 @@ al implementar el cambio (ver `CLAUDE.md` → Forma de trabajo).
 
 ## 2026-07-16
 
+- **v1.36.0 · Badge en la pestaña Gestión + contador de mejoras:**
+  - La pestaña **Gestión** (barra inferior) muestra un **número rojo** con las
+    **solicitudes de acceso pendientes** (para quien puede aprobar altas; se
+    refresca al navegar). Así se ve sin abrir la campana.
+  - La pantalla **"Instalando actualización…"** muestra *"Esta app ha tenido N
+    mejoras desde su creación"*, contando las versiones del CHANGELOG en el build
+    (`__APP_MEJORAS__`).
+  - **Bienvenida (instalar en iPhone)**: paso 4 nuevo — al terminar, cerrar la
+    ventana y abrir la app desde su icono entre las apps del móvil.
+
 - **v1.35.0 · Solicitudes de acceso en el feed de avisos (con contador):**
   - Las **solicitudes de acceso pendientes** aparecen ahora en el **feed de
     avisos** de la app (la campana de la Home) y suman en su **contador tipo

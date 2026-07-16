@@ -123,6 +123,10 @@ export function SplashScreen({ onDone }: { onDone: () => void }) {
                   <span className="flex h-7 w-7 shrink-0 items-center justify-center rounded-full bg-white font-bold text-primary-700">3</span>
                   <span><b>Baja en la lista</b> hasta <b>“Añadir a pantalla de inicio”</b> <SquarePlus size={16} className="inline align-text-bottom" />.</span>
                 </div>
+                <div className="mt-3 flex items-center gap-3 text-[14px] text-white">
+                  <span className="flex h-7 w-7 shrink-0 items-center justify-center rounded-full bg-white font-bold text-primary-700">4</span>
+                  <span><b>Cierra esta ventana</b>, busca <b>Rioja 25</b> entre las apps de tu móvil y ábrela desde su icono. Ya no tendrás que volver a identificarte.</span>
+                </div>
               </div>
             ) : plataforma === 'ios' ? (
               // iPhone en otro navegador: hay que abrir en Safari.

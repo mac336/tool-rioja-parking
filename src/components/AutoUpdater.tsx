@@ -37,6 +37,11 @@ export function AutoUpdater() {
       <div className="mt-8 h-9 w-9 animate-spin rounded-full border-[3px] border-white/30 border-t-white" />
       <h1 className="mt-6 font-display text-[22px] font-extrabold text-white">Instalando actualización…</h1>
       <p className="mt-2 max-w-xs text-[14px] text-white/85">Estamos poniendo la app al día. Se reiniciará sola en un momento.</p>
+      {__APP_MEJORAS__ > 0 && (
+        <p className="mt-5 max-w-xs text-[13px] font-semibold text-white/75">
+          Esta app ha tenido <b className="text-white">{__APP_MEJORAS__} mejoras</b> desde su creación 💙
+        </p>
+      )}
     </div>
   )
 }

@@ -18,6 +18,9 @@ al implementar el cambio (ver `CLAUDE.md` → Forma de trabajo).
   - **Dashboard de adopción**: los pisos ocupados por **inquilinos** ya **no
     cuentan** (ni dentro/por inscribir ni en los totales). `stats_acceso` y
     `stats_acceso_por_vivienda` excluyen inquilinos; nueva `viviendas_inquilino()`.
+    Además, marca **`viviendas.es_inquilino`** (mig. 0050) para excluir pisos de
+    inquilino ya **detectados aunque aún no tengan cuenta** (marcados 1º B Izqda y
+    3º F Izqda). La exclusión es por marca de vivienda **o** cuenta de rol inquilino.
   - **Contactos**: en la categoría **Junta** el piso se **selecciona** del
     catálogo de viviendas (antes texto libre). SQL para fijar Presidente (2º D
     Izqda) y Vicepresidente (2º E Dcha) en `actas/apply-contactos-junta-pisos.sql`.

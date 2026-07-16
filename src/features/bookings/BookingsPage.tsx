@@ -3,6 +3,7 @@ import { Link, useNavigate } from 'react-router-dom'
 import { CalendarDays, Check, Clock, MapPin } from 'lucide-react'
 import { useApp } from '@/store'
 import { useAsync } from '@/lib/useAsync'
+import { TTL } from '@/lib/cache'
 import { fechaHora, hora } from '@/lib/format'
 import { esTester, puedeReservar, puedeReservarOtras, puedeVerAgendaReservas } from '@/lib/roles'
 import { puedeAnularReserva, HORAS_MIN_ANULACION } from '@/lib/reglas'
@@ -64,7 +65,7 @@ export function BookingsPage() {
   const nav = useNavigate()
 
   const vigente = useAsync(reservaVigente, [])
-  const zonas = useAsync(listZonas, [])
+  const zonas = useAsync(listZonas, [], { key: 'zonas', ttlMs: TTL.zonas })
   const reservarOtras = puedeReservarOtras(user.rol)
   const viviendas = useAsync(() => (reservarOtras ? listViviendas() : Promise.resolve([])), [reservarOtras])
 

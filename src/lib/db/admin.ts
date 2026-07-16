@@ -5,6 +5,7 @@
 import { supabase } from '@/lib/supabase'
 import type { AccessRequest, Profile, Role } from '@/types'
 import { iniciales, fechaCorta } from '@/lib/format'
+import { cacheBust } from '@/lib/cache'
 
 // ---- Solicitudes de acceso ---------------------------------------------------
 export async function listAccessRequests(): Promise<AccessRequest[]> {
@@ -32,17 +33,20 @@ export async function resolverSolicitud(id: string, aprobar: boolean, vivienda?:
       body: { requestId: id, vivienda: viv, rol: rol ?? 'vecino' },
     })
     if (error) throw error
+    cacheBust('solicitudes', 'avisos')
     return
   }
   const { error } = await supabase.from('access_requests')
     .update({ estado: 'rechazada' }).eq('id', id)
   if (error) throw error
+  cacheBust('solicitudes', 'avisos')
 }
 
 // Alta pública: pasa por la Edge Function (captcha + rate-limit + service_role).
 export async function crearSolicitud(input: { nombre: string; email: string; vivienda: string; comentario?: string; esInquilino?: boolean }): Promise<void> {
   const { error } = await supabase.functions.invoke('solicitar-acceso', { body: input })
   if (error) throw error
+  cacheBust('solicitudes', 'avisos')
 }
 
 // ---- Vecinos (gestión de usuarios) -------------------------------------------

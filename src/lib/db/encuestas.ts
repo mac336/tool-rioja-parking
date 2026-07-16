@@ -7,6 +7,7 @@
 // encuesta esté abierta, la opción única y la pertenencia opción↔pregunta; aquí
 // solo emitimos las operaciones. La escritura la gatea RLS (gestión).
 import { supabase } from '@/lib/supabase'
+import { cacheBust } from '@/lib/cache'
 import { esViviendaEspecial } from '@/lib/parking'
 import type {
   Encuesta, EncuestaEstado, EncuestaFormato, EncuestaOpcion, EncuestaPregunta, EncuestaTipo,
@@ -156,6 +157,7 @@ export async function votarPregunta(encuestaId: string, preguntaId: string, opci
   }
   const encuesta = await getEncuesta(encuestaId)
   if (!encuesta) throw new Error('Encuesta no encontrada')
+  cacheBust('encuestas', 'avisos')
   return encuesta
 }
 
@@ -190,6 +192,7 @@ export async function crearEncuesta(input: {
 
   const encuesta = await getEncuesta(enc.id)
   if (!encuesta) throw new Error('Encuesta no encontrada tras crearla')
+  cacheBust('encuestas', 'avisos')
   return encuesta
 }
 
@@ -197,10 +200,12 @@ export async function cerrarEncuesta(id: string): Promise<void> {
   const { error } = await supabase.from('encuestas')
     .update({ cierre: new Date().toISOString() }).eq('id', id)
   if (error) throw error
+  cacheBust('encuestas', 'avisos')
 }
 
 export async function borrarEncuesta(id: string): Promise<void> {
   // Cascada de BD: elimina preguntas, opciones y votos.
   const { error } = await supabase.from('encuestas').delete().eq('id', id)
   if (error) throw error
+  cacheBust('encuestas', 'avisos')
 }

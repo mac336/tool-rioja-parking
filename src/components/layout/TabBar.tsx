@@ -5,6 +5,7 @@ import { cx } from '@/components/ui'
 import { resetViewport } from '@/lib/viewport'
 import { comprobarActualizacion } from '@/lib/pwaUpdate'
 import { contarSolicitudesPendientes } from '@/lib/api'
+import { cachedCall, TTL } from '@/lib/cache'
 import { puedeAdmin, puedeAprobarAltas } from '@/lib/roles'
 import { useApp } from '@/store'
 
@@ -27,7 +28,8 @@ export function TabBar() {
   useEffect(() => {
     if (!puedeAprobarAltas(user.rol)) return
     let vivo = true
-    contarSolicitudesPendientes().then((n) => { if (vivo) setPendientes(n) }).catch(() => undefined)
+    cachedCall('solicitudes', TTL.solicitudes, contarSolicitudesPendientes)
+      .then((n) => { if (vivo) setPendientes(n) }).catch(() => undefined)
     return () => { vivo = false }
   }, [user.rol, loc.pathname])
 

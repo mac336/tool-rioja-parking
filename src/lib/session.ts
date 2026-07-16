@@ -5,6 +5,7 @@
 import { supabase } from '@/lib/supabase'
 import type { Profile, Role, UserStatus } from '@/types'
 import { iniciales } from '@/lib/format'
+import { cacheClear } from '@/lib/cache'
 
 export type AuthStatus = 'loading' | 'anon' | 'pending' | 'active' | 'suspended'
 
@@ -43,6 +44,7 @@ export async function verificarCodigo(email: string, token: string) {
 }
 
 export async function signOut() {
+  cacheClear() // no dejar datos cacheados de un usuario para el siguiente
   await supabase.auth.signOut()
 }
 

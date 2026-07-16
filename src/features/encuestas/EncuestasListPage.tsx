@@ -4,6 +4,7 @@ import { Plus, ListChecks, CheckCircle2, Lock, Trash2 } from 'lucide-react'
 import { Page } from '@/components/layout/AppShell'
 import { Button, Card, ProgressBar, Alert, EmptyState, ErrorState, SkeletonList, ScreenHeader, cx } from '@/components/ui'
 import { useAsync } from '@/lib/useAsync'
+import { TTL } from '@/lib/cache'
 import { diasRestantes } from '@/lib/format'
 import { esGestion } from '@/lib/roles'
 import { useApp } from '@/store'
@@ -15,7 +16,7 @@ const votadaEntera = (e: Encuesta) => e.preguntas.every((p) => p.mi_voto_opcion_
 
 export function EncuestasListPage() {
   const { user, toast } = useApp()
-  const { data, state, refetch } = useAsync(listEncuestas, [])
+  const { data, state, refetch } = useAsync(listEncuestas, [], { key: 'encuestas', ttlMs: TTL.encuestas })
   const gestion = esGestion(user.rol)
   const [busyId, setBusyId] = useState<string | null>(null)
 

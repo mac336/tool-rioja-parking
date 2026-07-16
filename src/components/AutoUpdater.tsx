@@ -1,6 +1,7 @@
 import { useEffect, useState } from 'react'
 import { Logo } from '@/components/Logo'
 import { onActualizacionDisponible, aplicarActualizacion, comprobarActualizacion } from '@/lib/pwaUpdate'
+import { cacheBust } from '@/lib/cache'
 
 // Orquesta la auto-actualización de la PWA:
 //  · Escucha "hay versión nueva" (SW en espera) → enseña la pantalla de
@@ -17,7 +18,12 @@ export function AutoUpdater() {
       // Deja ver la pantalla un instante y aplica (activa el SW nuevo + recarga).
       window.setTimeout(() => { void aplicarActualizacion() }, 1400)
     })
-    const alVolver = () => { if (document.visibilityState === 'visible') void comprobarActualizacion() }
+    const alVolver = () => {
+      if (document.visibilityState !== 'visible') return
+      // Al volver a primer plano: refresca lo volátil (avisos/solicitudes) y busca actualización.
+      cacheBust('avisos', 'solicitudes')
+      void comprobarActualizacion()
+    }
     document.addEventListener('visibilitychange', alVolver)
     return () => { quitar(); document.removeEventListener('visibilitychange', alVolver) }
   }, [])

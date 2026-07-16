@@ -3,6 +3,7 @@ import { Plus, X, Send, Trash2 } from 'lucide-react'
 import { Page } from '@/components/layout/AppShell'
 import { Button, Field, Textarea, SelectField, EmptyState, ErrorState, SkeletonList, cx } from '@/components/ui'
 import { useAsync } from '@/lib/useAsync'
+import { TTL } from '@/lib/cache'
 import { useApp } from '@/store'
 import { puedePublicarTipo, tiposQueVe } from '@/lib/roles'
 import { PISOS } from '@/lib/parking'
@@ -37,7 +38,7 @@ export function MensajesPage() {
   // Pestañas visibles y tipos creables según los permisos por tipo del rol.
   const tabsVisibles = ORDEN.filter((t) => tiposQueVe(user.rol).includes(t))
   const creables = ORDEN.filter((t) => t !== 'sugerencia' && puedePublicarTipo(user.rol, t))
-  const { data, state, refetch } = useAsync(listMensajes, [])
+  const { data, state, refetch } = useAsync(listMensajes, [], { key: 'mensajes', ttlMs: TTL.mensajes })
 
   const [tab, setTab] = useState<MensajeTipo>(tabsVisibles[0] ?? 'aviso')
   const [form, setForm] = useState<FormState | null>(null)

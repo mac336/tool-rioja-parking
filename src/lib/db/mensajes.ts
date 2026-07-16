@@ -6,6 +6,7 @@
 // Estado, destino y visibilidad los impone la RLS (migraciones 0031 y 0040).
 import { supabase } from '@/lib/supabase'
 import type { Mensaje, MensajeTipo, MensajeDestino } from '@/types'
+import { cacheBust } from '@/lib/cache'
 
 /** Tablón público de la Home: solo publicado, para todos, vigente. A las
  *  SUGERENCIAS les adjunta autor (nombre/piso) y likes (total + si di el mío). */
@@ -63,6 +64,7 @@ export async function alternarLike(mensajeId: string, dar: boolean): Promise<voi
     const { error } = await supabase.from('mensaje_likes').delete().eq('mensaje_id', mensajeId).eq('vivienda', vivienda)
     if (error) throw error
   }
+  cacheBust('mensajes')
 }
 
 export interface MensajeInput { tipo: MensajeTipo; titulo: string; cuerpo: string; expira_at?: string | null; firma?: string | null; estilo?: string | null; importancia?: string | null }
@@ -80,6 +82,7 @@ export async function crearMensaje(input: MensajeInput): Promise<Mensaje> {
     .select('*').single()
   if (error) throw error
   void supabase.functions.invoke('notificar', { body: { kind: 'mensaje', id: data.id } }).catch(() => undefined)
+  cacheBust('mensajes', 'avisos')
   return data as Mensaje
 }
 
@@ -126,6 +129,7 @@ export async function crearPublicacion(input: PublicacionInput): Promise<Mensaje
   if (estado !== 'borrador') {
     void supabase.functions.invoke('notificar', { body: { kind: 'publicacion', id: data.id } }).catch(() => undefined)
   }
+  cacheBust('mensajes', 'avisos')
   return data as Mensaje
 }
 
@@ -192,15 +196,18 @@ export async function moderarPublicacion(id: string, aprobar: boolean): Promise<
   if (error) throw error
   const kind = aprobar ? 'mensaje' : 'publicacion_rechazada'
   void supabase.functions.invoke('notificar', { body: { kind, id } }).catch(() => undefined)
+  cacheBust('mensajes', 'avisos')
 }
 
 export async function editarMensaje(id: string, input: MensajeInput): Promise<void> {
   const { error } = await supabase.from('mensajes')
     .update({ tipo: input.tipo, titulo: input.titulo, cuerpo: input.cuerpo, expira_at: input.expira_at ?? null, firma: input.firma ?? null, estilo: input.estilo ?? null, importancia: input.importancia ?? null }).eq('id', id)
   if (error) throw error
+  cacheBust('mensajes', 'avisos')
 }
 
 export async function borrarMensaje(id: string): Promise<void> {
   const { error } = await supabase.from('mensajes').delete().eq('id', id)
   if (error) throw error
+  cacheBust('mensajes', 'avisos')
 }

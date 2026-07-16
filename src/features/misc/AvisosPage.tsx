@@ -4,12 +4,13 @@ import { Bell, ChevronRight } from 'lucide-react'
 import { SubHeader, Page } from '@/components/layout/AppShell'
 import { Card, EmptyState, ErrorState, SkeletonList, cx } from '@/components/ui'
 import { useAsync } from '@/lib/useAsync'
+import { TTL } from '@/lib/cache'
 import { listAvisos } from '@/lib/api'
 import { marcarAvisosVistos } from '@/lib/avisosVistos'
 import { useApp } from '@/store'
 
 export function AvisosPage() {
-  const { data, state, refetch } = useAsync(listAvisos, [])
+  const { data, state, refetch } = useAsync(listAvisos, [], { key: 'avisos', ttlMs: TTL.avisos })
   const user = useApp((s) => s.user)
   const refreshAuth = useApp((s) => s.refreshAuth)
   // Umbral de "nuevo" = última visita ANTES de entrar (capturado una vez). Así,

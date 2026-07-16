@@ -3,6 +3,7 @@ import { Lightbulb, Heart, Plus, Send, X } from 'lucide-react'
 import { SubHeader, Page } from '@/components/layout/AppShell'
 import { Card, Field, Textarea, Button, Alert, EmptyState, ErrorState, SkeletonList, cx } from '@/components/ui'
 import { useAsync } from '@/lib/useAsync'
+import { TTL } from '@/lib/cache'
 import { useApp } from '@/store'
 import { puedePublicarTipo, esTester } from '@/lib/roles'
 import { fechaCorta } from '@/lib/format'
@@ -21,7 +22,7 @@ export function SugerenciasPage() {
   const { user, toast } = useApp()
   const puede = puedePublicarTipo(user.rol, 'sugerencia')
   const tester = esTester(user.rol)
-  const { data, state, refetch } = useAsync(listMensajes, [])
+  const { data, state, refetch } = useAsync(listMensajes, [], { key: 'mensajes', ttlMs: TTL.mensajes })
 
   const sugerencias = (data ?? []).filter((m) => m.tipo === 'sugerencia')
 

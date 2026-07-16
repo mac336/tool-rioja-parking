@@ -5,6 +5,16 @@ al implementar el cambio (ver `CLAUDE.md` → Forma de trabajo).
 
 ## 2026-07-16
 
+- **v1.37.0 · Caché de lectura por secciones (menos llamadas a la BD):**
+  - Navegar por la app ya **no repite** la misma consulta a la BD: cada sección se
+    guarda en memoria unos minutos (`src/lib/cache.ts`, solo en modo Supabase).
+    TTL: tablón 2 min, avisos/solicitudes 1 min, contactos/zonas 10 min, encuestas
+    2 min. Aplicado a tablón, avisos, contactos, encuestas, zonas y al badge de
+    Gestión.
+  - **Invalidación** automática: al crear/editar/borrar/moderar/reservar/aprobar
+    (se ve al instante), al volver la app a **primer plano** (avisos/solicitudes) y
+    al **cerrar sesión** (se limpia todo). `refetch()` siempre trae datos frescos.
+
 - **v1.36.0 · Badge en la pestaña Gestión + contador de mejoras:**
   - La pestaña **Gestión** (barra inferior) muestra un **número rojo** con las
     **solicitudes de acceso pendientes** (para quien puede aprobar altas; se

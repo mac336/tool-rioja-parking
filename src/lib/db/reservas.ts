@@ -4,6 +4,7 @@
 // horario: son N filas que comparten `grupo_id` y se gestionan en bloque.
 // Firmas idénticas al mock (src/lib/apiMock.ts).
 import { supabase } from '@/lib/supabase'
+import { cacheBust } from '@/lib/cache'
 import { getConfig } from './config'
 import type { Reserva, ReservaGrupo, CrearReservaInput, ZonaComun } from '@/types'
 
@@ -149,6 +150,7 @@ export async function crearReserva(input: CrearReservaInput): Promise<ReservaGru
   if (estado === 'pendiente') {
     void supabase.functions.invoke('notificar', { body: { kind: 'reserva_nueva', id: grupo_id } }).catch(() => undefined)
   }
+  cacheBust('avisos')
   return agrupar((data ?? []).map((r) => toReserva(r as ReservaRow)))[0]
 }
 
@@ -160,6 +162,7 @@ export async function cancelarReserva(grupoId: string): Promise<void> {
     .update({ estado: 'cancelada' })
     .or(`grupo_id.eq.${grupoId},id.eq.${grupoId}`)
   if (error) throw error
+  cacheBust('avisos')
 }
 
 // ---- Gestión (cola del presidente) ------------------------------------------
@@ -212,6 +215,7 @@ export async function resolverReserva(grupoId: string, aprobar: boolean, motivo?
   if (error) throw error
   // Avisar al solicitante (best-effort).
   void supabase.functions.invoke('notificar-reserva', { body: { grupoId, aprobar } }).catch(() => undefined)
+  cacheBust('avisos')
 }
 
 export interface EstadisticasReservas {

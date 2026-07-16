@@ -2,6 +2,7 @@ import { useMemo, useState } from 'react'
 import { ChevronLeft, ChevronRight, MapPin, Clock, Users } from 'lucide-react'
 import { Card, ErrorState, SkeletonList, cx } from '@/components/ui'
 import { useAsync } from '@/lib/useAsync'
+import { TTL } from '@/lib/cache'
 import { fechaCorta, fechaHora, hora, claveDia } from '@/lib/format'
 import { reservaCelebrada } from '@/lib/reglas'
 import { reservasGestion, listZonas } from '@/lib/api'
@@ -51,7 +52,7 @@ export function AgendaMensual() {
   const [cursor, setCursor] = useState(() => { const d = new Date(); return new Date(d.getFullYear(), d.getMonth(), 1) })
   const [sel, setSel] = useState<string>(() => claveDia(new Date().toISOString()))
 
-  const zonas = useAsync(listZonas, [])
+  const zonas = useAsync(listZonas, [], { key: 'zonas', ttlMs: TTL.zonas })
   const zonaColor = useMemo(() => {
     const map = new Map<string, string>()
     ;(zonas.data ?? []).forEach((z, i) => map.set(z.id, ZONA_COLORES[i % ZONA_COLORES.length]))

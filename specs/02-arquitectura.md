@@ -46,6 +46,13 @@ sale del servidor.
 - PWA: `manifest.webmanifest` + service worker (se reaprovecha el enfoque
   actual, revisando el cacheo para no cachear datos sensibles — ver módulo 11).
 - Mobile-first. El look & feel final vendrá del prompt de diseño.
+- **Caché de lectura en memoria** (`src/lib/cache.ts`, solo en modo Supabase):
+  evita repetir la MISMA consulta a la BD al navegar. `useAsync(fn, deps, {key, ttlMs})`
+  devuelve el valor cacheado mientras esté fresco (TTL por sección: tablón 2 min,
+  avisos/solicitudes 1 min, contactos/zonas 10 min, encuestas 2 min). Se invalida
+  (`cacheBust`) al **escribir** (crear/editar/borrar/moderar/reservar/aprobar), al
+  **volver a primer plano** (avisos/solicitudes) y al **cerrar sesión** (todo).
+  `refetch()` siempre ignora la caché. No cachea datos entre usuarios.
 
 ### Backend — Supabase
 - **Auth:** proveedores Google (OAuth) y Email OTP (enlace mágico).

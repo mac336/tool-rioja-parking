@@ -2,6 +2,7 @@ import { Link } from 'react-router-dom'
 import { Bell, Car, SquareCheckBig, CalendarDays, SquareParking, Phone, Megaphone, MessageSquare, Lightbulb, Hourglass, Building2 } from 'lucide-react'
 import { useApp } from '@/store'
 import { useAsync } from '@/lib/useAsync'
+import { TTL } from '@/lib/cache'
 import { saludo, diasRestantes, fechaHora, hora } from '@/lib/format'
 import { parkingMisTurnos, listEncuestas, listMensajes, listAvisos, reservaVigente } from '@/lib/api'
 import { contarAvisosNuevos } from '@/lib/avisosVistos'
@@ -29,9 +30,9 @@ const fechaLarga = new Intl.DateTimeFormat('es-ES', { weekday: 'long', day: 'num
 export function HomePage() {
   const { user } = useApp()
   const turnos = useAsync(parkingMisTurnos, [user.vivienda])
-  const encuestas = useAsync(listEncuestas, [])
-  const mensajes = useAsync(listMensajes, [])
-  const avisos = useAsync(listAvisos, [])
+  const encuestas = useAsync(listEncuestas, [], { key: 'encuestas', ttlMs: TTL.encuestas })
+  const mensajes = useAsync(listMensajes, [], { key: 'mensajes', ttlMs: TTL.mensajes })
+  const avisos = useAsync(listAvisos, [], { key: 'avisos', ttlMs: TTL.avisos })
   const reserva = useAsync(reservaVigente, [])
   const nuevos = contarAvisosNuevos(avisos.data ?? [], user.avisos_vistos_at)
   // Mensaje nuevo del buzón: listAvisos añade avisos con destino '/buzon' cuando

@@ -3,6 +3,7 @@ import { Phone, Mail, MapPin, Plus, Pencil, Trash2 } from 'lucide-react'
 import { Page } from '@/components/layout/AppShell'
 import { Button, Card, Field, SelectField, EmptyState, ErrorState, SkeletonList, ScreenHeader } from '@/components/ui'
 import { useAsync } from '@/lib/useAsync'
+import { TTL } from '@/lib/cache'
 import { useApp } from '@/store'
 import { listContactos, crearContacto, editarContacto, borrarContacto } from '@/lib/api'
 import { PISOS } from '@/lib/parking'
@@ -254,7 +255,7 @@ function ContactCard({
 
 export function ContactsPage() {
   const { user, toast } = useApp()
-  const { data, state, refetch } = useAsync(listContactos, [])
+  const { data, state, refetch } = useAsync(listContactos, [], { key: 'contactos', ttlMs: TTL.contactos })
   const items = data ?? []
 
   const puedeEditar = user.rol === 'administrador_finca' || user.rol === 'app_admin'

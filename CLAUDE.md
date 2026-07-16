@@ -25,6 +25,60 @@ Al implementar algo nuevo o cambiar algo existente:
    se inyecta como `__APP_VERSION__` (vite.config) y se muestra abajo del todo
    en la pantalla de bienvenida.
 
+## 🚀 Despliegue a producción (mecánica exacta — la hace Claude, no el usuario)
+
+**Claude Code aplica las migraciones a producción y despliega las Edge Functions
+él mismo desde esta sesión.** No hay que pedirle al usuario que abra su terminal:
+si estas credenciales están disponibles, Claude hace todos los pasos. El front
+(Vercel) se despliega solo al hacer `git push` a `main`.
+
+Datos fijos del proyecto:
+- **Project ref (prod):** `ektnyaspcobkliixfply`
+- **Token de la Management API:** en `~/.supabase-token` (PAT de Supabase). NUNCA
+  imprimir su contenido; usarlo solo como variable de entorno.
+- **Contenedor de la BD local:** `supabase_db_tool-rioja-parking` (Supabase local
+  vía Docker; la CLI se invoca con `npx supabase`).
+
+**Regla de oro (memoria del proyecto): copia de seguridad de prod ANTES de tocar
+la BD.** `npx supabase db dump --linked -f actas/backups/backup-AAAAMMDD.sql`
+(o desde el panel de Supabase → Database → Backups). Nunca tocar datos de prod
+sin respaldo.
+
+**1) Aplicar una migración en LOCAL** (psql dentro del contenedor):
+```bash
+docker exec -i supabase_db_tool-rioja-parking psql -U postgres -d postgres \
+  -v ON_ERROR_STOP=1 < supabase/migrations/00NN_x.sql
+```
+
+**2) Aplicar la MISMA migración en PRODUCCIÓN** (Management API, endpoint SQL):
+```bash
+export SUPABASE_ACCESS_TOKEN="$(cat ~/.supabase-token)"
+python3 -c "import json;print(json.dumps({'query':open('supabase/migrations/00NN_x.sql').read()}))" > /tmp/m.json
+curl -s -m 60 -X POST \
+  "https://api.supabase.com/v1/projects/ektnyaspcobkliixfply/database/query" \
+  -H "Authorization: Bearer $SUPABASE_ACCESS_TOKEN" -H "Content-Type: application/json" \
+  --data-binary @/tmp/m.json
+```
+Respuesta `[]` = OK. El mismo endpoint sirve para **consultas de verificación**
+(SELECT) en prod. Las migraciones deben ser **idempotentes** (`if not exists`,
+`on conflict do nothing`, `drop policy if exists ... create policy`).
+
+**3) Desplegar / borrar Edge Functions** (CLI con el token, sin abrir terminal
+del usuario):
+```bash
+export SUPABASE_ACCESS_TOKEN="$(cat ~/.supabase-token)"
+npx supabase functions deploy <nombre> --project-ref ektnyaspcobkliixfply
+npx supabase functions delete <nombre> --project-ref ektnyaspcobkliixfply
+```
+
+**4) Front:** `git push origin main` → Vercel despliega automático. Recuerda el
+`version` de `package.json` (paso 6 de arriba).
+
+**⚠️ Dos sesiones a la vez:** puede haber otro chat trabajando el mismo repo. Antes
+de aplicar algo a prod, comprueba con un SELECT si ya está aplicado (p. ej. si el
+valor de enum / la columna / la política ya existen) y evita pisarte con el otro
+carril. Tras `git push`, si hay divergencia, reconcilia sin perder trabajo ajeno.
+
 ## Estado y decisiones vigentes (resumen)
 
 - **Login:** sin contraseña. **Flag EN VIVO `acceso_directo`** (tabla `app_config`,

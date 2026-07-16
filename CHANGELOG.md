@@ -5,6 +5,14 @@ al implementar el cambio (ver `CLAUDE.md` → Forma de trabajo).
 
 ## 2026-07-16
 
+- **v1.33.2 · Reservas: limpiar canceladas:**
+  - **Borradas** de producción las reservas **canceladas** (4 filas / 3 grupos;
+    backup en `actas/backups/reservas-canceladas-20260716.json`).
+  - En **"Mis reservas"**, a quien puede reservar para otras viviendas
+    (`reservar_otras_viviendas`, p. ej. el conserje) se le **ocultan las canceladas
+    y rechazadas** (evita que se le acumulen las de otros vecinos). El vecino
+    normal sigue viendo el estado de las suyas.
+
 - **v1.33.1 · Circulares: reserva de celebraciones y barbacoa:**
   - **Celebraciones**: la reserva de la zona se hace **desde la app**, o avisando
     al conserje para que la haga él en la app (siempre con ≥ 24 h; cancelación igual).

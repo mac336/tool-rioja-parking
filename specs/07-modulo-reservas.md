@@ -69,7 +69,9 @@ conserje) puede reservar **a nombre de otra vivienda**.
      ve el solicitante. Se implementa con una vista de ocupación (módulo 04), no
      ocultando datos solo en la interfaz.
 4. **Mis reservas**: listado propio (aprobadas, pasadas) con opción de **anular**
-   la vigente. **Anular solo hasta 24 h antes del inicio** (trigger
+   la vigente. A quien puede reservar a nombre de otras viviendas
+   (`reservar_otras_viviendas`, p. ej. el conserje) se le **ocultan las canceladas
+   y rechazadas** (si no, acumularía muchas de otros vecinos). **Anular solo hasta 24 h antes del inicio** (trigger
    `reservas_anulacion_24h`, mig. 0020; la **gestión** (`es_gestion`) puede anular
    siempre). La UI oculta el botón y avisa cuando quedan menos de 24 h.
 4b. **Archivo**: una reserva aprobada que ya terminó pasa a verse como

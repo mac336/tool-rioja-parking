@@ -2,6 +2,7 @@ import { Clock, Users } from 'lucide-react'
 import { useApp } from '@/store'
 import { useAsync } from '@/lib/useAsync'
 import { fechaHora, hora } from '@/lib/format'
+import { puedeReservarOtras } from '@/lib/roles'
 import { misReservas, cancelarReserva } from '@/lib/api'
 import { puedeAnularReserva, reservaCelebrada, HORAS_MIN_ANULACION } from '@/lib/reglas'
 import { SubHeader, Page } from '@/components/layout/AppShell'
@@ -35,8 +36,11 @@ function CuadroFecha({ iso }: { iso: string }) {
 }
 
 export function MyBookingsPage() {
-  const { toast } = useApp()
+  const { user, toast } = useApp()
   const { data, state, refetch } = useAsync(misReservas, [])
+  // Quien reserva para OTRAS viviendas (p. ej. el conserje) acumularía muchas
+  // canceladas/rechazadas aquí (son de otros vecinos): se le ocultan.
+  const ocultarNoVigentes = puedeReservarOtras(user.rol)
 
   async function anular(grupoId: string) {
     try {
@@ -48,7 +52,10 @@ export function MyBookingsPage() {
     }
   }
 
-  const reservas = (data ?? []).slice().sort((a, b) => b.inicio.localeCompare(a.inicio))
+  const reservas = (data ?? [])
+    .filter((r) => !ocultarNoVigentes || (r.estado !== 'cancelada' && r.estado !== 'rechazada'))
+    .slice()
+    .sort((a, b) => b.inicio.localeCompare(a.inicio))
   const ahora = Date.now()
 
   return (

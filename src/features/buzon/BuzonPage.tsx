@@ -4,7 +4,7 @@ import { SubHeader, Page } from '@/components/layout/AppShell'
 import { Button, Card, Field, Textarea, SelectField, Avatar, ErrorState, SkeletonList, cx } from '@/components/ui'
 import { useAsync } from '@/lib/useAsync'
 import { useApp } from '@/store'
-import { puedePublicarAlgo, puedeEscribirVecinos, canalDeRol } from '@/lib/roles'
+import { puedePublicarAlgo, puedeEscribirVecinos, canalDeRol, tiposQuePublica } from '@/lib/roles'
 import { fechaHora, iniciales } from '@/lib/format'
 import { listHilos, getHilo, crearHilo, crearHiloComoGestion, listDirectorio, responderHilo, cerrarHilo, borrarHilo, convertirEnMensaje } from '@/lib/api'
 import type { Hilo, HiloCanal, MensajeTipo } from '@/types'
@@ -190,6 +190,9 @@ function ChatVista({ sel, onBack }: { sel: ChatSel; onBack: () => void }) {
   const soyDueño = hilo ? hilo.vecino_id === user.id : !sel.vecinoId
   const staff = !soyDueño
   const cerrado = hilo?.estado === 'cerrado'
+  // Tipos a los que se puede convertir un hilo: los que el rol PUEDE publicar
+  // (sin sugerencia, que la envían los vecinos). La RLS lo exige por tipo.
+  const convertibles = tiposQuePublica(user.rol).filter((t) => t !== 'sugerencia')
 
   // Enviar: si aún no existe conversación, se crea con este primer mensaje.
   const enviar = async () => {
@@ -224,7 +227,8 @@ function ChatVista({ sel, onBack }: { sel: ChatSel; onBack: () => void }) {
   }
   const abrirConvertir = () => {
     const primer = data?.mensajes.find((m) => !m.de_gestion)
-    setConvertir({ tipo: 'incidencia', titulo: hilo?.asunto ?? '', cuerpo: primer?.texto ?? '' })
+    const tipo = convertibles.includes('incidencia') ? 'incidencia' : (convertibles[0] ?? 'aviso')
+    setConvertir({ tipo, titulo: hilo?.asunto ?? '', cuerpo: primer?.texto ?? '' })
   }
   const publicar = async () => {
     if (!hiloId || !convertir || !convertir.titulo.trim() || !convertir.cuerpo.trim()) return
@@ -316,7 +320,7 @@ function ChatVista({ sel, onBack }: { sel: ChatSel; onBack: () => void }) {
             </div>
             <div className="flex flex-col gap-3">
               <SelectField label="Tipo" value={convertir.tipo} onChange={(e) => setConvertir({ ...convertir, tipo: e.target.value as MensajeTipo })}>
-                {(['aviso', 'anuncio', 'incidencia'] as MensajeTipo[]).map((t) => <option key={t} value={t}>{TIPO_META[t].label}</option>)}
+                {convertibles.map((t) => <option key={t} value={t}>{TIPO_META[t].label}</option>)}
               </SelectField>
               <Field label="Título" value={convertir.titulo} maxLength={140} onChange={(e) => setConvertir({ ...convertir, titulo: e.target.value })} />
               <Textarea label="Mensaje" value={convertir.cuerpo} maxLength={4000} rows={5} onChange={(e) => setConvertir({ ...convertir, cuerpo: e.target.value })} />

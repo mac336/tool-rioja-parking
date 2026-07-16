@@ -71,7 +71,8 @@ se fijan los valores por defecto acordados.
   módulos 03 y 04).
 
 ## Moderación y resolución de disputas
-- **Cola de moderación** para anuncios; **cola de aprobación** para reservas.
+- **Cola de moderación** para incidencias/anuncios que envían los vecinos. Las
+  **reservas son de aprobación directa** (sin cola; ver `specs/07`).
 - **Reportar contenido** (anuncios/comentarios) por parte de vecinos: tabla
   `reportes` (módulo 04), máx. 1 reporte por cuenta y contenido; la gestión
   atiende la cola desde su panel.

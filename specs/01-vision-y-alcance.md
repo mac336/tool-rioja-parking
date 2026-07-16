@@ -44,8 +44,8 @@ grados de permiso); `vecino` es el rol base.
 2. **Incidencias**: crear, listar, seguir estado y cerrar (módulo 05).
 3. **Encuestas**: la gestión publica encuestas/sondeos y la comunidad vota; hay
    un resultado ganador **informal** (módulo 06).
-4. **Reservas de zonas comunes**: reservar franja con nº de invitados; queda
-   **pendiente de aprobación** por la gestión (módulo 07).
+4. **Reservas de zonas comunes**: reservar franja con nº de invitados; de
+   **aprobación directa** (queda confirmada al instante; módulo 07).
 5. **Parking**: rotación de las 6 plazas exteriores (portada de la app actual) +
    posibilidad de **donar/ceder** la plaza y medir la demanda (módulo 08).
 6. **Contactos**: directorio actual (administrador, proveedores, junta), **movido

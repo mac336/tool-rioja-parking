@@ -3,6 +3,23 @@
 Cambios funcionales relevantes, más recientes arriba. Cada entrada nueva se añade
 al implementar el cambio (ver `CLAUDE.md` → Forma de trabajo).
 
+## 2026-07-16
+
+- **v1.31.1 · Auditoría de seguridad (endurecimiento RLS):**
+  - **Reservas — `es_piso`**: se restaura el filtro que impide reservar a nombre
+    de una vivienda "especial" (Conserje/Administrador/Tester); se había perdido
+    al reescribir la política en la v1.26. Ahora se valida sobre la vivienda de la
+    reserva (también al reservar para otros). Mig. 0045.
+  - **Reservas — lectura**: `res_sel` ahora exige `es_activo()` (un suspendido/de
+    baja con sesión aún válida ya no puede leer las reservas de su vivienda).
+  - **`role_permissions`**: se retira la lectura con la clave anónima (solo la
+    leen usuarios autenticados). Sin cambio funcional.
+  - **Buzón → "Convertir en mensaje público"**: el selector de tipo ofrece solo
+    los tipos que el rol puede publicar (antes ofrecía aviso/anuncio/incidencia
+    fijos y el conserje recibía un error al elegir anuncio).
+  - Docs al día (CLAUDE.md y specs 01/10/11/15/17) y tests RLS ampliados
+    (visibilidad por tipo del conserje + `es_piso`).
+
 ## 2026-07-15
 
 - **v1.31.0 · Agenda de reservas con colores por zona + eliminar cuenta

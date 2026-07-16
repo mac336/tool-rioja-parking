@@ -37,7 +37,8 @@ vecino que abrió el hilo. El `app_admin` **no** ve Presidencia ni Conserje.
   oculta. Reabrir un canal = moverlo de `CANALES_PAUSADOS` a `CANALES`
   (`src/features/buzon/BuzonPage.tsx`).
 - El staff puede **responder**, **cerrar/reabrir** y **"Convertir en mensaje
-  público"** (si tiene `publicar_mensajes`).
+  público"** (si puede publicar algún tipo; el selector solo ofrece los tipos
+  que su rol puede publicar).
 - Estilo **chat fijado al viewport visible** (`--app-h`): cabecera y barra de
   escribir fijas, **solo scrollean los mensajes**; el input queda siempre sobre
   el teclado (no descuadra en iOS).

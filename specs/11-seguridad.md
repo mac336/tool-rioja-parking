@@ -154,7 +154,7 @@ siendo exclusivos de las Edge Functions (service_role).
 Revisión de RLS, grants y Edge Functions. Estado y arreglos:
 
 **RLS/BD (bien):** todas las tablas con RLS; escritura gateada por permisos
-(publicar_mensajes, es_gestion, es_app_admin, aprobar_*); un vecino ve solo su
+(`publicar_<tipo>`, es_gestion, es_app_admin, aprobar_*); un vecino ve solo su
 propio `profiles` (sin emails ajenos); votos/reservas protegidos; vistas
 (`directorio`, `ocupacion_reservas`, `encuesta_participacion`) exponen solo
 columnas no sensibles (sin email).
@@ -169,8 +169,9 @@ columnas no sensibles (sin email).
   y nadie que no sea app_admin puede gestionar a un app_admin.
 - **`notificar-admin`:** era anónimo (spam/phishing a admins). Ahora solo se
   acepta la llamada INTERNA (clave de servicio).
-- **`notificar`:** exige `publicar_mensajes` para el push masivo y visibilidad
-  del hilo (RLS) para el aviso de buzón.
+- **`notificar`:** exige `publicar_<tipo>` (o moderación) para el push masivo, y
+  lo envía **solo a quien puede ver ese tipo** (`ver_<tipo>`); visibilidad del
+  hilo (RLS) para el aviso de buzón.
 - **`notificar-reserva` + cliente:** `grupoId` validado como UUID antes de
   interpolar en `.or()` (evita inyección de filtro PostgREST).
 - **`log_audit` (mig. 0029):** revocado EXECUTE público (los triggers lo siguen

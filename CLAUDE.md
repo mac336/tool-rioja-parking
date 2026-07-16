@@ -37,10 +37,12 @@ Al implementar algo nuevo o cambiar algo existente:
 - **Permisos personalizables:** el app_admin activa/desactiva permisos por rol
   (tabla `role_permissions`). Los helpers RLS los leen en vivo. Ver `specs/03`.
 - **Estados de cuenta:** `pendiente`, `activo`, `suspendido`, `baja` (reversible).
-- **Mensajes (tablón):** 4 tipos (aviso/anuncio/incidencia/**sugerencia**). La
-  gestión (`publicar_mensajes`) publica directo; el **vecino propone** desde
-  Buzón → Publicar (incidencia/anuncio/sugerencia) con **moderación**
-  (`aprobar_incidencias`/`aprobar_anuncios`) o manda reportes privados a
+- **Mensajes (tablón):** 4 tipos (aviso/anuncio/incidencia/**sugerencia**),
+  con **permisos POR TIPO** (`ver_<tipo>`/`publicar_<tipo>`; el conserje ve/publica
+  solo avisos e incidencias). Quien tiene el permiso publica directo; el **vecino
+  propone** desde Buzón → Publicar (incidencia/anuncio/sugerencia) con
+  **moderación** (`aprobar_incidencias`/`aprobar_anuncios`) o manda reportes
+  privados a
   administración. Las **sugerencias** llevan autor visible y **likes 1/vivienda**
   (`mensaje_likes`). Sustituye al viejo sistema pre-0013 (RETIRADO). Ver `specs/16`.
 - **Buzón privado por canales:** vecino↔(Administración/Presidencia/Conserje/

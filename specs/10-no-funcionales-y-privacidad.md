@@ -49,8 +49,7 @@
   ordenado del más nuevo al más antiguo (`ts`). Un aviso desaparece cuando su
   origen deja de estar vigente (mensaje borrado/caducado, hilo leído, votación
   cerrada…). Tocar una notificación de mensaje abre el **tablón** (Home). Las ya
-  vistas se pintan en gris (leído) y las nuevas resaltadas con "Nuevo". La cola
-  de reservas por aprobar solo aparece a quien tiene `aprobar_reservas`.
+  vistas se pintan en gris (leído) y las nuevas resaltadas con "Nuevo".
   Contador de "no vistos" en la campana de la Home comparando `ts`
   con la última visita a /avisos, guardada **en el perfil**
   (`profiles.avisos_vistos_at`, mig. 0028) → consistente entre dispositivos;

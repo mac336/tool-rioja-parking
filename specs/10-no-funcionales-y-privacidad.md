@@ -81,6 +81,13 @@
   JS/iconos), **nunca** datos personales ni respuestas de la API de Supabase.
   Estrategia: *cache-first* para estáticos, *network-only* para datos.
 - Al cerrar sesión, limpiar cachés/estado local que pudieran contener datos.
+- **Auto-actualización (sin cerrar la app):** el SW está en modo `prompt`
+  (`vite.config` + `src/lib/pwaUpdate.ts`), con registro manual. Cuando hay una
+  versión nueva queda en espera; la app la comprueba al **pulsar Inicio** y al
+  **volver a primer plano** (`visibilitychange`). Si la hay, muestra la pantalla
+  **"Instalando actualización…"** (`AutoUpdater`) y aplica el SW nuevo
+  (skipWaiting) recargando la app. Así los usuarios no tienen que cerrarla del
+  todo para ver los cambios (`__APP_VERSION__` sigue mostrándose en la bienvenida).
 
 ## Accesibilidad
 - Contraste suficiente, foco visible, navegable con teclado, etiquetas ARIA en

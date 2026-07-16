@@ -5,6 +5,15 @@ al implementar el cambio (ver `CLAUDE.md` → Forma de trabajo).
 
 ## 2026-07-16
 
+- **v1.34.0 · Auto-actualización de la app (sin cerrar del todo):**
+  - Antes, con la app en segundo plano, los cambios no aparecían hasta cerrarla y
+    reabrirla. Ahora el service worker está en modo `prompt` con registro manual
+    (`src/lib/pwaUpdate.ts`): al **pulsar Inicio** o al **volver a primer plano**
+    la app comprueba si hay versión nueva; si la hay, muestra la pantalla
+    **"Instalando actualización…"** (`AutoUpdater`) y se **reinicia sola** con la
+    versión nueva. Nota: la 1ª vez cada dispositivo aún migra con el mecanismo
+    anterior; a partir de ahí el nuevo flujo funciona sin cerrar la app.
+
 - **v1.33.2 · Reservas: limpiar canceladas:**
   - **Borradas** de producción las reservas **canceladas** (4 filas / 3 grupos;
     backup en `actas/backups/reservas-canceladas-20260716.json`).

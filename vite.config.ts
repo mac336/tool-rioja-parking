@@ -27,7 +27,12 @@ export default defineConfig({
   plugins: [
     react(),
     VitePWA({
-      registerType: 'autoUpdate',
+      // 'prompt' + registro manual (src/lib/pwaUpdate.ts): la versión nueva queda
+      // en espera y la aplicamos nosotros con la pantalla "Instalando actualización…"
+      // (al pulsar Inicio o al volver la app a primer plano). Así no hay que cerrar
+      // del todo la app para ver los cambios.
+      registerType: 'prompt',
+      injectRegister: null,
       includeAssets: ['favicon.svg', 'apple-touch-icon.png'],
       manifest: {
         name: 'Rioja 25 — Comunidad',

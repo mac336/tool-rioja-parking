@@ -2,7 +2,9 @@ import { create } from 'zustand'
 import type { Profile, ThemeMode, MensajeTipo } from '@/types'
 import { usingSupabase } from '@/lib/supabase'
 import { getUser as mockGetUser, setUserRole as mockSetRole } from '@/lib/apiMock'
-import { actualizarNombre, listRolePermisos } from '@/lib/api'
+import { actualizarNombre, listRolePermisos, getConfig, registrarPwa } from '@/lib/api'
+import { CONFIG_DEFAULT, type AppConfig } from '@/lib/db/config'
+import { isStandalone } from '@/lib/pwa'
 import { setPermisosActuales, CATALOGO_PERMISOS } from '@/lib/roles'
 import { loadProfile, statusFromProfile, onAuthChange, signOut as sbSignOut, type AuthStatus } from '@/lib/session'
 
@@ -31,7 +33,9 @@ interface AppState {
   theme: ThemeMode
   palette: Palette
   msgColors: MsgColors
+  config: AppConfig // feature flags (acceso_directo, reservas_requieren_aprobacion)
   toasts: Toast[]
+  refreshConfig: () => Promise<void>
   setRole: (rol: Profile['rol']) => void
   verComo: (rol: Profile['rol']) => Promise<void>
   salirVerComo: () => Promise<void>
@@ -66,6 +70,7 @@ applyTheme(savedTheme)
 applyPalette(savedPalette)
 
 let toastId = 0
+let pwaMarcada = false // evita registrar la PWA más de una vez por sesión
 
 export const useApp = create<AppState>((set, get) => ({
   user: mockGetUser(), // en modo supabase es solo un placeholder hasta cargar el perfil
@@ -74,7 +79,11 @@ export const useApp = create<AppState>((set, get) => ({
   theme: savedTheme,
   palette: savedPalette,
   msgColors: loadMsgColors(),
+  config: { ...CONFIG_DEFAULT },
   toasts: [],
+  refreshConfig: async () => {
+    try { set({ config: await getConfig() }) } catch { /* mantiene defaults seguros */ }
+  },
   setRole: (rol) => {
     // Selector DEMO (solo modo mock).
     mockSetRole(rol)
@@ -116,6 +125,12 @@ export const useApp = create<AppState>((set, get) => ({
     const p = await loadProfile()
     if (p) {
       set({ user: p, authStatus: statusFromProfile(p), rolReal: null })
+      // Si el vecino activo abre la app INSTALADA, lo registramos (analítica de
+      // adopción). Best-effort y una sola vez por sesión.
+      if (p.estado === 'activo' && isStandalone() && !pwaMarcada) {
+        pwaMarcada = true
+        void registrarPwa().catch(() => { pwaMarcada = false })
+      }
       // Permisos efectivos del rol (app_admin = todos) para adaptar la interfaz.
       try {
         const matriz = await listRolePermisos()
@@ -155,6 +170,9 @@ export const useApp = create<AppState>((set, get) => ({
   },
   dismissToast: (id) => set((s) => ({ toasts: s.toasts.filter((t) => t.id !== id) })),
 }))
+
+// Bootstrap: carga los feature flags (también sin sesión: el login los necesita).
+void useApp.getState().refreshConfig()
 
 // Bootstrap de sesión real (solo con Supabase): carga el perfil y escucha cambios.
 if (usingSupabase) {

@@ -105,11 +105,17 @@ export async function crearVecinoDirecto(input: { nombre: string; email: string;
 
 /** Cuántas cuentas activas hay y cuántas han iniciado sesión alguna vez.
  *  (Función `stats_acceso`, solo gestión; migración 0024.) */
-export async function statsAcceso(): Promise<{ creados: number; entrados: number }> {
+export async function statsAcceso(): Promise<{ creados: number; entrados: number; instalados: number }> {
   const { data, error } = await supabase.rpc('stats_acceso')
   if (error) throw error
-  const row = (Array.isArray(data) ? data[0] : data) as { creados?: number; entrados?: number } | null
-  return { creados: row?.creados ?? 0, entrados: row?.entrados ?? 0 }
+  const row = (Array.isArray(data) ? data[0] : data) as { creados?: number; entrados?: number; instalados?: number } | null
+  return { creados: row?.creados ?? 0, entrados: row?.entrados ?? 0, instalados: row?.instalados ?? 0 }
+}
+
+/** Marca la cuenta actual como "app instalada" (la llama la app si corre en
+ *  modo standalone). Best-effort; no bloquea nada si falla. */
+export async function registrarPwa(): Promise<void> {
+  await supabase.rpc('registrar_pwa')
 }
 
 /** Por vivienda con cuenta activa: nº de cuentas y cuántas han entrado alguna

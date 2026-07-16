@@ -4,6 +4,7 @@
 // horario: son N filas que comparten `grupo_id` y se gestionan en bloque.
 // Firmas idénticas al mock (src/lib/apiMock.ts).
 import { supabase } from '@/lib/supabase'
+import { getConfig } from './config'
 import type { Reserva, ReservaGrupo, CrearReservaInput, ZonaComun } from '@/types'
 
 // franja_min/franja_max llegan como `time` ('09:00:00') → recortar a 'HH:MM'.
@@ -88,7 +89,7 @@ export async function reservaVigente(): Promise<ReservaGrupo | null> {
   const { data, error } = await supabase.from('reservas')
     .select(RESERVA_SELECT)
     .eq('vivienda', vivienda)
-    .eq('estado', 'aprobada')
+    .in('estado', ['pendiente', 'aprobada'])
     .gte('fin', new Date().toISOString())
     .order('inicio', { ascending: true })
   if (error) throw error
@@ -117,9 +118,13 @@ export async function ocupacionDia(
 export async function crearReserva(input: CrearReservaInput): Promise<ReservaGrupo> {
   if (input.zonaIds.length === 0) throw new Error('Selecciona al menos una zona.')
   const { userId, vivienda } = await sesion()
-  // Aprobación directa: la reserva queda confirmada al crearse (ya no hay cola de
-  // aprobación). Con permiso 'reservar_otras_viviendas' se puede reservar a nombre
-  // de otra vivienda (la RLS lo verifica); si no, es la propia.
+  // Estado inicial según el flag app_config.reservas_requieren_aprobacion:
+  //  · false (por defecto) → 'aprobada' al instante (aprobación directa).
+  //  · true → 'pendiente' + aviso a la gestión (cola de aprobación).
+  // Con 'reservar_otras_viviendas' se puede reservar a nombre de otra vivienda
+  // (la RLS lo verifica y exige que sea un piso real); si no, es la propia.
+  const { reservas_requieren_aprobacion } = await getConfig()
+  const estado = reservas_requieren_aprobacion ? 'pendiente' as const : 'aprobada' as const
   const viviendaReserva = input.viviendaObjetivo?.trim() || vivienda
   const grupo_id = crypto.randomUUID()
   const filas = input.zonaIds.map((zonaId) => ({
@@ -130,7 +135,7 @@ export async function crearReserva(input: CrearReservaInput): Promise<ReservaGru
     inicio: input.inicio,
     fin: input.fin,
     num_invitados: input.numInvitados,
-    estado: 'aprobada' as const,
+    estado,
   }))
   // Un único INSERT con array → transacción atómica: si una zona solapa, el
   // constraint reservas_no_solapan aborta TODO el grupo (no quedan a medias).
@@ -139,6 +144,10 @@ export async function crearReserva(input: CrearReservaInput): Promise<ReservaGru
   if (error) {
     if (error.code === '23P01') throw new Error('Ese horario ya está ocupado en alguna de las zonas elegidas.')
     throw error
+  }
+  // Si nace pendiente, avisa a la gestión (best-effort; la reserva ya está creada).
+  if (estado === 'pendiente') {
+    void supabase.functions.invoke('notificar', { body: { kind: 'reserva_nueva', id: grupo_id } }).catch(() => undefined)
   }
   return agrupar((data ?? []).map((r) => toReserva(r as ReservaRow)))[0]
 }
@@ -166,12 +175,23 @@ async function conNombres(grupos: ReservaGrupo[]): Promise<ReservaGrupo[]> {
   return grupos.map((g) => ({ ...g, nombre: nombrePorId.get(g.solicitada_por) }))
 }
 
-/** Reservas confirmadas cuyo inicio cae en [desdeISO, hastaISO).
- *  Para la agenda mensual del panel de gestión. */
+/** Cola de reservas PENDIENTES (para aprobar). Vacía si la aprobación está
+ *  desactivada (no se crean pendientes). */
+export async function reservasPendientesGestion(): Promise<ReservaGrupo[]> {
+  const { data, error } = await supabase.from('reservas')
+    .select(RESERVA_SELECT)
+    .eq('estado', 'pendiente')
+    .order('inicio', { ascending: true })
+  if (error) throw error
+  return conNombres(agrupar((data ?? []).map((r) => toReserva(r as ReservaRow))))
+}
+
+/** Reservas (pendientes + aprobadas) cuyo inicio cae en [desdeISO, hastaISO).
+ *  Para la agenda mensual. */
 export async function reservasGestion(desdeISO: string, hastaISO: string): Promise<ReservaGrupo[]> {
   const { data, error } = await supabase.from('reservas')
     .select(RESERVA_SELECT)
-    .eq('estado', 'aprobada')
+    .in('estado', ['pendiente', 'aprobada'])
     .gte('inicio', desdeISO)
     .lt('inicio', hastaISO)
     .order('inicio', { ascending: true })
@@ -179,6 +199,19 @@ export async function reservasGestion(desdeISO: string, hastaISO: string): Promi
   const grupos = agrupar((data ?? []).map((r) => toReserva(r as ReservaRow)))
     .sort((a, b) => a.inicio.localeCompare(b.inicio))
   return conNombres(grupos)
+}
+
+/** Aprobar/rechazar un grupo de reserva pendiente (gestión). */
+export async function resolverReserva(grupoId: string, aprobar: boolean, motivo?: string): Promise<void> {
+  if (!UUID_RE.test(grupoId)) throw new Error('Identificador de reserva no válido.')
+  const { data: { user } } = await supabase.auth.getUser()
+  if (!user) throw new Error('No autenticado')
+  const { error } = await supabase.from('reservas')
+    .update({ estado: aprobar ? 'aprobada' : 'rechazada', motivo_rechazo: motivo ?? null, aprobada_por: user.id })
+    .or(`grupo_id.eq.${grupoId},id.eq.${grupoId}`)
+  if (error) throw error
+  // Avisar al solicitante (best-effort).
+  void supabase.functions.invoke('notificar-reserva', { body: { grupoId, aprobar } }).catch(() => undefined)
 }
 
 export interface EstadisticasReservas {

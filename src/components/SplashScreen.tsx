@@ -2,7 +2,7 @@ import { useEffect, useState } from 'react'
 import { ArrowRight, Share, SquarePlus, Download, Smartphone, Check, Compass, MoreHorizontal } from 'lucide-react'
 import { Logo } from '@/components/Logo'
 import { cx } from '@/components/ui'
-import { ACCESO_DIRECTO } from '@/lib/session'
+import { useApp } from '@/store'
 import { getDeferredPrompt, clearDeferredPrompt, isStandalone, getPlataforma, esSafariIOS } from '@/lib/pwa'
 
 /** Pantalla de bienvenida al abrir la app. Dos pasos: (1) bienvenida y (2)
@@ -15,6 +15,7 @@ export function SplashScreen({ onDone }: { onDone: () => void }) {
   const [entered, setEntered] = useState(false)
   const [leaving, setLeaving] = useState(false)
   const [paso, setPaso] = useState<Paso>('bienvenida')
+  const directo = useApp((s) => s.config.acceso_directo)
   const [plataforma] = useState(getPlataforma)
   const [safariIOS] = useState(esSafariIOS)
   const [instalable, setInstalable] = useState<boolean>(() => !!getDeferredPrompt())
@@ -72,7 +73,7 @@ export function SplashScreen({ onDone }: { onDone: () => void }) {
               incidencias, reservas, votaciones y avisos, al alcance de tu mano.
             </p>
 
-            {!ACCESO_DIRECTO && (
+            {!directo && (
               <p className="mt-4 rounded-[14px] bg-white/10 px-4 py-2.5 text-[13px] leading-snug text-white/85">
                 Para entrar recibirás un <b>código por correo</b>. Si no te llega,
                 revisa tu carpeta de <b>spam</b> o correo no deseado.

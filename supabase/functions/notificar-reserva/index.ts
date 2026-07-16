@@ -1,7 +1,8 @@
 // Edge Function: notificar-reserva
 // Avisa al vecino solicitante cuando su reserva se aprueba o rechaza: por correo
 // (Gmail SMTP) y, si tiene suscripción, por notificación push. La llama la app
-// tras resolver la reserva. El llamante debe tener permiso 'aprobar_reservas'.
+// tras resolver la reserva. El llamante debe ser gestión (permiso 'panel').
+// Solo se usa cuando el flag app_config.reservas_requieren_aprobacion está ON.
 import { SMTPClient } from 'https://deno.land/x/denomailer@1.6.0/mod.ts'
 import { createClient } from 'jsr:@supabase/supabase-js@2'
 import { corsHeaders, json } from '../_shared/cors.ts'
@@ -33,9 +34,10 @@ Deno.serve(async (req) => {
     const admin = createClient(SUPABASE_URL, SERVICE_ROLE)
     const { data: perfil } = await admin.from('profiles').select('rol, estado').eq('id', user.id).single()
     if (!perfil || perfil.estado !== 'activo') return json({ error: 'Sin permiso.' }, 403)
+    // Aprueban las reservas: la gestión (permiso 'panel'). app_admin siempre.
     if (perfil.rol !== 'app_admin') {
       const { data: perm } = await admin.from('role_permissions')
-        .select('permiso').eq('rol', perfil.rol).eq('permiso', 'aprobar_reservas').maybeSingle()
+        .select('permiso').eq('rol', perfil.rol).eq('permiso', 'panel').maybeSingle()
       if (!perm) return json({ error: 'Sin permiso.' }, 403)
     }
 

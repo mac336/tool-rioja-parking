@@ -8,10 +8,11 @@ import { iniciales } from '@/lib/format'
 
 export type AuthStatus = 'loading' | 'anon' | 'pending' | 'active' | 'suspended'
 
-// ⚠️ TEMPORAL: acceso directo solo con el correo (sin código), para vecinos ya
-// aprobados. Muchos vecinos mayores se lían con el flujo del código. Poner en
-// `false` para volver al bloqueo por código OTP (no requiere más cambios).
-export const ACCESO_DIRECTO = true
+// Acceso directo (solo correo, sin código) para vecinos aprobados. Desde v1.32
+// el valor REAL es un flag EN VIVO en `app_config.acceso_directo` (Gestión →
+// Configuración), que la app lee al arrancar (store.config). Esta constante es
+// solo el valor por defecto/semilla; el interruptor lo cambia el app_admin.
+export const ACCESO_DIRECTO_DEFAULT = true
 
 /** Acceso directo (solo correo): pide una sesión al servidor para un vecino
  *  aprobado y la establece. No envía ningún correo. Devuelve `error` (código

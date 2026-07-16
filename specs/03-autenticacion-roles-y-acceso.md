@@ -12,14 +12,25 @@ lo ofrezca automáticamente.
 > sesión se recuerda en el dispositivo (persistente). Emisor de correo: SMTP de
 > Gmail de la comunidad (`cdelarioja25@gmail.com`).
 
-> **Acceso directo (TEMPORAL, flag `ACCESO_DIRECTO=true` en `src/lib/session.ts`):**
-> para facilitar la entrada a vecinos mayores, si el correo introducido es de un
+> **Acceso directo (flag EN VIVO `app_config.acceso_directo`, editable en
+> Gestión → Configuración):** con `true` (por defecto), si el correo es de un
 > vecino **ya aprobado y activo**, la app le da sesión **directamente sin código**
-> (Edge Function `acceso-directo`: genera un token de magic link sin enviar
-> correo y lo canjea por sesión). Es login por correo como **único factor**
-> (relajación deliberada de seguridad). Para volver al bloqueo por código OTP:
-> poner el flag en `false` (no requiere más cambios; la función puede quedarse
-> desplegada, deja de llamarse).
+> (Edge `acceso-directo`: genera un token de magic link sin enviar correo y lo
+> canjea por sesión) — login por correo como único factor, para facilitar la
+> entrada a vecinos mayores. Con `false` vuelve al **código OTP de 6 dígitos**.
+> El app_admin lo cambia **sin desplegar** (la app lee el flag al arrancar, incluso
+> sin sesión). `ACCESO_DIRECTO_DEFAULT` en `session.ts` es solo el valor semilla.
+
+## Configuración general (`app_config`, mig. 0046)
+
+Tabla clave→valor de **feature flags** que el app_admin cambia en vivo desde
+**Gestión → Configuración** (pestaña visible solo para app_admin):
+- **`acceso_directo`** (bool, def. `true`): código al entrar sí/no (arriba).
+- **`reservas_requieren_aprobacion`** (bool, def. `false`): ver `specs/07`.
+
+Lectura **pública** (los flags no son sensibles y el login los necesita sin
+sesión); escritura solo app_admin (RLS). La app los carga al arrancar
+(`store.config`).
 
 ## Autenticado ≠ autorizado
 

@@ -18,15 +18,17 @@ import {
 import type { Profile, Role, Mensaje } from '@/types'
 import { PISOS, VIVIENDAS_ESPECIALES } from '@/lib/parking'
 import { useApp } from '@/store'
-import { AgendaMensual } from '@/features/bookings/AgendaMensual'
+import { AgendaMensual, ReservaCard } from '@/features/bookings/AgendaMensual'
 import {
   listAccessRequests, resolverSolicitud, listVecinos, suspenderVecino, cambiarRolVecino,
   editarVecino, darDeBajaVecino, eliminarVecinoDefinitivo, crearVecinoDirecto,
+  reservasPendientesGestion, resolverReserva,
   publicacionesGestion, moderarPublicacion,
   listRolePermisos, setRolePermiso,
+  getConfig, setConfig,
 } from '@/lib/api'
 
-type TabKey = 'vecinos' | 'publicaciones' | 'reservas' | 'permisos'
+type TabKey = 'vecinos' | 'publicaciones' | 'reservas' | 'permisos' | 'config'
 type Seleccion = { vivienda: string; rol: Role }
 type Toast = (t: string, tipo?: 'ok' | 'error' | 'info') => void
 
@@ -53,6 +55,7 @@ export function AdminPage() {
     { key: 'publicaciones', label: 'Publicaciones', show: puedeModerarPublicaciones(rol), count: n.publicaciones },
     { key: 'reservas', label: 'Reservas', show: puedeAdmin(rol), count: 0 },
     { key: 'permisos', label: 'Permisos', show: true, count: 0 },
+    { key: 'config', label: 'Configuración', show: esAppAdmin(rol), count: 0 },
   ] as { key: TabKey; label: string; show: boolean; count: number }[]).filter((t) => t.show)
 
   const [tab, setTab] = useState<TabKey>(tabs[0]?.key ?? 'permisos')
@@ -87,9 +90,10 @@ export function AdminPage() {
 
       <div className="px-4 py-4">
         {tab === 'publicaciones' && <PublicacionesTab onToast={toast} onChanged={refrescar} />}
-        {tab === 'reservas' && <ReservasTab />}
+        {tab === 'reservas' && <ReservasTab onToast={toast} />}
         {tab === 'vecinos' && <VecinosTab canManage={puedeAprobarAltas(rol)} currentUserId={user.id} onToast={toast} onChanged={refrescar} />}
         {tab === 'permisos' && <PermisosTab canEdit={esAppAdmin(rol)} onToast={toast} />}
+        {tab === 'config' && <ConfiguracionTab onToast={toast} />}
       </div>
     </div>
   )
@@ -165,13 +169,47 @@ function SolicitudesPendientes({ canApprove, onToast, onChanged }: { canApprove:
   )
 }
 
-// ---- Reservas (agenda mensual, componente compartido con el servicio) -------
-function ReservasTab() {
+// ---- Reservas (cola de aprobación si está activa + agenda mensual) ----------
+function ReservasTab({ onToast }: { onToast: Toast }) {
+  const pend = useAsync(reservasPendientesGestion, [])
+  const [busy, setBusy] = useState<string | null>(null)
+  const [agendaKey, setAgendaKey] = useState(0)
+  const pendientes = pend.data ?? []
+
+  async function resolver(g: { grupo_id: string }, aprobar: boolean) {
+    setBusy(g.grupo_id)
+    try {
+      await resolverReserva(g.grupo_id, aprobar)
+      onToast(aprobar ? 'Reserva aprobada' : 'Reserva rechazada', aprobar ? 'ok' : 'info')
+      pend.refetch(); setAgendaKey((k) => k + 1)
+    } catch {
+      onToast('No se ha podido completar la acción', 'error')
+    } finally { setBusy(null) }
+  }
+
   return (
-    <section>
-      <SectionTitle icon={<CalendarDays size={15} />}>Agenda del mes</SectionTitle>
-      <AgendaMensual />
-    </section>
+    <div className="flex flex-col gap-5">
+      {/* Cola de aprobación: solo si hay pendientes (aprobación activa). */}
+      {pendientes.length > 0 && (
+        <section>
+          <SectionTitle icon={<Clock size={15} />}>Pendientes de aprobar ({pendientes.length})</SectionTitle>
+          <div className="flex flex-col gap-3">
+            {pendientes.map((g) => (
+              <ReservaCard key={g.grupo_id} g={g}>
+                <div className="mt-3 flex gap-2">
+                  <Button block disabled={busy === g.grupo_id} onClick={() => resolver(g, true)}><Check size={17} /> Aprobar</Button>
+                  <Button block variant="danger-outline" disabled={busy === g.grupo_id} onClick={() => resolver(g, false)}><X size={17} /> Rechazar</Button>
+                </div>
+              </ReservaCard>
+            ))}
+          </div>
+        </section>
+      )}
+      <section>
+        <SectionTitle icon={<CalendarDays size={15} />}>Agenda del mes</SectionTitle>
+        <AgendaMensual key={agendaKey} />
+      </section>
+    </div>
   )
 }
 
@@ -567,6 +605,63 @@ function PublicacionesTab({ onToast, onChanged }: { onToast: Toast; onChanged: (
           </div>
         </section>
       )}
+    </div>
+  )
+}
+
+// ---- Configuración general (feature flags; solo app_admin) -------------------
+function ConfiguracionTab({ onToast }: { onToast: Toast }) {
+  const refreshConfig = useApp((s) => s.refreshConfig)
+  const { data, state, refetch } = useAsync(getConfig, [])
+  const [cfg, setCfg] = useState<{ acceso_directo: boolean; reservas_requieren_aprobacion: boolean } | null>(null)
+  const [busy, setBusy] = useState<string | null>(null)
+  const efectivo = cfg ?? data
+
+  if (state === 'loading') return <SkeletonList n={2} />
+  if (state === 'error' || !efectivo) return <ErrorState onRetry={refetch} />
+
+  async function cambiar(clave: 'acceso_directo' | 'reservas_requieren_aprobacion', valor: boolean) {
+    const next = { ...efectivo!, [clave]: valor }
+    setCfg(next); setBusy(clave)
+    try {
+      await setConfig(clave, valor)
+      await refreshConfig() // el login y las reservas leen el flag del store
+      onToast('Configuración actualizada', 'ok')
+    } catch {
+      onToast('No se pudo guardar', 'error'); setCfg({ ...efectivo!, [clave]: !valor })
+    } finally { setBusy(null) }
+  }
+
+  const Toggle = ({ on, onClick, disabled }: { on: boolean; onClick: () => void; disabled?: boolean }) => (
+    <button type="button" role="switch" aria-checked={on} disabled={disabled} onClick={onClick}
+      className={cx('relative h-6 w-11 shrink-0 rounded-full transition-colors', on ? 'bg-primary' : 'border border-border bg-surface-2', disabled && 'opacity-60')}>
+      <span className={cx('absolute top-0.5 h-5 w-5 rounded-full bg-white shadow transition-all', on ? 'left-[22px]' : 'left-0.5')} />
+    </button>
+  )
+
+  // "Pedir código al entrar" = inverso de acceso_directo.
+  const pedirCodigo = !efectivo.acceso_directo
+  return (
+    <div className="flex flex-col gap-3">
+      <p className="text-[13px] text-muted">Ajustes generales de la app. Los cambios se aplican <b>en vivo</b>, sin desplegar.</p>
+
+      <Card className="flex flex-col divide-y divide-border">
+        <div className="flex items-center justify-between gap-3 py-2 first:pt-0">
+          <div className="min-w-0">
+            <div className="text-[14px] font-semibold text-ink">Pedir código al entrar</div>
+            <div className="text-[12px] text-muted">Si está activo, los vecinos deben introducir un código que reciben por correo (OTP). Si no, entran solo con su correo. Actívalo cuando todos tengan la app instalada.</div>
+          </div>
+          <Toggle on={pedirCodigo} disabled={busy === 'acceso_directo'} onClick={() => cambiar('acceso_directo', pedirCodigo /* pasa a acceso_directo=true (sin código) al desactivar */)} />
+        </div>
+        <div className="flex items-center justify-between gap-3 py-2 last:pb-0">
+          <div className="min-w-0">
+            <div className="text-[14px] font-semibold text-ink">Aprobación de reservas</div>
+            <div className="text-[12px] text-muted">Si está activo, cada reserva queda pendiente hasta que la gestión la apruebe (aparece una cola en “Reservas”). Si no, la reserva se confirma al instante.</div>
+          </div>
+          <Toggle on={efectivo.reservas_requieren_aprobacion} disabled={busy === 'reservas_requieren_aprobacion'}
+            onClick={() => cambiar('reservas_requieren_aprobacion', !efectivo.reservas_requieren_aprobacion)} />
+        </div>
+      </Card>
     </div>
   )
 }

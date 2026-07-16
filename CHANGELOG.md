@@ -5,6 +5,23 @@ al implementar el cambio (ver `CLAUDE.md` → Forma de trabajo).
 
 ## 2026-07-16
 
+- **v1.32.0 · Configuración general (feature flags) + analítica de instalación:**
+  - Nueva pestaña **Gestión → Configuración** (solo app_admin) con ajustes que se
+    cambian **en vivo, sin desplegar** (tabla `app_config`, mig. 0046):
+    - **Pedir código al entrar**: reactiva la comprobación por código OTP
+      (invierte `acceso_directo`). Pensado para reactivar el "password" cuando
+      todos tengan la app instalada. El login lee el flag al arrancar.
+    - **Aprobación de reservas**: si se activa, las reservas vuelven a nacer
+      `pendiente` con **cola de aprobación** en el panel (la gestión aprueba); si
+      no, siguen siendo de aprobación directa. No se borró el código de
+      aprobación: se reactiva con el flag.
+  - **Analítica de adopción**: el Dashboard de la app muestra ahora cuántos
+    vecinos **han entrado** (desde el enlace) y cuántos tienen la **app instalada**
+    en el móvil (se detecta el modo standalone y se sella `profiles.pwa_at`;
+    mig. 0047).
+
+## 2026-07-16
+
 - **v1.31.1 · Auditoría de seguridad (endurecimiento RLS):**
   - **Reservas — `es_piso`**: se restaura el filtro que impide reservar a nombre
     de una vivienda "especial" (Conserje/Administrador/Tester); se había perdido

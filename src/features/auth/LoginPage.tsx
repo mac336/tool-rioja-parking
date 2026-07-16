@@ -3,7 +3,7 @@ import { Link, useNavigate } from 'react-router-dom'
 import { Logo } from '@/components/Logo'
 import { Button, Field, Alert } from '@/components/ui'
 import { usingSupabase } from '@/lib/supabase'
-import { enviarCodigo, verificarCodigo, accesoDirecto, ACCESO_DIRECTO } from '@/lib/session'
+import { enviarCodigo, verificarCodigo, accesoDirecto } from '@/lib/session'
 import { useApp } from '@/store'
 
 type Paso = 'correo' | 'codigo'
@@ -11,6 +11,9 @@ type Paso = 'correo' | 'codigo'
 export function LoginPage() {
   const nav = useNavigate()
   const refreshAuth = useApp((s) => s.refreshAuth)
+  // Flag EN VIVO (Gestión → Configuración): true = entrar solo con correo;
+  // false = exigir código OTP ("comprobación de cuenta").
+  const directo = useApp((s) => s.config.acceso_directo)
   const [paso, setPaso] = useState<Paso>('correo')
   // Recuerda el último correo usado en este dispositivo (para no reescribirlo).
   const [email, setEmail] = useState(() => {
@@ -27,7 +30,7 @@ export function LoginPage() {
     if (!usingSupabase) { nav('/'); return } // modo demo: acceso directo
 
     // TEMPORAL: acceso directo solo con el correo (sin código) para aprobados.
-    if (ACCESO_DIRECTO) {
+    if (directo) {
       setCargando(true)
       const { error } = await accesoDirecto(email.trim())
       if (error) {
@@ -91,15 +94,15 @@ export function LoginPage() {
           <>
             {error && <Alert tipo="danger">{error}</Alert>}
             <p className="text-center text-[14px] text-muted">
-              {ACCESO_DIRECTO
+              {directo
                 ? 'Si ya estás registrado, introduce tu correo y entra directamente.'
                 : 'Si ya estás registrado, introduce tu correo y te enviaremos un código de acceso.'}
             </p>
             <Field label="Tu correo" type="email" autoComplete="email" value={email} onChange={(e) => setEmail(e.target.value)} placeholder="tucorreo@ejemplo.com" />
             <Button variant="primary" block size="lg" disabled={cargando} onClick={pedirCodigo}>
-              {ACCESO_DIRECTO ? (cargando ? 'Entrando…' : 'Entrar') : (cargando ? 'Enviando…' : 'Enviarme el código')}
+              {directo ? (cargando ? 'Entrando…' : 'Entrar') : (cargando ? 'Enviando…' : 'Enviarme el código')}
             </Button>
-            {!ACCESO_DIRECTO && (
+            {!directo && (
               <p className="text-center text-[13px] text-faint">El código llega por correo. Si no lo ves, revisa tu carpeta de <b>spam</b> o correo no deseado.</p>
             )}
 

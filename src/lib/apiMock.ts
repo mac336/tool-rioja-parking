@@ -168,7 +168,7 @@ export function crearReserva(input: CrearReservaInput): Promise<ReservaGrupo> {
     const r: Reserva = {
       id: uid(), grupo_id, zona_id: zonaId, zona_nombre: zona.nombre, vivienda: input.viviendaObjetivo?.trim() || currentUser.vivienda,
       solicitada_por: currentUser.id, inicio: input.inicio, fin: input.fin, num_invitados: input.numInvitados,
-      estado: 'aprobada', created_at: now(),
+      estado: appConfig.reservas_requieren_aprobacion ? 'pendiente' : 'aprobada', created_at: now(),
     }
     db.reservas.push(r)
     return r
@@ -200,12 +200,28 @@ export function estadisticasReservas(): Promise<EstadisticasReservas> {
   return delay({ aprobadasMes, aprobadasAnio, canceladasAnio, totalAnio, ranking })
 }
 
-// Agenda mensual de gestión: reservas confirmadas cuyo inicio cae en el rango.
+// Agenda mensual de gestión: reservas (pendientes + aprobadas) del rango.
 export const reservasGestion = (desdeISO: string, hastaISO: string): Promise<ReservaGrupo[]> =>
   delay(agrupar(db.reservas.filter((r) =>
-    r.estado === 'aprobada' && r.inicio >= desdeISO && r.inicio < hastaISO))
+    (r.estado === 'pendiente' || r.estado === 'aprobada') && r.inicio >= desdeISO && r.inicio < hastaISO))
     .map((g) => ({ ...g, nombre: nombreDe(g.solicitada_por) }))
     .sort((a, b) => a.inicio.localeCompare(b.inicio)))
+
+// Cola de pendientes por aprobar (vacía si la aprobación está desactivada).
+export const reservasPendientesGestion = (): Promise<ReservaGrupo[]> =>
+  delay(agrupar(db.reservas.filter((r) => r.estado === 'pendiente'))
+    .map((g) => ({ ...g, nombre: nombreDe(g.solicitada_por) }))
+    .sort((a, b) => a.inicio.localeCompare(b.inicio)))
+
+export function resolverReserva(grupoId: string, aprobar: boolean, motivo?: string): Promise<void> {
+  for (const r of db.reservas) {
+    if (claveGrupo(r) !== grupoId) continue
+    r.estado = aprobar ? 'aprobada' : 'rechazada'
+    r.motivo_rechazo = motivo
+    r.aprobada_por = currentUser.id
+  }
+  return delay(undefined)
+}
 
 const nombreDe = (id: string) => db.profiles.find((p) => p.id === id)?.nombre ?? '—'
 
@@ -293,10 +309,11 @@ export function editarVecino(id: string, patch: { nombre?: string; vivienda?: st
 export interface Sugerencia { id: string; nombre: string; vivienda: string | null; texto: string; created_at: string }
 const sugerenciasDemo: Sugerencia[] = []
 export function listSugerencias(): Promise<Sugerencia[]> { return delay(sugerenciasDemo.slice()) }
-export function statsAcceso(): Promise<{ creados: number; entrados: number }> {
+export function statsAcceso(): Promise<{ creados: number; entrados: number; instalados: number }> {
   const activos = db.profiles.filter((p) => p.estado === 'activo').length
-  return delay({ creados: activos, entrados: activos })
+  return delay({ creados: activos, entrados: activos, instalados: Math.round(activos / 2) })
 }
+export function registrarPwa(): Promise<void> { return delay(undefined) }
 export function statsAccesoPorVivienda(): Promise<{ vivienda: string; cuentas: number; entrados: number }[]> {
   const m = new Map<string, { cuentas: number; entrados: number }>()
   for (const p of db.profiles) {
@@ -476,6 +493,16 @@ export function listAvisos(): Promise<Aviso[]> {
   const miReserva = db.reservas.find((r) => r.solicitada_por === currentUser.id && r.estado === 'aprobada')
   if (miReserva) avisos.push({ id: 'av-res', texto: `Tu reserva de ${miReserva.zona_nombre} está aprobada`, cuando: fechaCorta(miReserva.inicio), to: '/reservas/mias', ts: miReserva.created_at })
   return delay(avisos.sort((a, b) => b.ts.localeCompare(a.ts)))
+}
+
+// ---- Configuración general (feature flags) -----------------------------------
+const appConfig = { acceso_directo: true, reservas_requieren_aprobacion: false }
+export function getConfig(): Promise<{ acceso_directo: boolean; reservas_requieren_aprobacion: boolean }> {
+  return delay({ ...appConfig })
+}
+export function setConfig(clave: 'acceso_directo' | 'reservas_requieren_aprobacion', valor: boolean): Promise<void> {
+  appConfig[clave] = valor
+  return delay(undefined)
 }
 
 // ---- Mi Comunidad (dashboard económico) --------------------------------------

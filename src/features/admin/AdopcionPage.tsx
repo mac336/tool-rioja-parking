@@ -73,9 +73,14 @@ export function AdopcionView() {
                   {total} viviendas en total · {cuentas} {cuentas === 1 ? 'cuenta activa' : 'cuentas activas'}
                 </div>
                 {acceso && (
-                  <div className="mt-1 text-[12.5px] font-semibold text-primary-700">
-                    {acceso.entrados} de {acceso.creados} {acceso.creados === 1 ? 'cuenta ha entrado' : 'cuentas han entrado'} alguna vez
-                  </div>
+                  <>
+                    <div className="mt-1 text-[12.5px] font-semibold text-primary-700">
+                      {acceso.entrados} de {acceso.creados} {acceso.creados === 1 ? 'cuenta ha entrado' : 'cuentas han entrado'} desde el enlace
+                    </div>
+                    <div className="mt-0.5 text-[12.5px] font-semibold text-primary-700">
+                      {acceso.instalados} {acceso.instalados === 1 ? 'tiene' : 'tienen'} la app instalada en el móvil
+                    </div>
+                  </>
                 )}
               </div>
             </Card>

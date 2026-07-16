@@ -43,9 +43,12 @@ conserje) puede reservar **a nombre de otra vivienda**.
    **hora de inicio**, **hora de fin** y **número de invitados**. Se crea
    directamente con estado **`aprobada`**. Con `reservar_otras_viviendas` se
    puede además **elegir la vivienda** a nombre de la que se reserva.
-2. **Sin aprobación**: no hay cola de aprobación (retirado el permiso
-   `aprobar_reservas`, mig. 0039). Las solicitudes que un vecino sin app haga en
-   persona las mete el **conserje** con `reservar_otras_viviendas`.
+2. **Aprobación (configurable)**: flag `app_config.reservas_requieren_aprobacion`
+   (Gestión → Configuración; por defecto **OFF** = aprobación directa). Con el
+   flag **ON**, la reserva nace `pendiente`, avisa a la gestión y aparece una
+   **cola "Pendientes de aprobar"** en el panel (Gestión → Reservas), donde la
+   gestión (`es_gestion`) aprueba/rechaza (`resolverReserva` + `notificar-reserva`).
+   El permiso `aprobar_reservas` se retiró (mig. 0039); ahora aprueba la gestión.
 2b. **Agenda mensual**: un **calendario del mes** marca cada día con reservas
    con un **punto de color por zona** distinta reservada ese día (varias zonas
    el mismo día = varios puntos; leyenda de colores debajo del calendario); se

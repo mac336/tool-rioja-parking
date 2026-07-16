@@ -10,7 +10,7 @@ export {
 } from './db/encuestas'
 export {
   listZonas, misReservas, reservaVigente, ocupacionDia, crearReserva, cancelarReserva,
-  reservasGestion, estadisticasReservas,
+  reservasGestion, reservasPendientesGestion, resolverReserva, estadisticasReservas,
 } from './db/reservas'
 export {
   parkingMisTurnos, misCesiones, cesionesActivas,
@@ -21,7 +21,7 @@ export {
 } from './db/contactos'
 export {
   listAccessRequests, resolverSolicitud, crearSolicitud, listVecinos, suspenderVecino, cambiarRolVecino,
-  editarVecino, darDeBajaVecino, eliminarVecinoDefinitivo, crearVecinoDirecto, statsAcceso, statsAccesoPorVivienda, listAvisos,
+  editarVecino, darDeBajaVecino, eliminarVecinoDefinitivo, crearVecinoDirecto, statsAcceso, statsAccesoPorVivienda, registrarPwa, listAvisos,
 } from './db/admin'
 export { listRolePermisos, setRolePermiso } from './db/permisos'
 export { listSugerencias } from './db/sugerencias'
@@ -30,3 +30,4 @@ export { listMensajes, crearMensaje, editarMensaje, borrarMensaje, crearPublicac
 export { listHilos, getHilo, crearHilo, crearHiloComoGestion, listDirectorio, responderHilo, cerrarHilo, borrarHilo, convertirEnMensaje } from './db/buzon'
 export { actualizarNombre } from './db/perfil'
 export { getComunidadDatos } from './db/comunidad'
+export { getConfig, setConfig } from './db/config'

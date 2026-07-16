@@ -27,10 +27,14 @@ Al implementar algo nuevo o cambiar algo existente:
 
 ## Estado y decisiones vigentes (resumen)
 
-- **Login:** sin contraseña. **TEMPORAL (flag `ACCESO_DIRECTO`):** los vecinos
-  aprobados entran **solo con su correo, sin código** (Edge `acceso-directo`),
-  por usabilidad con gente mayor. Con el flag en `false` vuelve al **código OTP
-  de 6 dígitos por correo**. No hay Google ni enlace mágico. Ver `specs/03`.
+- **Login:** sin contraseña. **Flag EN VIVO `acceso_directo`** (tabla `app_config`,
+  editable en **Gestión → Configuración** por el app_admin): con `true` los vecinos
+  aprobados entran **solo con su correo, sin código** (Edge `acceso-directo`), por
+  usabilidad con gente mayor; con `false` vuelve al **código OTP de 6 dígitos por
+  correo**. No hay Google ni enlace mágico. Ver `specs/03`.
+- **Configuración general (`app_config`):** feature flags que el app_admin cambia
+  sin desplegar (Gestión → Configuración): `acceso_directo` y
+  `reservas_requieren_aprobacion`. Ver `specs/03` y `specs/07`.
 - **Roles (8):** `app_admin` (SUPERADMIN), `presidente`, `vicepresidente`,
   `administrador_finca`, `junta`, `conserje`, `vecino`, `tester` (cuenta de
   pruebas SOLO lectura + chat del buzón).
@@ -56,7 +60,9 @@ Al implementar algo nuevo o cambiar algo existente:
   aprobar un alta.
 - **PWA:** instalable; Android con botón nativo, iPhone con guía (solo Safari).
   Layout app-shell: la app se fija al viewport visible (`--app-h`), cabecera y
-  TabBar siempre fijos, solo scrollea el contenido.
+  TabBar siempre fijos, solo scrollea el contenido. Al abrirse **instalada**
+  (standalone) la app sella `profiles.pwa_at` (RPC `registrar_pwa`); el Dashboard
+  de la app muestra cuántos vecinos han entrado y cuántos la tienen instalada.
 - **Home = panel de gadgets SIN scroll** (tablón elástico de 1 línea + visor;
   servicios como pieza clave pegada al footer; TabBar solo Inicio y Más; "Más"
   solo con lo que no está en la Home). Ver `specs/10` y `specs/16`.

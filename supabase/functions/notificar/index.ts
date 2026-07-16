@@ -7,7 +7,7 @@
 import { createClient } from 'jsr:@supabase/supabase-js@2'
 import { SMTPClient } from 'https://deno.land/x/denomailer@1.6.0/mod.ts'
 import { corsHeaders, json } from '../_shared/cors.ts'
-import { enviarPush, enviarPushAUsuarios, idsPorRoles, idsConPermiso } from '../_shared/push.ts'
+import { enviarPush, enviarPushAUsuarios, idsPorRoles, idsConPermiso, idsGestion } from '../_shared/push.ts'
 
 const ROLES_CANAL: Record<string, string[]> = {
   administrador: ['administrador_finca'],
@@ -179,11 +179,7 @@ Deno.serve(async (req) => {
         { vivienda: string; inicio: string; solicitada_por: string; zona?: { nombre: string } | { nombre: string }[] | null } | undefined
       if (!r) return json({ ok: true, skipped: 'sin reserva' })
       if (r.solicitada_por !== user.id) return json({ error: 'Sin permiso.' }, 403)
-      const roles = new Set<string>(['app_admin'])
-      const { data: perms } = await admin.from('role_permissions')
-        .select('rol').eq('permiso', 'aprobar_reservas')
-      for (const p of perms ?? []) roles.add(p.rol as string)
-      const ids = await idsPorRoles(admin, [...roles])
+      const ids = await idsGestion(admin) // aprueban las reservas: la gestión (panel)
       const zonas = (filas ?? [])
         .map((f) => { const z = (f as { zona?: { nombre: string } | { nombre: string }[] | null }).zona; return Array.isArray(z) ? z[0]?.nombre : z?.nombre })
         .filter(Boolean).join(' + ')

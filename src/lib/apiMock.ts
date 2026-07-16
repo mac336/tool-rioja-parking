@@ -281,13 +281,16 @@ export function resolverSolicitud(id: string, aprobar: boolean, _vivienda?: stri
   if (r) r.estado = aprobar ? 'aprobada' : 'rechazada'
   return delay(undefined)
 }
-export function crearSolicitud(input: { nombre: string; email: string; vivienda: string; comentario?: string }): Promise<void> {
-  db.requests.push({ id: uid(), ...input, estado: 'pendiente', created_at: now() })
+export function crearSolicitud(input: { nombre: string; email: string; vivienda: string; comentario?: string; esInquilino?: boolean }): Promise<void> {
+  const { esInquilino, ...rest } = input
+  db.requests.push({ id: uid(), ...rest, es_inquilino: !!esInquilino, estado: 'pendiente', created_at: now() })
   return delay(undefined)
 }
 
 // ---- Vecinos (gestión de usuarios) -------------------------------------------
 export const listVecinos = () => delay(db.profiles.slice())
+export const viviendasInquilino = () =>
+  delay([...new Set(db.profiles.filter((p) => p.rol === 'inquilino' && p.estado === 'activo' && p.vivienda).map((p) => p.vivienda))])
 export function suspenderVecino(id: string, suspender: boolean): Promise<void> {
   const p = db.profiles.find((p) => p.id === id)
   if (p) p.estado = suspender ? 'suspendido' : 'activo'

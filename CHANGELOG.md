@@ -5,6 +5,23 @@ al implementar el cambio (ver `CLAUDE.md` → Forma de trabajo).
 
 ## 2026-07-16
 
+- **v1.33.0 · Rol Inquilino + propietario/inquilino en el alta + contactos:**
+  - Nuevo **rol `inquilino`** (9º rol; mig. 0048/0049): vecino recortado que por
+    defecto **no ve Mi Comunidad, ni Sugerencias, ni Votaciones**; mantiene
+    avisos/anuncios/incidencias, buzón y reservas. Permisos configurables como
+    cualquier rol.
+  - Al **darse de alta** (registro en la app e **Invitar vecino**) se elige
+    **propietario o inquilino**; se guarda en `access_requests.es_inquilino` y la
+    **aprobación prefija el rol** (editable). El desplegable de rol del panel ya
+    incluye "Inquilino" (alta directa y cambio de rol). Edge `solicitar-acceso`,
+    `aprobar-solicitud` y `gestionar-usuario` aceptan el nuevo rol.
+  - **Dashboard de adopción**: los pisos ocupados por **inquilinos** ya **no
+    cuentan** (ni dentro/por inscribir ni en los totales). `stats_acceso` y
+    `stats_acceso_por_vivienda` excluyen inquilinos; nueva `viviendas_inquilino()`.
+  - **Contactos**: en la categoría **Junta** el piso se **selecciona** del
+    catálogo de viviendas (antes texto libre). SQL para fijar Presidente (2º D
+    Izqda) y Vicepresidente (2º E Dcha) en `actas/apply-contactos-junta-pisos.sql`.
+
 - **v1.32.1 · Textos: Circulares y Normas de uso al día:**
   - **Circulares** (Más → Circulares): contenido **unificado sin anexos por año**
     (cuando algo cambia se actualiza en su sección; fuera etiquetas "2026" y la

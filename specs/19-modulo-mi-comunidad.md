@@ -1,8 +1,8 @@
 # 19 · Módulo "Mi Comunidad" (dashboard económico)
 
 > Estado: **en pruebas**. La visibilidad la controla el permiso configurable
-> **`ver_mi_comunidad`** (mig. 0041): por defecto lo ven **todos menos el conserje
-> y el administrador de finca**. Describe el comportamiento actual.
+> **`ver_mi_comunidad`** (mig. 0041): por defecto lo ven **todos menos el conserje,
+> el administrador de finca y el inquilino** (mig. 0049). Describe el comportamiento actual.
 
 ## Objetivo
 

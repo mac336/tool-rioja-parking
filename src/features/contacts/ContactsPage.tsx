@@ -5,6 +5,7 @@ import { Button, Card, Field, SelectField, EmptyState, ErrorState, SkeletonList,
 import { useAsync } from '@/lib/useAsync'
 import { useApp } from '@/store'
 import { listContactos, crearContacto, editarContacto, borrarContacto } from '@/lib/api'
+import { PISOS } from '@/lib/parking'
 import type { Contact, ContactCategory } from '@/types'
 
 const GRUPOS: { categoria: ContactCategory; titulo: string }[] = [
@@ -136,12 +137,25 @@ function ContactForm({
           <option key={c.value} value={c.value}>{c.label}</option>
         ))}
       </SelectField>
-      <Field
-        label="Dirección (opcional)"
-        value={f.direccion}
-        onChange={(e) => set('direccion', e.target.value)}
-        placeholder="Ej. C/ Mayor 3, Logroño"
-      />
+      {f.categoria === 'junta' ? (
+        // Presidente/vicepresidente y demás cargos SON vecinos: su "dirección" es
+        // su vivienda, que se elige del catálogo real (no se teclea a mano).
+        <SelectField
+          label="Vivienda"
+          value={f.direccion}
+          onChange={(e) => set('direccion', e.target.value)}
+        >
+          <option value="">Selecciona la vivienda…</option>
+          {PISOS.map((p) => <option key={p} value={p}>{p}</option>)}
+        </SelectField>
+      ) : (
+        <Field
+          label="Dirección (opcional)"
+          value={f.direccion}
+          onChange={(e) => set('direccion', e.target.value)}
+          placeholder="Ej. C/ Mayor 3, Logroño"
+        />
+      )}
       <Field
         label="Teléfonos"
         value={f.telefonos}

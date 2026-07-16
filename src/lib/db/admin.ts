@@ -40,7 +40,7 @@ export async function resolverSolicitud(id: string, aprobar: boolean, vivienda?:
 }
 
 // Alta pública: pasa por la Edge Function (captcha + rate-limit + service_role).
-export async function crearSolicitud(input: { nombre: string; email: string; vivienda: string; comentario?: string }): Promise<void> {
+export async function crearSolicitud(input: { nombre: string; email: string; vivienda: string; comentario?: string; esInquilino?: boolean }): Promise<void> {
   const { error } = await supabase.functions.invoke('solicitar-acceso', { body: input })
   if (error) throw error
 }
@@ -119,13 +119,22 @@ export async function registrarPwa(): Promise<void> {
 }
 
 /** Por vivienda con cuenta activa: nº de cuentas y cuántas han entrado alguna
- *  vez. (Función `stats_acceso_por_vivienda`, solo gestión; migración 0025.) */
+ *  vez. (Función `stats_acceso_por_vivienda`, solo gestión; migración 0025.)
+ *  Excluye cuentas de inquilino (no cuentan para la adopción). */
 export async function statsAccesoPorVivienda(): Promise<{ vivienda: string; cuentas: number; entrados: number }[]> {
   const { data, error } = await supabase.rpc('stats_acceso_por_vivienda')
   if (error) throw error
   return (data ?? []).map((r: { vivienda: string; cuentas: number; entrados: number }) => ({
     vivienda: r.vivienda, cuentas: r.cuentas, entrados: r.entrados,
   }))
+}
+
+/** Viviendas con al menos una cuenta de INQUILINO activa: el dashboard de
+ *  adopción las excluye (no son objetivo de adopción). Solo gestión; mig. 0049. */
+export async function viviendasInquilino(): Promise<string[]> {
+  const { data, error } = await supabase.rpc('viviendas_inquilino')
+  if (error) throw error
+  return (data ?? []).map((r: { vivienda: string }) => r.vivienda)
 }
 
 // ---- Avisos (feed para la campana) -------------------------------------------

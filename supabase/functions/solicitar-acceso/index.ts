@@ -25,7 +25,7 @@ Deno.serve(async (req) => {
   if (req.method !== 'POST') return json({ error: 'Método no permitido' }, 405)
 
   try {
-    const { nombre, email, vivienda, comentario, captchaToken } = await req.json()
+    const { nombre, email, vivienda, comentario, esInquilino, captchaToken } = await req.json()
     const ip = req.headers.get('cf-connecting-ip') ?? req.headers.get('x-forwarded-for') ?? ''
 
     // Validación / saneado básico
@@ -33,6 +33,7 @@ Deno.serve(async (req) => {
     const emailT = String(email ?? '').trim().toLowerCase().slice(0, 200)
     const viviendaT = String(vivienda ?? '').trim().slice(0, 40)
     const comentarioT = String(comentario ?? '').trim().slice(0, 500)
+    const esInquilinoB = esInquilino === true
     if (!nombreT || !/.+@.+\..+/.test(emailT) || !viviendaT) {
       return json({ error: 'Datos incompletos.' }, 400)
     }
@@ -62,6 +63,7 @@ Deno.serve(async (req) => {
 
     await admin.from('access_requests').insert({
       nombre: nombreT, email: emailT, vivienda: viviendaT, comentario: comentarioT || null,
+      es_inquilino: esInquilinoB,
     })
 
     // Avisar a los administradores (best-effort)

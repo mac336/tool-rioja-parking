@@ -13,6 +13,7 @@ export function InvitarVecinoPage() {
   const [nombre, setNombre] = useState('')
   const [vivienda, setVivienda] = useState('')
   const [email, setEmail] = useState('')
+  const [tipo, setTipo] = useState<'propietario' | 'inquilino'>('propietario')
   const [enviando, setEnviando] = useState(false)
   const [enviada, setEnviada] = useState(false)
   const valido = nombre.trim() && vivienda && /.+@.+\..+/.test(email)
@@ -20,7 +21,7 @@ export function InvitarVecinoPage() {
   const enviar = async () => {
     setEnviando(true)
     try {
-      await crearSolicitud({ nombre: nombre.trim(), vivienda, email: email.trim() })
+      await crearSolicitud({ nombre: nombre.trim(), vivienda, email: email.trim(), esInquilino: tipo === 'inquilino' })
       setEnviada(true)
     } finally {
       setEnviando(false)
@@ -39,7 +40,7 @@ export function InvitarVecinoPage() {
           <p className="max-w-xs text-[14.5px] text-muted">
             La solicitud de <b>{nombre}</b> para el {vivienda} queda pendiente de aprobación. Le avisaremos por correo en cuanto pueda entrar.
           </p>
-          <Button variant="secondary" onClick={() => { setEnviada(false); setNombre(''); setVivienda(''); setEmail('') }}>
+          <Button variant="secondary" onClick={() => { setEnviada(false); setNombre(''); setVivienda(''); setEmail(''); setTipo('propietario') }}>
             Invitar a otro vecino
           </Button>
         </Page>
@@ -60,6 +61,10 @@ export function InvitarVecinoPage() {
           <SelectField label="Su vivienda" value={vivienda} onChange={(e) => setVivienda(e.target.value)}>
             <option value="">Selecciona la vivienda…</option>
             {PISOS.map((p) => <option key={p} value={p}>{p}</option>)}
+          </SelectField>
+          <SelectField label="¿Es propietario o inquilino?" value={tipo} onChange={(e) => setTipo(e.target.value as 'propietario' | 'inquilino')}>
+            <option value="propietario">Propietario</option>
+            <option value="inquilino">Inquilino</option>
           </SelectField>
           <Field label="Su correo electrónico" type="email" value={email} onChange={(e) => setEmail(e.target.value)} placeholder="correo@ejemplo.com" />
           <Button block size="lg" disabled={!valido || enviando} onClick={enviar}>

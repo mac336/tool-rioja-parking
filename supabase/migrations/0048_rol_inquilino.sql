@@ -1,0 +1,11 @@
+-- 0048 · Nuevo rol "inquilino"
+-- ---------------------------------------------------------------------------
+-- Como el conserje/tester: se añade el valor al enum en su PROPIA migración,
+-- porque Postgres no permite usar un valor de enum recién creado en la misma
+-- transacción. La semilla de permisos y demás va en 0049.
+--
+-- Semántica: el inquilino es un vecino con acceso RECORTADO. Por defecto NO ve
+-- "Mi Comunidad", ni las sugerencias, ni las votaciones; el resto (avisos,
+-- anuncios, incidencias, buzón y reservas) sí. Sus permisos son configurables
+-- desde el panel (role_permissions), como cualquier rol.
+alter type user_role add value if not exists 'inquilino' after 'vecino';

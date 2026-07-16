@@ -10,7 +10,7 @@ const SERVICE_ROLE = Deno.env.get('SUPABASE_SERVICE_ROLE_KEY')!
 const ANON = Deno.env.get('SUPABASE_ANON_KEY')!
 const APP_ORIGIN = Deno.env.get('APP_ORIGIN') ?? ''
 
-const ROLES_VALIDOS = ['app_admin', 'presidente', 'vicepresidente', 'administrador_finca', 'junta', 'conserje', 'vecino', 'tester']
+const ROLES_VALIDOS = ['app_admin', 'presidente', 'vicepresidente', 'administrador_finca', 'junta', 'conserje', 'vecino', 'inquilino', 'tester']
 
 Deno.serve(async (req) => {
   if (req.method === 'OPTIONS') return new Response('ok', { headers: corsHeaders })
@@ -35,7 +35,7 @@ Deno.serve(async (req) => {
 
     // SEGURIDAD: solo el app_admin puede asignar/crear roles de GESTIÓN. El
     // resto (aprobar_altas) solo puede manejar 'vecino'/'tester' → sin escalada.
-    const ROLES_BASICOS = ['vecino', 'tester']
+    const ROLES_BASICOS = ['vecino', 'inquilino', 'tester']
 
     const { accion, userId, rol, nombre, vivienda, email } = await req.json()
 

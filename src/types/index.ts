@@ -9,6 +9,7 @@ export type Role =
   | 'junta'
   | 'conserje'
   | 'vecino'
+  | 'inquilino'
   | 'tester'
 
 export type UserStatus = 'pendiente' | 'activo' | 'suspendido' | 'baja'
@@ -40,6 +41,7 @@ export interface AccessRequest {
   email: string
   vivienda: string
   comentario?: string
+  es_inquilino?: boolean
   estado: 'pendiente' | 'aprobada' | 'rechazada'
   motivo_rechazo?: string
   created_at: string

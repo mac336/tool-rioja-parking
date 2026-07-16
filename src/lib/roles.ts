@@ -24,6 +24,7 @@ export const ROLE_LABEL: Record<Role, string> = {
   junta: 'Junta',
   conserje: 'Conserje',
   vecino: 'Vecino',
+  inquilino: 'Inquilino',
   tester: 'Tester',
 }
 
@@ -97,13 +98,16 @@ export const CATALOGO_PERMISOS: { key: Permiso; label: string; desc: string }[] 
 // Defaults — respaldo en modo demo o mientras no ha cargado la matriz real.
 // (app_admin siempre tiene todo por lógica de SUPERADMIN; no hace falta listarlo.)
 const GESTION: Role[] = ['app_admin', 'presidente', 'vicepresidente', 'administrador_finca', 'junta']
-const TODOS: Role[] = ['app_admin', 'presidente', 'vicepresidente', 'administrador_finca', 'junta', 'conserje', 'vecino', 'tester']
+const TODOS: Role[] = ['app_admin', 'presidente', 'vicepresidente', 'administrador_finca', 'junta', 'conserje', 'vecino', 'inquilino', 'tester']
+// El INQUILINO es un vecino recortado: NO ve Mi Comunidad, ni sugerencias, ni
+// votaciones. El resto (avisos/anuncios/incidencias, buzón y reservas) sí.
 const DEFAULTS: Record<Permiso, Role[]> = {
-  // Ver: todos ven avisos e incidencias; anuncios y sugerencias todos MENOS el conserje.
+  // Ver: todos ven avisos e incidencias; anuncios todos menos el conserje;
+  // sugerencias todos menos conserje e inquilino.
   ver_aviso: TODOS,
   ver_incidencia: TODOS,
   ver_anuncio: TODOS.filter((r) => r !== 'conserje'),
-  ver_sugerencia: TODOS.filter((r) => r !== 'conserje'),
+  ver_sugerencia: TODOS.filter((r) => r !== 'conserje' && r !== 'inquilino'),
   // Publicar: la gestión publica todos los tipos; el conserje solo avisos e incidencias.
   publicar_aviso: [...GESTION, 'conserje'],
   publicar_incidencia: [...GESTION, 'conserje'],
@@ -111,16 +115,17 @@ const DEFAULTS: Record<Permiso, Role[]> = {
   publicar_sugerencia: GESTION,
   aprobar_incidencias: GESTION,
   aprobar_anuncios: GESTION,
-  realizar_reservas: ['app_admin', 'presidente', 'vicepresidente', 'administrador_finca', 'junta', 'conserje', 'vecino'],
+  realizar_reservas: ['app_admin', 'presidente', 'vicepresidente', 'administrador_finca', 'junta', 'conserje', 'vecino', 'inquilino'],
   reservar_otras_viviendas: ['app_admin', 'conserje'],
   ver_agenda_reservas: [...GESTION, 'conserje'],
   usar_buzon: TODOS,
   escribir_vecinos: ['app_admin', 'administrador_finca', 'conserje'],
+  // Votar: como el vecino, pero NO el inquilino.
   votar_encuestas: ['app_admin', 'presidente', 'vicepresidente', 'administrador_finca', 'junta', 'conserje', 'vecino'],
   panel: GESTION,
   aprobar_altas: ['app_admin', 'presidente', 'administrador_finca'],
-  // Mi Comunidad: todos menos el conserje y el administrador de finca.
-  ver_mi_comunidad: TODOS.filter((r) => r !== 'conserje' && r !== 'administrador_finca'),
+  // Mi Comunidad: todos menos el conserje, el administrador de finca y el inquilino.
+  ver_mi_comunidad: TODOS.filter((r) => r !== 'conserje' && r !== 'administrador_finca' && r !== 'inquilino'),
 }
 
 /** Matriz de permisos por defecto (para el modo demo / semilla del mock). */

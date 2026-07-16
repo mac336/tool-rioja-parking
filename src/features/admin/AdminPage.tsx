@@ -126,7 +126,7 @@ function SolicitudesPendientes({ canApprove, onToast, onChanged }: { canApprove:
       <SectionTitle icon={<Clock size={15} />}>Solicitudes de acceso ({data.length})</SectionTitle>
       <div className="flex flex-col gap-3">
       {data.map((req) => {
-        const seleccion = sel[req.id] ?? { vivienda: req.vivienda, rol: 'vecino' as Role }
+        const seleccion = sel[req.id] ?? { vivienda: req.vivienda, rol: (req.es_inquilino ? 'inquilino' : 'vecino') as Role }
         const setField = (patch: Partial<Seleccion>) => setSel((s) => ({ ...s, [req.id]: { ...seleccion, ...patch } }))
         const busy = pendingId === req.id
         return (
@@ -137,9 +137,12 @@ function SolicitudesPendientes({ canApprove, onToast, onChanged }: { canApprove:
                 <div className="flex items-center gap-2">
                   <span className="truncate font-semibold text-ink">{req.nombre}</span>
                   <span className="shrink-0 rounded-pill bg-warn-soft px-2 py-0.5 text-[11.5px] font-bold text-warn-ink">Pendiente</span>
+                  {req.es_inquilino && (
+                    <span className="shrink-0 rounded-pill bg-surface-2 px-2 py-0.5 text-[11.5px] font-bold text-muted">Solicita: Inquilino</span>
+                  )}
                 </div>
                 <div className="truncate text-[13px] text-muted">{req.email}</div>
-                <div className="mt-0.5 text-[12px] text-faint">Solicitó el {fechaCorta(req.created_at)}</div>
+                <div className="mt-0.5 text-[12px] text-faint">Solicitó el {fechaCorta(req.created_at)} · {req.vivienda}</div>
               </div>
             </div>
             {req.comentario && (

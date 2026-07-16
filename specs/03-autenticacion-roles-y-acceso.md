@@ -59,8 +59,11 @@ prueba (tester)** sin uso real. `src/lib/db/admin.ts::eliminarVecinoDefinitivo`.
 ## Alta de vecinos
 
 - El vecino **solicita acceso** (formulario: **nombre o alias** —sin apellidos—,
-  vivienda y correo; sin comentario), vía Edge Function `solicitar-acceso`
-  (captcha + rate-limit + service_role). Avisa a la gestión (`notificar-admin`).
+  vivienda, **propietario/inquilino** y correo; sin comentario), vía Edge Function
+  `solicitar-acceso` (captcha + rate-limit + service_role). La elección
+  propietario/inquilino se guarda en `access_requests.es_inquilino` (mig. 0049) y
+  la aprobación **prefija el rol** (`inquilino` si marcó inquilino, editable).
+  Avisa a la gestión (`notificar-admin`).
 - **Invitar vecino** (Más → Invitar vecino, para cualquier usuario activo salvo
   `tester`): un vecino ya dentro de la app da de alta la solicitud de **otro**
   vecino en su nombre — mismos datos y mismo circuito (`solicitar-acceso` →
@@ -73,10 +76,20 @@ prueba (tester)** sin uso real. `src/lib/db/admin.ts::eliminarVecinoDefinitivo`.
 - **Máx. 2 cuentas por vivienda** (estados activo/pendiente). **1 voto/postura
   por vivienda** en encuestas y parking.
 
-## Roles (8)
+## Roles (9)
 
 `app_admin` (SUPERADMIN), `presidente`, `vicepresidente`, `administrador_finca`,
-`junta`, `conserje`, `vecino` y `tester` (solo lectura, ver abajo).
+`junta`, `conserje`, `vecino`, `inquilino` y `tester` (solo lectura, ver abajo).
+
+## Rol `inquilino` (vecino recortado)
+
+Vecino que **no es propietario**. Ve la app como un vecino normal pero con acceso
+recortado por defecto: **no** ve **Mi Comunidad** (`ver_mi_comunidad`), ni las
+**sugerencias** (`ver_sugerencia`), ni las **votaciones** (`votar_encuestas`). Sí
+mantiene avisos/anuncios/incidencias del tablón, buzón y reservas de zonas
+comunes. Como cualquier rol, sus permisos son **configurables** por el app_admin
+(migraciones 0048/0049). Los inquilinos **no cuentan** en el dashboard de adopción
+(ver abajo).
 
 ## Rol `tester` (solo lectura)
 
@@ -116,8 +129,9 @@ no solo en la interfaz.
   junta) ve y publica los cuatro tipos, tiene `panel`, modera y vota/reserva;
   `aprobar_altas` = presidente/administrador_finca/app_admin. El **conserje** ve y
   publica **avisos e incidencias** (no anuncios ni sugerencias), reserva (incl.
-  `reservar_otras_viviendas`), usa el buzón y escribe a vecinos. Ya **no** existen
-  `publicar_mensajes` ni `aprobar_reservas` (retirados en v1.26.0).
+  `reservar_otras_viviendas`), usa el buzón y escribe a vecinos. El **inquilino** =
+  como el vecino **menos** `ver_mi_comunidad`, `ver_sugerencia` y `votar_encuestas`.
+  Ya **no** existen `publicar_mensajes` ni `aprobar_reservas` (retirados en v1.26.0).
 
 > Operaciones sensibles (rol, estado, alta) → **Edge Functions con service_role**
 > que comprueban el permiso. El cliente nunca escribe rol/estado. Ocultar botones
@@ -158,7 +172,10 @@ sale también al recargar o al refrescarse la sesión.
 selector de dos secciones:
 - **Adopción** — donut de **viviendas dentro vs por inscribir** y tabla **por
   piso** (un piso "está dentro" si tiene ≥1 cuenta activa; `listViviendas` +
-  `listVecinos`) + **cuántas cuentas han conseguido entrar** alguna vez
+  `listVecinos`). Los pisos ocupados por **inquilinos** quedan **fuera** de la
+  adopción (ni dentro ni por inscribir, ni en los totales): `stats_acceso` y
+  `stats_acceso_por_vivienda` excluyen `rol='inquilino'` y `viviendas_inquilino()`
+  los quita del denominador (mig. 0049) + **cuántas cuentas han conseguido entrar** alguna vez
   (`stats_acceso`, migración 0024). En la tabla por piso, cada vivienda con
   cuenta marca **"Ha entrado"** (ya inició sesión) o **"Sin entrar"** (cuenta
   aprobada pero aún no ha accedido) — `stats_acceso_por_vivienda`, migración

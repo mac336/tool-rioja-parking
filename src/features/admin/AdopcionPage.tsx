@@ -2,17 +2,23 @@ import { useMemo } from 'react'
 import { Check, Minus, Clock } from 'lucide-react'
 import { Card, SectionTitle, ErrorState, SkeletonList, cx } from '@/components/ui'
 import { useAsync } from '@/lib/useAsync'
-import { listViviendas, statsAcceso, statsAccesoPorVivienda } from '@/lib/api'
+import { listViviendas, statsAcceso, statsAccesoPorVivienda, viviendasInquilino } from '@/lib/api'
 
 // Un piso "está dentro" si tiene al menos una cuenta ACTIVA (aprobada). Además
-// se marca si esa cuenta ya ha ENTRADO (iniciado sesión) alguna vez.
+// se marca si esa cuenta ya ha ENTRADO (iniciado sesión) alguna vez. Los pisos
+// ocupados por INQUILINOS quedan FUERA de la adopción (no son objetivo).
 async function cargar() {
-  const [viviendas, porViv, acceso] = await Promise.all([listViviendas(), statsAccesoPorVivienda(), statsAcceso()])
+  const [viviendas, porViv, acceso, inquilinos] = await Promise.all([
+    listViviendas(), statsAccesoPorVivienda(), statsAcceso(), viviendasInquilino(),
+  ])
+  const inq = new Set(inquilinos)
   const m = new Map(porViv.map((x) => [x.vivienda, x]))
-  const filas = viviendas.map((codigo) => {
-    const x = m.get(codigo)
-    return { codigo, cuentas: x?.cuentas ?? 0, entrados: x?.entrados ?? 0, dentro: (x?.cuentas ?? 0) > 0 }
-  })
+  const filas = viviendas
+    .filter((codigo) => !inq.has(codigo))
+    .map((codigo) => {
+      const x = m.get(codigo)
+      return { codigo, cuentas: x?.cuentas ?? 0, entrados: x?.entrados ?? 0, dentro: (x?.cuentas ?? 0) > 0 }
+    })
   return { filas, acceso }
 }
 

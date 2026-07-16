@@ -37,7 +37,7 @@ Deno.serve(async (req) => {
     // SEGURIDAD: solo el app_admin puede asignar roles de GESTIÓN. Quien solo
     // tiene 'aprobar_altas' (presidente/administrador_finca) puede aprobar altas
     // pero NO fabricar administradores → evita escalada de privilegios.
-    const ROLES_BASICOS = ['vecino', 'tester']
+    const ROLES_BASICOS = ['vecino', 'inquilino', 'tester']
     if (perfil.rol !== 'app_admin' && !ROLES_BASICOS.includes(rolFinal)) {
       return json({ error: 'Solo el administrador de la app puede asignar roles de gestión.' }, 403)
     }

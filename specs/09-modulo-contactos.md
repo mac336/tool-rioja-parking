@@ -14,7 +14,10 @@ el HTML público → es una fuga de datos personales que se corrige aquí.
 1. **Listado** por función/categoría: función, nombre, dirección, teléfono(s),
    email/web. Teléfonos y correos como enlaces (`tel:`, `mailto:`).
 2. **Edición** (solo admin): alta/edición/baja de contactos desde la app, sin
-   redeploy.
+   redeploy. En la categoría **Junta** (presidente/vicepresidente y demás cargos,
+   que **siempre son vecinos**), el campo "dirección" es un **desplegable de
+   vivienda** del catálogo real (no se teclea a mano); en el resto de categorías
+   sigue siendo dirección libre.
 3. **Migración**: cargar los contactos actuales del `index.html` como datos
    iniciales en la tabla `contactos` (ya **no** en el código).
 

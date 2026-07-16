@@ -10,12 +10,13 @@ export function RequestAccessPage() {
   const [nombre, setNombre] = useState('')
   const [vivienda, setVivienda] = useState('')
   const [email, setEmail] = useState('')
+  const [tipo, setTipo] = useState<'propietario' | 'inquilino'>('propietario')
   const [enviando, setEnviando] = useState(false)
   const valido = nombre.trim() && vivienda && /.+@.+\..+/.test(email)
 
   const enviar = async () => {
     setEnviando(true)
-    await crearSolicitud({ nombre, vivienda, email })
+    await crearSolicitud({ nombre, vivienda, email, esInquilino: tipo === 'inquilino' })
     nav('/solicitud-enviada', { state: { vivienda } })
   }
 
@@ -29,6 +30,10 @@ export function RequestAccessPage() {
           <SelectField label="Vivienda" value={vivienda} onChange={(e) => setVivienda(e.target.value)}>
             <option value="">Selecciona tu vivienda…</option>
             {PISOS.map((p) => <option key={p} value={p}>{p}</option>)}
+          </SelectField>
+          <SelectField label="¿Eres propietario o inquilino?" value={tipo} onChange={(e) => setTipo(e.target.value as 'propietario' | 'inquilino')}>
+            <option value="propietario">Propietario</option>
+            <option value="inquilino">Inquilino</option>
           </SelectField>
           <Field label="Correo electrónico" type="email" value={email} onChange={(e) => setEmail(e.target.value)} placeholder="tucorreo@ejemplo.com" />
           <Button block size="lg" disabled={!valido || enviando} onClick={enviar}>

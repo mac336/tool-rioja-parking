@@ -63,7 +63,11 @@ prueba (tester)** sin uso real. `src/lib/db/admin.ts::eliminarVecinoDefinitivo`.
   `solicitar-acceso` (captcha + rate-limit + service_role). La elección
   propietario/inquilino se guarda en `access_requests.es_inquilino` (mig. 0049) y
   la aprobación **prefija el rol** (`inquilino` si marcó inquilino, editable).
-  Avisa a la gestión (`notificar-admin`).
+  Avisa a la gestión por **push** (`notificar-admin`) **y además** aparece en el
+  **feed de avisos de la app** (la campana de la Home, con contador tipo badge):
+  `listAvisos` incluye las solicitudes **pendientes** para quien puede aprobar
+  altas (la RLS de `access_requests` limita esa visibilidad). Así el aviso no
+  depende solo del push (que el sistema operativo no garantiza).
 - **Invitar vecino** (Más → Invitar vecino, para cualquier usuario activo salvo
   `tester`): un vecino ya dentro de la app da de alta la solicitud de **otro**
   vecino en su nombre — mismos datos y mismo circuito (`solicitar-acceso` →

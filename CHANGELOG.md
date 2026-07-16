@@ -5,6 +5,15 @@ al implementar el cambio (ver `CLAUDE.md` → Forma de trabajo).
 
 ## 2026-07-16
 
+- **v1.35.0 · Solicitudes de acceso en el feed de avisos (con contador):**
+  - Las **solicitudes de acceso pendientes** aparecen ahora en el **feed de
+    avisos** de la app (la campana de la Home) y suman en su **contador tipo
+    WhatsApp**, para quien puede aprobar altas (la RLS de `access_requests` limita
+    la visibilidad). Al tocar el aviso se abre el panel para aprobarla.
+  - Motivo: el push del sistema operativo **no está garantizado** (puede no
+    mostrarse si la app llevaba cerrada, por ahorro de batería, etc.). Este aviso
+    in-app es el respaldo fiable. (El push a la gestión sigue enviándose igual.)
+
 - **v1.34.0 · Auto-actualización de la app (sin cerrar del todo):**
   - Antes, con la app en segundo plano, los cambios no aparecían hasta cerrarla y
     reabrirla. Ahora el service worker está en modo `prompt` con registro manual

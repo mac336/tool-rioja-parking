@@ -163,6 +163,24 @@ export async function listAvisos(): Promise<Aviso[]> {
     avisos.push({ id: `msg-${m.id}`, texto: `${ETIQ[m.tipo as string] ?? 'Mensaje'}: ${m.titulo}`, cuando: fechaCorta(m.created_at as string), to: '/', ts: m.created_at as string })
   }
 
+  // Solicitudes de acceso PENDIENTES (para gestión). La RLS de access_requests
+  // solo deja verlas a quien puede aprobar altas, así que este bloque queda
+  // vacío para el resto de vecinos. Cada una es un aviso que abre el panel.
+  const { data: solicitudes } = await supabase.from('access_requests')
+    .select('id, nombre, vivienda, created_at')
+    .eq('estado', 'pendiente')
+    .order('created_at', { ascending: false })
+    .limit(10)
+  for (const s of solicitudes ?? []) {
+    avisos.push({
+      id: `alta-${s.id}`,
+      texto: `Nueva solicitud de acceso: ${s.nombre} (${s.vivienda ?? '—'})`,
+      cuando: fechaCorta(s.created_at as string),
+      to: '/admin',
+      ts: s.created_at as string,
+    })
+  }
+
   // Buzón: respuestas a mis hilos (como vecino) y mensajes nuevos de mi canal
   // (como staff). La RLS ya limita los hilos visibles a mi canal.
   const { count: resp } = await supabase.from('hilos').select('*', { count: 'exact', head: true })

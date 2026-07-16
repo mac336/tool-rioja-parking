@@ -12,7 +12,7 @@ import type {
 import * as mock from '@/mock/data'
 import { PISOS, proximasQuincenas, proximosTurnos } from '@/lib/parking'
 import { iniciales, fechaCorta } from '@/lib/format'
-import { permisosPorDefecto, puedeVerTipo } from '@/lib/roles'
+import { permisosPorDefecto, puedeVerTipo, puedeAprobarAltas } from '@/lib/roles'
 
 const delay = <T>(v: T, ms = 160): Promise<T> => new Promise((r) => setTimeout(() => r(v), ms))
 const uid = (() => { let n = 1000; return () => `gen_${n++}` })()
@@ -495,6 +495,12 @@ export function listAvisos(): Promise<Aviso[]> {
   }
   const miReserva = db.reservas.find((r) => r.solicitada_por === currentUser.id && r.estado === 'aprobada')
   if (miReserva) avisos.push({ id: 'av-res', texto: `Tu reserva de ${miReserva.zona_nombre} está aprobada`, cuando: fechaCorta(miReserva.inicio), to: '/reservas/mias', ts: miReserva.created_at })
+  // Solicitudes de acceso pendientes (solo para quien puede aprobar altas).
+  if (puedeAprobarAltas(currentUser.rol)) {
+    for (const s of db.requests.filter((r) => r.estado === 'pendiente')) {
+      avisos.push({ id: `alta-${s.id}`, texto: `Nueva solicitud de acceso: ${s.nombre} (${s.vivienda ?? '—'})`, cuando: fechaCorta(s.created_at), to: '/admin', ts: s.created_at })
+    }
+  }
   return delay(avisos.sort((a, b) => b.ts.localeCompare(a.ts)))
 }
 

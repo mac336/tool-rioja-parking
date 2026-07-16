@@ -19,7 +19,7 @@ const GRUPOS: { titulo: string; items: string[] }[] = [
   {
     titulo: 'Celebraciones',
     items: [
-      'Para usar una zona común para una celebración, avisa al conserje —rellenando el formulario o desde la app— con al menos 24 horas de antelación. Si necesitas cancelarla, avisa también con al menos 24 horas.',
+      'Para una celebración, reserva la zona común desde la app; si lo prefieres, avisa al conserje y él la reserva en la app por ti. Hazlo con al menos 24 horas de antelación, y avisa también con al menos 24 horas si necesitas cancelarla.',
       'No pueden prolongarse más allá de las 23:00 h en zonas exteriores.',
       'Límite de ruido en el exterior: 55 dB de día y 45 dB de noche (hay una residencia de ancianos a menos de 150 m).',
     ],
@@ -48,6 +48,7 @@ const GRUPOS: { titulo: string; items: string[] }[] = [
       'La comunidad pone sillas y mesas; colocar enseres encima no reserva el sitio.',
       'El mobiliario particular se recoge tras su uso; no se puede fijar con cadenas ni candados.',
       'Rogamos a todos los vecinos cuidar el mobiliario de la comunidad. Si ves algún mueble con desperfectos o daños, repórtalo desde la app o díselo directamente al conserje.',
+      'La barbacoa solo se hace dentro del círculo de arena del jardín (frente a los baños), para evitar riesgo de incendio. Al terminar, no dejes carbón y limpia la zona para conservarla el mayor tiempo posible.',
     ],
   },
   {

@@ -5,6 +5,13 @@ al implementar el cambio (ver `CLAUDE.md` → Forma de trabajo).
 
 ## 2026-07-16
 
+- **v1.33.1 · Circulares: reserva de celebraciones y barbacoa:**
+  - **Celebraciones**: la reserva de la zona se hace **desde la app**, o avisando
+    al conserje para que la haga él en la app (siempre con ≥ 24 h; cancelación igual).
+  - **Mobiliario**: nuevo punto sobre la **barbacoa** — solo dentro del círculo de
+    arena del jardín (frente a los baños) para evitar incendios; no dejar carbón y
+    limpiar la zona tras su uso.
+
 - **v1.33.0 · Rol Inquilino + propietario/inquilino en el alta + contactos:**
   - Nuevo **rol `inquilino`** (9º rol; mig. 0048/0049): vecino recortado que por
     defecto **no ve Mi Comunidad, ni Sugerencias, ni Votaciones**; mantiene

@@ -5,6 +5,19 @@ al implementar el cambio (ver `CLAUDE.md` → Forma de trabajo).
 
 ## 2026-07-16
 
+- **v1.32.1 · Textos: Circulares y Normas de uso al día:**
+  - **Circulares** (Más → Circulares): contenido **unificado sin anexos por año**
+    (cuando algo cambia se actualiza en su sección; fuera etiquetas "2026" y la
+    nota de la Junta fechada). **Celebraciones**: fuera "autorización del
+    Presidente"; ahora se **avisa al conserje** (formulario o app) con **≥ 24 h**
+    de antelación, y la **cancelación** igual. **Mobiliario**: se ruega cuidarlo y
+    se puede **reportar desperfectos** por la app o al conserje.
+  - **Normas de uso** (primer acceso): "Sobre esta app" deja **solo la finalidad**
+    (fuera "la creó un vecino… sin ánimo de lucro"). Normas revisadas y puestas al
+    día: tablón con propuestas del vecino y fotos, buzón por canales, reservas de
+    aprobación directa (anulables hasta 24 h antes) y notificaciones. `specs/15`
+    reescrito acorde al estado actual.
+
 - **v1.32.0 · Configuración general (feature flags) + analítica de instalación:**
   - Nueva pestaña **Gestión → Configuración** (solo app_admin) con ajustes que se
     cambian **en vivo, sin desplegar** (tabla `app_config`, mig. 0046):

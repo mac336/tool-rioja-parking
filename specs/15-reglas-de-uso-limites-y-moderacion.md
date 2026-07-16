@@ -1,13 +1,5 @@
 # 15 · Reglas de uso, límites y moderación
 
-> **Actualización:** la moderación de contenido creado por vecinos ya no aplica
-> (incidencias/anuncios retirados). Ahora **solo la gestión publica** mensajes
-> (módulo 16), así que no hay cola de moderación de anuncios/incidencias. El
-> vecino reporta en privado por el **buzón** (módulo 17). Siguen vigentes: **1
-> reserva vigente por vivienda** (módulo 07), **máx. 2 cuentas por vivienda** y
-> **1 voto por vivienda**. Las normas de convivencia se muestran y aceptan en el
-> primer acceso.
-
 Objetivo: prevenir **abusos** (acaparar, saturar, spam) y **disputas** entre
 vecinos, dejando reglas claras y aplicadas por el sistema (no solo por buena
 voluntad). Estas reglas complementan la seguridad técnica del módulo 11.
@@ -17,6 +9,26 @@ Toda regla con impacto se aplica en **base de datos** (constraints/RLS), no solo
 en la interfaz. Los límites numéricos son **configurables** por `app_admin`; aquí
 se fijan los valores por defecto acordados.
 
+## Normas de uso (primer acceso)
+
+En el primer acceso se muestran y **aceptan** las normas de convivencia
+(`src/features/auth/NormasPage.tsx`; se guarda `normas_aceptadas_at` en
+`profiles`, sin aceptar no se pasa de esa pantalla). Resumen que ve el vecino:
+
+- **Respeto y convivencia:** la app sustituye avisos en papel; sin ataques
+  personales, insultos ni contenido discriminatorio.
+- **Tablón:** avisos, anuncios, incidencias y sugerencias. La gestión publica
+  directo; el vecino **propone** incidencias/anuncios/sugerencias (con foto
+  opcional) desde Buzón → Publicar, y la gestión los **revisa** antes de
+  publicar. Las sugerencias muestran autor y admiten un «me gusta» por vivienda.
+- **Buzón:** privado, por canales (Administración/Presidencia/Conserje/
+  Desarrollador de la app); solo lo ve el destinatario.
+- **Reservas:** confirmada al crearla; una vigente por vivienda; anulable hasta
+  24 h antes.
+- **Votaciones:** sondeos informales sin valor oficial; 1 voto por vivienda.
+- **Notificaciones:** push para avisar de mensajes, buzón y reservas.
+- **Datos:** tratamiento conforme al RGPD (ver aviso de privacidad).
+
 ## Reservas (módulo 07)
 - **Una sola reserva vigente por vivienda a la vez**, sin importar la zona (una
   `pendiente` o `aprobada` cuenta como vigente). Índice único parcial en BD.
@@ -25,31 +37,25 @@ se fijan los valores por defecto acordados.
 - **Sin límite de antelación** (se puede reservar cualquier fecha futura).
 - **No solapamiento** por zona (constraint de exclusión): `pendiente` o
   `aprobada` bloquean la franja; a quien lo intente se le avisa de que ya hay una
-  reserva/solicitud en esa fecha.
-- Aprobación por el **presidente** (respaldo `app_admin`).
-- Sin caducidad automática de pendientes por ahora (revisable).
+  reserva en esa fecha.
+- **Aprobación directa por defecto**: la reserva queda confirmada al crearse. Con
+  el flag `app_config.reservas_requieren_aprobacion` en `true` (Gestión →
+  Configuración) pasa a nacer `pendiente` y la aprueba la **gestión** (`es_gestion`).
+- **Anulación hasta 24 h antes del inicio** (trigger `reservas_anulacion_24h`); la
+  gestión puede anular siempre.
 
-## Tablón de anuncios (módulo 13)
-- **Un anuncio pendiente por vivienda a la vez.** Al resolverse (aprobado o
-  rechazado) puede enviar otro. Índice único parcial en BD.
-- **Fechas obligatorias** de inicio y fin; el anuncio solo se muestra dentro de
-  esa ventana. Duración por defecto **≤ 1 año**; si se pide más, se **marca** en
-  el panel del presidente para que decida (no se bloquea automáticamente).
-- **Bloqueo por abuso:** la gestión puede poner `puede_publicar_anuncios = false`
-  a una **vivienda** desde la consola (afecta a sus 2 cuentas; flag en
-  `viviendas`, módulo 04).
-- **Moderación previa:** nada se publica sin aprobación de un rol autorizado.
+## Tablón: avisos, anuncios, incidencias y sugerencias (módulo 16)
+- La **gestión** con el permiso `publicar_<tipo>` publica **directo**. El
+  **vecino propone** incidencia/anuncio/sugerencia desde **Buzón → Publicar** y
+  queda **pendiente de moderación** (`aprobar_incidencias` / `aprobar_anuncios`),
+  salvo las **sugerencias**, que se publican directas con autor visible.
+- **Fotos** opcionales (1–2, comprimidas en cliente, EXIF borrado, bucket
+  privado) en incidencias y anuncios; sin personas ni matrículas identificables.
+- **Sugerencias:** autor visible y **likes 1/vivienda** (`mensaje_likes`).
 - **Normas de contenido:** sin ataques personales, insultos, contenido
-  discriminatorio ni spam comercial. La gestión puede **despublicar**; los
-  vecinos pueden **reportar** un anuncio publicado.
-
-## Incidencias (módulo 05)
-- **Anti-spam:** límite de creación por vivienda (por defecto máx. 5/día) y
-  control de duplicados (la gestión puede fusionar).
-- **Sin señalar a personas:** describen problemas de la comunidad, no acusan a
-  vecinos concretos. La gestión puede editar/ocultar y avisar.
-- **Comentarios moderables:** ocultar comentarios ofensivos, bloquear hilos.
-- **Fotos** sin personas ni matrículas identificables.
+  discriminatorio ni spam comercial. La gestión puede **editar/despublicar**.
+- El vecino puede además mandar **reportes privados** a administración por el
+  buzón (módulo 17).
 
 ## Encuestas (módulo 06)
 - Las crea solo la **gestión** (evita saturación de encuestas).
@@ -66,20 +72,17 @@ se fijan los valores por defecto acordados.
 - Alta solo por aprobación; **máx. 2 cuentas por vivienda**.
 - **1 voto/postura por vivienda** en encuestas y parking (2 cuentas no duplican).
 - **Suspensión** de cuentas que incumplan (corta el acceso al refrescar token).
-- Aceptación de estas **normas de uso** en el primer acceso (se guarda
-  `normas_aceptadas_at` en `profiles`; sin aceptar no se pasa de esa pantalla —
-  módulos 03 y 04).
+- Aceptación de estas **normas de uso** en el primer acceso (arriba).
 
 ## Moderación y resolución de disputas
-- **Cola de moderación** para incidencias/anuncios que envían los vecinos. Las
-  **reservas son de aprobación directa** (sin cola; ver `specs/07`).
-- **Reportar contenido** (anuncios/comentarios) por parte de vecinos: tabla
-  `reportes` (módulo 04), máx. 1 reporte por cuenta y contenido; la gestión
-  atiende la cola desde su panel.
+- **Cola de moderación** para incidencias/anuncios que **proponen** los vecinos
+  (permisos `aprobar_incidencias`/`aprobar_anuncios`), en Gestión →
+  Publicaciones. Las **reservas** son de aprobación directa por defecto (cola
+  solo si se activa el flag; ver `specs/07`).
 - **`audit_log`** de acciones sensibles (aprobaciones, bloqueos, borrados,
   reasignaciones) para trazabilidad y transparencia.
-- Canal para reclamaciones: **Sugerencias de la app** (módulo 14) o contacto con
-  la gestión.
+- Canal para reclamaciones y feedback de la app: **Buzón** (canal Desarrollador
+  de la app) o contacto con la gestión.
 
 ## Tabla resumen de límites (por defecto, configurables)
 
@@ -87,8 +90,9 @@ se fijan los valores por defecto acordados.
 |--------|--------------------|
 | Reservas vigentes por vivienda | **1** (cualquier zona) |
 | Antelación de reserva | **sin límite** |
-| Anuncios pendientes por vivienda | **1** |
-| Duración de un anuncio | **≤ 1 año** (más → revisión del presidente) |
-| Incidencias por vivienda/día | **5** (anti-spam) |
+| Anulación de reserva | hasta **24 h** antes del inicio |
+| Aprobación de reservas | **directa** (flag para exigir aprobación) |
+| Fotos por incidencia/anuncio | **2** |
+| Likes de sugerencia | **1 por vivienda** |
 | Votos por vivienda y encuesta | **1** |
 | Cuentas por vivienda | **2** |

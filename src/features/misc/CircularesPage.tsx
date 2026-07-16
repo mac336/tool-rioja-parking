@@ -2,10 +2,10 @@ import { Waves, Clock, CalendarDays } from 'lucide-react'
 import { SubHeader, Page } from '@/components/layout/AppShell'
 import { Card, SectionTitle } from '@/components/ui'
 
-// Circulares de la comunidad. De momento: normas de piscina y zonas comunes
-// (normas aprobadas en Junta de 03-04-2013, revisadas en la Junta de 25-06-2026;
-// temporada según la circular de 10-06-2026). Contenido público, sin datos
-// personales. Fuente/análisis en actas/analisis/piscina-normas.json (no versionado).
+// Circulares de la comunidad: normas de piscina y zonas comunes. Contenido
+// unificado (sin anexos por año): cuando algo cambia se actualiza aquí. Público,
+// sin datos personales. Fuente/análisis en actas/analisis/piscina-normas.json
+// (no versionado).
 
 const GRUPOS: { titulo: string; items: string[] }[] = [
   {
@@ -19,7 +19,7 @@ const GRUPOS: { titulo: string; items: string[] }[] = [
   {
     titulo: 'Celebraciones',
     items: [
-      'Requieren autorización del Presidente, pedida por escrito con al menos 5 días de antelación.',
+      'Para usar una zona común para una celebración, avisa al conserje —rellenando el formulario o desde la app— con al menos 24 horas de antelación. Si necesitas cancelarla, avisa también con al menos 24 horas.',
       'No pueden prolongarse más allá de las 23:00 h en zonas exteriores.',
       'Límite de ruido en el exterior: 55 dB de día y 45 dB de noche (hay una residencia de ancianos a menos de 150 m).',
     ],
@@ -47,6 +47,7 @@ const GRUPOS: { titulo: string; items: string[] }[] = [
     items: [
       'La comunidad pone sillas y mesas; colocar enseres encima no reserva el sitio.',
       'El mobiliario particular se recoge tras su uso; no se puede fijar con cadenas ni candados.',
+      'Rogamos a todos los vecinos cuidar el mobiliario de la comunidad. Si ves algún mueble con desperfectos o daños, repórtalo desde la app o díselo directamente al conserje.',
     ],
   },
   {
@@ -57,7 +58,7 @@ const GRUPOS: { titulo: string; items: string[] }[] = [
     ],
   },
   {
-    titulo: 'Reservas y convivencia (revisión 2026)',
+    titulo: 'Reservas y convivencia',
     items: [
       'Las reservas de zonas comunes se piden al conserje, que lleva el calendario de disponibilidad.',
       'Cada reserva identifica a un responsable, que responde de posibles daños o desperfectos.',
@@ -81,7 +82,7 @@ export function CircularesPage() {
             <span className="flex h-9 w-9 items-center justify-center rounded-[12px]" style={{ background: '#DFEDFC', color: '#2F76C9' }}>
               <Waves size={19} strokeWidth={1.9} />
             </span>
-            <div className="font-display text-[16px] font-bold text-ink">Piscina · temporada 2026</div>
+            <div className="font-display text-[16px] font-bold text-ink">Piscina · temporada de baño</div>
           </div>
           <div className="mt-3 flex flex-col gap-2 text-[14px] text-ink">
             <div className="flex items-center gap-2"><CalendarDays size={16} className="text-muted" /> Del <b>13 de junio</b> al <b>13 de septiembre</b> (ambos inclusive).</div>
@@ -112,7 +113,7 @@ export function CircularesPage() {
         </div>
 
         <p className="mt-4 px-1 text-[12px] text-faint">
-          Normas aprobadas en Junta General (03-04-2013), revisadas en la Junta de 25-06-2026. Referencias: Ordenanzas del Ayuntamiento de Madrid ANM 1999/26 (piscinas) y ANM 2011/7 (ruido).
+          Normas de uso aprobadas por la Junta de Propietarios. Referencias: Ordenanzas del Ayuntamiento de Madrid ANM 1999/26 (piscinas) y ANM 2011/7 (ruido).
         </p>
       </Page>
     </div>

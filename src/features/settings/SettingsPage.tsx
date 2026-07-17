@@ -8,6 +8,7 @@ import type { ThemeMode } from '@/types'
 import { roleBadgeKind, ROLE_LABEL } from '@/lib/roles'
 import { iniciales } from '@/lib/format'
 import { estadoPush, activarNotificaciones, desactivarNotificaciones, type EstadoPush } from '@/lib/pushClient'
+import { probarPush } from '@/lib/api'
 
 const THEMES: [ThemeMode, string, typeof Sun][] = [
   ['system', 'Auto', Monitor],
@@ -160,8 +161,22 @@ function Notificaciones() {
   const { toast } = useApp()
   const [estado, setEstado] = useState<EstadoPush | null>(null)
   const [busy, setBusy] = useState(false)
+  const [diag, setDiag] = useState<string | null>(null)
 
   useEffect(() => { estadoPush().then(setEstado) }, [])
+
+  const probar = async () => {
+    setBusy(true); setDiag(null)
+    try {
+      const r = await probarPush()
+      setDiag(JSON.stringify(r, null, 2))
+      const enviadas = (r.enviadas as number) ?? 0
+      const total = (r.totalSuscripciones as number) ?? 0
+      if (enviadas > 0) toast('Prueba enviada: revisa si te llega la notificación', 'ok')
+      else if (total === 0) toast('No tienes ninguna suscripción en este dispositivo', 'error')
+      else toast('El envío falló (mira el detalle)', 'error')
+    } catch { toast('No se pudo probar', 'error') } finally { setBusy(false) }
+  }
 
   const activar = async () => {
     setBusy(true)
@@ -189,7 +204,13 @@ function Notificaciones() {
       </div>
 
       {estado === 'activas' && (
-        <Button variant="secondary" disabled={busy} onClick={desactivar}><BellOff size={18} /> Desactivar notificaciones</Button>
+        <>
+          <Button disabled={busy} onClick={probar}><Bell size={18} /> {busy ? 'Probando…' : 'Probar notificación'}</Button>
+          <Button variant="secondary" disabled={busy} onClick={desactivar}><BellOff size={18} /> Desactivar notificaciones</Button>
+          {diag && (
+            <pre className="max-h-64 overflow-auto rounded-[12px] bg-surface-2 p-3 text-[11px] leading-snug text-muted">{diag}</pre>
+          )}
+        </>
       )}
       {estado === 'inactivas' && (
         <Button disabled={busy} onClick={activar}><Bell size={18} /> {busy ? 'Activando…' : 'Activar notificaciones'}</Button>

@@ -21,3 +21,11 @@ export async function quitarSuscripcionPush(endpoint: string): Promise<void> {
   const { error } = await supabase.from('push_subscriptions').delete().eq('endpoint', endpoint)
   if (error) throw error
 }
+
+/** Diagnóstico: envía una push de PRUEBA a este usuario y devuelve el detalle
+ *  del intento (Edge `probar-push`). Para saber por qué no llegan las push. */
+export async function probarPush(): Promise<Record<string, unknown>> {
+  const { data, error } = await supabase.functions.invoke('probar-push', { body: {} })
+  if (error) throw error
+  return (data ?? {}) as Record<string, unknown>
+}

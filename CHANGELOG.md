@@ -3,6 +3,17 @@
 Cambios funcionales relevantes, más recientes arriba. Cada entrada nueva se añade
 al implementar el cambio (ver `CLAUDE.md` → Forma de trabajo).
 
+## 2026-07-17
+
+- **v1.38.0 · Diagnóstico de notificaciones push:**
+  - Botón **"Probar notificación"** en Ajustes → Notificaciones (cuando están
+    activas): envía una push de prueba a tu propio dispositivo y muestra el
+    **detalle del intento** (si el servidor tiene VAPID, cuántas suscripciones y
+    el **error exacto** por suscripción). Edge Function `probar-push`.
+  - Objetivo: averiguar por qué no llegan las push (p. ej. clave pública del
+    cliente que no casa con la del servidor → el servicio de push las rechaza en
+    silencio, dejando las suscripciones intactas).
+
 ## 2026-07-16
 
 - **v1.37.0 · Caché de lectura por secciones (menos llamadas a la BD):**

@@ -21,7 +21,7 @@ export const {
   listAccessRequests, resolverSolicitud, crearSolicitud,
   listVecinos, suspenderVecino, cambiarRolVecino, editarVecino, darDeBajaVecino, eliminarVecinoDefinitivo, crearVecinoDirecto, statsAcceso, statsAccesoPorVivienda, viviendasInquilino, contarSolicitudesPendientes, registrarPwa,
   listRolePermisos, setRolePermiso, listSugerencias,
-  guardarSuscripcionPush, quitarSuscripcionPush,
+  guardarSuscripcionPush, quitarSuscripcionPush, probarPush,
   listMensajes, crearMensaje, editarMensaje, borrarMensaje, crearPublicacion, misPublicaciones, publicacionesGestion, moderarPublicacion, alternarLike,
   listHilos, getHilo, crearHilo, crearHiloComoGestion, listDirectorio, responderHilo, cerrarHilo, borrarHilo, convertirEnMensaje,
   listAvisos,

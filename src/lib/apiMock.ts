@@ -369,6 +369,9 @@ export function guardarSuscripcionPush(_sub: PushSubscriptionJSON, _ua: string):
 export function quitarSuscripcionPush(_endpoint: string): Promise<void> {
   return delay(undefined)
 }
+export function probarPush(): Promise<Record<string, unknown>> {
+  return delay({ configurado: false, totalSuscripciones: 0, enviadas: 0, resultados: [], nota: 'demo' })
+}
 
 // ---- Mensajes públicos (demo) ------------------------------------------------
 export const listMensajes = (): Promise<Mensaje[]> => delay(

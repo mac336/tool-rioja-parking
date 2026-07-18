@@ -56,8 +56,10 @@ lee quien puede ver ese tipo.
   puede editar/borrar cada tarjeta. La pestaña **Sugerencias es de solo
   lectura** (las envían los vecinos; se aprueban en Gestión → Publicaciones) —
   solo permite borrar.
-- Formulario de alta: tipo, título, mensaje, **firma** (desplegable) y **caduca
-  el** (opcional, con papelera).
+- Alta/edición **paso a paso** (asistente, como reservas): tipo → título →
+  mensaje → **importancia** (solo aviso/incidencia) → **firma** → **opciones**
+  (caducidad con papelera + estilo de temporada) → **resumen y publicar**, con
+  "Paso X de N" y botones Atrás/Siguiente.
 
 ## Inicio · "Tablón de la comunidad" (diseño 2a)
 

@@ -5,6 +5,12 @@ al implementar el cambio (ver `CLAUDE.md` → Forma de trabajo).
 
 ## 2026-07-18
 
+- **v1.42.0 · Crear mensajes paso a paso:**
+  - El formulario de "Nuevo mensaje" (gestión) pasa a ser un **asistente paso a
+    paso** (como reservas): tipo → título → mensaje → importancia (aviso/incidencia)
+    → firma → opciones (caducidad + estilo) → **resumen y publicar**, con "Paso X
+    de N" y barra Atrás/Siguiente. También se usa al **editar**.
+
 - **v1.41.1 · Fix: barra del asistente de reserva tapada por el TabBar:**
   - El asistente de nueva reserva usaba `app-viewport` dentro del `<main>` y la
     barra Atrás/Siguiente quedaba **detrás del TabBar**. Ahora el layout es normal

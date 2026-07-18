@@ -5,6 +5,13 @@ al implementar el cambio (ver `CLAUDE.md` → Forma de trabajo).
 
 ## 2026-07-18
 
+- **v1.44.0 · Festivo: cuenta atrás en vivo hasta la final:**
+  - En vez de "Final del Mundial · mañana 21:00", el banner y el splash muestran
+    una **cuenta atrás en vivo**: *"Final del Mundial · quedan X h y Y min"* (se
+    refresca cada 30 s). Al llegar la hora: "¡ya está en juego!". `useCuentaAtras`
+    hacia `FINAL_MUNDIAL_MS` (19-07-2026 21:00). Con "campeones" activo no se
+    muestra subtítulo.
+
 - **v1.43.3 · Confeti que CAE (y se mueve con "reducir movimiento"):**
   - Ahora el confeti **cae de arriba abajo** con giro y balanceo (keyframes en
     `vh`, sin `var()` dentro del @keyframes → válido en iOS). La animación va en

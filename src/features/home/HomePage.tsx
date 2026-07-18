@@ -135,7 +135,7 @@ export function HomePage() {
 
       {/* Modo festivo (temporal): banderines + banner "¡Vamos España!"/"Campeones" */}
       {festivo && <Banderines className="-mt-1 mb-2 shrink-0" />}
-      {festivo && <BannerFestivo titulo={festTexto.titulo} subtitulo={festTexto.subtitulo} />}
+      {festivo && <BannerFestivo titulo={festTexto.titulo} campeones={config.festivo_campeones} />}
 
       {/* Encuesta protagonista: hero azul (o ámbar si urge) antes del tablón */}
       {encuestaHero && (

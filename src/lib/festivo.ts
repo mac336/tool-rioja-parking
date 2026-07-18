@@ -13,6 +13,9 @@ export const AMARILLO_ES = '#F5B417'
 // el día de la final (19-07-2026) a las 23:00.
 export const FESTIVO_HASTA = new Date('2026-07-19T23:00:00+02:00').getTime()
 
+// Hora del pitido inicial de la final (Europe/Madrid). La cuenta atrás va a esto.
+export const FINAL_MUNDIAL_MS = new Date('2026-07-19T21:00:00+02:00').getTime()
+
 /** ¿Sigue vigente la decoración base por fecha? */
 export function festivoPorFecha(): boolean {
   return Date.now() < FESTIVO_HASTA
@@ -24,9 +27,8 @@ export function modoFestivo(campeones: boolean): boolean {
   return campeones || festivoPorFecha()
 }
 
-/** Título y subtítulo del banner/splash según el modo. */
-export function textoFestivo(campeones: boolean): { titulo: string; subtitulo?: string } {
-  return campeones
-    ? { titulo: '¡ESPAÑA CAMPEONES 2026!' }
-    : { titulo: '¡Vamos España!', subtitulo: 'Final del Mundial · mañana 21:00' }
+/** Título del banner/splash según el modo. El subtítulo (cuenta atrás) se calcula
+ *  aparte y en vivo (ver useCuentaAtras). */
+export function textoFestivo(campeones: boolean): { titulo: string } {
+  return campeones ? { titulo: '¡ESPAÑA CAMPEONES 2026!' } : { titulo: '¡Vamos España!' }
 }

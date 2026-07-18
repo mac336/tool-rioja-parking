@@ -5,6 +5,7 @@ import { cx } from '@/components/ui'
 import { useApp } from '@/store'
 import { getDeferredPrompt, clearDeferredPrompt, isStandalone, getPlataforma, esSafariIOS } from '@/lib/pwa'
 import { Confeti } from '@/features/festivo/Confeti'
+import { useCuentaAtrasFinal } from '@/features/festivo/useCuentaAtras'
 import { modoFestivo, textoFestivo, ROJO_ES, AMARILLO_ES } from '@/lib/festivo'
 
 /** Pantalla de bienvenida al abrir la app. Dos pasos: (1) bienvenida y (2)
@@ -20,6 +21,7 @@ export function SplashScreen({ onDone }: { onDone: () => void }) {
   const campeones = useApp((s) => s.config.festivo_campeones)
   const festivo = modoFestivo(campeones)
   const festTexto = textoFestivo(campeones)
+  const cuentaAtras = useCuentaAtrasFinal()
   // La pantalla festiva es una PREVIA temporal; tras ella se muestra la welcome
   // ORIGINAL (paso 'bienvenida'). Si no hay modo festivo, arranca en la original.
   const [paso, setPaso] = useState<Paso>(festivo ? 'festivo' : 'bienvenida')
@@ -87,7 +89,7 @@ export function SplashScreen({ onDone }: { onDone: () => void }) {
                   style={{ right: -14, bottom: -14, borderRadius: 999, border: '2px solid #12171C', boxShadow: '0 4px 8px rgba(0,0,0,.4)' }} />
               </span>
               <h1 className="mt-6 font-display text-[34px] font-extrabold leading-none text-white" style={{ letterSpacing: '-0.02em' }}>{festTexto.titulo}</h1>
-              {festTexto.subtitulo && <p className="mt-3 text-[14px]" style={{ color: '#9FB1BD' }}>{festTexto.subtitulo}</p>}
+              {!campeones && <p className="mt-3 text-[14px]" style={{ color: '#9FB1BD' }}>{cuentaAtras}</p>}
               <div className="mt-5 flex items-center gap-2">
                 <span style={{ width: 8, height: 8, borderRadius: 999, background: ROJO_ES }} />
                 <span style={{ width: 8, height: 8, borderRadius: 999, background: AMARILLO_ES }} />

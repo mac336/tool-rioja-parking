@@ -114,10 +114,10 @@ export function NuevaReservaPage() {
   }, [dia])
 
   return (
-    <div className="app-viewport flex flex-col bg-bg">
+    <div className="flex min-h-full flex-col bg-bg">
       <SubHeader titulo="Nueva reserva" />
 
-      <div className="min-h-0 flex-1 overflow-y-auto">
+      <div className="flex-1">
         <Page className="mx-auto max-w-[560px]">
           {cargando && <SkeletonList />}
 
@@ -229,9 +229,9 @@ export function NuevaReservaPage() {
         </Page>
       </div>
 
-      {/* Barra fija: Atrás / Siguiente (o Reservar en el resumen). */}
+      {/* Barra Atrás / Siguiente (o Reservar): sticky, justo encima del TabBar. */}
       {!cargando && !bloqueado && puedeReservar(user.rol) && !esTester(user.rol) && (
-        <div className="shrink-0 border-t border-border bg-surface/95 p-4 backdrop-blur safe-bottom">
+        <div className="sticky bottom-0 border-t border-border bg-surface/95 p-4 backdrop-blur">
           <div className="mx-auto flex max-w-[560px] gap-2">
             <Button variant="secondary" onClick={atras}><ChevronLeft size={18} /> Atrás</Button>
             {paso === 'resumen' ? (
@@ -248,7 +248,7 @@ export function NuevaReservaPage() {
       )}
 
       {!cargando && (bloqueado || !puedeReservar(user.rol) || esTester(user.rol)) && (
-        <div className="shrink-0 border-t border-border bg-surface/95 p-4 backdrop-blur safe-bottom">
+        <div className="sticky bottom-0 border-t border-border bg-surface/95 p-4 backdrop-blur">
           <div className="mx-auto max-w-[560px]">
             <Button block variant="secondary" onClick={() => nav('/reservas')}>Volver a reservas</Button>
           </div>

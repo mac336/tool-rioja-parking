@@ -5,6 +5,17 @@ al implementar el cambio (ver `CLAUDE.md` → Forma de trabajo).
 
 ## 2026-07-18
 
+- **v1.43.1 · Festivo: confeti visible en iOS + splash como PREVIA:**
+  - **Confeti en iOS**: se veía el banner/splash pero no el confeti. Las piezas
+    partían fuera de pantalla y dependían de `var()` dentro de `@keyframes` (que
+    Safari maneja mal) y de la animación (que "Reducir movimiento" neutraliza).
+    Ahora las piezas se reparten **ya en pantalla** y la animación usa valores
+    fijos → se ven aunque no animen.
+  - **Splash festivo = PREVIA temporal**: el "¡Vamos España!" es una pantalla
+    **antes** de la bienvenida original; al pulsar **Entrar** se llega a la
+    **welcome de siempre** (no la sustituye). Fuera del modo festivo, arranca
+    directo en la welcome original.
+
 - **v1.43.0 · Modo festivo "¡Vamos España!" + Vercel Analytics:**
   - Decoración temporal (final del Mundial): **confeti animado**, **banderines** y
     **banner** en la Home, y **splash de arranque festivo** (balón + franjas de

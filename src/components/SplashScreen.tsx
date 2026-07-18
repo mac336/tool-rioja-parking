@@ -11,15 +11,18 @@ import { modoFestivo, textoFestivo, ROJO_ES, AMARILLO_ES } from '@/lib/festivo'
  *  invitación a INSTALAR la app en el móvil (para que no tengan que volver a
  *  identificarse cada vez que entran desde el navegador). Se mantiene hasta que
  *  el usuario avanza (no se quita sola). */
-type Paso = 'bienvenida' | 'instalar'
+type Paso = 'festivo' | 'bienvenida' | 'instalar'
 
 export function SplashScreen({ onDone }: { onDone: () => void }) {
   const [entered, setEntered] = useState(false)
   const [leaving, setLeaving] = useState(false)
-  const [paso, setPaso] = useState<Paso>('bienvenida')
   const directo = useApp((s) => s.config.acceso_directo)
-  const festivo = modoFestivo(useApp((s) => s.config.festivo_campeones))
-  const festTexto = textoFestivo(useApp((s) => s.config.festivo_campeones))
+  const campeones = useApp((s) => s.config.festivo_campeones)
+  const festivo = modoFestivo(campeones)
+  const festTexto = textoFestivo(campeones)
+  // La pantalla festiva es una PREVIA temporal; tras ella se muestra la welcome
+  // ORIGINAL (paso 'bienvenida'). Si no hay modo festivo, arranca en la original.
+  const [paso, setPaso] = useState<Paso>(festivo ? 'festivo' : 'bienvenida')
   const [plataforma] = useState(getPlataforma)
   const [safariIOS] = useState(esSafariIOS)
   const [instalable, setInstalable] = useState<boolean>(() => !!getDeferredPrompt())
@@ -58,11 +61,11 @@ export function SplashScreen({ onDone }: { onDone: () => void }) {
     <div
       className={cx('fixed inset-0 z-[100] flex flex-col items-center justify-center px-8 text-center transition-opacity duration-500',
         leaving ? 'opacity-0' : 'opacity-100')}
-      style={{ background: festivo
+      style={{ background: paso === 'festivo'
         ? 'linear-gradient(170deg,#12171C 0%,#1A2027 55%,#241d12 100%)'
         : 'linear-gradient(160deg,var(--brand-from),var(--brand-to))' }}
     >
-      {festivo && (
+      {paso === 'festivo' && (
         <>
           <div className="absolute inset-x-0 top-0 z-10 flex h-1.5">
             <span style={{ flex: 1, background: ROJO_ES }} /><span style={{ flex: 1.2, background: AMARILLO_ES }} /><span style={{ flex: 1, background: ROJO_ES }} />
@@ -76,8 +79,7 @@ export function SplashScreen({ onDone }: { onDone: () => void }) {
       <div className={cx('relative z-10 flex w-full max-w-sm flex-col items-center transition-all duration-500 ease-out',
         entered ? 'translate-y-0 scale-100 opacity-100' : 'translate-y-4 scale-95 opacity-0')}>
 
-        {paso === 'bienvenida' ? (
-          festivo ? (
+        {paso === 'festivo' ? (
             <>
               <span className="relative flex items-center justify-center">
                 <Logo size={88} />
@@ -91,12 +93,12 @@ export function SplashScreen({ onDone }: { onDone: () => void }) {
                 <span style={{ width: 8, height: 8, borderRadius: 999, background: AMARILLO_ES }} />
                 <span style={{ width: 8, height: 8, borderRadius: 999, background: ROJO_ES, opacity: 0.4 }} />
               </div>
-              <button type="button" onClick={siguiente}
+              <button type="button" onClick={() => setPaso('bienvenida')}
                 className="mt-8 inline-flex min-h-[52px] items-center justify-center gap-2 rounded-pill bg-white px-8 text-[16px] font-extrabold text-primary-700 shadow-xl transition-transform active:scale-[0.98]">
                 Entrar <ArrowRight size={19} />
               </button>
             </>
-          ) : (
+          ) : paso === 'bienvenida' ? (
           <>
             <span className="flex items-center justify-center rounded-[26%] bg-white/95 p-3.5 shadow-2xl">
               <Logo size={84} />
@@ -122,7 +124,6 @@ export function SplashScreen({ onDone }: { onDone: () => void }) {
               Siguiente <ArrowRight size={19} />
             </button>
           </>
-          )
         ) : (
           <>
             <span className="flex h-16 w-16 items-center justify-center rounded-[22px] bg-white/15 text-white">

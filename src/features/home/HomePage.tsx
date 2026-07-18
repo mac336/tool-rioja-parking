@@ -175,7 +175,7 @@ export function HomePage() {
             </Link>
           )}
           {reserva.data && (
-            <Link to="/reservas/mias" className="flex items-center gap-3 rounded-[16px] px-4 py-[13px] text-white"
+            <Link to="/reservas" className="flex items-center gap-3 rounded-[16px] px-4 py-[13px] text-white"
               style={{ background: 'linear-gradient(150deg,#2E8E79,#123f34)' }}>
               <CalendarDays size={24} strokeWidth={1.9} />
               <div className="min-w-0 flex-1">

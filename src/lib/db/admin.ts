@@ -226,7 +226,7 @@ export async function listAvisos(): Promise<Aviso[]> {
   const miReserva = (reservas ?? [])[0] as { id: string; inicio: string; created_at: string; zona?: { nombre: string } | { nombre: string }[] | null } | undefined
   if (miReserva) {
     const z = Array.isArray(miReserva.zona) ? miReserva.zona[0] : miReserva.zona
-    avisos.push({ id: 'av-res', texto: `Tu reserva de ${z?.nombre ?? ''} está aprobada`, cuando: fechaCorta(miReserva.inicio), to: '/reservas/mias', ts: miReserva.created_at })
+    avisos.push({ id: 'av-res', texto: `Tu reserva de ${z?.nombre ?? ''} está aprobada`, cuando: fechaCorta(miReserva.inicio), to: '/reservas', ts: miReserva.created_at })
   }
 
   // Más nuevo arriba.

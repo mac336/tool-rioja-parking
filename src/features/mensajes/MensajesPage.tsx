@@ -85,11 +85,12 @@ export function MensajesPage() {
             </button>
           )}
         </div>
-        {/* Pestañas por tipo con contador */}
-        <div className="flex gap-2 px-4 pb-2.5">
+        {/* Pestañas por tipo con contador. El scroll horizontal se queda SOLO en
+            esta fila (overflow-x-auto + nowrap + shrink-0), no en toda la pantalla. */}
+        <div className="flex gap-2 overflow-x-auto px-4 pb-2.5 [-ms-overflow-style:none] [scrollbar-width:none] [&::-webkit-scrollbar]:hidden">
           {tabsVisibles.map((t) => (
             <button key={t} onClick={() => setTab(t)}
-              className={cx('inline-flex items-center gap-1.5 rounded-pill px-3.5 py-1.5 text-[13px] font-bold transition-colors',
+              className={cx('inline-flex shrink-0 items-center gap-1.5 whitespace-nowrap rounded-pill px-3.5 py-1.5 text-[13px] font-bold transition-colors',
                 tab === t ? 'bg-primary text-white' : 'bg-surface-2 text-muted')}>
               {SECCION[t]}
               <span className={cx('inline-flex h-5 min-w-[20px] items-center justify-center rounded-full px-1 text-[11px] font-extrabold',

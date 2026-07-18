@@ -20,7 +20,7 @@ import { CreateEncuestaPage } from '@/features/encuestas/CreateEncuestaPage'
 import { VotePage } from '@/features/encuestas/VotePage'
 import { ResultsPage } from '@/features/encuestas/ResultsPage'
 import { BookingsPage } from '@/features/bookings/BookingsPage'
-import { MyBookingsPage } from '@/features/bookings/MyBookingsPage'
+import { NuevaReservaPage } from '@/features/bookings/NuevaReservaPage'
 import { AgendaReservasPage } from '@/features/bookings/AgendaReservasPage'
 import { ParkingPage } from '@/features/parking/ParkingPage'
 import { ContactsPage } from '@/features/contacts/ContactsPage'
@@ -101,7 +101,8 @@ export const router = createBrowserRouter([
       { path: '/votaciones/:id', element: <VotePage /> },
       { path: '/votaciones/:id/resultados', element: <ResultsPage /> },
       { path: '/reservas', element: <BookingsPage /> },
-      { path: '/reservas/mias', element: <MyBookingsPage /> },
+      { path: '/reservas/nueva', element: <NuevaReservaPage /> },
+      { path: '/reservas/mias', element: <Navigate to="/reservas" replace /> },
       { path: '/parking', element: <ParkingPage /> },
       { path: '/contactos', element: <ContactsPage /> },
       { path: '/ajustes', element: <SettingsPage /> },

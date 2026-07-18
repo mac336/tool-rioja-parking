@@ -6,6 +6,19 @@ es de **aprobación directa**: queda **confirmada al crearse** (ya no hay cola d
 aprobación). Quien tenga el permiso **`reservar_otras_viviendas`** (p. ej. el
 conserje) puede reservar **a nombre de otra vivienda**.
 
+## Interfaz (pantalla principal + asistente)
+
+- **`/reservas`** muestra **directamente "Mis reservas"** (lista) y, arriba, un
+  botón **"Nueva reserva"**. Si la vivienda ya tiene una reserva vigente (regla de
+  1/vivienda), en vez del botón se avisa de que hay que anularla primero.
+  `src/features/bookings/BookingsPage.tsx` + `MisReservasLista.tsx`.
+- **"Nueva reserva"** abre un **asistente paso a paso** (`/reservas/nueva`,
+  `NuevaReservaPage.tsx`): una pregunta por pantalla — (vivienda, solo si reserva
+  para otras) → **zona** → **día** → **horario** → **invitados** (si la zona lo
+  requiere) → **resumen y confirmar** — con barra fija Atrás/Siguiente. Evita que
+  el vecino vea todo el formulario de golpe.
+- `/reservas/mias` redirige a `/reservas`.
+
 ## Estado actual (multi-zona)
 
 - **Calendario libre** (hasta 6 meses vista) + **hora libre** (desde/hasta).

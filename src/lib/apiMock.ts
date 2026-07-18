@@ -499,7 +499,7 @@ export function listAvisos(): Promise<Aviso[]> {
     avisos.push({ id: `av-msg-${m.id}`, texto: `${ETIQ[m.tipo] ?? 'Mensaje'}: ${m.titulo}`, cuando: fechaCorta(m.created_at), to: '/', ts: m.created_at })
   }
   const miReserva = db.reservas.find((r) => r.solicitada_por === currentUser.id && r.estado === 'aprobada')
-  if (miReserva) avisos.push({ id: 'av-res', texto: `Tu reserva de ${miReserva.zona_nombre} está aprobada`, cuando: fechaCorta(miReserva.inicio), to: '/reservas/mias', ts: miReserva.created_at })
+  if (miReserva) avisos.push({ id: 'av-res', texto: `Tu reserva de ${miReserva.zona_nombre} está aprobada`, cuando: fechaCorta(miReserva.inicio), to: '/reservas', ts: miReserva.created_at })
   // Solicitudes de acceso pendientes (solo para quien puede aprobar altas).
   if (puedeAprobarAltas(currentUser.rol)) {
     for (const s of db.requests.filter((r) => r.estado === 'pendiente')) {

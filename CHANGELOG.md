@@ -5,6 +5,15 @@ al implementar el cambio (ver `CLAUDE.md` → Forma de trabajo).
 
 ## 2026-07-18
 
+- **v1.40.0 · Reservas rediseñadas (Mis reservas + asistente) y scroll de Mensajes:**
+  - **Reservas**: al entrar se ven **directamente "Mis reservas"** con un botón
+    **"Nueva reserva"** arriba. Ese botón abre un **asistente paso a paso** (una
+    pregunta por pantalla: zona → día → horario → invitados → resumen), en vez del
+    formulario largo de antes. `NuevaReservaPage` + `MisReservasLista`;
+    `/reservas/mias` redirige a `/reservas`.
+  - **Mensajes**: el scroll horizontal de las 4 pestañas de tipo ahora se queda
+    **solo en esa fila** (antes desplazaba toda la pantalla).
+
 - **v1.39.0 · Reservas por horas completas + arreglo del aviso de solicitudes:**
   - **Reservas por horas cerradas**: la hora se elige en **desplegables sin
     minutos** (antes el selector pedía minutos y confundía). El rango de horas sale

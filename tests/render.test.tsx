@@ -30,7 +30,7 @@ import { CreateEncuestaPage } from '@/features/encuestas/CreateEncuestaPage'
 import { VotePage } from '@/features/encuestas/VotePage'
 import { ResultsPage } from '@/features/encuestas/ResultsPage'
 import { BookingsPage } from '@/features/bookings/BookingsPage'
-import { MyBookingsPage } from '@/features/bookings/MyBookingsPage'
+import { NuevaReservaPage } from '@/features/bookings/NuevaReservaPage'
 import { ParkingPage } from '@/features/parking/ParkingPage'
 import { ContactsPage } from '@/features/contacts/ContactsPage'
 import { SettingsPage } from '@/features/settings/SettingsPage'
@@ -68,7 +68,7 @@ const casos: [string, ReactElement, string, string][] = [
   ['Vote', <VotePage />, '/votaciones/p1', '/votaciones/:id'],
   ['Results', <ResultsPage />, '/votaciones/p3/resultados', '/votaciones/:id/resultados'],
   ['Bookings', <BookingsPage />, '/reservas', '/reservas'],
-  ['MyBookings', <MyBookingsPage />, '/reservas/mias', '/reservas/mias'],
+  ['NuevaReserva', <NuevaReservaPage />, '/reservas/nueva', '/reservas/nueva'],
   ['Parking', <ParkingPage />, '/parking', '/parking'],
   ['Contacts', <ContactsPage />, '/contactos', '/contactos'],
   ['Settings', <SettingsPage />, '/ajustes', '/ajustes'],

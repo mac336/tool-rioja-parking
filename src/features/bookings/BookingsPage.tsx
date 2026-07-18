@@ -1,303 +1,52 @@
-import { useEffect, useMemo, useState } from 'react'
-import { Link, useNavigate } from 'react-router-dom'
-import { CalendarDays, Check, Clock, MapPin } from 'lucide-react'
+import { Link } from 'react-router-dom'
+import { Plus } from 'lucide-react'
 import { useApp } from '@/store'
 import { useAsync } from '@/lib/useAsync'
-import { TTL } from '@/lib/cache'
-import { fechaHora, hora } from '@/lib/format'
+import { reservaVigente } from '@/lib/api'
 import { esTester, puedeReservar, puedeReservarOtras, puedeVerAgendaReservas } from '@/lib/roles'
-import { puedeAnularReserva, HORAS_MIN_ANULACION } from '@/lib/reglas'
-import { listZonas, reservaVigente, ocupacionDia, crearReserva, cancelarReserva, listViviendas } from '@/lib/api'
-import { Button, Card, Field, SelectField, Alert, ErrorState, SkeletonList, cx } from '@/components/ui'
-import type { ReservaEstado, ZonaComun } from '@/types'
+import { Button, Alert } from '@/components/ui'
+import { MisReservasLista } from './MisReservasLista'
 
-// ---- Utilidades de fecha/hora ------------------------------------------------
-
-const pad = (n: number) => String(n).padStart(2, '0')
-/** Clave de día local "YYYY-MM-DD" (sin desfase UTC de toISOString). */
-const claveDia = (d: Date) => `${d.getFullYear()}-${pad(d.getMonth() + 1)}-${pad(d.getDate())}`
-
-/** ISO de una hora "HH:MM" en el día indicado (hora local del dispositivo). */
-function slotISO(dia: string, hhmm: string): string {
-  const [h, m] = hhmm.split(':').map(Number)
-  const d = new Date(`${dia}T00:00:00`)
-  d.setHours(h, m ?? 0, 0, 0)
-  return d.toISOString()
-}
-const aMin = (hhmm: string) => { const [h, m] = hhmm.split(':').map(Number); return h * 60 + (m || 0) }
-const solapa = (aIni: string, aFin: string, bIni: string, bFin: string) =>
-  new Date(aIni).getTime() < new Date(bFin).getTime() && new Date(bIni).getTime() < new Date(aFin).getTime()
-
-type Ocup = { zona_id: string; inicio: string; fin: string; estado: 'pendiente' | 'aprobada' }
-type DispZona = { zona: ZonaComun; ok: boolean; motivo?: string }
-
-/** Evalúa si una zona está disponible en la ventana elegida. */
-function evaluarZona(zona: ZonaComun, dia: string, desde: string, hasta: string, ocup: Ocup[]): DispZona {
-  const min = zona.franja_min ?? '00:00'
-  const max = zona.franja_max ?? '23:59'
-  if (desde < min || hasta > max) return { zona, ok: false, motivo: `Horario permitido ${min}–${max}` }
-  if (zona.duracion_max_min && aMin(hasta) - aMin(desde) > zona.duracion_max_min) {
-    return { zona, ok: false, motivo: `Máx. ${Math.floor(zona.duracion_max_min / 60)}h por reserva` }
-  }
-  const ini = slotISO(dia, desde), fin = slotISO(dia, hasta)
-  const choca = ocup.some((o) => o.zona_id === zona.id && solapa(ini, fin, o.inicio, o.fin))
-  if (choca) return { zona, ok: false, motivo: 'Ocupada en ese horario' }
-  return { zona, ok: true }
-}
-
-// ---- Pill de estado de reserva -----------------------------------------------
-
-const PILL: Record<ReservaEstado, { label: string; cls: string }> = {
-  pendiente: { label: 'Pendiente de aprobar', cls: 'bg-warn-soft text-warn-ink' },
-  aprobada: { label: 'Aprobada', cls: 'bg-success-soft text-success-ink' },
-  rechazada: { label: 'Rechazada', cls: 'bg-danger-soft text-danger-ink' },
-  cancelada: { label: 'Cancelada', cls: 'bg-surface-2 text-muted' },
-}
-function EstadoPill({ estado }: { estado: ReservaEstado }) {
-  const p = PILL[estado]
-  return <span className={cx('inline-flex items-center rounded-pill px-2.5 py-1 text-[12px] font-bold', p.cls)}>{p.label}</span>
-}
-
-// ---- Página ------------------------------------------------------------------
-
+// Pantalla principal de Reservas: muestra directamente MIS RESERVAS y, arriba, un
+// botón "Nueva reserva" que abre el asistente paso a paso (NuevaReservaPage).
 export function BookingsPage() {
-  const { user, toast } = useApp()
-  const nav = useNavigate()
-
+  const { user } = useApp()
   const vigente = useAsync(reservaVigente, [])
-  const zonas = useAsync(listZonas, [], { key: 'zonas', ttlMs: TTL.zonas })
   const reservarOtras = puedeReservarOtras(user.rol)
-  const viviendas = useAsync(() => (reservarOtras ? listViviendas() : Promise.resolve([])), [reservarOtras])
-
-  const hoy = useMemo(() => claveDia(new Date()), [])
-  const maxDia = useMemo(() => { const d = new Date(); d.setMonth(d.getMonth() + 6); return claveDia(d) }, [])
-
-  const [sel, setSel] = useState<Set<string>>(new Set())
-  const [dia, setDia] = useState<string>(hoy)
-  const [desde, setDesde] = useState('10:00')
-  const [hasta, setHasta] = useState('12:00')
-  const [invitados, setInvitados] = useState('')
-  const [viviendaObjetivo, setViviendaObjetivo] = useState('')
-  const [saving, setSaving] = useState(false)
-  const [err, setErr] = useState('')
-
-  const ocupacion = useAsync(() => ocupacionDia(dia), [dia])
-
-  const zonasSel = useMemo(
-    () => (zonas.data ?? []).filter((z) => sel.has(z.id)),
-    [zonas.data, sel],
-  )
-  // Reservas por HORAS CERRADAS (sin minutos). El rango de horas se deriva de las
-  // franjas de las zonas; la validación por zona (evaluarZona) sigue avisando si
-  // una zona concreta no admite esa franja.
-  const { horaLo, horaHi } = useMemo(() => {
-    const zs = zonas.data ?? []
-    let lo = 8, hi = 23
-    if (zs.length) {
-      lo = Math.min(...zs.map((z) => Number((z.franja_min ?? '08:00').slice(0, 2))))
-      hi = Math.max(...zs.map((z) => {
-        const [h, m] = (z.franja_max ?? '23:00').split(':').map(Number)
-        return Math.min(23, (m || 0) > 0 ? h + 1 : h)
-      }))
-    }
-    if (hi <= lo) hi = Math.min(23, lo + 1)
-    return { horaLo: lo, horaHi: hi }
-  }, [zonas.data])
-  const horasDesde = useMemo(
-    () => Array.from({ length: horaHi - horaLo }, (_, i) => `${pad(horaLo + i)}:00`),
-    [horaLo, horaHi],
-  )
-  const horasHasta = useMemo(() => {
-    const ini = Math.max(horaLo + 1, Number(desde.slice(0, 2)) + 1)
-    return Array.from({ length: Math.max(0, horaHi - ini + 1) }, (_, i) => `${pad(ini + i)}:00`)
-  }, [horaLo, horaHi, desde])
-  // Si la hora elegida deja de ser válida (cambian las zonas o el "desde"), la ajusta.
-  useEffect(() => { if (horasDesde.length && !horasDesde.includes(desde)) setDesde(horasDesde[0]) }, [horasDesde, desde])
-  useEffect(() => { if (horasHasta.length && !horasHasta.includes(hasta)) setHasta(horasHasta[0]) }, [horasHasta, hasta])
-
-  const rangoOk = desde < hasta
-  const disponibilidad = useMemo<DispZona[]>(
-    () => (rangoOk ? zonasSel.map((z) => evaluarZona(z, dia, desde, hasta, ocupacion.data ?? [])) : []),
-    [zonasSel, dia, desde, hasta, ocupacion.data, rangoOk],
-  )
-  const todasOk = disponibilidad.length > 0 && disponibilidad.every((d) => d.ok)
-  const needInv = zonasSel.some((z) => z.requiere_invitados)
-  const invitadosOk = !needInv || (invitados !== '' && Number(invitados) >= 0)
-  const puedeSolicitar = sel.size > 0 && rangoOk && todasOk && invitadosOk && !saving
-
-  function toggleZona(id: string) {
-    setSel((prev) => {
-      const next = new Set(prev)
-      next.has(id) ? next.delete(id) : next.add(id)
-      return next
-    })
-  }
-
-  async function anular(grupoId: string) {
-    try {
-      await cancelarReserva(grupoId)
-      vigente.refetch()
-      toast('Reserva anulada')
-    } catch {
-      toast(`No se pudo anular (solo hasta ${HORAS_MIN_ANULACION} h antes)`, 'error')
-    }
-  }
-
-  async function solicitar() {
-    if (!puedeSolicitar) return
-    setErr(''); setSaving(true)
-    try {
-      await crearReserva({
-        zonaIds: [...sel],
-        inicio: slotISO(dia, desde),
-        fin: slotISO(dia, hasta),
-        numInvitados: needInv ? Number(invitados) : 0,
-        viviendaObjetivo: reservarOtras && viviendaObjetivo ? viviendaObjetivo : undefined,
-      })
-      toast('Reserva confirmada', 'ok')
-      nav('/reservas/mias')
-    } catch (e) {
-      setErr(e instanceof Error ? e.message : 'No se pudo crear la reserva.')
-    } finally {
-      setSaving(false)
-    }
-  }
-
-  const cargando = vigente.state === 'loading' || zonas.state === 'loading'
+  const tester = esTester(user.rol)
+  // Regla: una reserva vigente por vivienda (no aplica a quien reserva para otras).
+  const bloqueado = !reservarOtras && !!vigente.data
+  const puedeNueva = puedeReservar(user.rol) && !tester
 
   return (
     <div>
       <header className="sticky top-0 z-10 flex items-center justify-between gap-2 border-b border-border bg-surface/95 px-4 py-3.5 backdrop-blur safe-top">
         <h1 className="font-display text-[22px] font-extrabold text-ink">Reservas</h1>
-        <div className="flex items-center gap-3">
-          {puedeVerAgendaReservas(user.rol) && (
-            <Link to="/reservas/agenda" className="text-[14px] font-bold text-primary hover:underline">Agenda</Link>
-          )}
-          <Link to="/reservas/mias" className="text-[14px] font-bold text-primary hover:underline">Mis reservas</Link>
-        </div>
+        {puedeVerAgendaReservas(user.rol) && (
+          <Link to="/reservas/agenda" className="text-[14px] font-bold text-primary hover:underline">Agenda</Link>
+        )}
       </header>
 
       <div className="px-4 py-4 pb-8">
-        {cargando && <SkeletonList />}
-        {!cargando && (vigente.state === 'error' || zonas.state === 'error') && <ErrorState onRetry={() => { vigente.refetch(); zonas.refetch() }} />}
-
-        {/* Caso 1: la vivienda ya tiene una reserva vigente (no aplica a quien reserva para otras viviendas) */}
-        {!cargando && !reservarOtras && vigente.data && (
-          <Card className="border-2 border-primary">
-            <div className="flex items-start justify-between gap-3">
-              <div>
-                <div className="overline text-primary">Ya tienes una reserva vigente</div>
-                <h2 className="mt-1 font-display text-[19px] font-bold text-ink">
-                  {vigente.data.zonas.map((z) => z.nombre).join(' + ')}
-                </h2>
-                <p className="mt-1 flex items-center gap-1.5 text-[14px] text-muted">
-                  <Clock size={15} /> {fechaHora(vigente.data.inicio)}–{hora(vigente.data.fin)}
-                </p>
-              </div>
-              <EstadoPill estado={vigente.data.estado} />
-            </div>
-            <p className="mt-3 text-[13px] text-muted">
-              Solo se permite una reserva por vivienda a la vez (puede incluir varias zonas). Anúlala para poder solicitar otra.
-            </p>
-            {puedeAnularReserva(vigente.data.inicio) ? (
-              <div className="mt-3">
-                <Button variant="danger-outline" block onClick={() => anular(vigente.data!.grupo_id)}>Anular reserva</Button>
-              </div>
-            ) : (
-              <p className="mt-3 rounded-[12px] bg-surface-2 px-3 py-2 text-[12.5px] text-muted">
-                Ya no se puede anular: quedan menos de {HORAS_MIN_ANULACION} h para el inicio.
-              </p>
-            )}
-          </Card>
+        {/* Botón de nueva reserva (o aviso si ya hay una vigente) */}
+        {puedeNueva && !bloqueado && (
+          <Link to="/reservas/nueva" className="mb-4 block">
+            <Button block size="lg"><Plus size={18} /> Nueva reserva</Button>
+          </Link>
+        )}
+        {puedeNueva && bloqueado && (
+          <Alert tipo="info">Ya tienes una reserva vigente (una por vivienda). Anúlala abajo para poder pedir otra.</Alert>
+        )}
+        {tester && (
+          <Alert tipo="info">Cuenta de pruebas (Tester): solo lectura. Puedes mirarlo todo, pero no reservar.</Alert>
+        )}
+        {!puedeReservar(user.rol) && !tester && (
+          <Alert tipo="warn">Tu rol no tiene permiso para realizar reservas.</Alert>
         )}
 
-        {/* Caso 2: flujo de nueva reserva */}
-        {!cargando && (reservarOtras || !vigente.data) && zonas.state !== 'error' && (
-          <div className="flex flex-col gap-5">
-            {reservarOtras && (
-              <section>
-                <h2 className="section-title mb-2">¿Para qué vivienda?</h2>
-                <SelectField label="Vivienda" value={viviendaObjetivo} onChange={(e) => setViviendaObjetivo(e.target.value)}>
-                  <option value="">La mía ({user.vivienda || '—'})</option>
-                  {(viviendas.data ?? []).map((v) => <option key={v} value={v}>{v}</option>)}
-                </SelectField>
-                <p className="mt-1 text-[12px] text-faint">Puedes reservar a nombre de otra vivienda (p. ej. para un vecino que lo pide en persona).</p>
-              </section>
-            )}
-            <section>
-              <h2 className="section-title mb-2">Elige una o varias zonas</h2>
-              <div className="flex flex-wrap gap-2">
-                {(zonas.data ?? []).map((z) => {
-                  const on = sel.has(z.id)
-                  return (
-                    <button key={z.id} type="button" onClick={() => toggleZona(z.id)}
-                      className={cx('inline-flex items-center gap-1.5 rounded-pill border px-3.5 py-2 text-[13px] font-semibold transition-colors',
-                        on ? 'border-primary bg-primary text-white' : 'border-border bg-surface-2 text-muted hover:border-border-strong')}>
-                      {on && <Check size={15} />}{z.nombre}
-                    </button>
-                  )
-                })}
-              </div>
-            </section>
-
-            <section>
-              <h2 className="section-title mb-2">Elige el día</h2>
-              <Field type="date" min={hoy} max={maxDia} value={dia}
-                onChange={(e) => setDia(e.target.value || hoy)} />
-              <p className="mt-1 text-[12px] text-faint">Puedes reservar hasta 6 meses vista.</p>
-            </section>
-
-            <section>
-              <h2 className="section-title mb-2">Elige la hora</h2>
-              <div className="grid grid-cols-2 gap-3">
-                <SelectField label="Desde" value={desde} onChange={(e) => setDesde(e.target.value)}>
-                  {horasDesde.map((h) => <option key={h} value={h}>{h}</option>)}
-                </SelectField>
-                <SelectField label="Hasta" value={hasta} onChange={(e) => setHasta(e.target.value)}>
-                  {horasHasta.map((h) => <option key={h} value={h}>{h}</option>)}
-                </SelectField>
-              </div>
-              <p className="mt-1 text-[12px] text-faint">Las reservas son por horas completas.</p>
-              {!rangoOk && <p className="mt-1 text-[13px] text-danger">La hora de fin debe ser posterior a la de inicio.</p>}
-            </section>
-
-            {/* Disponibilidad por zona seleccionada */}
-            {sel.size > 0 && rangoOk && (
-              <section>
-                <h2 className="section-title mb-2">Disponibilidad</h2>
-                {ocupacion.state === 'loading' && <SkeletonList n={1} />}
-                {ocupacion.state !== 'loading' && (
-                  <div className="flex flex-col gap-2">
-                    {disponibilidad.map((d) => (
-                      <div key={d.zona.id}
-                        className={cx('flex items-center justify-between gap-2 rounded-[14px] border px-3 py-2.5 text-[14px]',
-                          d.ok ? 'border-success/40 bg-success-soft text-success-ink' : 'border-danger/40 bg-danger-soft text-danger-ink')}>
-                        <span className="flex items-center gap-1.5 font-semibold"><MapPin size={15} /> {d.zona.nombre}</span>
-                        <span className="text-[12px] font-bold">{d.ok ? 'Libre' : d.motivo}</span>
-                      </div>
-                    ))}
-                  </div>
-                )}
-              </section>
-            )}
-
-            {needInv && (
-              <Field label="Nº de invitados" type="number" inputMode="numeric" min={0}
-                value={invitados} onChange={(e) => setInvitados(e.target.value)} placeholder="0" />
-            )}
-
-            {err && <Alert tipo="danger">{err}</Alert>}
-            <Alert tipo="info">La reserva queda confirmada al momento (ya no hace falta aprobación).</Alert>
-
-            {esTester(user.rol)
-              ? <div className="mb-2"><Alert tipo="info">Cuenta de pruebas (Tester): solo lectura. Puedes mirarlo todo y chatear por el buzón, pero no realizar acciones.</Alert></div>
-              : !puedeReservar(user.rol) && <div className="mb-2"><Alert tipo="warn">Tu rol no tiene permiso para realizar reservas.</Alert></div>}
-            <Button block size="lg" disabled={!puedeReservar(user.rol) || !puedeSolicitar} onClick={solicitar}>
-              <CalendarDays size={18} /> {saving ? 'Reservando…' : 'Reservar'}
-            </Button>
-          </div>
-        )}
-
+        <div className="mt-4">
+          <MisReservasLista />
+        </div>
       </div>
     </div>
   )

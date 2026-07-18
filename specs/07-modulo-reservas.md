@@ -76,6 +76,12 @@ conserje) puede reservar **a nombre de otra vivienda**.
      **sin** necesitar acceso al panel — así el conserje puede ayudar a un
      vecino a encontrar hueco libre. API `reservasGestion(desdeISO, hastaISO)`
      (RLS mig. 0044: `es_gestion()` **o** `tiene_permiso('ver_agenda_reservas')`).
+2c. **Aviso de reservas del jardín**: al crear una reserva que incluya el
+   **jardín** (también en aprobación directa), se envía un push a quien tenga el
+   permiso **`avisar_reservas_jardin`** (por defecto el **conserje**; app_admin
+   siempre) — *"{vivienda} ha reservado el jardín para el {fecha/hora}"*. Lo
+   dispara `crearReserva` → Edge `notificar` (kind `reserva_jardin`), que
+   comprueba en servidor si el grupo incluye el jardín y excluye al que reservó.
 3. **Visibilidad de ocupación**:
    - Una franja con reserva `aprobada` aparece como **ocupada**.
    - **Privacidad:** los vecinos ven solo el **estado** de cada franja (libre /

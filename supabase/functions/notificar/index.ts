@@ -194,6 +194,35 @@ Deno.serve(async (req) => {
       return json({ ok: true })
     }
 
+    if (kind === 'reserva_jardin') {
+      // Alguien reservó el JARDÍN → avisar a quien tenga el permiso
+      // 'avisar_reservas_jardin' (por defecto el conserje; app_admin siempre).
+      const { data: filas } = await admin.from('reservas')
+        .select('vivienda, inicio, solicitada_por, zona:zonas_comunes(nombre)')
+        .eq('grupo_id', id)
+      const r = (filas ?? [])[0] as
+        { vivienda: string; inicio: string; solicitada_por: string; zona?: { nombre: string } | { nombre: string }[] | null } | undefined
+      if (!r) return json({ ok: true, skipped: 'sin reserva' })
+      if (r.solicitada_por !== user.id) return json({ error: 'Sin permiso.' }, 403)
+      const tieneJardin = (filas ?? []).some((f) => {
+        const z = (f as { zona?: { nombre: string } | { nombre: string }[] | null }).zona
+        const nombre = Array.isArray(z) ? z[0]?.nombre : z?.nombre
+        return (nombre ?? '').toLowerCase().includes('jard')
+      })
+      if (!tieneJardin) return json({ ok: true, skipped: 'no es jardín' })
+      const ids = (await idsConPermiso(admin, 'avisar_reservas_jardin')).filter((x) => x !== user.id)
+      if (ids.length === 0) return json({ ok: true, skipped: 'sin destinatarios' })
+      const cuando = new Date(r.inicio).toLocaleString('es-ES', {
+        timeZone: 'Europe/Madrid', weekday: 'long', day: 'numeric', month: 'long', hour: '2-digit', minute: '2-digit',
+      })
+      await enviarPushAUsuarios(admin, ids, {
+        title: '🌳 Reserva del jardín',
+        body: `${r.vivienda} ha reservado el jardín para el ${cuando}`,
+        url: '/reservas',
+      })
+      return json({ ok: true })
+    }
+
     return json({ error: 'kind no reconocido.' }, 400)
   } catch (_e) {
     return json({ error: 'No se pudo notificar.' }, 500)

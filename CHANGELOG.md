@@ -5,6 +5,14 @@ al implementar el cambio (ver `CLAUDE.md` → Forma de trabajo).
 
 ## 2026-07-18
 
+- **v1.41.0 · Aviso push de reservas del jardín (permiso por rol):**
+  - Nuevo permiso configurable **`avisar_reservas_jardin`** (mig. 0051): quien lo
+    tenga **recibe una notificación** cuando alguien reserva el **jardín**
+    (*"{vivienda} ha reservado el jardín para el {fecha}"*). Por defecto solo el
+    **conserje** (editable en Panel → Permisos). Lo dispara `crearReserva` → Edge
+    `notificar` (kind `reserva_jardin`), que comprueba en servidor si es el jardín
+    y excluye a quien reservó.
+
 - **v1.40.0 · Reservas rediseñadas (Mis reservas + asistente) y scroll de Mensajes:**
   - **Reservas**: al entrar se ven **directamente "Mis reservas"** con un botón
     **"Nueva reserva"** arriba. Ese botón abre un **asistente paso a paso** (una

@@ -44,7 +44,7 @@ export type Permiso =
   | 'publicar_aviso' | 'publicar_anuncio' | 'publicar_incidencia' | 'publicar_sugerencia'
   | 'aprobar_incidencias' | 'aprobar_anuncios'
   // Reservas
-  | 'realizar_reservas' | 'reservar_otras_viviendas' | 'ver_agenda_reservas'
+  | 'realizar_reservas' | 'reservar_otras_viviendas' | 'ver_agenda_reservas' | 'avisar_reservas_jardin'
   // Buzón
   | 'usar_buzon' | 'escribir_vecinos'
   // Encuestas
@@ -75,6 +75,7 @@ export const GRUPOS_PERMISOS: { grupo: string; permisos: { key: Permiso; label: 
     { key: 'realizar_reservas', label: 'Realizar reservas', desc: 'Reservar zonas comunes' },
     { key: 'reservar_otras_viviendas', label: 'Reservar para otras viviendas', desc: 'Al reservar, elegir la vivienda a nombre de la que se hace (p. ej. el conserje)' },
     { key: 'ver_agenda_reservas', label: 'Ver la agenda de reservas', desc: 'Ver el calendario con las reservas de todas las viviendas y zonas, para ayudar a los vecinos a encontrar hueco libre' },
+    { key: 'avisar_reservas_jardin', label: 'Recibir avisos de reservas del jardín', desc: 'Recibe una notificación cuando alguien reserva el jardín (con la vivienda y el día)' },
   ] },
   { grupo: 'Buzón', permisos: [
     { key: 'usar_buzon', label: 'Chatear por el buzón', desc: 'Escribir mensajes privados por los canales del buzón' },
@@ -118,6 +119,8 @@ const DEFAULTS: Record<Permiso, Role[]> = {
   realizar_reservas: ['app_admin', 'presidente', 'vicepresidente', 'administrador_finca', 'junta', 'conserje', 'vecino', 'inquilino'],
   reservar_otras_viviendas: ['app_admin', 'conserje'],
   ver_agenda_reservas: [...GESTION, 'conserje'],
+  // Recibir aviso de reservas del jardín: de momento solo el conserje.
+  avisar_reservas_jardin: ['conserje'],
   usar_buzon: TODOS,
   escribir_vecinos: ['app_admin', 'administrador_finca', 'conserje'],
   // Votar: como el vecino, pero NO el inquilino.

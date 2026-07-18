@@ -150,6 +150,9 @@ export async function crearReserva(input: CrearReservaInput): Promise<ReservaGru
   if (estado === 'pendiente') {
     void supabase.functions.invoke('notificar', { body: { kind: 'reserva_nueva', id: grupo_id } }).catch(() => undefined)
   }
+  // Aviso de reserva del JARDÍN a quien tenga el permiso (el servidor comprueba
+  // si el grupo incluye el jardín; se envía también en aprobación directa).
+  void supabase.functions.invoke('notificar', { body: { kind: 'reserva_jardin', id: grupo_id } }).catch(() => undefined)
   cacheBust('avisos')
   return agrupar((data ?? []).map((r) => toReserva(r as ReservaRow)))[0]
 }

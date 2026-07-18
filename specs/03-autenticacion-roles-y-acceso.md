@@ -122,6 +122,9 @@ no solo en la interfaz.
     - `ver_agenda_reservas` — ver la agenda de reservas de todas las viviendas y
       zonas desde el propio servicio de Reservas, sin acceso al panel (por
       defecto gestión + conserje).
+    - `avisar_reservas_jardin` — **recibir** una notificación push cuando alguien
+      reserva el **jardín** (por defecto solo el **conserje**; app_admin siempre).
+      No habilita ninguna acción, solo decide quién recibe el aviso.
   - **Buzón**: `usar_buzon` (por defecto TODOS, tester incluido); `escribir_vecinos`
     — iniciar chats con cualquier vecino en su canal (ver `specs/17`).
   - **Encuestas**: `votar_encuestas` — votar y ver el módulo de votaciones.

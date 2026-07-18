@@ -5,6 +5,13 @@ al implementar el cambio (ver `CLAUDE.md` → Forma de trabajo).
 
 ## 2026-07-18
 
+- **v1.43.3 · Confeti que CAE (y se mueve con "reducir movimiento"):**
+  - Ahora el confeti **cae de arriba abajo** con giro y balanceo (keyframes en
+    `vh`, sin `var()` dentro del @keyframes → válido en iOS). La animación va en
+    una custom prop `--conf-anim` y se **exceptúa** del bloqueo de
+    `prefers-reduced-motion` (el confeti es decorativo/temporal), así que cae
+    también en iPhones con "Reducir movimiento" activo.
+
 - **v1.43.2 · Fix: confeti no se veía (ni web ni móvil):**
   - Las piezas seguían partiendo de `top:-24px` (fuera de pantalla) y las
     animaciones nuevas solo las mueven ±30px, así que nunca entraban. Ahora se

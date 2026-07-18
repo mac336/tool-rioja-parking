@@ -8,24 +8,24 @@ export function Confeti({ n = 22, opacity = 0.5 }: { n?: number; opacity?: numbe
     const rect = i % 3 !== 0 // 2 de cada 3 son rectángulos; el resto puntos
     const color = i % 2 === 0 ? ROJO_ES : AMARILLO_ES
     const left = Math.round(Math.random() * 94)
-    // Repartidas YA en pantalla (no fuera): así se ven aunque la animación no
-    // corra (iOS "reducir movimiento") o tarde en arrancar.
-    const top = Math.round(Math.random() * 92)
-    const dur = 4 + Math.random() * 5 // 4–9 s
-    const delay = -Math.random() * dur // desfase para que no vayan a la vez
+    const dur = 5 + Math.random() * 5 // 5–10 s (velocidad de caída)
+    const delay = -Math.random() * dur // desfase: reparte las piezas por la caída
     const anim = i % 2 === 0 ? 'confetti-a' : 'confetti-b'
+    // La animación va en una custom prop para poder re-activarla bajo
+    // "reducir movimiento" (ver .confeti-pieza en global.css).
+    const shorthand = `${anim} ${dur.toFixed(2)}s linear ${delay.toFixed(2)}s infinite`
     const style: CSSProperties = {
       position: 'absolute',
       left: `${left}%`,
-      top: `${top}%`,
+      top: 0,
       width: rect ? 9 : 8,
       height: rect ? 16 : 8,
       borderRadius: rect ? 2 : 999,
       background: color,
-      animation: `${anim} ${dur.toFixed(2)}s ease-in-out infinite`,
-      animationDelay: `${delay.toFixed(2)}s`,
+      ['--conf-anim' as string]: shorthand,
+      animation: 'var(--conf-anim)',
     }
-    return <span key={i} style={style} />
+    return <span key={i} className="confeti-pieza" style={style} />
   }), [n])
 
   return (

@@ -121,17 +121,22 @@
   }
 }
 
-/* Confeti del modo festivo "¡Vamos España!" (temporal). Balanceo + giro con
-   valores FIJOS (sin var(): Safari/iOS lo maneja mal dentro de @keyframes). Las
-   piezas ya están repartidas EN pantalla (top aleatorio), así que se ven aunque
-   la animación esté neutralizada (prefers-reduced-motion) o no arranque. */
+/* Confeti del modo festivo "¡Vamos España!" (temporal). CAÍDA de arriba abajo
+   con giro y balanceo. Distancias en `vh` (fijas, sin var() dentro de @keyframes,
+   que Safari/iOS maneja mal). Las piezas nacen arriba (-12vh) y caen bajo la
+   pantalla (106vh); el delay negativo las reparte a lo largo de la caída. */
 @keyframes confetti-a {
-  0%   { transform: translate(0, 0) rotate(0deg); }
-  50%  { transform: translate(12px, 26px) rotate(180deg); }
-  100% { transform: translate(-6px, -8px) rotate(360deg); }
+  0%   { transform: translate(0, -12vh) rotate(0deg); }
+  50%  { transform: translate(16px, 46vh) rotate(210deg); }
+  100% { transform: translate(-8px, 106vh) rotate(430deg); }
 }
 @keyframes confetti-b {
-  0%   { transform: translate(0, 0) rotate(0deg); }
-  50%  { transform: translate(-14px, 30px) rotate(-190deg); }
-  100% { transform: translate(8px, -10px) rotate(-360deg); }
+  0%   { transform: translate(0, -12vh) rotate(0deg); }
+  50%  { transform: translate(-18px, 50vh) rotate(-230deg); }
+  100% { transform: translate(10px, 106vh) rotate(-400deg); }
+}
+/* El confeti es decorativo y temporal: se exceptúa de "reducir movimiento" para
+   que caiga igualmente (el resto de la app sí respeta la preferencia). */
+@media (prefers-reduced-motion: reduce) {
+  .confeti-pieza { animation: var(--conf-anim) !important; }
 }

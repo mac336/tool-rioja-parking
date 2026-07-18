@@ -2,6 +2,7 @@ import React, { useEffect, useState } from 'react'
 import ReactDOM from 'react-dom/client'
 import { RouterProvider } from 'react-router-dom'
 import { router } from './router'
+import { Analytics } from '@vercel/analytics/react'
 import { SplashScreen } from '@/components/SplashScreen'
 import { AutoUpdater } from '@/components/AutoUpdater'
 import './lib/pwa' // captura temprana del evento de instalación (beforeinstallprompt)
@@ -31,6 +32,7 @@ function Root() {
       {splash && <SplashScreen onDone={() => setSplash(false)} />}
       <RouterProvider router={router} />
       <AutoUpdater />
+      <Analytics />
     </>
   )
 }

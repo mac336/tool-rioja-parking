@@ -9,6 +9,10 @@ import { contarAvisosNuevos } from '@/lib/avisosVistos'
 import { puedePublicarAlgo, puedeVotar, puedeReservar, puedeVerMiComunidad } from '@/lib/roles'
 import { Logo } from '@/components/Logo'
 import { TablonGadget } from '@/features/mensajes/TablonGadget'
+import { modoFestivo, textoFestivo } from '@/lib/festivo'
+import { Confeti } from '@/features/festivo/Confeti'
+import { Banderines } from '@/features/festivo/Banderines'
+import { BannerFestivo } from '@/features/festivo/BannerFestivo'
 
 // Servicios (accesos a módulos) en círculo — colores fijos de cada módulo.
 // - "Buzón" NO va aquí: está arriba en la cabecera (icono 💬), sería duplicado.
@@ -28,7 +32,9 @@ const servicios = [
 const fechaLarga = new Intl.DateTimeFormat('es-ES', { weekday: 'long', day: 'numeric', month: 'long' }).format(new Date())
 
 export function HomePage() {
-  const { user } = useApp()
+  const { user, config } = useApp()
+  const festivo = modoFestivo(config.festivo_campeones)
+  const festTexto = textoFestivo(config.festivo_campeones)
   const turnos = useAsync(parkingMisTurnos, [user.vivienda])
   const encuestas = useAsync(listEncuestas, [], { key: 'encuestas', ttlMs: TTL.encuestas })
   const mensajes = useAsync(listMensajes, [], { key: 'mensajes', ttlMs: TTL.mensajes })
@@ -95,7 +101,9 @@ export function HomePage() {
     //   → [parking, solo si toca] → SERVICIOS (pieza clave, SIEMPRE visible
     //   pegada al footer). Todo lo nuevo debe caber en el espacio de arriba;
     //   el panel de servicios no se mueve ni scrollea.
-    <div className="flex h-full flex-col overflow-hidden bg-bg px-4">
+    <div className="relative flex h-full flex-col overflow-hidden bg-bg px-4">
+      {festivo && <Confeti n={22} opacity={0.5} />}
+      <div className="relative z-10 flex min-h-0 flex-1 flex-col">
       {/* Header compacto claro */}
       <header className="shrink-0 pb-2 pt-[calc(env(safe-area-inset-top)+16px)]">
         <div className="flex items-center justify-between">
@@ -124,6 +132,10 @@ export function HomePage() {
           </div>
         </div>
       </header>
+
+      {/* Modo festivo (temporal): banderines + banner "¡Vamos España!"/"Campeones" */}
+      {festivo && <Banderines className="-mt-1 mb-2 shrink-0" />}
+      {festivo && <BannerFestivo titulo={festTexto.titulo} subtitulo={festTexto.subtitulo} />}
 
       {/* Encuesta protagonista: hero azul (o ámbar si urge) antes del tablón */}
       {encuestaHero && (
@@ -217,6 +229,7 @@ export function HomePage() {
           ))}
         </div>
       </section>
+      </div>
     </div>
   )
 }

@@ -5,6 +5,17 @@ al implementar el cambio (ver `CLAUDE.md` → Forma de trabajo).
 
 ## 2026-07-18
 
+- **v1.43.0 · Modo festivo "¡Vamos España!" + Vercel Analytics:**
+  - Decoración temporal (final del Mundial): **confeti animado**, **banderines** y
+    **banner** en la Home, y **splash de arranque festivo** (balón + franjas de
+    bandera + confeti). Respeta `prefers-reduced-motion`. `src/lib/festivo.ts` +
+    `src/features/festivo/*`. Se muestra **solo hasta el 19-07-2026 23:00**; luego
+    la app vuelve al aspecto normal sin rastro.
+  - **Interruptor en Gestión → Configuración** (`festivo_campeones`, def. OFF):
+    al activarlo el texto pasa a **"¡ESPAÑA CAMPEONES 2026!"** (sin la línea de la
+    final) y la decoración se mantiene aunque haya pasado la fecha.
+  - **Vercel Analytics** activado (`@vercel/analytics`, `<Analytics/>` en el arranque).
+
 - **v1.42.0 · Crear mensajes paso a paso:**
   - El formulario de "Nuevo mensaje" (gestión) pasa a ser un **asistente paso a
     paso** (como reservas): tipo → título → mensaje → importancia (aviso/incidencia)

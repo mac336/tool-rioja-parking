@@ -510,11 +510,11 @@ export function listAvisos(): Promise<Aviso[]> {
 }
 
 // ---- Configuración general (feature flags) -----------------------------------
-const appConfig = { acceso_directo: true, reservas_requieren_aprobacion: false }
-export function getConfig(): Promise<{ acceso_directo: boolean; reservas_requieren_aprobacion: boolean }> {
+const appConfig = { acceso_directo: true, reservas_requieren_aprobacion: false, festivo_campeones: false }
+export function getConfig(): Promise<typeof appConfig> {
   return delay({ ...appConfig })
 }
-export function setConfig(clave: 'acceso_directo' | 'reservas_requieren_aprobacion', valor: boolean): Promise<void> {
+export function setConfig(clave: keyof typeof appConfig, valor: boolean): Promise<void> {
   appConfig[clave] = valor
   return delay(undefined)
 }

@@ -120,3 +120,17 @@
     transition-duration: 0.001ms !important;
   }
 }
+
+/* Confeti del modo festivo "¡Vamos España!" (temporal). Dos variantes de balanceo.
+   --fall = distancia de caída. Con prefers-reduced-motion queda casi estático
+   (lo neutraliza el bloque de arriba). */
+@keyframes confetti-a {
+  from { transform: translate(0, 0) rotate(0); }
+  50%  { transform: translate(14px, calc(var(--fall) * .5)) rotate(200deg); }
+  to   { transform: translate(-6px, var(--fall)) rotate(420deg); }
+}
+@keyframes confetti-b {
+  from { transform: translate(0, 0) rotate(0); }
+  50%  { transform: translate(-16px, calc(var(--fall) * .5)) rotate(-220deg); }
+  to   { transform: translate(8px, var(--fall)) rotate(-380deg); }
+}

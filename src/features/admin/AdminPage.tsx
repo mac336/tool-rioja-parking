@@ -616,14 +616,14 @@ function PublicacionesTab({ onToast, onChanged }: { onToast: Toast; onChanged: (
 function ConfiguracionTab({ onToast }: { onToast: Toast }) {
   const refreshConfig = useApp((s) => s.refreshConfig)
   const { data, state, refetch } = useAsync(getConfig, [])
-  const [cfg, setCfg] = useState<{ acceso_directo: boolean; reservas_requieren_aprobacion: boolean } | null>(null)
+  const [cfg, setCfg] = useState<{ acceso_directo: boolean; reservas_requieren_aprobacion: boolean; festivo_campeones: boolean } | null>(null)
   const [busy, setBusy] = useState<string | null>(null)
   const efectivo = cfg ?? data
 
   if (state === 'loading') return <SkeletonList n={2} />
   if (state === 'error' || !efectivo) return <ErrorState onRetry={refetch} />
 
-  async function cambiar(clave: 'acceso_directo' | 'reservas_requieren_aprobacion', valor: boolean) {
+  async function cambiar(clave: 'acceso_directo' | 'reservas_requieren_aprobacion' | 'festivo_campeones', valor: boolean) {
     const next = { ...efectivo!, [clave]: valor }
     setCfg(next); setBusy(clave)
     try {
@@ -663,6 +663,17 @@ function ConfiguracionTab({ onToast }: { onToast: Toast }) {
           </div>
           <Toggle on={efectivo.reservas_requieren_aprobacion} disabled={busy === 'reservas_requieren_aprobacion'}
             onClick={() => cambiar('reservas_requieren_aprobacion', !efectivo.reservas_requieren_aprobacion)} />
+        </div>
+      </Card>
+
+      <Card className="flex flex-col gap-2">
+        <div className="flex items-center justify-between gap-3">
+          <div className="min-w-0">
+            <div className="text-[14px] font-semibold text-ink">🏆 España campeones 2026</div>
+            <div className="text-[12px] text-muted">Cambia el banner festivo a <b>«¡ESPAÑA CAMPEONES 2026!»</b> (y quita lo de la final). Actívalo solo si ganamos; por defecto muestra «¡Vamos España!».</div>
+          </div>
+          <Toggle on={efectivo.festivo_campeones} disabled={busy === 'festivo_campeones'}
+            onClick={() => cambiar('festivo_campeones', !efectivo.festivo_campeones)} />
         </div>
       </Card>
     </div>

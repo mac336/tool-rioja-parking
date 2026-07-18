@@ -4,6 +4,8 @@ import { Logo } from '@/components/Logo'
 import { cx } from '@/components/ui'
 import { useApp } from '@/store'
 import { getDeferredPrompt, clearDeferredPrompt, isStandalone, getPlataforma, esSafariIOS } from '@/lib/pwa'
+import { Confeti } from '@/features/festivo/Confeti'
+import { modoFestivo, textoFestivo, ROJO_ES, AMARILLO_ES } from '@/lib/festivo'
 
 /** Pantalla de bienvenida al abrir la app. Dos pasos: (1) bienvenida y (2)
  *  invitación a INSTALAR la app en el móvil (para que no tengan que volver a
@@ -16,6 +18,8 @@ export function SplashScreen({ onDone }: { onDone: () => void }) {
   const [leaving, setLeaving] = useState(false)
   const [paso, setPaso] = useState<Paso>('bienvenida')
   const directo = useApp((s) => s.config.acceso_directo)
+  const festivo = modoFestivo(useApp((s) => s.config.festivo_campeones))
+  const festTexto = textoFestivo(useApp((s) => s.config.festivo_campeones))
   const [plataforma] = useState(getPlataforma)
   const [safariIOS] = useState(esSafariIOS)
   const [instalable, setInstalable] = useState<boolean>(() => !!getDeferredPrompt())
@@ -54,12 +58,45 @@ export function SplashScreen({ onDone }: { onDone: () => void }) {
     <div
       className={cx('fixed inset-0 z-[100] flex flex-col items-center justify-center px-8 text-center transition-opacity duration-500',
         leaving ? 'opacity-0' : 'opacity-100')}
-      style={{ background: 'linear-gradient(160deg,var(--brand-from),var(--brand-to))' }}
+      style={{ background: festivo
+        ? 'linear-gradient(170deg,#12171C 0%,#1A2027 55%,#241d12 100%)'
+        : 'linear-gradient(160deg,var(--brand-from),var(--brand-to))' }}
     >
-      <div className={cx('flex w-full max-w-sm flex-col items-center transition-all duration-500 ease-out',
+      {festivo && (
+        <>
+          <div className="absolute inset-x-0 top-0 z-10 flex h-1.5">
+            <span style={{ flex: 1, background: ROJO_ES }} /><span style={{ flex: 1.2, background: AMARILLO_ES }} /><span style={{ flex: 1, background: ROJO_ES }} />
+          </div>
+          <div className="absolute inset-x-0 bottom-0 z-10 flex h-1.5">
+            <span style={{ flex: 1, background: ROJO_ES }} /><span style={{ flex: 1.2, background: AMARILLO_ES }} /><span style={{ flex: 1, background: ROJO_ES }} />
+          </div>
+          <Confeti n={26} opacity={0.65} />
+        </>
+      )}
+      <div className={cx('relative z-10 flex w-full max-w-sm flex-col items-center transition-all duration-500 ease-out',
         entered ? 'translate-y-0 scale-100 opacity-100' : 'translate-y-4 scale-95 opacity-0')}>
 
         {paso === 'bienvenida' ? (
+          festivo ? (
+            <>
+              <span className="relative flex items-center justify-center">
+                <Logo size={88} />
+                <img src="/balon.png" alt="" width={38} height={38} className="absolute"
+                  style={{ right: -14, bottom: -14, borderRadius: 999, border: '2px solid #12171C', boxShadow: '0 4px 8px rgba(0,0,0,.4)' }} />
+              </span>
+              <h1 className="mt-6 font-display text-[34px] font-extrabold leading-none text-white" style={{ letterSpacing: '-0.02em' }}>{festTexto.titulo}</h1>
+              {festTexto.subtitulo && <p className="mt-3 text-[14px]" style={{ color: '#9FB1BD' }}>{festTexto.subtitulo}</p>}
+              <div className="mt-5 flex items-center gap-2">
+                <span style={{ width: 8, height: 8, borderRadius: 999, background: ROJO_ES }} />
+                <span style={{ width: 8, height: 8, borderRadius: 999, background: AMARILLO_ES }} />
+                <span style={{ width: 8, height: 8, borderRadius: 999, background: ROJO_ES, opacity: 0.4 }} />
+              </div>
+              <button type="button" onClick={siguiente}
+                className="mt-8 inline-flex min-h-[52px] items-center justify-center gap-2 rounded-pill bg-white px-8 text-[16px] font-extrabold text-primary-700 shadow-xl transition-transform active:scale-[0.98]">
+                Entrar <ArrowRight size={19} />
+              </button>
+            </>
+          ) : (
           <>
             <span className="flex items-center justify-center rounded-[26%] bg-white/95 p-3.5 shadow-2xl">
               <Logo size={84} />
@@ -85,6 +122,7 @@ export function SplashScreen({ onDone }: { onDone: () => void }) {
               Siguiente <ArrowRight size={19} />
             </button>
           </>
+          )
         ) : (
           <>
             <span className="flex h-16 w-16 items-center justify-center rounded-[22px] bg-white/15 text-white">

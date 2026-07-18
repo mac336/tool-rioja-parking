@@ -5,6 +5,12 @@ al implementar el cambio (ver `CLAUDE.md` → Forma de trabajo).
 
 ## 2026-07-18
 
+- **v1.43.2 · Fix: confeti no se veía (ni web ni móvil):**
+  - Las piezas seguían partiendo de `top:-24px` (fuera de pantalla) y las
+    animaciones nuevas solo las mueven ±30px, así que nunca entraban. Ahora se
+    reparten con `top` aleatorio **dentro** de la pantalla (0–92%) → visibles en
+    web y móvil, animen o no.
+
 - **v1.43.1 · Festivo: confeti visible en iOS + splash como PREVIA:**
   - **Confeti en iOS**: se veía el banner/splash pero no el confeti. Las piezas
     partían fuera de pantalla y dependían de `var()` dentro de `@keyframes` (que

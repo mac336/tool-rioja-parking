@@ -3,6 +3,18 @@
 Cambios funcionales relevantes, más recientes arriba. Cada entrada nueva se añade
 al implementar el cambio (ver `CLAUDE.md` → Forma de trabajo).
 
+## 2026-07-18
+
+- **v1.39.0 · Reservas por horas completas + arreglo del aviso de solicitudes:**
+  - **Reservas por horas cerradas**: la hora se elige en **desplegables sin
+    minutos** (antes el selector pedía minutos y confundía). El rango de horas sale
+    de las franjas de las zonas y se mantiene la validación por zona.
+  - **Arreglo push de nuevas solicitudes de acceso**: `solicitar-acceso` ahora
+    **envía el aviso a la gestión directamente** en vez de llamar a otra función
+    (`notificar-admin`). Desde que Supabase migró las claves a `sb_secret…`, el
+    gateway rechazaba esa llamada función-a-función (401) y el aviso no se enviaba;
+    ahora sí. (Diagnóstico confirmado con el botón "Probar notificación".)
+
 ## 2026-07-17
 
 - **v1.38.0 · Diagnóstico de notificaciones push:**

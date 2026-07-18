@@ -4,6 +4,7 @@
 // access_requests NO admite INSERT anónimo). Ver specs/03 y specs/11.
 import { createClient } from 'jsr:@supabase/supabase-js@2'
 import { corsHeaders, json } from '../_shared/cors.ts'
+import { enviarPushAUsuarios } from '../_shared/push.ts'
 
 const SUPABASE_URL = Deno.env.get('SUPABASE_URL')!
 const SERVICE_ROLE = Deno.env.get('SUPABASE_SERVICE_ROLE_KEY')!
@@ -66,9 +67,18 @@ Deno.serve(async (req) => {
       es_inquilino: esInquilinoB,
     })
 
-    // Avisar a los administradores (best-effort)
+    // Avisar a la gestión por push DIRECTAMENTE (sin salto a otra función: el
+    // gateway de Supabase rechaza las llamadas función-a-función con la service
+    // key nueva `sb_secret…`, así que el aviso se envía aquí mismo).
     try {
-      await admin.functions.invoke('notificar-admin', { body: { nombre: nombreT, vivienda: viviendaT } })
+      const { data: admins } = await admin.from('profiles')
+        .select('id').in('rol', ['app_admin', 'presidente', 'administrador_finca']).eq('estado', 'activo')
+      const ids = (admins ?? []).map((a) => a.id as string)
+      await enviarPushAUsuarios(admin, ids, {
+        title: 'Nueva solicitud de acceso',
+        body: `${nombreT} (${viviendaT}) quiere acceder. Toca para revisarla.`,
+        url: '/admin',
+      })
     } catch (_) { /* no bloquear la solicitud si falla el aviso */ }
 
     // Mensaje idéntico exista o no el correo (anti-enumeración, specs/11)

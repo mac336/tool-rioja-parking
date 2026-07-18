@@ -1,4 +1,4 @@
-import { useMemo, useState } from 'react'
+import { useEffect, useMemo, useState } from 'react'
 import { Link, useNavigate } from 'react-router-dom'
 import { CalendarDays, Check, Clock, MapPin } from 'lucide-react'
 import { useApp } from '@/store'
@@ -87,6 +87,34 @@ export function BookingsPage() {
     () => (zonas.data ?? []).filter((z) => sel.has(z.id)),
     [zonas.data, sel],
   )
+  // Reservas por HORAS CERRADAS (sin minutos). El rango de horas se deriva de las
+  // franjas de las zonas; la validación por zona (evaluarZona) sigue avisando si
+  // una zona concreta no admite esa franja.
+  const { horaLo, horaHi } = useMemo(() => {
+    const zs = zonas.data ?? []
+    let lo = 8, hi = 23
+    if (zs.length) {
+      lo = Math.min(...zs.map((z) => Number((z.franja_min ?? '08:00').slice(0, 2))))
+      hi = Math.max(...zs.map((z) => {
+        const [h, m] = (z.franja_max ?? '23:00').split(':').map(Number)
+        return Math.min(23, (m || 0) > 0 ? h + 1 : h)
+      }))
+    }
+    if (hi <= lo) hi = Math.min(23, lo + 1)
+    return { horaLo: lo, horaHi: hi }
+  }, [zonas.data])
+  const horasDesde = useMemo(
+    () => Array.from({ length: horaHi - horaLo }, (_, i) => `${pad(horaLo + i)}:00`),
+    [horaLo, horaHi],
+  )
+  const horasHasta = useMemo(() => {
+    const ini = Math.max(horaLo + 1, Number(desde.slice(0, 2)) + 1)
+    return Array.from({ length: Math.max(0, horaHi - ini + 1) }, (_, i) => `${pad(ini + i)}:00`)
+  }, [horaLo, horaHi, desde])
+  // Si la hora elegida deja de ser válida (cambian las zonas o el "desde"), la ajusta.
+  useEffect(() => { if (horasDesde.length && !horasDesde.includes(desde)) setDesde(horasDesde[0]) }, [horasDesde, desde])
+  useEffect(() => { if (horasHasta.length && !horasHasta.includes(hasta)) setHasta(horasHasta[0]) }, [horasHasta, hasta])
+
   const rangoOk = desde < hasta
   const disponibilidad = useMemo<DispZona[]>(
     () => (rangoOk ? zonasSel.map((z) => evaluarZona(z, dia, desde, hasta, ocupacion.data ?? [])) : []),
@@ -222,9 +250,14 @@ export function BookingsPage() {
             <section>
               <h2 className="section-title mb-2">Elige la hora</h2>
               <div className="grid grid-cols-2 gap-3">
-                <Field label="Desde" type="time" value={desde} onChange={(e) => setDesde(e.target.value)} />
-                <Field label="Hasta" type="time" value={hasta} onChange={(e) => setHasta(e.target.value)} />
+                <SelectField label="Desde" value={desde} onChange={(e) => setDesde(e.target.value)}>
+                  {horasDesde.map((h) => <option key={h} value={h}>{h}</option>)}
+                </SelectField>
+                <SelectField label="Hasta" value={hasta} onChange={(e) => setHasta(e.target.value)}>
+                  {horasHasta.map((h) => <option key={h} value={h}>{h}</option>)}
+                </SelectField>
               </div>
+              <p className="mt-1 text-[12px] text-faint">Las reservas son por horas completas.</p>
               {!rangoOk && <p className="mt-1 text-[13px] text-danger">La hora de fin debe ser posterior a la de inicio.</p>}
             </section>
 

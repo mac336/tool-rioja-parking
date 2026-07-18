@@ -40,7 +40,8 @@ conserje) puede reservar **a nombre de otra vivienda**.
 ## Requisitos funcionales
 1. **Reservar** (exige permiso `realizar_reservas`, configurable; RLS en mig.
    0039, y la vivienda debe ser un piso real): elegir zona, **día / mes / año**,
-   **hora de inicio**, **hora de fin** y **número de invitados**. Se crea
+   **hora de inicio**, **hora de fin** (por **horas completas** — desplegables sin
+   minutos, dentro de la franja de las zonas) y **número de invitados**. Se crea
    directamente con estado **`aprobada`**. Con `reservar_otras_viviendas` se
    puede además **elegir la vivienda** a nombre de la que se reserva.
 2. **Aprobación (configurable)**: flag `app_config.reservas_requieren_aprobacion`

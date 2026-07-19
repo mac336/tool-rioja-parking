@@ -3,6 +3,13 @@
 Cambios funcionales relevantes, más recientes arriba. Cada entrada nueva se añade
 al implementar el cambio (ver `CLAUDE.md` → Forma de trabajo).
 
+## 2026-07-19
+
+- **v1.44.1 · Modo campeones con corte automático (fin del lunes):**
+  - El interruptor "España campeones 2026" se **apaga solo el martes** (00:00 del
+    21-07, `CAMPEONES_HASTA`): dura todo el lunes y el martes desaparece aunque
+    quede encendido. `modoFestivo` = base hasta el corte O (campeones y antes del martes).
+
 ## 2026-07-18
 
 - **v1.44.0 · Festivo: cuenta atrás en vivo hasta la final:**

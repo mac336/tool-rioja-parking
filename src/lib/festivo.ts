@@ -16,15 +16,20 @@ export const FESTIVO_HASTA = new Date('2026-07-19T23:00:00+02:00').getTime()
 // Hora del pitido inicial de la final (Europe/Madrid). La cuenta atrás va a esto.
 export const FINAL_MUNDIAL_MS = new Date('2026-07-19T21:00:00+02:00').getTime()
 
+// Modo "campeones": aunque el app_admin lo deje encendido, se apaga solo al
+// acabar el LUNES (martes 21-07 a las 00:00, Europe/Madrid). El martes desaparece.
+export const CAMPEONES_HASTA = new Date('2026-07-21T00:00:00+02:00').getTime()
+
 /** ¿Sigue vigente la decoración base por fecha? */
 export function festivoPorFecha(): boolean {
   return Date.now() < FESTIVO_HASTA
 }
 
-/** ¿Se muestra la decoración festiva? Con "campeones" activo se muestra siempre;
- *  si no, solo hasta la fecha de corte. */
+/** ¿Se muestra la decoración festiva? La base va hasta FESTIVO_HASTA; con
+ *  "campeones" activo se mantiene, pero solo hasta CAMPEONES_HASTA (fin del lunes:
+ *  el martes desaparece aunque el interruptor siga encendido). */
 export function modoFestivo(campeones: boolean): boolean {
-  return campeones || festivoPorFecha()
+  return festivoPorFecha() || (campeones && Date.now() < CAMPEONES_HASTA)
 }
 
 /** Título del banner/splash según el modo. El subtítulo (cuenta atrás) se calcula

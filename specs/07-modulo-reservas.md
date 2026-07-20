@@ -67,7 +67,9 @@ conserje) puede reservar **a nombre de otra vivienda**.
    con un **punto de color por zona** distinta reservada ese día (varias zonas
    el mismo día = varios puntos; leyenda de colores debajo del calendario); se
    navega entre meses (‹ / ›) y al **elegir un día** se listan sus reservas
-   (zona, horario, vivienda, solicitante). Componente compartido
+   (zona, horario y **vivienda** — se atribuye al PISO, no a quién la creó: si el
+   conserje reserva a nombre de otro, se muestra el piso, no el conserje; el
+   ranking del dashboard también cuenta por piso). Componente compartido
    `src/features/bookings/AgendaMensual.tsx`, usado en **dos sitios**:
    - **Panel de gestión → Reservas** (siempre, si se tiene acceso al panel).
    - **Dentro del propio servicio de Reservas** (`/reservas/agenda`, enlace

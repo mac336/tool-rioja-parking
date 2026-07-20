@@ -234,14 +234,15 @@ export interface EstadisticasReservas {
  *  según la fecha de la reserva (inicio), Europe/Madrid. */
 export async function estadisticasReservas(): Promise<EstadisticasReservas> {
   const { data, error } = await supabase.from('reservas')
-    .select('grupo_id, id, solicitada_por, inicio, estado')
+    .select('grupo_id, id, vivienda, inicio, estado')
   if (error) throw error
 
-  // Colapsar a grupos (un grupo = una reserva).
-  const grupos = new Map<string, { solicitada_por: string; inicio: string; estado: string }>()
+  // Colapsar a grupos (un grupo = una reserva). Se atribuye al PISO (vivienda),
+  // no a quien la creó: si el conserje reserva para un vecino, cuenta el piso.
+  const grupos = new Map<string, { vivienda: string; inicio: string; estado: string }>()
   for (const r of data ?? []) {
     const k = (r.grupo_id as string) ?? (r.id as string)
-    if (!grupos.has(k)) grupos.set(k, { solicitada_por: r.solicitada_por as string, inicio: r.inicio as string, estado: r.estado as string })
+    if (!grupos.has(k)) grupos.set(k, { vivienda: r.vivienda as string, inicio: r.inicio as string, estado: r.estado as string })
   }
 
   const ahora = new Date()
@@ -260,19 +261,13 @@ export async function estadisticasReservas(): Promise<EstadisticasReservas> {
       aprobadasAnio++
       if (monthOf(g.inicio) === mes) aprobadasMes++
     }
-    // Ranking: cuántas reservas ha hecho cada vivienda/persona este año (excluye canceladas).
-    if (g.estado !== 'cancelada') veces.set(g.solicitada_por, (veces.get(g.solicitada_por) ?? 0) + 1)
+    // Ranking POR PISO: cuántas reservas tiene cada vivienda este año (excluye canceladas).
+    if (g.estado !== 'cancelada' && g.vivienda) veces.set(g.vivienda, (veces.get(g.vivienda) ?? 0) + 1)
   }
 
-  // Nombres de los solicitantes vía directorio.
-  const ids = [...veces.keys()]
-  const nombrePorId = new Map<string, string>()
-  if (ids.length > 0) {
-    const { data: dir } = await supabase.from('directorio').select('id, nombre').in('id', ids)
-    for (const d of dir ?? []) nombrePorId.set(d.id as string, d.nombre as string)
-  }
+  // El ranking se etiqueta con el propio piso (no con quién la creó).
   const ranking = [...veces.entries()]
-    .map(([id, n]) => ({ nombre: nombrePorId.get(id) ?? 'Vecino', veces: n }))
+    .map(([vivienda, n]) => ({ nombre: vivienda, veces: n }))
     .sort((a, b) => b.veces - a.veces)
 
   return { aprobadasMes, aprobadasAnio, canceladasAnio, totalAnio, ranking }

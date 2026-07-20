@@ -3,6 +3,15 @@
 Cambios funcionales relevantes, más recientes arriba. Cada entrada nueva se añade
 al implementar el cambio (ver `CLAUDE.md` → Forma de trabajo).
 
+## 2026-07-20
+
+- **v1.44.2 · Reservas: se atribuyen al PISO, no a quien las crea:**
+  - En la **agenda** ya no aparece quién creó la reserva (p. ej. el conserje):
+    solo el **piso** (vivienda). En el **dashboard**, el ranking de reservas se
+    cuenta **por piso**, no por la persona que la registró. Así el conserje deja
+    de salir el primero por reservar a nombre de otros. Sin cambios de BD (la
+    tabla `reservas` ya guardaba la vivienda).
+
 ## 2026-07-19
 
 - **v1.44.1 · Modo campeones con corte automático (fin del lunes):**

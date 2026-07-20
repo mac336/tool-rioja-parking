@@ -40,7 +40,7 @@ export function ReservaCard({ g, dot, children }: { g: ReservaGrupo; dot?: (zona
           {celebrada ? 'Celebrada' : aprobada ? 'Aprobada' : 'Pendiente'}
         </span>
       </div>
-      <p className="mt-1 text-[13px] text-muted">{g.nombre ? `${g.nombre} · ` : ''}Vivienda {g.vivienda}</p>
+      <p className="mt-1 text-[13px] text-muted">Vivienda {g.vivienda}</p>
       <p className="mt-0.5 flex items-center gap-1.5 text-[13px] text-muted"><Clock size={14} /> {fechaHora(g.inicio)}–{hora(g.fin)}</p>
       {g.num_invitados > 0 && <p className="mt-0.5 flex items-center gap-1.5 text-[13px] text-muted"><Users size={14} /> {g.num_invitados} invitados</p>}
       {children}

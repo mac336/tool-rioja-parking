@@ -11,6 +11,7 @@ import { cacheBust } from '@/lib/cache'
 import { esViviendaEspecial } from '@/lib/parking'
 import type {
   Encuesta, EncuestaEstado, EncuestaFormato, EncuestaOpcion, EncuestaPregunta, EncuestaTipo,
+  JuntaParticipacion, JuntaResultado, JuntaDetalleRealFila, JuntaParticipanteFila,
 } from '@/types'
 
 // ---- Filas crudas del select anidado ----------------------------------------
@@ -19,12 +20,12 @@ interface OpcionRow { id: string; texto: string; orden: number; encuesta_votos: 
 interface PreguntaRow { id: string; texto: string; tipo: EncuestaTipo; orden: number; encuesta_opciones: OpcionRow[] | null }
 interface EncuestaRow {
   id: string; titulo: string; descripcion: string | null; formato: EncuestaFormato
-  apertura: string; cierre: string; creada_por: string; created_at: string
+  apertura: string; cierre: string; creada_por: string; created_at: string; es_junta: boolean | null
   encuesta_preguntas: PreguntaRow[] | null
 }
 
 const SELECT = `
-  id, titulo, descripcion, formato, apertura, cierre, creada_por, created_at,
+  id, titulo, descripcion, formato, apertura, cierre, creada_por, created_at, es_junta,
   encuesta_preguntas (
     id, texto, tipo, orden,
     encuesta_opciones (
@@ -113,6 +114,7 @@ function ensamblar(
     total_viviendas: totalViviendas,
     viviendas_votantes: viviendasVotantes.size,
     preguntas,
+    es_junta: !!row.es_junta,
   }
 }
 
@@ -204,8 +206,81 @@ export async function cerrarEncuesta(id: string): Promise<void> {
 }
 
 export async function borrarEncuesta(id: string): Promise<void> {
-  // Cascada de BD: elimina preguntas, opciones y votos.
+  // Cascada de BD: elimina preguntas, opciones y votos (y junta_participacion).
   const { error } = await supabase.from('encuestas').delete().eq('id', id)
   if (error) throw error
   cacheBust('encuestas', 'avisos')
+}
+
+// ---- Encuestas de tipo JUNTA (mig. 0052) -------------------------------------
+
+/** Crea una encuesta de JUNTA: cada punto es una pregunta con Aprobar/Rechazar. */
+export async function crearEncuestaJunta(input: { titulo: string; descripcion?: string; cierre: string; puntos: string[] }): Promise<Encuesta> {
+  const { data: { user } } = await supabase.auth.getUser()
+  if (!user) throw new Error('No autenticado')
+  const { data: enc, error } = await supabase.from('encuestas').insert({
+    titulo: input.titulo, descripcion: input.descripcion ?? null, cierre: input.cierre,
+    formato: 'multi', creada_por: user.id, es_junta: true,
+  }).select('id').single()
+  if (error) throw error
+  for (let i = 0; i < input.puntos.length; i++) {
+    const { data: preg, error: pErr } = await supabase.from('encuesta_preguntas')
+      .insert({ encuesta_id: enc.id, texto: input.puntos[i], tipo: 'opcion_unica', orden: i })
+      .select('id').single()
+    if (pErr) throw pErr
+    const { error: oErr } = await supabase.from('encuesta_opciones').insert([
+      { pregunta_id: preg.id, texto: 'Aprobar', orden: 0 },
+      { pregunta_id: preg.id, texto: 'Rechazar', orden: 1 },
+    ])
+    if (oErr) throw oErr
+  }
+  const e = await getEncuesta(enc.id)
+  if (!e) throw new Error('Encuesta no encontrada tras crearla')
+  cacheBust('encuestas', 'avisos')
+  return e
+}
+
+/** Participación propia (asiste / vota por app) o null si aún no la fijó. */
+export async function getJuntaParticipacion(encuestaId: string): Promise<JuntaParticipacion | null> {
+  const { vivienda } = await usuarioYVivienda()
+  const { data, error } = await supabase.from('junta_participacion')
+    .select('asiste, vota_app').eq('encuesta_id', encuestaId).eq('vivienda', vivienda).maybeSingle()
+  if (error) throw error
+  return data ? { asiste: data.asiste as boolean, vota_app: data.vota_app as boolean } : null
+}
+
+/** Fija/actualiza la participación de la vivienda del usuario. */
+export async function setJuntaParticipacion(encuestaId: string, asiste: boolean, vota_app: boolean): Promise<void> {
+  const { vivienda } = await usuarioYVivienda()
+  const { error } = await supabase.from('junta_participacion')
+    .upsert({ encuesta_id: encuestaId, vivienda, asiste, vota_app, updated_at: new Date().toISOString() },
+      { onConflict: 'encuesta_id,vivienda' })
+  if (error) throw error
+  cacheBust('encuestas')
+}
+
+/** Totales por punto (aprobar/rechazar), anónimos, visibles para todos. */
+export async function juntaResultados(encuestaId: string): Promise<JuntaResultado[]> {
+  const { data, error } = await supabase.rpc('junta_resultados', { p_encuesta: encuestaId })
+  if (error) throw error
+  return ((data ?? []) as { punto_id: string; punto_texto: string; orden: number; aprobar: number; rechazar: number }[])
+    .map((r) => ({ punto_id: r.punto_id, punto_texto: r.punto_texto, orden: r.orden, aprobar: Number(r.aprobar), rechazar: Number(r.rechazar) }))
+}
+
+/** Detalle REAL por piso (solo administrador de finca + app_admin). */
+export async function juntaDetalleReal(encuestaId: string): Promise<JuntaDetalleRealFila[]> {
+  const { data, error } = await supabase.rpc('junta_detalle_real', { p_encuesta: encuestaId })
+  if (error) throw error
+  return ((data ?? []) as JuntaDetalleRealFila[]).map((r) => ({
+    vivienda: r.vivienda, punto_id: r.punto_id, punto_texto: r.punto_texto, orden: r.orden, voto: r.voto,
+  }))
+}
+
+/** Participantes con asistencia y si su voto es real (solo admin finca/app). */
+export async function juntaParticipantes(encuestaId: string): Promise<JuntaParticipanteFila[]> {
+  const { data, error } = await supabase.rpc('junta_participantes', { p_encuesta: encuestaId })
+  if (error) throw error
+  return ((data ?? []) as JuntaParticipanteFila[]).map((r) => ({
+    vivienda: r.vivienda, asiste: r.asiste, vota_app: r.vota_app, es_real: r.es_real,
+  }))
 }

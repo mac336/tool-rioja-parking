@@ -5,6 +5,16 @@ al implementar el cambio (ver `CLAUDE.md` → Forma de trabajo).
 
 ## 2026-07-20
 
+- **v1.45.0 · Encuestas de tipo JUNTA (asistencia + votos reales/sondeo):**
+  - Nuevo tipo de votación **Junta** (mig. 0052): cada **punto** se aprueba o
+    rechaza. Al abrirla, el vecino dice si **asiste** y si quiere **votar por la
+    app**; el voto es **real** solo si no asiste y vota por la app (si no, es
+    **sondeo**), para trasladarlo al conteo de la junta.
+  - **Resultados generales** (todos, en vivo, anónimos): por punto, aprobar/rechazar
+    (sondeo + reales). **Detalle REAL por piso** (qué votó cada piso) solo para
+    **administrador de finca + app_admin**, impuesto en RLS/funciones, no en la UI.
+  - Creación con modo "Junta" (lista de puntos); voto y resultados en `JuntaVote`.
+
 - **v1.44.2 · Reservas: se atribuyen al PISO, no a quien las crea:**
   - En la **agenda** ya no aparece quién creó la reserva (p. ej. el conserje):
     solo el **piso** (vivienda). En el **dashboard**, el ranking de reservas se

@@ -6,6 +6,7 @@
 import type {
   Profile, Role,
   Encuesta, EncuestaFormato, EncuestaTipo, ZonaComun, Reserva, ReservaGrupo, CrearReservaInput,
+  JuntaParticipacion, JuntaResultado, JuntaDetalleRealFila, JuntaParticipanteFila,
   Mensaje, MensajeTipo, Hilo, HiloMensaje, HiloCanal,
   Contact, AccessRequest, ParkingCesion, CesionTipo, ParkingQuincena,
 } from '@/types'
@@ -93,6 +94,39 @@ export function borrarEncuesta(id: string): Promise<void> {
   db.encuestas = db.encuestas.filter((e) => e.id !== id)
   return delay(undefined)
 }
+
+// ---- Encuestas de tipo JUNTA (demo) ------------------------------------------
+const juntaPart = new Map<string, JuntaParticipacion>()
+const jpKey = (encuestaId: string) => `${encuestaId}:${currentUser.vivienda}`
+export function crearEncuestaJunta(input: { titulo: string; descripcion?: string; cierre: string; puntos: string[] }): Promise<Encuesta> {
+  const e: Encuesta = {
+    id: uid(), titulo: input.titulo, descripcion: input.descripcion, formato: 'multi',
+    apertura: now(), cierre: input.cierre, estado: 'abierta', creada_por_nombre: currentUser.nombre,
+    total_viviendas: 41, viviendas_votantes: 0, es_junta: true,
+    preguntas: input.puntos.map((texto) => ({
+      id: uid(), texto, tipo: 'opcion_unica', mi_voto_opcion_ids: [],
+      opciones: [{ id: uid(), texto: 'Aprobar', votos: 0 }, { id: uid(), texto: 'Rechazar', votos: 0 }],
+    })),
+  }
+  db.encuestas.unshift(e)
+  return delay(e)
+}
+export function getJuntaParticipacion(encuestaId: string): Promise<JuntaParticipacion | null> {
+  return delay(juntaPart.get(jpKey(encuestaId)) ?? null)
+}
+export function setJuntaParticipacion(encuestaId: string, asiste: boolean, vota_app: boolean): Promise<void> {
+  juntaPart.set(jpKey(encuestaId), { asiste, vota_app }); return delay(undefined)
+}
+export function juntaResultados(encuestaId: string): Promise<JuntaResultado[]> {
+  const e = db.encuestas.find((x) => x.id === encuestaId)
+  return delay((e?.preguntas ?? []).map((p, i) => ({
+    punto_id: p.id, punto_texto: p.texto, orden: i,
+    aprobar: p.opciones.find((o) => o.texto === 'Aprobar')?.votos ?? 0,
+    rechazar: p.opciones.find((o) => o.texto === 'Rechazar')?.votos ?? 0,
+  })))
+}
+export const juntaDetalleReal = (_id: string): Promise<JuntaDetalleRealFila[]> => delay([])
+export const juntaParticipantes = (_id: string): Promise<JuntaParticipanteFila[]> => delay([])
 
 // ---- Zonas y reservas (multi-zona: N filas comparten grupo_id) ---------------
 export const listZonas = () => delay(db.zonas.filter((z) => z.activa))

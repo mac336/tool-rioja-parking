@@ -79,7 +79,17 @@ export interface Encuesta {
   total_viviendas: number
   viviendas_votantes: number // nº de viviendas que han participado (votado ≥1 pregunta)
   preguntas: EncuestaPregunta[] // 1 si formato='unica'; varias si 'multi'
+  es_junta?: boolean // encuesta de tipo Junta (asistencia + votos reales/sondeo)
 }
+
+// ---- Encuestas de tipo JUNTA (ver specs/06 y migración 0052) -----------------
+/** Participación de una vivienda en una junta. Voto REAL = !asiste && vota_app. */
+export interface JuntaParticipacion { asiste: boolean; vota_app: boolean }
+/** Resultado general (anónimo) por punto: totales aprobar/rechazar (sondeo+real). */
+export interface JuntaResultado { punto_id: string; punto_texto: string; orden: number; aprobar: number; rechazar: number }
+/** Detalle REAL por piso (solo administrador de finca + app_admin). */
+export interface JuntaDetalleRealFila { vivienda: string; punto_id: string; punto_texto: string; orden: number; voto: string }
+export interface JuntaParticipanteFila { vivienda: string; asiste: boolean; vota_app: boolean; es_real: boolean }
 
 // ---- Mensajería: mensajes públicos + buzón privado --------------------------
 export type MensajeTipo = 'aviso' | 'anuncio' | 'incidencia' | 'sugerencia'

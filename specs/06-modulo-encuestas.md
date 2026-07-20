@@ -8,6 +8,33 @@ opinión de la comunidad. Sustituye al `mailto:` de "Sugerencias" en su faceta d
 participación (el feedback sobre la app va al módulo 14; las propuestas abiertas,
 al tablón de anuncios, módulo 13).
 
+## Encuestas de tipo JUNTA (mig. 0052)
+
+Un tipo especial de encuesta (`encuestas.es_junta`) para las **juntas de vecinos**.
+Cada **punto** del orden del día es una pregunta con dos opciones fijas
+**Aprobar / Rechazar** (se crean solas). Flujo del vecino al abrirla:
+
+1. **"¿Asistirás a la junta?"** — Sí / No.
+2. Si **No** → **"¿Quieres votar desde la app?"** — Sí / No.
+3. Vota cada punto (Aprobar/Rechazar) y confirma.
+
+**Clasificación del voto** (tabla `junta_participacion(encuesta_id, vivienda,
+asiste, vota_app)`): es **REAL** solo si `asiste=false AND vota_app=true`; en
+cualquier otro caso (asiste, o no vota por la app) es **SONDEO**. Los reales se
+trasladan al conteo presencial de la junta.
+
+**Visibilidad** (impuesta en RLS/funciones security-definer, no en la interfaz):
+- **General (todos los activos, EN VIVO, anónimo):** por punto, totales
+  **Aprobar/Rechazar** = sondeo + reales (`junta_resultados`).
+- **Detalle REAL por piso (solo administrador de finca + app_admin):** qué votó
+  cada piso votante real, + asistencia (`junta_detalle_real`, `junta_participantes`,
+  guardadas por `es_admin_finca_o_app()`). Los vecinos **no** ven quién votó qué
+  (RLS de `encuesta_votos`: cada uno solo ve su voto).
+
+UI: creación con modo **"Junta"** (lista de puntos) en `CreateEncuestaPage`;
+voto y resultados en `JuntaVote` (usado por `VotePage` y `ResultsPage` cuando
+`es_junta`). Reutiliza `encuestas/encuesta_preguntas/encuesta_opciones/encuesta_votos`.
+
 ## Encuesta protagonista en la Home
 
 Mientras haya una encuesta **abierta** y el vecino **no haya votado todas sus

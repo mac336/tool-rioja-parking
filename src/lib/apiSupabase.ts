@@ -7,6 +7,7 @@ export * from './apiMock'
 // Overrides reales por dominio:
 export {
   listEncuestas, getEncuesta, votarPregunta, crearEncuesta, cerrarEncuesta, borrarEncuesta,
+  crearEncuestaJunta, getJuntaParticipacion, setJuntaParticipacion, juntaResultados, juntaDetalleReal, juntaParticipantes,
 } from './db/encuestas'
 export {
   listZonas, misReservas, reservaVigente, ocupacionDia, crearReserva, cancelarReserva,

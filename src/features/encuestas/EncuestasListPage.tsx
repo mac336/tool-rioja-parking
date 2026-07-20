@@ -71,12 +71,13 @@ export function EncuestasListPage() {
           const votada = haVotado(e)
           return (
             <Card key={e.id} className={cx(votada ? '' : 'ring-2 ring-primary')}>
-              <div className="flex items-center gap-1.5 text-[12px] font-bold text-info">
-                <span className="h-2 w-2 rounded-full bg-info" /> Votación abierta
+              <div className="flex items-center gap-2 text-[12px] font-bold text-info">
+                <span className="flex items-center gap-1.5"><span className="h-2 w-2 rounded-full bg-info" /> Votación abierta</span>
+                {e.es_junta && <span className="rounded-pill bg-primary-soft px-2 py-0.5 text-[11px] font-bold text-primary-700">Junta</span>}
               </div>
               <h2 className="mt-1 font-display text-[17px] font-bold text-ink">{e.titulo}</h2>
               <div className="mt-0.5 text-[12px] text-muted">
-                {e.formato === 'multi' ? `${e.preguntas.length} preguntas` : '1 pregunta'} · cierra en {diasRestantes(e.cierre)} días
+                {e.es_junta ? `${e.preguntas.length} ${e.preguntas.length === 1 ? 'punto' : 'puntos'}` : e.formato === 'multi' ? `${e.preguntas.length} preguntas` : '1 pregunta'} · cierra en {diasRestantes(e.cierre)} días
               </div>
               <div className="mt-3">
                 <ProgressBar value={e.viviendas_votantes} max={e.total_viviendas} />

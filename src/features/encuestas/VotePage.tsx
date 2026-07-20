@@ -7,6 +7,7 @@ import { useAsync } from '@/lib/useAsync'
 import { getEncuesta, votarPregunta } from '@/lib/api'
 import { useApp } from '@/store'
 import { esTester, puedeVotar } from '@/lib/roles'
+import { JuntaVote } from './JuntaVote'
 import type { EncuestaPregunta } from '@/types'
 
 export function VotePage() {
@@ -51,14 +52,16 @@ export function VotePage() {
         {state === 'error' && <ErrorState onRetry={refetch} />}
         {!data && state !== 'loading' && <Alert tipo="warn">No hemos encontrado esta votación.</Alert>}
 
-        {data && data.estado !== 'abierta' && (
+        {data && data.es_junta && <JuntaVote encuesta={data} onVotado={refetch} />}
+
+        {data && !data.es_junta && data.estado !== 'abierta' && (
           <>
             <Alert tipo="info">Esta votación no está abierta. Puedes consultar los resultados.</Alert>
             <Link to={`/votaciones/${data.id}/resultados`}><Button block>Ver resultados</Button></Link>
           </>
         )}
 
-        {data && data.estado === 'abierta' && (
+        {data && !data.es_junta && data.estado === 'abierta' && (
           <>
             <div>
               <h1 className="font-display text-[24px] font-extrabold text-ink">{data.titulo}</h1>

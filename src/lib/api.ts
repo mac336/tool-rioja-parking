@@ -13,6 +13,7 @@ export const {
   getUser, setUserRole, actualizarNombre, iniciales,
   listViviendas,
   listEncuestas, getEncuesta, votarPregunta, crearEncuesta, cerrarEncuesta, borrarEncuesta,
+  crearEncuestaJunta, getJuntaParticipacion, setJuntaParticipacion, juntaResultados, juntaDetalleReal, juntaParticipantes,
   listZonas, misReservas, reservaVigente, ocupacionDia, crearReserva, cancelarReserva,
   reservasGestion, reservasPendientesGestion, resolverReserva, estadisticasReservas,
   parkingProximas, parkingMisTurnos, misCesiones, cesionesActivas,

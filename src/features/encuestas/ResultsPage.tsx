@@ -4,6 +4,7 @@ import { SubHeader, Page } from '@/components/layout/AppShell'
 import { Card, Button, Alert, ErrorState, SkeletonList, cx } from '@/components/ui'
 import { useAsync } from '@/lib/useAsync'
 import { getEncuesta } from '@/lib/api'
+import { JuntaVote } from './JuntaVote'
 import type { EncuestaPregunta } from '@/types'
 
 function Resumen({ valor, label }: { valor: string; label: string }) {
@@ -59,7 +60,9 @@ export function ResultsPage() {
         {state === 'error' && <ErrorState onRetry={refetch} />}
         {!data && state !== 'loading' && <Alert tipo="warn">No hemos encontrado esta votación.</Alert>}
 
-        {data && (
+        {data && data.es_junta && <JuntaVote encuesta={data} onVotado={refetch} />}
+
+        {data && !data.es_junta && (
           <>
             <div>
               <h1 className="font-display text-[24px] font-extrabold text-ink">{data.titulo}</h1>

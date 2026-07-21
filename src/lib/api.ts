@@ -20,7 +20,7 @@ export const {
   crearCesion, cancelarCesion, reasignarCesion, demandaParking,
   listContactos, crearContacto, editarContacto, borrarContacto,
   listAccessRequests, resolverSolicitud, crearSolicitud,
-  listVecinos, suspenderVecino, cambiarRolVecino, editarVecino, darDeBajaVecino, eliminarVecinoDefinitivo, crearVecinoDirecto, statsAcceso, statsAccesoPorVivienda, viviendasInquilino, contarSolicitudesPendientes, registrarPwa,
+  listVecinos, suspenderVecino, cambiarRolVecino, editarVecino, darDeBajaVecino, eliminarVecinoDefinitivo, crearVecinoDirecto, statsAcceso, statsAccesoPorVivienda, viviendasInquilino, contarSolicitudesPendientes, registrarPwa, registrarVersion, avisarActualizacion,
   listRolePermisos, setRolePermiso, listSugerencias,
   guardarSuscripcionPush, quitarSuscripcionPush, probarPush,
   listMensajes, crearMensaje, editarMensaje, borrarMensaje, crearPublicacion, misPublicaciones, publicacionesGestion, moderarPublicacion, alternarLike,

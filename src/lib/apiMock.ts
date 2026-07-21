@@ -353,6 +353,10 @@ export function statsAcceso(): Promise<{ creados: number; entrados: number; inst
   return delay({ creados: activos, entrados: activos, instalados: Math.round(activos / 2) })
 }
 export function registrarPwa(): Promise<void> { return delay(undefined) }
+export function registrarVersion(): Promise<void> { return delay(undefined) }
+export function avisarActualizacion(): Promise<{ desactualizados: number; dispositivos: number; enviados: number }> {
+  return delay({ desactualizados: 0, dispositivos: 0, enviados: 0 })
+}
 export function statsAccesoPorVivienda(): Promise<{ vivienda: string; cuentas: number; entrados: number }[]> {
   const m = new Map<string, { cuentas: number; entrados: number }>()
   for (const p of db.profiles) {

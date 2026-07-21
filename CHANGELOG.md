@@ -5,6 +5,14 @@ al implementar el cambio (ver `CLAUDE.md` → Forma de trabajo).
 
 ## 2026-07-21
 
+- **v1.47.0 · Aviso de actualización a los desactualizados:**
+  - La app **registra su versión** al arrancar (`profiles.app_version`, mig. 0053).
+  - Botón **"Avisar a los desactualizados"** en Gestión → Configuración (app_admin):
+    envía un push **solo a quien no está en la última versión** (o desconocida),
+    pidiéndoles **cerrar la app del todo y reabrirla**; el texto se adapta a
+    **iPhone/Android** por el `user_agent`. Edge `avisar-actualizacion` (solo
+    app_admin). Devuelve a cuántos dispositivos se envió.
+
 - **v1.46.0 · Retirado el modo festivo + horarios de zonas:**
   - **Retirado el modo festivo** "¡Vamos España!" (confeti, banderines, banner,
     splash festivo y el flag `festivo_campeones`): la app vuelve a su aspecto

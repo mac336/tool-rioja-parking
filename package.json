@@ -1,7 +1,7 @@
 {
   "name": "rioja25",
   "private": true,
-  "version": "1.46.0",
+  "version": "1.47.0",
   "type": "module",
   "description": "App de comunidad Rioja 25 — PWA (React + Vite + Supabase)",
   "scripts": {

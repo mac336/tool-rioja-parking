@@ -122,6 +122,21 @@ export async function registrarPwa(): Promise<void> {
   await supabase.rpc('registrar_pwa')
 }
 
+/** Sella la VERSIÓN de la app en el perfil (al arrancar). Best-effort; permite
+ *  luego avisar solo a los desactualizados. (mig. 0053) */
+export async function registrarVersion(): Promise<void> {
+  try { await supabase.rpc('registrar_version', { v: __APP_VERSION__ }) } catch { /* best-effort */ }
+}
+
+/** (app_admin) Envía un push a los vecinos que NO están en la última versión,
+ *  pidiéndoles cerrar y reabrir la app. Devuelve cuántos y a cuántos dispositivos. */
+export async function avisarActualizacion(): Promise<{ desactualizados: number; dispositivos: number; enviados: number }> {
+  const { data, error } = await supabase.functions.invoke('avisar-actualizacion', { body: { version: __APP_VERSION__ } })
+  if (error) throw error
+  const d = (data ?? {}) as { desactualizados?: number; dispositivos?: number; enviados?: number }
+  return { desactualizados: d.desactualizados ?? 0, dispositivos: d.dispositivos ?? 0, enviados: d.enviados ?? 0 }
+}
+
 /** Por vivienda con cuenta activa: nº de cuentas y cuántas han entrado alguna
  *  vez. (Función `stats_acceso_por_vivienda`, solo gestión; migración 0025.)
  *  Excluye cuentas de inquilino (no cuentan para la adopción). */

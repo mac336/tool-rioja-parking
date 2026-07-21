@@ -2,7 +2,7 @@ import { create } from 'zustand'
 import type { Profile, ThemeMode, MensajeTipo } from '@/types'
 import { usingSupabase } from '@/lib/supabase'
 import { getUser as mockGetUser, setUserRole as mockSetRole } from '@/lib/apiMock'
-import { actualizarNombre, listRolePermisos, getConfig, registrarPwa } from '@/lib/api'
+import { actualizarNombre, listRolePermisos, getConfig, registrarPwa, registrarVersion } from '@/lib/api'
 import { CONFIG_DEFAULT, type AppConfig } from '@/lib/db/config'
 import { isStandalone } from '@/lib/pwa'
 import { setPermisosActuales, CATALOGO_PERMISOS } from '@/lib/roles'
@@ -131,6 +131,8 @@ export const useApp = create<AppState>((set, get) => ({
         pwaMarcada = true
         void registrarPwa().catch(() => { pwaMarcada = false })
       }
+      // Sella la versión de la app (para avisar solo a los desactualizados).
+      if (p.estado === 'activo') void registrarVersion().catch(() => undefined)
       // Permisos efectivos del rol (app_admin = todos) para adaptar la interfaz.
       try {
         const matriz = await listRolePermisos()

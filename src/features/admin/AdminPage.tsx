@@ -25,7 +25,7 @@ import {
   reservasPendientesGestion, resolverReserva,
   publicacionesGestion, moderarPublicacion,
   listRolePermisos, setRolePermiso,
-  getConfig, setConfig,
+  getConfig, setConfig, avisarActualizacion,
 } from '@/lib/api'
 
 type TabKey = 'vecinos' | 'publicaciones' | 'reservas' | 'permisos' | 'config'
@@ -642,6 +642,15 @@ function ConfiguracionTab({ onToast }: { onToast: Toast }) {
     </button>
   )
 
+  async function avisar() {
+    if (!window.confirm('¿Enviar un aviso push a los vecinos que NO están en la última versión, para que cierren y reabran la app?')) return
+    setBusy('avisar')
+    try {
+      const r = await avisarActualizacion()
+      onToast(r.enviados > 0 ? `Aviso enviado a ${r.enviados} dispositivo(s)` : 'No había dispositivos a los que avisar', r.enviados > 0 ? 'ok' : 'info')
+    } catch { onToast('No se pudo enviar el aviso', 'error') } finally { setBusy(null) }
+  }
+
   // "Pedir código al entrar" = inverso de acceso_directo.
   const pedirCodigo = !efectivo.acceso_directo
   return (
@@ -664,6 +673,14 @@ function ConfiguracionTab({ onToast }: { onToast: Toast }) {
           <Toggle on={efectivo.reservas_requieren_aprobacion} disabled={busy === 'reservas_requieren_aprobacion'}
             onClick={() => cambiar('reservas_requieren_aprobacion', !efectivo.reservas_requieren_aprobacion)} />
         </div>
+      </Card>
+
+      <Card className="flex flex-col gap-2">
+        <div className="text-[14px] font-semibold text-ink">Avisar de actualización</div>
+        <div className="text-[12px] text-muted">Envía un push a los vecinos que <b>no están en la última versión</b> pidiéndoles cerrar la app del todo y reabrirla (el texto se adapta a iPhone/Android). Solo llega a quien tenga notificaciones activas.</div>
+        <Button variant="secondary" disabled={busy === 'avisar'} onClick={avisar}>
+          {busy === 'avisar' ? 'Enviando…' : 'Avisar a los desactualizados'}
+        </Button>
       </Card>
     </div>
   )

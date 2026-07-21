@@ -3,6 +3,18 @@
 Cambios funcionales relevantes, más recientes arriba. Cada entrada nueva se añade
 al implementar el cambio (ver `CLAUDE.md` → Forma de trabajo).
 
+## 2026-07-21
+
+- **v1.45.1 · Fix viewport iOS + aviso de hora máxima en reservas:**
+  - **Fix app "encogida"** al abrir desde una notificación (iOS): al volver a
+    primer plano (push, cambiar de app, bfcache) iOS a veces reportaba mal la
+    altura y la app quedaba en la mitad de arriba con hueco gris abajo. Ahora se
+    **recalcula `--app-h`** al `pageshow`, `focus` y `visibilitychange` (con
+    reintentos, porque iOS asienta la altura un instante después).
+  - **Reservas:** en el paso de horario se indica que la **hora máxima es las
+    23:00** (acuerdo de la Junta) y, si se elige terminar a las 23:00, aparece un
+    aviso pidiendo **colaboración con el volumen** al finalizar (residencia cercana).
+
 ## 2026-07-20
 
 - **v1.45.0 · Encuestas de tipo JUNTA (asistencia + votos reales/sondeo):**

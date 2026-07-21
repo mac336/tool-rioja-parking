@@ -27,6 +27,15 @@ export function resetViewport() {
   setTimeout(syncViewport, 350)
 }
 
+/** Re-sincroniza ahora y tras un instante (iOS asienta la altura un tick después
+ *  de volver a primer plano / abrir desde una notificación). */
+function resyncTardio() {
+  syncViewport()
+  requestAnimationFrame(syncViewport)
+  setTimeout(syncViewport, 250)
+  setTimeout(syncViewport, 600)
+}
+
 /** Instala los listeners (una vez, al arrancar la app). */
 export function installViewportSync() {
   syncViewport()
@@ -34,4 +43,11 @@ export function installViewportSync() {
   window.visualViewport?.addEventListener('scroll', syncViewport)
   window.addEventListener('resize', syncViewport)
   window.addEventListener('orientationchange', syncViewport)
+  // Al VOLVER a primer plano (abrir desde notificación, cambiar de app, bfcache):
+  // iOS puede haber reportado mal la altura; recalcular arregla el "encogido".
+  window.addEventListener('pageshow', resyncTardio)
+  window.addEventListener('focus', resyncTardio)
+  document.addEventListener('visibilitychange', () => {
+    if (document.visibilityState === 'visible') resyncTardio()
+  })
 }

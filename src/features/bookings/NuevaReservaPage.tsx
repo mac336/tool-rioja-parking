@@ -184,8 +184,11 @@ export function NuevaReservaPage() {
                       {horasHasta.map((h) => <option key={h} value={h}>{h}</option>)}
                     </SelectField>
                   </div>
-                  <p className="text-[12px] text-faint">Las reservas son por horas completas.</p>
+                  <p className="text-[12px] text-faint">Las reservas son por horas completas. La <b>hora máxima es las 23:00</b> (acuerdo de la Junta).</p>
                   {!rangoOk && <p className="text-[13px] text-danger">La hora de fin debe ser posterior a la de inicio.</p>}
+                  {rangoOk && hasta === '23:00' && (
+                    <Alert tipo="warn">Vas a terminar a las <b>23:00</b>, el máximo permitido. Al finalizar, te pedimos <b>bajar el volumen</b> y recoger con cuidado, respetando el descanso del vecindario (hay una residencia cerca).</Alert>
+                  )}
                   {rangoOk && (
                     <div className="flex flex-col gap-2">
                       {disponibilidad.map((d) => (

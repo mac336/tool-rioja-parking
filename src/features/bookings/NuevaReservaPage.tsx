@@ -186,6 +186,9 @@ export function NuevaReservaPage() {
                   </div>
                   <p className="text-[12px] text-faint">Las reservas son por horas completas. La <b>hora máxima es las 23:00</b> (acuerdo de la Junta).</p>
                   {!rangoOk && <p className="text-[13px] text-danger">La hora de fin debe ser posterior a la de inicio.</p>}
+                  {zonasSel.some((z) => z.nombre.toLowerCase().includes('piscina')) && (
+                    <Alert tipo="warn">Recuerda que el <b>horario de baño de la piscina es hasta las 21:00</b> (hay socorrista solo hasta esa hora).</Alert>
+                  )}
                   {rangoOk && hasta === '23:00' && (
                     <Alert tipo="warn">Vas a terminar a las <b>23:00</b>, el máximo permitido. Al finalizar, te pedimos <b>bajar el volumen</b> y recoger con cuidado, respetando el descanso del vecindario (hay una residencia cerca).</Alert>
                   )}

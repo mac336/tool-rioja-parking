@@ -27,11 +27,6 @@ Tabla clave→valor de **feature flags** que el app_admin cambia en vivo desde
 **Gestión → Configuración** (pestaña visible solo para app_admin):
 - **`acceso_directo`** (bool, def. `true`): código al entrar sí/no (arriba).
 - **`reservas_requieren_aprobacion`** (bool, def. `false`): ver `specs/07`.
-- **`festivo_campeones`** (bool, def. `false`): modo festivo temporal "¡Vamos
-  España!" (confeti + banderines + banner en Home y splash, `src/lib/festivo.ts`).
-  La decoración base se muestra sola hasta la fecha de corte; con este flag en
-  `true` el texto pasa a **"¡ESPAÑA CAMPEONES 2026!"** y se mantiene. Sin migración
-  (app_config es clave→jsonb; la fila se crea al activarlo).
 
 Lectura **pública** (los flags no son sensibles y el login los necesita sin
 sesión); escritura solo app_admin (RLS). La app los carga al arrancar

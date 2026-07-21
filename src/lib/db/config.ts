@@ -7,13 +7,11 @@ import { supabase } from '@/lib/supabase'
 export interface AppConfig {
   acceso_directo: boolean
   reservas_requieren_aprobacion: boolean
-  festivo_campeones: boolean
 }
 
 export const CONFIG_DEFAULT: AppConfig = {
   acceso_directo: true,
   reservas_requieren_aprobacion: false,
-  festivo_campeones: false,
 }
 
 export async function getConfig(): Promise<AppConfig> {
@@ -24,7 +22,6 @@ export async function getConfig(): Promise<AppConfig> {
   return {
     acceso_directo: bool('acceso_directo'),
     reservas_requieren_aprobacion: bool('reservas_requieren_aprobacion'),
-    festivo_campeones: bool('festivo_campeones'),
   }
 }
 

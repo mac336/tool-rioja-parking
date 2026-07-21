@@ -5,6 +5,15 @@ al implementar el cambio (ver `CLAUDE.md` → Forma de trabajo).
 
 ## 2026-07-21
 
+- **v1.46.0 · Retirado el modo festivo + horarios de zonas:**
+  - **Retirado el modo festivo** "¡Vamos España!" (confeti, banderines, banner,
+    splash festivo y el flag `festivo_campeones`): la app vuelve a su aspecto
+    normal. Eliminados `src/lib/festivo.ts`, `src/features/festivo/*`, el balón y
+    las animaciones de confeti; borrada la fila `festivo_campeones` de `app_config`.
+  - **Reservas:** el **Jardín** y la **Piscina** se pueden reservar hasta las
+    **23:00** (antes 22:00 y 21:00). Al seleccionar la **piscina** se avisa (ámbar)
+    de que el **horario de baño es hasta las 21:00** (socorrista).
+
 - **v1.45.1 · Fix viewport iOS + aviso de hora máxima en reservas:**
   - **Fix app "encogida"** al abrir desde una notificación (iOS): al volver a
     primer plano (push, cambiar de app, bfcache) iOS a veces reportaba mal la

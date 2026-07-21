@@ -544,7 +544,7 @@ export function listAvisos(): Promise<Aviso[]> {
 }
 
 // ---- Configuración general (feature flags) -----------------------------------
-const appConfig = { acceso_directo: true, reservas_requieren_aprobacion: false, festivo_campeones: false }
+const appConfig = { acceso_directo: true, reservas_requieren_aprobacion: false }
 export function getConfig(): Promise<typeof appConfig> {
   return delay({ ...appConfig })
 }

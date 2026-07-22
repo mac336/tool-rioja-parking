@@ -3,7 +3,7 @@ import { Adjuntos } from '@/components/Adjuntos'
 import { useNavigate } from 'react-router-dom'
 import { X, ChevronLeft, ChevronRight, TriangleAlert, Megaphone, Lightbulb, Heart } from 'lucide-react'
 import type { Mensaje, MensajeTipo, ImportanciaMensaje } from '@/types'
-import { POSTIT, TEMPORADAS, fechaMano, caducaTexto, paperDegradado, cintaWashi, CINTA_URGENTE, IMPORTANCIA_COLOR } from './postit'
+import { POSTIT, TEMPORADAS, fechaMano, caducaTexto, paperDegradado, cintaWashi, CINTA_URGENTE, IMPORTANCIA_COLOR, gradoDe, pastelHex } from './postit'
 import { MotivoTemporada } from './MotivoTemporada'
 import { alternarLike } from '@/lib/api'
 import { cx } from '@/components/ui'
@@ -21,9 +21,9 @@ const importanciaDe = (m: Mensaje): ImportanciaMensaje | null =>
 //    texto muestra tantas líneas como quepan (clamp dinámico por medición).
 //  - Al tocar un post-it (o "Ver todo") se abre un VISOR a pantalla completa
 //    que se pasa con el dedo (izquierda/derecha o hacia arriba = siguiente).
-//  - Orden: incidencias → avisos → anuncios (recientes primero dentro de cada tipo).
-
-const ORDEN_HOME: MensajeTipo[] = ['incidencia', 'aviso', 'anuncio', 'sugerencia']
+//  - Orden: por GRADO de importancia (3→1; por defecto incidencia 3 / aviso 2 /
+//    anuncio 1) y, a igual grado, más reciente arriba. El grado es editable por
+//    la gestión (invisible en pantalla) — mig. 0054.
 
 /** Icono del tipo (mismos que el resto de la app). */
 function TipoIcono({ tipo, color, size = 18 }: { tipo: MensajeTipo; color: string; size?: number }) {
@@ -76,11 +76,11 @@ function SelloPie({ m, lg }: { m: Mensaje; lg?: boolean }) {
   return null
 }
 
-/** Ordena para la Home: incidencia → aviso → anuncio; recientes primero. */
+/** Ordena para la Home: grado desc (3→1) y, a igual grado, más reciente arriba. */
 export function ordenarTablon(mensajes: Mensaje[]): Mensaje[] {
   return [...mensajes].sort((a, b) => {
-    const t = ORDEN_HOME.indexOf(a.tipo) - ORDEN_HOME.indexOf(b.tipo)
-    return t !== 0 ? t : b.created_at.localeCompare(a.created_at)
+    const g = gradoDe(b) - gradoDe(a)
+    return g !== 0 ? g : b.created_at.localeCompare(a.created_at)
   })
 }
 
@@ -104,6 +104,9 @@ function PostItHome({ m, rot, onClick }: { m: Mensaje; rot: string; onClick: () 
   const e = POSTIT[m.tipo]
   const t = m.estilo ? TEMPORADAS[m.estilo] : null
   const tint = t ? t.tint : e.tint
+  // Papel: color pastel elegido > papel del estilo > papel del tipo.
+  const pastel = pastelHex(m.color)
+  const papel = pastel ? (t ? paperDegradado(pastel, t.tint) : pastel) : (t ? paperDegradado(t.paper, t.tint) : e.paper)
   const urgente = importanciaDe(m) === 'alta'
   const { ref, lineas } = useLineasQueCaben(19.5)
   return (
@@ -111,7 +114,7 @@ function PostItHome({ m, rot, onClick }: { m: Mensaje; rot: string; onClick: () 
       onKeyDown={(ev) => { if (ev.key === 'Enter' || ev.key === ' ') { ev.preventDefault(); onClick() } }}
       className="relative flex h-full w-[84%] shrink-0 cursor-pointer snap-center flex-col rounded-[8px] px-4 pb-3 pt-4"
       style={{
-        background: t ? paperDegradado(t.paper, t.tint) : e.paper, transform: `rotate(${rot})`,
+        background: papel, transform: `rotate(${rot})`,
         boxShadow: '0 8px 18px -8px rgba(30,50,60,.5), 0 1px 0 rgba(255,255,255,.8) inset',
       }}>
       {/* Marca de agua (solo con estilo): en wrapper con overflow para no recortar cinta/chincheta */}
@@ -291,12 +294,14 @@ function PostItVisor({ lista, inicial, onClose }: { lista: Mensaje[]; inicial: n
             const pe = POSTIT[msg.tipo]
             const t = msg.estilo ? TEMPORADAS[msg.estilo] : null
             const tint = t ? t.tint : pe.tint
+            const pastel = pastelHex(msg.color)
+            const papel = pastel ? (t ? paperDegradado(pastel, t.tint) : pastel) : (t ? paperDegradado(t.paper, t.tint) : pe.paper)
             const urgente = importanciaDe(msg) === 'alta'
             return (
               <div key={msg.id} className="flex h-full w-full shrink-0 items-center justify-center px-7 py-3">
                 <div className="relative flex max-h-full w-full max-w-[330px] flex-col rounded-[10px] px-6 pb-6 pt-6"
                   style={{
-                    background: t ? paperDegradado(t.paper, t.tint) : pe.paper, transform: `rotate(${i % 2 ? '0.8deg' : '-0.8deg'})`,
+                    background: papel, transform: `rotate(${i % 2 ? '0.8deg' : '-0.8deg'})`,
                     boxShadow: '0 20px 50px -18px rgba(0,0,0,.8), 0 1px 0 rgba(255,255,255,.7) inset', minHeight: '55%',
                   }}>
                   {t && (

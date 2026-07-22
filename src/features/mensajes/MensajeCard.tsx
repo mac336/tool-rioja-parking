@@ -3,7 +3,7 @@ import type { Mensaje, MensajeTipo } from '@/types'
 import { fechaCorta } from '@/lib/format'
 import { cx } from '@/components/ui'
 import { Adjuntos } from '@/components/Adjuntos'
-import { TEMPORADAS, IMPORTANCIA_COLOR } from './postit'
+import { TEMPORADAS, IMPORTANCIA_COLOR, pastelHex } from './postit'
 import { MotivoTemporada } from './MotivoTemporada'
 
 export const TIPO_META: Record<MensajeTipo, { label: string; Icon: typeof Bell }> = {
@@ -26,7 +26,7 @@ export function MensajeCard({ m, color, onEdit, onDelete, clamp }: {
   const impColor = imp === 'alta' ? IMPORTANCIA_COLOR.alta : imp === 'media' ? IMPORTANCIA_COLOR.media : null
   return (
     <div className={cx('relative flex flex-col overflow-hidden rounded-[16px] p-4 text-[#172323] shadow-neu-sm', clamp && 'h-[150px]')}
-      style={{ background: t ? t.paper : color }}>
+      style={{ background: pastelHex(m.color) ?? (t ? t.paper : color) }}>
       {t && (
         <div className="pointer-events-none absolute" style={{ right: -12, bottom: -14, opacity: 0.12, transform: 'rotate(-12deg)' }}>
           <MotivoTemporada estilo={m.estilo!} size={104} color={t.tint} />

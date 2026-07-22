@@ -116,6 +116,8 @@ export interface Mensaje {
   updated_at?: string // fecha de última edición (mig. 0042); "resucita" en Inicio
   estilo?: EstiloTemporada | null // decoración estacional del post-it (mig. 0043)
   importancia?: ImportanciaMensaje | null // avisos/incidencias: media=IMPORTANTE, alta=URGENTE
+  grado?: number | null // 1..3, orden INVISIBLE del tablón de la Home (mig. 0054); null = por defecto del tipo
+  color?: string | null // clave de color pastel del papel (catálogo PASTELES); null = papel por defecto
 }
 
 /** Estilo del post-it (decoración): temporadas + semánticos (warning/problem). */

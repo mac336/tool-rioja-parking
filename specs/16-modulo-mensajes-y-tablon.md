@@ -58,8 +58,25 @@ lee quien puede ver ese tipo.
   solo permite borrar.
 - Alta/edición **paso a paso** (asistente, como reservas): tipo → título →
   mensaje → **importancia** (solo aviso/incidencia) → **firma** → **opciones**
-  (caducidad con papelera + estilo de temporada) → **resumen y publicar**, con
-  "Paso X de N" y botones Atrás/Siguiente.
+  (caducidad con papelera + estilo de temporada + **color pastel** + **prioridad
+  del tablón**) → **resumen y publicar**, con "Paso X de N" y botones Atrás/Siguiente.
+
+## Grado de importancia y color del post-it (mig. 0054)
+
+- **`grado`** (1..3, NULL = por defecto del tipo): orden **INVISIBLE** del tablón
+  de la **Home** — se ordena por grado desc y, a igual grado, lo más reciente
+  arriba (`ordenarTablon`). Defaults: **incidencia 3 (Alta) · aviso 2 (Media) ·
+  anuncio 1 (Baja)** (sugerencia 1). No se muestra ninguna etiqueta en pantalla;
+  sirve p. ej. para subir un anuncio por encima de todo poniéndole grado Alta.
+  Las listas de Servicios → Mensajes siguen por fecha (el grado solo ordena la Home).
+- **`color`**: clave de un **color pastel** del catálogo `PASTELES` (postit.ts)
+  que tiñe el **papel** del post-it; combinable con el estilo de temporada (el
+  color manda en el papel, el estilo aporta motivo/cinta). Clave desconocida se ignora.
+- **Solo la gestión** (permiso `publicar_<tipo>`, el mismo que abre Servicios →
+  Mensajes → Nuevo) puede fijar grado y color: un **trigger en BD**
+  (`mensajes_guard_grado_color`) los limpia si el autor no tiene el permiso — el
+  vecino que propone desde el buzón ni los ve ni puede colarlos. Es independiente
+  del selector visual Normal/Importante/Urgente (que sí se ve y se mantiene).
 
 ## Inicio · "Tablón de la comunidad" (diseño 2a)
 

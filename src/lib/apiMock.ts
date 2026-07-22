@@ -429,9 +429,9 @@ export function alternarLike(mensajeId: string, dar: boolean): Promise<void> {
   else { db.likes = db.likes.filter((l) => !(l.mensaje_id === mensajeId && l.vivienda === viv)) }
   return delay(undefined)
 }
-type MensajeInput = { tipo: MensajeTipo; titulo: string; cuerpo: string; expira_at?: string | null; firma?: string | null; estilo?: string | null; importancia?: string | null }
+type MensajeInput = { tipo: MensajeTipo; titulo: string; cuerpo: string; expira_at?: string | null; firma?: string | null; estilo?: string | null; importancia?: string | null; grado?: number | null; color?: string | null }
 export function crearMensaje(input: MensajeInput): Promise<Mensaje> {
-  const m: Mensaje = { id: uid(), tipo: input.tipo, titulo: input.titulo, cuerpo: input.cuerpo, expira_at: input.expira_at ?? null, firma: input.firma ?? null, estilo: (input.estilo ?? null) as Mensaje['estilo'], importancia: (input.importancia ?? null) as Mensaje['importancia'], created_by: currentUser.id, activo: true, created_at: now(), updated_at: now() }
+  const m: Mensaje = { id: uid(), tipo: input.tipo, titulo: input.titulo, cuerpo: input.cuerpo, expira_at: input.expira_at ?? null, firma: input.firma ?? null, estilo: (input.estilo ?? null) as Mensaje['estilo'], importancia: (input.importancia ?? null) as Mensaje['importancia'], grado: input.grado ?? null, color: input.color ?? null, created_by: currentUser.id, activo: true, created_at: now(), updated_at: now() }
   db.mensajes.unshift(m)
   return delay(m)
 }

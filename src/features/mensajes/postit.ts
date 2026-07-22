@@ -51,6 +51,31 @@ export const TEMPORADAS_ORDEN: EstiloTemporada[] = ['primavera', 'verano', 'oton
 /** Colores de importancia (media = importante/ámbar, alta = urgente/rojo). */
 export const IMPORTANCIA_COLOR = { media: '#CF8A17', alta: '#D2453E' } as const
 
+// ---- Color PASTEL del papel (opcional, mig. 0054) -----------------------------
+// El valor guardado en BD es la CLAVE (no el hex): una clave desconocida se
+// ignora y el post-it usa su papel por defecto.
+export const PASTELES: Record<string, { etiqueta: string; hex: string }> = {
+  amarillo: { etiqueta: 'Amarillo', hex: '#FFF3B8' },
+  melocoton: { etiqueta: 'Melocotón', hex: '#FFE4CC' },
+  rosa: { etiqueta: 'Rosa', hex: '#FFDFE7' },
+  lila: { etiqueta: 'Lila', hex: '#EADFF8' },
+  azul: { etiqueta: 'Azul', hex: '#D9EBFB' },
+  menta: { etiqueta: 'Menta', hex: '#D9F3E6' },
+  verde: { etiqueta: 'Verde', hex: '#E2F3D5' },
+}
+export const PASTELES_ORDEN = Object.keys(PASTELES)
+/** Hex del pastel elegido, o null si no hay (o la clave no existe). */
+export const pastelHex = (clave: string | null | undefined): string | null =>
+  clave ? (PASTELES[clave]?.hex ?? null) : null
+
+// ---- Grado de importancia (orden INVISIBLE del tablón de la Home, mig. 0054) --
+// 3=alta, 2=media, 1=baja. NULL usa el del tipo. Ordena: grado desc, fecha desc.
+export const GRADO_DEFECTO: Record<MensajeTipo, number> = {
+  incidencia: 3, aviso: 2, anuncio: 1, sugerencia: 1,
+}
+export const gradoDe = (m: { tipo: MensajeTipo; grado?: number | null }): number =>
+  m.grado ?? GRADO_DEFECTO[m.tipo]
+
 /** Papel degradado de temporada (sustituye el color plano). */
 export const paperDegradado = (paper: string, tint: string) =>
   `linear-gradient(175deg, ${paper}, color-mix(in srgb, ${paper} 82%, ${tint}))`

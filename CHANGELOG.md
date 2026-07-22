@@ -3,6 +3,21 @@
 Cambios funcionales relevantes, más recientes arriba. Cada entrada nueva se añade
 al implementar el cambio (ver `CLAUDE.md` → Forma de trabajo).
 
+## 2026-07-22
+
+- **v1.48.0 · Post-its: color pastel + prioridad invisible del tablón:**
+  - **Color del post-it**: al crear/editar un mensaje (gestión) se puede elegir un
+    **color pastel** para el papel (7 pasteles; combinable con el estilo de
+    temporada). Catálogo `PASTELES` en `postit.ts`; en BD se guarda la clave.
+  - **Prioridad del tablón (`grado` 1..3, invisible)**: ordena el tablón de la
+    **Home** por grado (Alta→Baja) y, a igual grado, lo más reciente arriba.
+    Por defecto: **incidencia Alta · aviso Media · anuncio Baja**. No se muestra
+    ninguna etiqueta; sirve para subir p. ej. un anuncio por encima de todo.
+    Solo la Home cambia de orden (las listas de Mensajes siguen por fecha).
+  - **Seguridad en BD** (mig. 0054): un trigger limpia `grado`/`color` si quien
+    escribe no tiene `publicar_<tipo>` — los vecinos que proponen desde el buzón
+    no pueden fijarlos (ni los ven en su formulario).
+
 ## 2026-07-21
 
 - **v1.47.0 · Aviso de actualización a los desactualizados:**

@@ -1,0 +1,53 @@
+# db-keepalive — continuidad de BD Nivel 0 (harness §7.14, variante REST-directa).
+# Pinga la REST de Supabase cada 6 h: evita la pausa por inactividad del free-tier,
+# hace de health check externo y avisa si la BD no responde. No toca código de la app
+# (es SPA Vite sin servidor propio).
+#
+# Secrets del repo (Settings → Secrets and variables → Actions):
+#   SUPABASE_URL       = https://<proyecto>.supabase.co   (el mismo de VITE_SUPABASE_URL)
+#   SUPABASE_ANON_KEY  = clave anon (la misma de VITE_SUPABASE_ANON_KEY; pública por diseño)
+#   ALERT_WEBHOOK      = webhook Telegram/Slack/Discord (opcional)
+# Al fallar el job, GitHub envía email al owner (alerta sin dependencias).
+
+name: db-keepalive
+
+on:
+  schedule:
+    - cron: "0 */6 * * *"
+  workflow_dispatch: {}
+
+concurrency:
+  group: db-keepalive
+  cancel-in-progress: false
+
+jobs:
+  ping:
+    runs-on: ubuntu-latest
+    steps:
+      - name: Ping Supabase REST (keep-alive + health)
+        env:
+          SUPABASE_URL: ${{ secrets.SUPABASE_URL }}
+          SUPABASE_ANON_KEY: ${{ secrets.SUPABASE_ANON_KEY }}
+          PING_TABLE: _health
+        run: |
+          if [ -z "$SUPABASE_URL" ] || [ -z "$SUPABASE_ANON_KEY" ]; then
+            echo "::error::Faltan secrets SUPABASE_URL / SUPABASE_ANON_KEY"; exit 1
+          fi
+          code=$(curl -sS -o /tmp/body.txt -w "%{http_code}" --max-time 20 --retry 2 \
+            -H "apikey: $SUPABASE_ANON_KEY" \
+            -H "Authorization: Bearer $SUPABASE_ANON_KEY" \
+            "$SUPABASE_URL/rest/v1/$PING_TABLE?select=id&limit=1")
+          echo "HTTP $code"; cat /tmp/body.txt || true
+          test "$code" = "200"
+
+      - name: Alerta por webhook (opcional, solo si falla)
+        if: failure()
+        env:
+          ALERT_WEBHOOK: ${{ secrets.ALERT_WEBHOOK }}
+        run: |
+          if [ -z "$ALERT_WEBHOOK" ]; then
+            echo "Sin ALERT_WEBHOOK configurado; el email de GitHub ya avisa."; exit 0
+          fi
+          curl -sS -X POST "$ALERT_WEBHOOK" \
+            -H 'Content-Type: application/json' \
+            -d "{\"text\":\"⚠️ db-keepalive: Supabase de ${{ github.repository }} no responde. Revisar la BD / considerar failover.\"}" || true

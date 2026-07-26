@@ -3,6 +3,18 @@
 Cambios funcionales relevantes, más recientes arriba. Cada entrada nueva se añade
 al implementar el cambio (ver `CLAUDE.md` → Forma de trabajo).
 
+## 2026-07-27
+
+- **Ops · Continuidad de BD Nivel 0 (keep-alive + health check):** workflow
+  `db-keepalive` que cada 6 h pinga `public._health` vía REST con la clave anon.
+  Evita la **pausa del free-tier de Supabase a los 7 días**, hace de health check
+  externo y avisa por email/webhook si la BD no responde. Sin cambios en la app
+  (por eso no sube la versión del front). Detalles y avisos en `specs/10`.
+  - Migración **`0055_health.sql`** (renumerada: nació como `0011`, que ya estaba
+    ocupado por `0011_push_subscriptions` y habría roto el orden en `db reset`).
+  - Política RLS de solo lectura, ahora **idempotente** (`drop policy if exists`),
+    con aserciones nuevas en `tests/rls/rls_test.sql`.
+
 ## 2026-07-22
 
 - **v1.48.0 · Post-its: color pastel + prioridad invisible del tablón:**

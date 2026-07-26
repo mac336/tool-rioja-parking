@@ -130,6 +130,35 @@ incidencias). Requisitos:
 - Documentar qué pasa si se supera el free tier (plan de contingencia: el
   volumen esperado está muy por debajo).
 
+### Keep-alive de la BD (Nivel 0)
+El free-tier de Supabase **pausa el proyecto tras 7 días sin actividad**. Para
+evitarlo hay un ping periódico que además hace de health check externo:
+
+- **Tabla `public._health`** (mig. `0055`): `id` + `checked_at`, sin datos de
+  nadie. RLS activa con una única política de **SELECT para `anon`/`authenticated`**
+  — el ping usa la clave anon (pública por diseño), nunca `service_role`.
+  Aserciones en `tests/rls/rls_test.sql` (anon lee, anon no escribe).
+  - ⚠️ **La política RLS por sí sola no basta**, y los default privileges de
+    `public` **no coinciden entre entornos** (comprobado 27-07-2026): en **local**
+    `anon` hereda `Dxtm` (sin SELECT) → la REST devuelve **401 permission denied**
+    y el keep-alive falla en silencio; en **prod** hereda `arwdDxtm`, o sea que la
+    tabla nacería con INSERT/UPDATE/DELETE para `anon` tapados solo por RLS.
+    Por eso `0055` fija los privilegios **explícitamente** (`revoke all` + `grant
+    select`, más `grant all` a `service_role`) y las dos bases quedan iguales:
+    `anon=r`. Verificado en local: ping `200 [{"id":1}]`, escritura `401`.
+    Regla general para tablas nuevas: **no heredes privilegios, concédelos**.
+- **Workflow `.github/workflows/db-keepalive.yml`**: cada 6 h hace
+  `GET /rest/v1/_health?select=id&limit=1` y exige HTTP 200. Margen amplio
+  frente a los 7 días de pausa.
+- **Secrets del repo** (Settings → Secrets → Actions): `SUPABASE_URL` y
+  `SUPABASE_ANON_KEY` (obligatorios; el job aborta si faltan) y `ALERT_WEBHOOK`
+  (opcional). Si falla, GitHub avisa por correo al owner.
+- ⚠️ **La migración debe estar aplicada en producción ANTES de que el workflow
+  entre en `main`**: sin la tabla, la REST devuelve 404, el job falla cada 6 h y
+  no hay keep-alive.
+- ⚠️ GitHub **desactiva los cron de Actions tras 60 días sin actividad** en el
+  repo. Si el repo se queda parado, revisar que el workflow sigue vivo.
+
 ## Observabilidad
 - Registro de errores del frontend (sin datos personales) y `audit_log` en BD
   para acciones sensibles (módulo 04).

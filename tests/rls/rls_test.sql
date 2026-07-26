@@ -361,5 +361,21 @@ select assert_falla(
   'RESERVA: no se reserva a nombre de vivienda especial (es_piso)');
 
 reset role;
+
+-- ---------------------------------------------------------------------------
+-- _health (0055): el keep-alive pinga esta tabla con la clave anon, así que
+-- anon DEBE poder leerla; y no debe poder escribirla (solo hay policy SELECT).
+-- ---------------------------------------------------------------------------
+set role anon;
+select set_config('request.jwt.claims', json_build_object('role','anon')::text, false);
+
+select assert_igual((select count(*) from _health), 1::bigint,
+  'HEALTH: anon lee _health (keep-alive del workflow)');
+
+select assert_falla(
+  $f$insert into _health (id) values (99)$f$,
+  'HEALTH: anon NO escribe en _health');
+
+reset role;
 select '════════════════════════════════════════' as _;
 select '✅ TODOS LOS TESTS DE RLS PASARON' as resultado;

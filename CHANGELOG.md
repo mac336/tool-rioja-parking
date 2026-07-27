@@ -15,6 +15,17 @@ al implementar el cambio (ver `CLAUDE.md` → Forma de trabajo).
   - Política RLS de solo lectura, ahora **idempotente** (`drop policy if exists`),
     con aserciones nuevas en `tests/rls/rls_test.sql`.
 
+- **v1.48.1 · Analítica de Vercel operativa:** activado Web Analytics en el panel
+  de Vercel y arreglado lo que impedía que funcionase:
+  - El **rewrite SPA de `vercel.json` se tragaba `/_vercel/insights/script.js`**
+    (lo devolvía como `index.html`), así que el script nunca cargaba y no se
+    medía nada. Ahora el patrón excluye `/_vercel/`.
+  - `<Analytics>` recibe `mode` explícito: en desarrollo usa el script de
+    depuración (solo consola, no envía datos) en vez de pedir un endpoint que en
+    localhost no existe.
+  - Sin cookies ni identificación del visitante, y servido desde el propio
+    dominio: no hace falta tocar la CSP. Ver `specs/10`.
+
 ## 2026-07-22
 
 - **v1.48.0 · Post-its: color pastel + prioridad invisible del tablón:**

@@ -32,7 +32,9 @@ function Root() {
       {splash && <SplashScreen onDone={() => setSplash(false)} />}
       <RouterProvider router={router} />
       <AutoUpdater />
-      <Analytics />
+      {/* Analítica de Vercel (anónima, sin cookies). En dev usa el script de
+          depuración: solo escribe en consola, no envía nada. Ver specs/10. */}
+      <Analytics mode={import.meta.env.DEV ? 'development' : 'production'} />
     </>
   )
 }

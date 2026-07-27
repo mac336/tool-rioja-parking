@@ -121,6 +121,17 @@ incidencias). Requisitos:
   documentada del admin. El plazo figura en el aviso de privacidad.
 - **Sin terceros de tracking:** no incluir analítica invasiva ni cookies de
   terceros. Si se quiere métrica, usar algo respetuoso y anonimizado.
+  - **Vercel Web Analytics** (`@vercel/analytics`, activado en el panel de
+    Vercel) es la única métrica de uso: **sin cookies y sin identificar al
+    visitante** (no hay fingerprinting persistente; el visitante se deriva de un
+    hash diario que Vercel no puede revertir). Mide páginas vistas y navegación,
+    **nunca** contenido ni datos de vecinos.
+  - Se monta en `src/main.tsx` (`<Analytics mode=… />`); en desarrollo usa el
+    script de depuración y **no envía nada**.
+  - Servido desde el **propio dominio** (`/_vercel/insights/*`), así que encaja
+    en la CSP `script-src 'self'` / `connect-src 'self'` sin abrir dominios
+    externos. Ojo: el rewrite SPA de `vercel.json` **debe excluir `/_vercel/`**
+    o el script se sirve como `index.html` y la analítica queda muerta.
 - **Correos:** enviados desde la cuenta de la comunidad; sin datos personales
   innecesarios en el cuerpo.
 

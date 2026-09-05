@@ -9,11 +9,15 @@ import { contarAvisosNuevos } from '@/lib/avisosVistos'
 import { puedePublicarAlgo, puedeVotar, puedeReservar, puedeVerMiComunidad } from '@/lib/roles'
 import { Logo } from '@/components/Logo'
 import { TablonGadget } from '@/features/mensajes/TablonGadget'
+import { GadgetContextual } from '@/features/home/GadgetContextual'
+import { seleccionarGadgets } from '@/features/home/gadgetsHome'
 
 // Servicios (accesos a módulos) en círculo — colores fijos de cada módulo.
 // - "Buzón" NO va aquí: está arriba en la cabecera (icono 💬), sería duplicado.
 // - "Mensajes" solo para quien PUBLICA (gestión): el vecino solo lee, y ya lo
 //   ve en el tablón, así que no necesita el acceso.
+// MÁXIMO 8 SERVICIOS (specs/10): la rejilla 4×2 queda llena con Calendario (8ª
+// celda). Un 9º servicio exige rediseño o va a "Más".
 const servicios = [
   { to: '/mensajes', short: 'Mensajes', Icon: Megaphone, color: '#E0A22E', soloPublica: true },
   { to: '/votaciones', short: 'Votaciones', Icon: SquareCheckBig, color: '#5B7FD4', soloVota: true },
@@ -70,6 +74,14 @@ export function HomePage() {
     if (diasIni <= 0) parking = { urgente: true, texto: <>Hoy te toca la <b>Plaza {turnoProx.plaza}</b></> }
     else if (diasIni <= 7) parking = { urgente: false, texto: <>En <b>{diasIni} {diasIni === 1 ? 'día' : 'días'}</b> te toca la Plaza {turnoProx.plaza}</> }
   }
+
+  // Bloque contextual con cupo 2 (specs/21): parking > reserva > calendario.
+  // El gadget de calendario se añade en la pasada 2; de momento solo compite
+  // parking/reserva, así que el resultado es idéntico al de antes del refactor.
+  const gadgetsContextuales = seleccionarGadgets<unknown>([
+    parking ? { clave: 'parking' as const, prioridad: 1, datos: parking } : null,
+    reserva.data ? { clave: 'reserva' as const, prioridad: 2, datos: reserva.data } : null,
+  ], 2)
 
   // Actividad reciente para el tablón: incidencias abiertas; avisos vigentes (o
   // sin caducidad, 2 días); anuncios de los últimos 2 días.
@@ -158,40 +170,29 @@ export function HomePage() {
       {/* Tablón (gadget elástico: crece/encoge según el hueco de la pantalla) */}
       <TablonGadget mensajes={actividad} className="mb-auto min-h-0 max-h-[300px] flex-1" />
 
-      {/* Gadgets contextuales: parking (si toca) + reserva activa. Flotan en el
-          hueco entre el tablón y los servicios repartiendo el espacio libre. */}
-      {(parking || reserva.data) && (
+      {/* Gadgets contextuales: parking (si toca) + reserva activa (+ calendario
+          en la pasada 2, si hay hueco). Flotan en el hueco entre el tablón y
+          los servicios repartiendo el espacio libre; markup compartido en
+          GadgetContextual (refactor D1, sin cambio visual). */}
+      {gadgetsContextuales.length > 0 && (
         <div className="my-auto flex shrink-0 flex-col gap-2.5">
-          {parking && (
-            <Link to="/parking" className="flex items-center gap-3 rounded-[16px] px-4 py-[13px] text-white" style={{ background: 'var(--grad-hero)' }}>
-              <Car size={26} strokeWidth={1.9} />
-              <div className="min-w-0 flex-1">
-                <div className="flex items-center gap-1.5 text-[11px] font-bold uppercase tracking-[0.12em] text-white/65">
-                  Parking exterior {parking.urgente && <span className="rounded-full bg-white/20 px-1.5 py-px text-[10px]">⏳</span>}
-                </div>
-                <div className="text-[14.5px]">{parking.texto}</div>
-              </div>
-              <span className="text-[18px] opacity-70">›</span>
-            </Link>
-          )}
-          {reserva.data && (
-            <Link to="/reservas" className="flex items-center gap-3 rounded-[16px] px-4 py-[13px] text-white"
-              style={{ background: 'linear-gradient(150deg,#2E8E79,#123f34)' }}>
-              <CalendarDays size={24} strokeWidth={1.9} />
-              <div className="min-w-0 flex-1">
-                <div className="flex items-center gap-1.5 text-[11px] font-bold uppercase tracking-[0.12em] text-white/65">
-                  Tu reserva
-                  <span className="rounded-full bg-white/20 px-1.5 py-px text-[10px] font-extrabold normal-case tracking-normal">
-                    {reserva.data.estado === 'aprobada' ? 'Aprobada' : 'Pendiente'}
-                  </span>
-                </div>
-                <div className="truncate text-[14.5px]">
-                  <b>{reserva.data.zonas.map((z) => z.nombre).join(' + ')}</b> · {fechaHora(reserva.data.inicio)}–{hora(reserva.data.fin)}
-                </div>
-              </div>
-              <span className="text-[18px] opacity-70">›</span>
-            </Link>
-          )}
+          {gadgetsContextuales.map((g) => g.clave === 'parking' && parking ? (
+            <GadgetContextual key="parking" to="/parking" Icon={Car} gradient="var(--grad-hero)"
+              overline={<>Parking exterior {parking.urgente && <span className="rounded-full bg-white/20 px-1.5 py-px text-[10px]">⏳</span>}</>}>
+              {parking.texto}
+            </GadgetContextual>
+          ) : g.clave === 'reserva' && reserva.data ? (
+            <GadgetContextual key="reserva" to="/reservas" Icon={CalendarDays} iconSize={24}
+              gradient="linear-gradient(150deg,#2E8E79,#123f34)"
+              overline="Tu reserva"
+              badge={
+                <span className="rounded-full bg-white/20 px-1.5 py-px text-[10px] font-extrabold normal-case tracking-normal">
+                  {reserva.data.estado === 'aprobada' ? 'Aprobada' : 'Pendiente'}
+                </span>
+              }>
+              <b>{reserva.data.zonas.map((z) => z.nombre).join(' + ')}</b> · {fechaHora(reserva.data.inicio)}–{hora(reserva.data.fin)}
+            </GadgetContextual>
+          ) : null)}
         </div>
       )}
 

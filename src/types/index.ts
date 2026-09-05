@@ -247,6 +247,21 @@ export interface Contact {
   orden: number
 }
 
+// ---- Calendario (specs/21) ---------------------------------------------------
+export type TipoEvento = 'festivo' | 'comunidad'
+export interface EventoCalendario {
+  id: string
+  tipo: TipoEvento
+  titulo: string
+  nota: string | null
+  fecha: string            // 'YYYY-MM-DD' (date; día natural Madrid)
+  fecha_fin: string | null // 'YYYY-MM-DD' | null
+  fuente: string | null
+  created_by: string | null
+  created_at: string
+  updated_at: string
+}
+
 // Estado de UI transversal
 export type LoadState = 'idle' | 'loading' | 'empty' | 'error' | 'ready'
 export type ThemeMode = 'light' | 'dark' | 'system'

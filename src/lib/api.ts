@@ -28,4 +28,5 @@ export const {
   listAvisos,
   getComunidadDatos,
   getConfig, setConfig,
+  listEventos, crearEvento, editarEvento, borrarEvento,
 } = A

@@ -18,6 +18,7 @@ export const TTL = {
   encuestas: 120_000,  // 2 min
   zonas: 600_000,      // 10 min (catálogo de zonas)
   solicitudes: 60_000, // badge de gestión: 1 min
+  calendario: 600_000, // 10 min (festivos + comunidad: cambia poco, specs/21)
 } as const
 
 type Entry = { t: number; data: unknown }

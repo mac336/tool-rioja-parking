@@ -53,6 +53,8 @@ export type Permiso =
   | 'panel' | 'aprobar_altas'
   // Mi Comunidad (dashboard económico)
   | 'ver_mi_comunidad'
+  // Calendario (festivos + fechas de la comunidad, specs/21)
+  | 'gestionar_calendario'
 
 export type TipoMensaje = 'aviso' | 'anuncio' | 'incidencia' | 'sugerencia'
 
@@ -90,6 +92,9 @@ export const GRUPOS_PERMISOS: { grupo: string; permisos: { key: Permiso; label: 
   ] },
   { grupo: 'Mi Comunidad', permisos: [
     { key: 'ver_mi_comunidad', label: 'Ver "Mi Comunidad"', desc: 'Acceder al panel económico (cuentas, presupuesto, derramas, decisiones)' },
+  ] },
+  { grupo: 'Calendario', permisos: [
+    { key: 'gestionar_calendario', label: 'Gestionar el calendario', desc: 'Crear, editar y borrar festivos y fechas de la comunidad (verlo no requiere permiso)' },
   ] },
 ]
 
@@ -129,6 +134,9 @@ const DEFAULTS: Record<Permiso, Role[]> = {
   aprobar_altas: ['app_admin', 'presidente', 'administrador_finca'],
   // Mi Comunidad: todos menos el conserje, el administrador de finca y el inquilino.
   ver_mi_comunidad: TODOS.filter((r) => r !== 'conserje' && r !== 'administrador_finca' && r !== 'inquilino'),
+  // Gestionar el calendario: gestión, MENOS el conserje (coincide con la
+  // semilla SQL de la mig. 0056; app_admin implícito, SUPERADMIN).
+  gestionar_calendario: GESTION,
 }
 
 /** Matriz de permisos por defecto (para el modo demo / semilla del mock). */
@@ -211,6 +219,13 @@ export function esAppAdmin(rol: Role): boolean {
 /** Puede ver el panel "Mi Comunidad" (permiso configurable). */
 export function puedeVerMiComunidad(rol: Role): boolean {
   return tienePermiso(rol, 'ver_mi_comunidad')
+}
+
+/** Puede crear/editar/borrar en el Calendario (permiso configurable). Ver el
+ *  calendario NO requiere este permiso (cualquier cuenta activa lo lee). Es
+ *  UX: la barrera real es la RLS (specs/21). */
+export function puedeGestionarCalendario(rol: Role): boolean {
+  return !esTester(rol) && tienePermiso(rol, 'gestionar_calendario')
 }
 
 /** Cuenta de pruebas: SOLO LECTURA (no puede reservar, votar, ceder ni sugerir).

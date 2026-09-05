@@ -32,3 +32,4 @@ export { listHilos, getHilo, crearHilo, crearHiloComoGestion, listDirectorio, re
 export { actualizarNombre } from './db/perfil'
 export { getComunidadDatos } from './db/comunidad'
 export { getConfig, setConfig } from './db/config'
+export { listEventos, crearEvento, editarEvento, borrarEvento } from './db/calendario'

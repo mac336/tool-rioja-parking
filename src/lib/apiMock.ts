@@ -9,15 +9,19 @@ import type {
   JuntaParticipacion, JuntaResultado, JuntaDetalleRealFila, JuntaParticipanteFila,
   Mensaje, MensajeTipo, Hilo, HiloMensaje, HiloCanal,
   Contact, AccessRequest, ParkingCesion, CesionTipo, ParkingQuincena,
+  EventoCalendario, TipoEvento,
 } from '@/types'
 import * as mock from '@/mock/data'
 import { PISOS, proximasQuincenas, proximosTurnos } from '@/lib/parking'
-import { iniciales, fechaCorta } from '@/lib/format'
+import { iniciales, fechaCorta, claveDia } from '@/lib/format'
 import { permisosPorDefecto, puedeVerTipo, puedeAprobarAltas } from '@/lib/roles'
 
 const delay = <T>(v: T, ms = 160): Promise<T> => new Promise((r) => setTimeout(() => r(v), ms))
 const uid = (() => { let n = 1000; return () => `gen_${n++}` })()
 const now = () => new Date().toISOString()
+// 'YYYY-MM-DD' relativo a hoy (Europe/Madrid), para que el evento de demo del
+// calendario ("Cierre de la piscina") siempre enseñe el recordatorio de la Home.
+const fechaDemo = (offsetDias: number) => claveDia(new Date(Date.now() + offsetDias * 864e5).toISOString())
 
 // ---- Estado en memoria (semilla desde mock; mutable para demo) ---------------
 const db = {
@@ -36,6 +40,15 @@ const db = {
   hiloMensajes: [] as HiloMensaje[],
   cesiones: [] as ParkingCesion[],
   likes: [] as { mensaje_id: string; vivienda: string }[],
+  // 3 festivos reales de 2026 (misma fuente que la mig. 0056) + 1 evento de
+  // comunidad relativo a hoy, para que la demo siempre enseñe el recordatorio
+  // de la Home (specs/21 § Datos, caché y demo).
+  eventos: [
+    { id: 'cal-1', tipo: 'festivo', titulo: 'Fiesta Nacional de España', nota: null, fecha: '2026-10-12', fecha_fin: null, fuente: 'Decreto 75/2025, de 24 de septiembre (BOCM nº 229, 25-09-2025) · consultado 2026-09-05', created_by: null, created_at: now(), updated_at: now() },
+    { id: 'cal-2', tipo: 'festivo', titulo: 'Inmaculada Concepción', nota: null, fecha: '2026-12-08', fecha_fin: null, fuente: 'Decreto 75/2025, de 24 de septiembre (BOCM nº 229, 25-09-2025) · consultado 2026-09-05', created_by: null, created_at: now(), updated_at: now() },
+    { id: 'cal-3', tipo: 'festivo', titulo: 'Natividad del Señor', nota: null, fecha: '2026-12-25', fecha_fin: null, fuente: 'Decreto 75/2025, de 24 de septiembre (BOCM nº 229, 25-09-2025) · consultado 2026-09-05', created_by: null, created_at: now(), updated_at: now() },
+    { id: 'cal-4', tipo: 'comunidad', titulo: 'Cierre de la piscina', nota: 'Cierre por mantenimiento de temporada.', fecha: fechaDemo(2), fecha_fin: fechaDemo(9), fuente: null, created_by: null, created_at: now(), updated_at: now() },
+  ] as EventoCalendario[],
 }
 
 // ---- Sesión ------------------------------------------------------------------
@@ -562,6 +575,30 @@ export function setConfig(clave: keyof typeof appConfig, valor: boolean): Promis
 // devuelve vacío → la pantalla muestra su estado "sin datos".
 export function getComunidadDatos(): Promise<import('./db/comunidad').ComunidadDatos> {
   return delay({ finanzas: null, comparativa: null, acuerdos: null })
+}
+
+// ---- Calendario (festivos + fechas de la comunidad, specs/21) ---------------
+export const listEventos = (): Promise<EventoCalendario[]> => delay(
+  db.eventos.slice().sort((a, b) => a.fecha === b.fecha ? a.titulo.localeCompare(b.titulo) : a.fecha.localeCompare(b.fecha)),
+)
+type EventoCalendarioInput = { tipo: TipoEvento; titulo: string; fecha: string; fecha_fin?: string | null; nota?: string | null; fuente?: string | null }
+export function crearEvento(input: EventoCalendarioInput): Promise<EventoCalendario> {
+  const e: EventoCalendario = {
+    id: uid(), tipo: input.tipo, titulo: input.titulo, fecha: input.fecha,
+    fecha_fin: input.fecha_fin ?? null, nota: input.nota ?? null, fuente: input.fuente ?? null,
+    created_by: currentUser.id, created_at: now(), updated_at: now(),
+  }
+  db.eventos.push(e)
+  return delay(e)
+}
+export function editarEvento(id: string, patch: Partial<EventoCalendarioInput>): Promise<void> {
+  const e = db.eventos.find((x) => x.id === id)
+  if (e) Object.assign(e, patch, { updated_at: now() })
+  return delay(undefined)
+}
+export function borrarEvento(id: string): Promise<void> {
+  db.eventos = db.eventos.filter((e) => e.id !== id)
+  return delay(undefined)
 }
 
 export { iniciales }

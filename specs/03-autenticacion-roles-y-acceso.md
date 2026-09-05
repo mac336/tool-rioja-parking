@@ -110,7 +110,8 @@ vivo** (migración 0010): un permiso quitado se aplica de verdad en el servidor,
 no solo en la interfaz.
 
 - **`app_admin` = SUPERADMIN**: siempre todos los permisos, no editable.
-- Catálogo (agrupado en el panel: Tablón · Reservas · Buzón · Encuestas · Gestión):
+- Catálogo (agrupado en el panel: Tablón · Reservas · Buzón · Encuestas · Gestión ·
+  Mi Comunidad · Calendario):
   - **Tablón — por tipo** (mig. 0038/0040, ver `specs/16`):
     - `ver_<tipo>` — ver ese tipo en el tablón (`ver_aviso`, `ver_anuncio`,
       `ver_incidencia`, `ver_sugerencia`).
@@ -132,13 +133,22 @@ no solo en la interfaz.
     gestionar vecinos.
   - **Mi Comunidad**: `ver_mi_comunidad` — ver el panel económico (por defecto
     todos menos conserje y administrador de finca; ver `specs/19`).
+  - **Calendario** (mig. 0056): `gestionar_calendario` — crear, editar y borrar
+    eventos del calendario (fechas de la comunidad y festivos). Por defecto
+    **presidente, vicepresidente, administrador_finca y junta** (app_admin
+    implícito; **conserje no**; el tester **nunca** escribe aunque se le diera).
+    **Ver** el calendario no requiere permiso: lo lee cualquier cuenta activa
+    (inquilino y tester incluidos). Sin vía «el autor edita lo suyo»: quien
+    pierde el permiso deja de editar también lo que creó. Ver `specs/21`.
 - Semilla por defecto: la gestión (presidente/vicepresidente/administrador_finca/
   junta) ve y publica los cuatro tipos, tiene `panel`, modera y vota/reserva;
   `aprobar_altas` = presidente/administrador_finca/app_admin. El **conserje** ve y
   publica **avisos e incidencias** (no anuncios ni sugerencias), reserva (incl.
   `reservar_otras_viviendas`), usa el buzón y escribe a vecinos. El **inquilino** =
   como el vecino **menos** `ver_mi_comunidad`, `ver_sugerencia` y `votar_encuestas`.
-  Ya **no** existen `publicar_mensajes` ni `aprobar_reservas` (retirados en v1.26.0).
+  `gestionar_calendario` = presidente/vicepresidente/administrador_finca/junta
+  (mig. 0056). Ya **no** existen `publicar_mensajes` ni `aprobar_reservas`
+  (retirados en v1.26.0).
 
 > Operaciones sensibles (rol, estado, alta) → **Edge Functions con service_role**
 > que comprueban el permiso. El cliente nunca escribe rol/estado. Ocultar botones

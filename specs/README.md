@@ -28,6 +28,7 @@ evolución del portal **Rioja 25** desde una PWA estática informativa hacia una
 | **18** | [18-sistema-de-estilos.md](18-sistema-de-estilos.md) | **Design system: cabeceras, títulos de sección, layout** |
 | **19** | [19-modulo-mi-comunidad.md](19-modulo-mi-comunidad.md) | **Mi Comunidad: dashboard económico de las actas (en pruebas, solo app_admin)** |
 | **20** | [20-modulo-circulares.md](20-modulo-circulares.md) | **Circulares: normas de piscina y zonas comunes (desde Más)** |
+| **21** | [21-modulo-calendario.md](21-modulo-calendario.md) | **Calendario: festivos de Madrid + fechas de la comunidad; recordatorio contextual en la Home (v1.49)** |
 | 10 | [10-no-funcionales-y-privacidad.md](10-no-funcionales-y-privacidad.md) | Rendimiento, PWA, notificaciones, RGPD, layout |
 | 11 | [11-seguridad.md](11-seguridad.md) | Modelo de amenazas y controles |
 | 12 | [12-roadmap.md](12-roadmap.md) | Fases de entrega |

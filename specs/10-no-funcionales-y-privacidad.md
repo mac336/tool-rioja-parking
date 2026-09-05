@@ -56,13 +56,29 @@
   localStorage solo como respaldo (demo/offline).
 - **Home = panel de GADGETS (sin scroll en móvil):** cabecera → [encuesta] →
   **tablón elástico** (absorbe el hueco libre con tope de altura; sin mensajes
-  muestra "no hay novedades"; ver `specs/16`) → [parking, solo si toca] →
-  [**reserva activa**, si la vivienda tiene una vigente: zonas, fecha/hora y
-  estado, → Mis reservas] → **Servicios** (pieza clave: SIEMPRE visible, pegada al footer,
-  nunca scrollea; todo lo nuevo debe caber en el espacio de arriba). La barra
-  inferior queda con **Inicio y Más** (y **Gestión** en medio para roles con
-  panel, v1.14.1); "Más" contiene únicamente lo que no
-  está en la Home (ajustes, gestión, dashboard, normas).
+  muestra "no hay novedades"; ver `specs/16`) → **bloque contextual** →
+  **Servicios** (pieza clave: SIEMPRE visible, pegada al footer, nunca scrollea;
+  todo lo nuevo debe caber en el espacio de arriba). La barra inferior queda con
+  **Inicio y Más** (y **Gestión** en medio para roles con panel, v1.14.1); "Más"
+  contiene únicamente lo que no está en la Home (ajustes, gestión, dashboard,
+  normas).
+  - **Bloque contextual (v1.49, cupo 2):** candidatos, en orden de prioridad,
+    **parking** (solo si toca, `specs/08`) > **reserva activa** (si la vivienda
+    tiene una vigente: zonas, fecha/hora y estado → Mis reservas, `specs/07`) >
+    **calendario** (recordatorio de evento de la comunidad o festivo del día,
+    `specs/21`). Se pintan **como máximo 2**, los de mayor prioridad; el
+    recordatorio de calendario solo entra si parking o reserva dejan hueco. Así
+    el **peor caso de altura de la Home no cambia** (antes ya eran 2 tarjetas).
+    El hero de encuesta queda fuera del cupo. Implementación: pieza
+    `GadgetContextual` (markup único de tarjeta: icono + overline + texto + ›) +
+    función pura `seleccionarGadgets(candidatos, cupo = 2)` con test unitario
+    (`src/features/home/`). Prohibido volver a los `&&` inline con markup
+    copiado.
+  - **Servicios: máximo 8** (rejilla 4×2). El 9º servicio **exige rediseñar** la
+    Home o **irse a "Más"**: una tercera fila (~70 px) se la come al tablón y en
+    pantallas de 667 px Servicios empezaría a scrollear. Hoy: 8 para la gestión
+    (Mensajes, Votaciones, Reservas, Parking, Contactos, Sugerencias, Mi
+    Comunidad, Calendario); el resto de roles ve menos según permisos.
 - **Bienvenida** al abrir (una vez por sesión de pestaña) en **dos pasos**:
   (1) mensaje de bienvenida; (2) **invitación a instalar la app** en el móvil
   (Android: instalador nativo; iPhone: guía Compartir → Añadir a pantalla de

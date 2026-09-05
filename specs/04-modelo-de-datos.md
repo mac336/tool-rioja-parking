@@ -21,6 +21,15 @@ Base de datos PostgreSQL en Supabase. **RLS activado en todas las tablas.**
 - **`hilos`** + **`hilo_mensajes`** (buzón privado por `canal` — 0012/0017/0018).
   Ver `specs/17`.
 - **`push_subscriptions`** (Web Push por dispositivo — 0011).
+- **`_health`** (keep-alive Nivel 0 — 0055): `id` + `checked_at`, sin datos de
+  nadie. RLS: una única política de **SELECT** para `anon`/`authenticated`;
+  grants **explícitos** (`revoke all` + `grant select`; `anon=r`). Ver `specs/10`.
+- **`calendario_eventos`** (calendario — 0056): festivos de Madrid + fechas de la
+  comunidad (`tipo` text check, `fecha`/`fecha_fin` date, `fuente`,
+  `created_by → profiles on delete set null`). RLS: lectura `es_activo()`;
+  insert `es_activo() and not es_tester() and tiene_permiso('gestionar_calendario')
+  and created_by = auth.uid()`; update/delete por el mismo permiso. Grants
+  explícitos; **nada a `anon`**. Ver `specs/21`.
 
 **Enums añadidos/ampliados:** `user_role` incluye `conserje` (0016);
 `user_estado` incluye `baja` (0009); `mensaje_tipo`; `hilo_canal`

@@ -89,9 +89,10 @@ carril. Tras `git push`, si hay divergencia, reconcilia sin perder trabajo ajeno
 - **Configuración general (`app_config`):** feature flags que el app_admin cambia
   sin desplegar (Gestión → Configuración): `acceso_directo` y
   `reservas_requieren_aprobacion`. Ver `specs/03` y `specs/07`.
-- **Roles (8):** `app_admin` (SUPERADMIN), `presidente`, `vicepresidente`,
-  `administrador_finca`, `junta`, `conserje`, `vecino`, `tester` (cuenta de
-  pruebas SOLO lectura + chat del buzón).
+- **Roles (9):** `app_admin` (SUPERADMIN), `presidente`, `vicepresidente`,
+  `administrador_finca`, `junta`, `conserje`, `vecino`, `inquilino` (vecino
+  recortado, mig. 0048) y `tester` (cuenta de pruebas SOLO lectura + chat del
+  buzón).
 - **Permisos personalizables:** el app_admin activa/desactiva permisos por rol
   (tabla `role_permissions`). Los helpers RLS los leen en vivo. Ver `specs/03`.
 - **Estados de cuenta:** `pendiente`, `activo`, `suspendido`, `baja` (reversible).
@@ -119,7 +120,19 @@ carril. Tras `git push`, si hay divergencia, reconcilia sin perder trabajo ajeno
   de la app muestra cuántos vecinos han entrado y cuántos la tienen instalada.
 - **Home = panel de gadgets SIN scroll** (tablón elástico de 1 línea + visor;
   servicios como pieza clave pegada al footer; TabBar solo Inicio y Más; "Más"
-  solo con lo que no está en la Home). Ver `specs/10` y `specs/16`.
+  solo con lo que no está en la Home). **Bloque contextual con cupo 2** y
+  prioridad parking > reserva > calendario (`GadgetContextual` +
+  `seleccionarGadgets`); **máximo 8 servicios** en la rejilla. Ver `specs/10` y
+  `specs/16`.
+- **Calendario (v1.49, `specs/21`):** festivos de Madrid capital (sembrados por
+  migración **solo con fuente oficial**; 2026 sí, 2027 pendiente de BOCM/BOE) +
+  fechas de la comunidad (cierre de piscina, junta…), en **modo lista**
+  (`/calendario`, 8ª celda de Servicios, lo ve todo activo). Crear/editar/borrar
+  = permiso configurable **`gestionar_calendario`** (por defecto presidente,
+  vicepresidente, administrador_finca, junta; conserje no). Recordatorio en la
+  Home solo si hay hueco en el cupo: comunidad desde 3 días antes hasta
+  `fecha_fin`; festivo solo el día («Hoy es festivo: …»). **Sin push ni
+  campana** (decisión explícita). Tabla `calendario_eventos` (mig. 0056).
 - **PII:** NO se cifra el nombre por columna (decisión tomada); se protege con
   cifrado de disco en reposo + RLS + minimización (solo nombre/alias).
 - **Zona horaria:** Europe/Madrid para toda la lógica de fechas.
@@ -130,7 +143,12 @@ carril. Tras `git push`, si hay divergencia, reconcilia sin perder trabajo ajeno
   `apiSupabase.ts` (real, compuesto de `src/lib/db/*`).
 - `src/lib/roles.ts` — roles, permisos y helpers (con caché del usuario actual).
 - `src/features/*` — pantallas por módulo (home, mensajes, buzon, bookings,
-  encuestas, parking, contacts, admin, settings, auth, misc).
+  encuestas, parking, contacts, admin, settings, auth, misc, comunidad,
+  **calendario**). `src/features/home/GadgetContextual.tsx` + `gadgetsHome.ts`
+  (cupo del bloque contextual).
+- `src/lib/db/*` — una función por tabla/módulo (`reservas.ts`, `permisos.ts`,
+  `comunidad.ts`, **`calendario.ts`**…); la RLS decide, las constraints se
+  propagan, `cacheBust` al escribir.
 - `src/components/layout/AppShell.tsx` — shell (Sidebar/TabBar/altura viewport).
 - `supabase/migrations/*` — esquema, RLS, funciones/triggers (fuente de verdad
   de la BD). `supabase/functions/*` — Edge Functions.

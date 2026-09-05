@@ -62,3 +62,20 @@ display, **15px, peso 800, tono `--ink`, sin mayúsculas ni tracking**.
 > Al crear una pantalla nueva: `ScreenHeader` arriba + secciones con
 > `SectionTitle` + `Card`/primitivos. Nada de overline como título ni de tamaños
 > de cabecera ad-hoc.
+
+## Piezas compartidas de la Home (`src/features/home`)
+
+- **`GadgetContextual`** (v1.49): la tarjeta de los gadgets contextuales de la
+  Home (parking, reserva, calendario): `Link` con fondo en degradado, icono a la
+  izquierda, **overline** (micro-rótulo, uso permitido) con distintivo opcional,
+  texto de 14.5px y chevrón `›`. Es el **único** markup de esa tarjeta; los
+  gadgets pasan `to`, `Icon`, `overline`, `badge?`, `gradient` y `children`.
+  Cuántos se pintan lo decide `seleccionarGadgets` (cupo 2; ver `specs/10`).
+- **Degradados por gadget:** parking `var(--grad-hero)`; reserva
+  `linear-gradient(150deg,#2E8E79,#123f34)`; calendario
+  `linear-gradient(150deg,#D06A5A,#6B2A22)` (terracota, mismo tono que su
+  círculo de Servicios) *(decisión spec-writer)*.
+- **Distintivo de tipo de evento del calendario** (`specs/21`), píldora pequeña
+  como las de estado de reserva: **festivo** → `bg-warn-soft text-warn-ink` +
+  icono `PartyPopper`; **comunidad** → `bg-info-soft text-info-ink` + icono
+  `CalendarDays`. Sin hex sueltos: tokens semánticos *(decisión spec-writer)*.

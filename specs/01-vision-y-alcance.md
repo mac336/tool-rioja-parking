@@ -59,9 +59,12 @@ Se mantiene **Reciclaje** como contenido estático, portado al nuevo frontend.
 
 ## Fuera de alcance (v1)
 
-- Sección propia de **Junta** (fecha/orden del día). Cuando haga falta, será un
-  **anuncio** en el tablón. La lógica de recordatorio (.ics) puede recuperarse
-  más adelante.
+- Sección propia de **Junta** (fecha/orden del día). El orden del día, cuando
+  haga falta, es un **aviso** en el tablón. La **fecha** de la Junta y su
+  recordatorio en la Home viven desde v1.49 en el módulo **Calendario**
+  (`specs/21`, evento de comunidad). La exportación a calendario personal
+  (**.ics**, que tenía el portal viejo) **sigue fuera de alcance**; si se
+  recupera, será desde ese módulo.
 - Pagos, cuotas o contabilidad de la comunidad.
 - Votaciones con validez legal/oficial (las encuestas son **informales**),
   ponderación por coeficiente, y firma electrónica de delegaciones.

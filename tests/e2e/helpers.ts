@@ -36,6 +36,17 @@ export async function verComo(page: Page, rol: RolDemo): Promise<void> {
   await contenedor.getByRole('button', { name: ROLE_LABEL[rol], exact: true }).click()
 }
 
+/** Navega a /calendario SIN recargar la página (clics de React Router, no
+ *  `page.goto`), justo después de `verComo`: el rol demo vive en memoria del
+ *  mock (`currentUser` de apiMock.ts), y `page.goto()` hace una navegación
+ *  dura de verdad (recarga completa del documento) que lo resetea a 'vecino'
+ *  — se comprobó que por eso el botón "Nueva" nunca aparecía tras elegir un
+ *  rol de gestión. Se asume que `verComo` deja la página en /mas. */
+export async function irACalendarioSinRecargar(page: Page): Promise<void> {
+  await page.getByRole('link', { name: 'Inicio' }).click()
+  await page.getByRole('link', { name: 'Calendario' }).click()
+}
+
 /** 'YYYY-MM-DD' (Europe/Madrid) de hoy + `dias` días naturales; para rellenar
  *  <input type="date"> en los tests sin depender de la hora local del runner. */
 export function ymdOffset(dias: number, base: Date = new Date()): string {

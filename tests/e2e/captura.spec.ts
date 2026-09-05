@@ -1,6 +1,6 @@
 import { test, expect } from '@playwright/test'
 import * as fs from 'node:fs'
-import { entrarDemo, verComo } from './helpers'
+import { entrarDemo, verComo, irACalendarioSinRecargar } from './helpers'
 
 // Capturas + geometría (AGENTS.md §7.15) del módulo Calendario, en modo mock.
 const DIR = process.env.CAPTURAS_DIR ?? 'test-results/capturas'
@@ -12,13 +12,17 @@ test.beforeAll(() => {
 test.describe('Calendario · capturas', () => {
   test('Home (con recordatorio de calendario si el mock lo muestra)', async ({ page }, testInfo) => {
     await entrarDemo(page)
+    // Espera a que cargue el bloque contextual (parking/reserva/calendario:
+    // el mock tiene un pequeño delay artificial) para que la captura sea
+    // representativa y no un estado de carga vacío.
+    await expect(page.getByText('Tu reserva')).toBeVisible()
     await page.screenshot({ path: `${DIR}/home-${testInfo.project.name}.png` })
   })
 
   test('/calendario · lista', async ({ page }, testInfo) => {
     await entrarDemo(page)
     await verComo(page, 'presidente')
-    await page.goto('/calendario')
+    await irACalendarioSinRecargar(page)
     await expect(page.getByText('Cierre de la piscina')).toBeVisible()
     await page.screenshot({ path: `${DIR}/calendario-${testInfo.project.name}.png`, fullPage: true })
   })
@@ -26,7 +30,7 @@ test.describe('Calendario · capturas', () => {
   test('/calendario · hoja "Nueva" abierta (con geometría)', async ({ page }, testInfo) => {
     await entrarDemo(page)
     await verComo(page, 'presidente')
-    await page.goto('/calendario')
+    await irACalendarioSinRecargar(page)
 
     const nueva = page.getByRole('button', { name: 'Nueva' })
     await expect(nueva).toBeVisible()

@@ -1,5 +1,5 @@
 import { test, expect } from '@playwright/test'
-import { entrarDemo, verComo, ymdOffset } from './helpers'
+import { entrarDemo, verComo, irACalendarioSinRecargar, ymdOffset } from './helpers'
 
 // e2e en modo mock (sin backend) — specs/21-modulo-calendario.md § Escenarios.
 
@@ -50,7 +50,7 @@ test.describe('Calendario · permisos (C2)', () => {
   test('un vecino ve la lista pero NO ve el botón "Nueva"', async ({ page }) => {
     await entrarDemo(page)
     await verComo(page, 'vecino')
-    await page.goto('/calendario')
+    await irACalendarioSinRecargar(page)
     await expect(page.getByText('Cierre de la piscina')).toBeVisible()
     await expect(page.getByRole('button', { name: 'Nueva' })).toHaveCount(0)
   })
@@ -60,7 +60,7 @@ test.describe('Calendario · alta con permiso (C1, mock)', () => {
   test('el presidente crea "Junta ordinaria" a hoy+5 y aparece en la lista', async ({ page }) => {
     await entrarDemo(page)
     await verComo(page, 'presidente')
-    await page.goto('/calendario')
+    await irACalendarioSinRecargar(page)
     await page.getByRole('button', { name: 'Nueva' }).click()
     await page.getByLabel('Título').fill('Junta ordinaria')
     await page.getByLabel('Fecha', { exact: true }).fill(ymdOffset(5))
@@ -73,7 +73,7 @@ test.describe('Calendario · borrar (C16)', () => {
   test('el presidente borra un evento con confirmación y desaparece de la lista', async ({ page }) => {
     await entrarDemo(page)
     await verComo(page, 'presidente')
-    await page.goto('/calendario')
+    await irACalendarioSinRecargar(page)
     // Crea uno propio primero, para no depender de qué haya sembrado el mock.
     await page.getByRole('button', { name: 'Nueva' }).click()
     await page.getByLabel('Título').fill('Evento a borrar')

@@ -1,16 +1,16 @@
 import { Link } from 'react-router-dom'
-import { Bell, Car, SquareCheckBig, CalendarDays, CalendarRange, SquareParking, Phone, Megaphone, MessageSquare, Lightbulb, Hourglass, Building2 } from 'lucide-react'
+import { Bell, Car, SquareCheckBig, CalendarDays, CalendarRange, PartyPopper, SquareParking, Phone, Megaphone, MessageSquare, Lightbulb, Hourglass, Building2 } from 'lucide-react'
 import { useApp } from '@/store'
 import { useAsync } from '@/lib/useAsync'
 import { TTL } from '@/lib/cache'
-import { saludo, diasRestantes, fechaHora, hora } from '@/lib/format'
-import { parkingMisTurnos, listEncuestas, listMensajes, listAvisos, reservaVigente } from '@/lib/api'
+import { saludo, diasRestantes, fechaHora, hora, claveDia } from '@/lib/format'
+import { parkingMisTurnos, listEncuestas, listMensajes, listAvisos, reservaVigente, listEventos } from '@/lib/api'
 import { contarAvisosNuevos } from '@/lib/avisosVistos'
 import { puedePublicarAlgo, puedeVotar, puedeReservar, puedeVerMiComunidad } from '@/lib/roles'
 import { Logo } from '@/components/Logo'
 import { TablonGadget } from '@/features/mensajes/TablonGadget'
 import { GadgetContextual } from '@/features/home/GadgetContextual'
-import { seleccionarGadgets } from '@/features/home/gadgetsHome'
+import { seleccionarGadgets, recordatorioCalendario } from '@/features/home/gadgetsHome'
 
 // Servicios (accesos a módulos) en círculo — colores fijos de cada módulo.
 // - "Buzón" NO va aquí: está arriba en la cabecera (icono 💬), sería duplicado.
@@ -39,6 +39,7 @@ export function HomePage() {
   const turnos = useAsync(parkingMisTurnos, [user.vivienda])
   const encuestas = useAsync(listEncuestas, [], { key: 'encuestas', ttlMs: TTL.encuestas })
   const mensajes = useAsync(listMensajes, [], { key: 'mensajes', ttlMs: TTL.mensajes })
+  const eventosCal = useAsync(listEventos, [], { key: 'calendario', ttlMs: TTL.calendario })
   const avisos = useAsync(listAvisos, [], { key: 'avisos', ttlMs: TTL.avisos })
   const reserva = useAsync(reservaVigente, [])
   const nuevos = contarAvisosNuevos(avisos.data ?? [], user.avisos_vistos_at)
@@ -79,11 +80,13 @@ export function HomePage() {
   }
 
   // Bloque contextual con cupo 2 (specs/21): parking > reserva > calendario.
-  // El gadget de calendario se añade en la pasada 2; de momento solo compite
-  // parking/reserva, así que el resultado es idéntico al de antes del refactor.
+  // El recordatorio de calendario solo entra si parking o reserva dejan hueco.
+  const hoy = claveDia(new Date().toISOString())
+  const recordatorio = recordatorioCalendario(eventosCal.data, hoy)
   const gadgetsContextuales = seleccionarGadgets<unknown>([
     parking ? { clave: 'parking' as const, prioridad: 1, datos: parking } : null,
     reserva.data ? { clave: 'reserva' as const, prioridad: 2, datos: reserva.data } : null,
+    recordatorio ? { clave: 'calendario' as const, prioridad: 3, datos: recordatorio } : null,
   ], 2)
 
   // Actividad reciente para el tablón: incidencias abiertas; avisos vigentes (o
@@ -194,6 +197,15 @@ export function HomePage() {
                 </span>
               }>
               <b>{reserva.data.zonas.map((z) => z.nombre).join(' + ')}</b> · {fechaHora(reserva.data.inicio)}–{hora(reserva.data.fin)}
+            </GadgetContextual>
+          ) : g.clave === 'calendario' && recordatorio ? (
+            <GadgetContextual key="calendario" to="/calendario"
+              Icon={recordatorio.tipo === 'festivo' ? PartyPopper : CalendarRange}
+              gradient="linear-gradient(150deg,#D06A5A,#6B2A22)"
+              overline={recordatorio.overline}>
+              {recordatorio.tipo === 'festivo'
+                ? <>Hoy es festivo: <b>{recordatorio.titulo}</b></>
+                : <><b>{recordatorio.titulo}</b> · {recordatorio.detalle}</>}
             </GadgetContextual>
           ) : null)}
         </div>

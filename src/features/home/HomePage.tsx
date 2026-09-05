@@ -1,5 +1,5 @@
 import { Link } from 'react-router-dom'
-import { Bell, Car, SquareCheckBig, CalendarDays, SquareParking, Phone, Megaphone, MessageSquare, Lightbulb, Hourglass, Building2 } from 'lucide-react'
+import { Bell, Car, SquareCheckBig, CalendarDays, CalendarRange, SquareParking, Phone, Megaphone, MessageSquare, Lightbulb, Hourglass, Building2 } from 'lucide-react'
 import { useApp } from '@/store'
 import { useAsync } from '@/lib/useAsync'
 import { TTL } from '@/lib/cache'
@@ -27,6 +27,9 @@ const servicios = [
   { to: '/sugerencias', short: 'Sugerencias', Icon: Lightbulb, color: '#C879A9' },
   // Visible según permiso 'ver_mi_comunidad' (configurable). Ver specs/19.
   { to: '/mi-comunidad', short: 'Mi Comunidad', Icon: Building2, color: '#2E8E79', soloMiComunidad: true },
+  // 8ª y última celda (specs/21): festivos de Madrid + fechas de la comunidad.
+  // Visible para TODOS los roles (ver no requiere permiso, solo gestionar).
+  { to: '/calendario', short: 'Calendario', Icon: CalendarRange, color: '#D06A5A' },
 ]
 
 const fechaLarga = new Intl.DateTimeFormat('es-ES', { weekday: 'long', day: 'numeric', month: 'long' }).format(new Date())

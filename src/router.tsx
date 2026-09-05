@@ -33,6 +33,7 @@ import { AvisosPage } from '@/features/misc/AvisosPage'
 import { AdminPage } from '@/features/admin/AdminPage'
 import { DashboardPage } from '@/features/admin/DashboardPage'
 import { MiComunidadPage } from '@/features/comunidad/MiComunidadPage'
+import { CalendarioPage } from '@/features/calendario/CalendarioPage'
 
 function Shell() {
   return <AppShell><Outlet /></AppShell>
@@ -111,6 +112,7 @@ export const router = createBrowserRouter([
       { path: '/invitar-vecino', element: <InvitarVecinoPage /> },
       { path: '/sugerencias', element: <SugerenciasPage /> },
       { path: '/avisos', element: <AvisosPage /> },
+      { path: '/calendario', element: <CalendarioPage /> },
       {
         element: <RequireAdmin />,
         children: [{ path: '/admin', element: <AdminPage /> }],

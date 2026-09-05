@@ -1,11 +1,10 @@
 # 21 · Módulo Calendario (festivos de Madrid + fechas de la comunidad)
 
-> Estado: **en especificación** (evolutivo 1 → v1.49.0, rama `feat/calendario`,
-> 2026-09-05). Describe el comportamiento **objetivo**; al cerrarse la
-> implementación pasa a describir el actual, como el resto de specs. Migración
-> reservada: **0056**. Origen del gate: `70-impact-1.md` + `11-decisiones.md`
-> del harness (decisiones del usuario del 2026-09-05). **Todo es aditivo**: no
-> cambia ningún endpoint, tabla, ruta ni DTO ya expuesto.
+> Estado: **implementado en v1.49.0** (2026-09-05, rama `feat/calendario`).
+> Describe el comportamiento **actual**. Migración: **0056**. Origen del gate:
+> `70-impact-1.md` + `11-decisiones.md` del harness (decisiones del usuario del
+> 2026-09-05). **Todo es aditivo**: no cambia ningún endpoint, tabla, ruta ni
+> DTO ya expuesto.
 
 ## Objetivo y alcance
 
@@ -218,7 +217,7 @@ spec-writer)*.
   - **Fila** (`Card`): a la izquierda el **día** (número grande + día de la
     semana abreviado, «lun»); título; **distintivo de tipo** (píldora, `specs/18`:
     festivo → `bg-warn-soft text-warn-ink` + `PartyPopper`; comunidad →
-    `bg-info-soft text-info-ink` + `CalendarDays`); si tiene `fecha_fin` >
+    `bg-info-soft text-info-ink` + `CalendarRange`); si tiene `fecha_fin` >
     `fecha`, rango «del 1 al 15 de septiembre» (mismo estilo que `rangoFechas`);
     la `nota`, si la hay, como texto secundario; en festivos, la `fuente` en
     texto pequeño. Con permiso, acciones **Editar** y **Borrar** en la fila.

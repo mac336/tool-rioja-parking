@@ -3,6 +3,37 @@
 Cambios funcionales relevantes, más recientes arriba. Cada entrada nueva se añade
 al implementar el cambio (ver `CLAUDE.md` → Forma de trabajo).
 
+## 2026-09-05
+
+- **v1.49.0 · Calendario (festivos de Madrid + fechas de la comunidad):**
+  - Nueva pantalla **`/calendario`**, 8ª y última celda de Servicios (icono
+    `CalendarRange`, terracota): lista en modo lista (sin rejilla mensual) con
+    «Próximos» agrupados por mes y «Pasados (este año)» plegada. Cada vecino ve
+    los **días no laborables de Madrid capital** (14 festivos de 2026, con su
+    fuente oficial) y las **fechas de la comunidad** (cierre de piscina, junta,
+    etc.); ver la lista no requiere permiso, solo tener la cuenta activa.
+  - La **gestión** (presidente, vicepresidente, administrador de finca, junta;
+    app_admin siempre) da de alta, edita y borra eventos desde una hoja modal
+    (título, fecha, fecha fin opcional, nota, tipo y fuente si es festivo),
+    detrás del nuevo permiso **`gestionar_calendario`** (Panel → Permisos, grupo
+    «Calendario»; el conserje no lo tiene por defecto). La RLS es la barrera
+    real; el botón «Nueva» y las acciones Editar/Borrar son solo UX.
+  - **Recordatorio en la Home**: el bloque de gadgets contextuales pasa a tener
+    **cupo 2** con prioridad parking > reserva > calendario — el aviso de
+    calendario (evento de comunidad desde 3 días antes, festivo solo el día)
+    solo aparece si parking o reserva dejan hueco. Refactor `GadgetContextual`
+    (markup único de la tarjeta, sin cambio visual en parking/reserva).
+  - Migración **`0056_calendario.sql`**: tabla `calendario_eventos` (sin hijos,
+    borrado físico, `created_by` se conserva a `null` si se borra la cuenta),
+    RLS, grants explícitos, permiso sembrado y los 14 festivos de 2026 (BOCM
+    229 y BOCM 296, consultados 2026-09-05). 2027 **no** se siembra (sin fuente
+    oficial todavía); la lista avisa «Festivos de AAAA: pendientes de
+    publicación oficial» para los años a la vista sin festivos sembrados.
+  - **Sin notificaciones**: crear un evento no dispara push ni campana (decisión
+    explícita); el recordatorio de la Home es el único aviso. Sin exportación
+    `.ics` (fuera de alcance de esta primera versión). Detalles en
+    `specs/21-modulo-calendario.md`.
+
 ## 2026-07-27
 
 - **Ops · Continuidad de BD Nivel 0 (keep-alive + health check):** workflow

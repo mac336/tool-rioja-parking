@@ -47,10 +47,21 @@ end; $$;
 \set uidC '77777777-7777-7777-7777-777777777777'
 \set uidT '99999999-9999-9999-9999-999999999999'
 \set uidK '88888888-8888-8888-8888-888888888888'
+-- Fixtures propios del bloque CAL (calendario): J = junta (permiso por
+-- defecto), Z = creador desechable para el test de "borrar la cuenta creadora".
+\set uidJ 'cccccccc-ca10-0000-0000-000000000001'
+\set uidZ 'cccccccc-ca10-0000-0000-000000000002'
 
 -- Limpieza idempotente: borrar datos dependientes de runs previos antes de los
 -- usuarios de prueba (evita fallos de FK al re-ejecutar sin reset).
 delete from encuesta_votos where emitido_por in (:'uidA',:'uidB',:'uidP',:'uidX',:'uidC',:'uidT',:'uidK');
+-- CAL: solo si la tabla ya existe (mig. 0056); antes de eso NO debe romper el
+-- resto de la suite, que sigue verde hasta llegar al bloque CAL de abajo.
+do $$ begin
+  if to_regclass('public.calendario_eventos') is not null then
+    execute $sql$delete from calendario_eventos where titulo like '__cal%'$sql$;
+  end if;
+end $$;
 -- borra reservas por vivienda de prueba (robusto ante datos de otros suites,
 -- p. ej. el test de integración, que comparten estas viviendas).
 delete from reservas where vivienda in ('Bajo A','1º A Dcha','2º A Dcha','3º A Dcha');
@@ -61,7 +72,7 @@ delete from encuesta_opciones where pregunta_id in (select id from encuesta_preg
 delete from encuesta_preguntas where encuesta_id in (select id from encuestas where titulo in ('__test__','__test2__','__e1__','__e2__'));
 delete from encuestas where titulo in ('__test__','__test2__','__e1__','__e2__');
 delete from auth.users where id in (
-  :'uidA',:'uidB',:'uidP',:'uidX',:'uidC',:'uidT',:'uidK',
+  :'uidA',:'uidB',:'uidP',:'uidX',:'uidC',:'uidT',:'uidK',:'uidJ',:'uidZ',
   '55555555-5555-5555-5555-555555555555','66666666-6666-6666-6666-666666666666');
 
 insert into auth.users (id, email, aud, role, instance_id)
@@ -72,7 +83,9 @@ values
   (:'uidX','x@test.local','authenticated','authenticated','00000000-0000-0000-0000-000000000000'),
   (:'uidC','c@test.local','authenticated','authenticated','00000000-0000-0000-0000-000000000000'),
   (:'uidT','t@test.local','authenticated','authenticated','00000000-0000-0000-0000-000000000000'),
-  (:'uidK','k@test.local','authenticated','authenticated','00000000-0000-0000-0000-000000000000');
+  (:'uidK','k@test.local','authenticated','authenticated','00000000-0000-0000-0000-000000000000'),
+  (:'uidJ','j@test.local','authenticated','authenticated','00000000-0000-0000-0000-000000000000'),
+  (:'uidZ','z@test.local','authenticated','authenticated','00000000-0000-0000-0000-000000000000');
 
 -- handle_new_user creó perfiles 'pendiente'; los activamos con vivienda/rol.
 update profiles set vivienda='Bajo A',   rol='vecino',     estado='activo', normas_aceptadas_at=now() where id=:'uidA';
@@ -82,6 +95,8 @@ update profiles set vivienda='3º A Dcha', rol='app_admin',  estado='activo', no
 update profiles set vivienda='1º A Dcha', rol='vecino',     estado='activo', normas_aceptadas_at=now() where id=:'uidC'; -- 2ª cuenta de la vivienda de B
 update profiles set vivienda='Bajo B',   rol='tester',     estado='activo', normas_aceptadas_at=now() where id=:'uidT';
 update profiles set vivienda=null,        rol='conserje',   estado='activo', normas_aceptadas_at=now() where id=:'uidK';
+update profiles set vivienda='1º B Dcha', rol='junta',      estado='activo', normas_aceptadas_at=now() where id=:'uidJ'; -- fixture del bloque CAL
+update profiles set vivienda='2º B Dcha', rol='vecino',     estado='activo', normas_aceptadas_at=now() where id=:'uidZ'; -- creador desechable del bloque CAL
 
 -- Encuesta abierta (formato única) con 1 pregunta y 2 opciones.
 insert into encuestas (id, titulo, formato, apertura, cierre, creada_por)
@@ -375,6 +390,144 @@ select assert_igual((select count(*) from _health), 1::bigint,
 select assert_falla(
   $f$insert into _health (id) values (99)$f$,
   'HEALTH: anon NO escribe en _health');
+
+reset role;
+
+-- ===========================================================================
+-- CAL (mig. 0056 · specs/21-modulo-calendario.md § Seguridad y tests): la
+-- tabla NO existe hasta que el implementer aplique 0056 → este bloque entero
+-- falla en rojo (relation "calendario_eventos" does not exist) hasta entonces;
+-- es el rojo esperado de TDD. Fixtures: uidJ (junta, permiso por defecto) y
+-- uidZ (creador desechable) declarados y creados arriba, junto al resto.
+-- ===========================================================================
+
+-- 1) vecino A lee festivos sembrados (>=1) y NO inserta
+set role authenticated;
+select set_config('request.jwt.claims', json_build_object('sub',:'uidA','role','authenticated')::text, false);
+select assert_min((select count(*) from calendario_eventos where tipo='festivo'), 1, 'CAL: vecino A lee festivos sembrados');
+select assert_falla(
+  $f$insert into calendario_eventos (tipo, titulo, fecha) values ('comunidad','__cal A__', current_date)$f$,
+  'CAL: vecino A no inserta');
+
+-- 1b) costura (§7.17, C21): profiles.estado = suspendido → 0 filas (es_activo
+--     le cierra la lectura); se restaura al final para no afectar al resto del
+--     archivo (este es el ÚLTIMO bloque que usa a A).
+reset role;
+update profiles set estado='suspendido' where id=:'uidA';
+set role authenticated;
+select set_config('request.jwt.claims', json_build_object('sub',:'uidA','role','authenticated')::text, false);
+select assert_igual((select count(*) from calendario_eventos), 0, 'CAL: cuenta suspendida no lee nada del calendario (es_activo)');
+reset role;
+update profiles set estado='activo' where id=:'uidA'; -- restaurar
+
+-- 2) presidente P inserta, edita y borra (tiene el permiso por defecto)
+select set_config('request.jwt.claims', json_build_object('sub',:'uidP','role','authenticated')::text, false);
+insert into calendario_eventos (tipo, titulo, fecha, created_by)
+  values ('comunidad','__cal P__', current_date + 5, auth.uid());
+select assert_igual((select count(*) from calendario_eventos where titulo='__cal P__' and created_by=:'uidP'), 1, 'CAL: presidente inserta con created_by = su uuid');
+update calendario_eventos set nota='editado por P' where titulo='__cal P__';
+select assert_igual((select count(*) from calendario_eventos where titulo='__cal P__' and nota='editado por P'), 1, 'CAL: presidente edita');
+delete from calendario_eventos where titulo='__cal P__';
+select assert_igual((select count(*) from calendario_eventos where titulo='__cal P__'), 0, 'CAL: presidente borra');
+
+-- 3) tester T NO inserta aunque se le conceda el permiso (es_tester() manda)
+reset role;
+insert into role_permissions (rol, permiso) values ('tester','gestionar_calendario') on conflict do nothing;
+set role authenticated;
+select set_config('request.jwt.claims', json_build_object('sub',:'uidT','role','authenticated')::text, false);
+select assert_falla(
+  $f$insert into calendario_eventos (tipo, titulo, fecha) values ('comunidad','__cal T__', current_date)$f$,
+  'CAL: tester no inserta aunque tenga el permiso concedido');
+reset role;
+delete from role_permissions where rol='tester' and permiso='gestionar_calendario'; -- revocar (dejar como estaba)
+
+-- 4) anon NO lee (sin grant)
+set role anon;
+select set_config('request.jwt.claims', json_build_object('role','anon')::text, false);
+select assert_falla($f$select count(*) from calendario_eventos$f$, 'CAL: anon no lee calendario');
+reset role;
+
+-- 5) junta J inserta con el permiso por defecto; al quitarle el permiso EN VIVO
+--    deja de insertar/editar (incluso lo que creó); se restaura al final.
+set role authenticated;
+select set_config('request.jwt.claims', json_build_object('sub',:'uidJ','role','authenticated')::text, false);
+insert into calendario_eventos (tipo, titulo, fecha, created_by)
+  values ('comunidad','__cal J__', current_date + 6, auth.uid());
+select assert_igual((select count(*) from calendario_eventos where titulo='__cal J__'), 1, 'CAL: junta inserta con el permiso por defecto');
+reset role;
+delete from role_permissions where rol='junta' and permiso='gestionar_calendario';
+set role authenticated;
+select set_config('request.jwt.claims', json_build_object('sub',:'uidJ','role','authenticated')::text, false);
+-- el UPDATE con USING falso no lanza excepción: simplemente afecta 0 filas.
+update calendario_eventos set nota='no debería poder' where titulo='__cal J__';
+select assert_igual((select count(*) from calendario_eventos where titulo='__cal J__' and nota is not null), 0, 'CAL: junta sin permiso no edita ni lo que creó (0 filas afectadas)');
+select assert_falla(
+  $f$insert into calendario_eventos (tipo, titulo, fecha) values ('comunidad','__cal J2__', current_date)$f$,
+  'CAL: junta sin permiso no inserta');
+reset role;
+select assert_igual((select count(*) from calendario_eventos where titulo='__cal J__'), 1, 'CAL: el evento de junta se conserva tras quitarle el permiso');
+insert into role_permissions (rol, permiso) values ('junta','gestionar_calendario') on conflict do nothing; -- restaurar
+
+-- 6) constraints (como presidente P, que conserva el permiso)
+set role authenticated;
+select set_config('request.jwt.claims', json_build_object('sub',:'uidP','role','authenticated')::text, false);
+select assert_falla(
+  $f$insert into calendario_eventos (tipo, titulo, fecha, fecha_fin, created_by) values ('comunidad','__cal fin__', current_date, current_date - 1, auth.uid())$f$,
+  'CAL: constraint fecha_fin < fecha');
+select assert_falla(
+  format($f$insert into calendario_eventos (tipo, titulo, fecha, created_by) values ('comunidad','%s', current_date, '%s')$f$, repeat('a',101), :'uidP'),
+  'CAL: constraint título de 101 caracteres');
+select assert_falla(
+  format($f$insert into calendario_eventos (tipo, titulo, fecha, nota, created_by) values ('comunidad','__cal nota__', current_date, '%s', '%s')$f$, repeat('a',501), :'uidP'),
+  'CAL: constraint nota de 501 caracteres');
+select assert_falla(
+  $f$insert into calendario_eventos (tipo, titulo, fecha, created_by) values ('comunidad','__cal antiguo__', date '2019-12-31', auth.uid())$f$,
+  'CAL: constraint fecha < 2020-01-01');
+select assert_falla(
+  $f$insert into calendario_eventos (tipo, titulo, fecha, fecha_fin, created_by) values ('comunidad','__cal rango__', date '2026-01-01', date '2027-01-03', auth.uid())$f$,
+  'CAL: constraint rango de 367 días (>366)');
+
+-- C25) festivo manual: mismo (fecha,título) que uno ya sembrado → falla por el
+--     índice único parcial; con otra fecha → se crea y guarda su fuente.
+select assert_falla(
+  $f$insert into calendario_eventos (tipo, titulo, fecha, created_by) values ('festivo','Fiesta Nacional de España', date '2026-10-12', auth.uid())$f$,
+  'CAL: festivo duplicado (fecha,título) viola el índice único parcial');
+insert into calendario_eventos (tipo, titulo, fecha, fuente, created_by)
+  values ('festivo','__cal festivo manual__', date '2027-10-12', '__cal fuente manual__', auth.uid());
+select assert_igual((select count(*) from calendario_eventos where titulo='__cal festivo manual__' and fuente='__cal fuente manual__'), 1, 'CAL: festivo manual con otra fecha se crea y guarda su fuente');
+delete from calendario_eventos where titulo='__cal festivo manual__'; -- no contaminar el recuento de "14 festivos sembrados" (test 7)
+reset role;
+
+-- 7) seed idempotente: reinsertar los 14 festivos 2026 → 0 filas nuevas
+--    (copia literal del seed de 0056; único parcial (fecha,titulo) where tipo='festivo')
+select assert_igual((select count(*) from calendario_eventos where tipo='festivo'), 14, 'CAL: 14 festivos sembrados antes de reinsertar');
+insert into calendario_eventos (tipo, titulo, fecha, fuente) values
+  ('festivo','Año Nuevo','2026-01-01','Decreto 75/2025, de 24 de septiembre (BOCM nº 229, 25-09-2025) · consultado 2026-09-05'),
+  ('festivo','Epifanía del Señor','2026-01-06','Decreto 75/2025, de 24 de septiembre (BOCM nº 229, 25-09-2025) · consultado 2026-09-05'),
+  ('festivo','Jueves Santo','2026-04-02','Decreto 75/2025, de 24 de septiembre (BOCM nº 229, 25-09-2025) · consultado 2026-09-05'),
+  ('festivo','Viernes Santo','2026-04-03','Decreto 75/2025, de 24 de septiembre (BOCM nº 229, 25-09-2025) · consultado 2026-09-05'),
+  ('festivo','Fiesta del Trabajo','2026-05-01','Decreto 75/2025, de 24 de septiembre (BOCM nº 229, 25-09-2025) · consultado 2026-09-05'),
+  ('festivo','Fiesta de la Comunidad de Madrid','2026-05-02','Decreto 75/2025, de 24 de septiembre (BOCM nº 229, 25-09-2025) · consultado 2026-09-05'),
+  ('festivo','San Isidro Labrador','2026-05-15','Fiestas locales del municipio de Madrid (BOCM nº 296, 12-12-2025) · consultado 2026-09-05'),
+  ('festivo','Asunción de la Virgen','2026-08-15','Decreto 75/2025, de 24 de septiembre (BOCM nº 229, 25-09-2025) · consultado 2026-09-05'),
+  ('festivo','Fiesta Nacional de España','2026-10-12','Decreto 75/2025, de 24 de septiembre (BOCM nº 229, 25-09-2025) · consultado 2026-09-05'),
+  ('festivo','Todos los Santos (trasladado del domingo 1)','2026-11-02','Decreto 75/2025, de 24 de septiembre (BOCM nº 229, 25-09-2025) · consultado 2026-09-05'),
+  ('festivo','Nuestra Señora de la Almudena','2026-11-09','Fiestas locales del municipio de Madrid (BOCM nº 296, 12-12-2025) · consultado 2026-09-05'),
+  ('festivo','Día de la Constitución (trasladado del domingo 6)','2026-12-07','Decreto 75/2025, de 24 de septiembre (BOCM nº 229, 25-09-2025) · consultado 2026-09-05'),
+  ('festivo','Inmaculada Concepción','2026-12-08','Decreto 75/2025, de 24 de septiembre (BOCM nº 229, 25-09-2025) · consultado 2026-09-05'),
+  ('festivo','Natividad del Señor','2026-12-25','Decreto 75/2025, de 24 de septiembre (BOCM nº 229, 25-09-2025) · consultado 2026-09-05')
+on conflict do nothing;
+select assert_igual((select count(*) from calendario_eventos where tipo='festivo'), 14, 'CAL: seed idempotente, 0 filas nuevas tras reinsertar');
+
+-- 8) borrar la cuenta creadora (Z) → el evento se conserva con created_by null;
+--    verificador de huérfanos = 0 (§7.17)
+insert into calendario_eventos (tipo, titulo, fecha, created_by) values ('comunidad','__cal Z__', current_date + 3, :'uidZ');
+select assert_igual((select count(*) from calendario_eventos where titulo='__cal Z__' and created_by=:'uidZ'), 1, 'CAL: evento de Z antes de borrar su cuenta');
+delete from auth.users where id = :'uidZ';
+select assert_igual((select count(*) from calendario_eventos where titulo='__cal Z__' and created_by is null), 1, 'CAL: al eliminar la cuenta creadora, el evento se conserva con created_by null');
+select assert_igual((select count(*) from calendario_eventos e
+  left join profiles p on p.id = e.created_by
+  where e.created_by is not null and p.id is null), 0, 'CAL: sin created_by huérfanos');
 
 reset role;
 select '════════════════════════════════════════' as _;

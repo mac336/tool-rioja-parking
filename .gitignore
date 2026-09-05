@@ -19,6 +19,10 @@ supabase/.branches/
 .vscode/
 *.log
 
+# Playwright (e2e)
+test-results/
+playwright-report/
+
 # Scripts y documentos con datos personales — NUNCA publicar (repo y web son públicos)
 make_icons.py
 setup-github.sh

@@ -38,6 +38,7 @@ import { ReciclajePage } from '@/features/misc/ReciclajePage'
 import { SugerenciasPage } from '@/features/misc/SugerenciasPage'
 import { AvisosPage } from '@/features/misc/AvisosPage'
 import { AdminPage } from '@/features/admin/AdminPage'
+import { CalendarioPage } from '@/features/calendario/CalendarioPage'
 
 function renderAt(el: ReactElement, path: string, routePath: string) {
   const r = render(
@@ -76,6 +77,7 @@ const casos: [string, ReactElement, string, string][] = [
   ['Sugerencias', <SugerenciasPage />, '/sugerencias', '/sugerencias'],
   ['Avisos', <AvisosPage />, '/avisos', '/avisos'],
   ['Admin', <AdminPage />, '/admin', '/admin'],
+  ['Calendario', <CalendarioPage />, '/calendario', '/calendario'],
 ]
 
 describe('render sin crash de todas las pantallas', () => {
@@ -84,4 +86,19 @@ describe('render sin crash de todas las pantallas', () => {
       expect(() => renderAt(el, path, routePath)).not.toThrow()
     })
   }
+})
+
+// C23 · Servicios: la Home (con el mock, rol vecino por defecto) tiene una
+// celda "Calendario" en el bloque de Servicios. No nos acoplamos al markup:
+// basta con que el texto sea localizable en el DOM tras montar.
+describe('Home · Servicios incluye Calendario (C23)', () => {
+  it('la Home renderiza la celda "Calendario" en Servicios', () => {
+    const { getByText } = render(
+      <MemoryRouter initialEntries={['/']}>
+        <Routes><Route path="/" element={<HomePage />} /></Routes>
+      </MemoryRouter>,
+    )
+    expect(getByText('Calendario')).toBeTruthy()
+    cleanup()
+  })
 })

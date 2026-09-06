@@ -6,7 +6,7 @@ import { TTL } from '@/lib/cache'
 import { saludo, diasRestantes, fechaHora, hora, claveDia } from '@/lib/format'
 import { parkingMisTurnos, listEncuestas, listMensajes, listAvisos, reservaVigente, listEventos } from '@/lib/api'
 import { contarAvisosNuevos } from '@/lib/avisosVistos'
-import { puedePublicarAlgo, puedeVotar, puedeReservar, puedeVerMiComunidad } from '@/lib/roles'
+import { puedePublicarAlgo, puedeVotar, puedeReservar, puedeVerMiComunidad, esTester } from '@/lib/roles'
 import { Logo } from '@/components/Logo'
 import { TablonGadget } from '@/features/mensajes/TablonGadget'
 import { esActividadDeTablon } from '@/features/mensajes/actividadTablon'
@@ -95,6 +95,14 @@ export function HomePage() {
   // menos de 30 días de actividad (specs/16 § Filtro de "Actividad reciente").
   // Regla completa en actividadTablon.ts (testeada aparte de esta pantalla).
   const actividad = (mensajes.data ?? []).filter((m) => esActividadDeTablon(m, ahora))
+  // Invitación del tablón vacío: el botón "Escribir una sugerencia" solo se ve
+  // si el rol puede PROPONER una (Buzón → Publicar → Sugerencia, moderada). Esa
+  // vía la abre CUALQUIER cuenta activa salvo el tester (RLS `msg_ins`: `not
+  // es_tester()`, mig. 0040) — NO usa `publicar_sugerencia`/`tiposQuePublica`,
+  // que son el permiso de publicar DIRECTO (sin moderación) y son de la
+  // gestión; usarlos aquí ocultaría el botón a cualquier vecino normal, que sí
+  // puede proponer.
+  const puedeProponerSugerencia = !esTester(user.rol)
 
   return (
     // HOME = panel de GADGETS, fijada a la pantalla (sin scroll en móvil):
@@ -163,7 +171,7 @@ export function HomePage() {
       )}
 
       {/* Tablón (gadget elástico: crece/encoge según el hueco de la pantalla) */}
-      <TablonGadget mensajes={actividad} className="mb-auto min-h-0 max-h-[300px] flex-1" />
+      <TablonGadget mensajes={actividad} puedeProponerSugerencia={puedeProponerSugerencia} className="mb-auto min-h-0 max-h-[300px] flex-1" />
 
       {/* Gadgets contextuales: parking (si toca) + reserva activa (+ calendario
           en la pasada 2, si hay hueco). Flotan en el hueco entre el tablón y

@@ -1,4 +1,5 @@
-import { useState } from 'react'
+import { useEffect, useState } from 'react'
+import { useSearchParams } from 'react-router-dom'
 import { TriangleAlert, Megaphone, Lightbulb, X, Send, FileEdit, Clock, Check, Ban, ImagePlus } from 'lucide-react'
 import { Card, Field, Textarea, Button, cx } from '@/components/ui'
 import { useAsync } from '@/lib/useAsync'
@@ -46,6 +47,24 @@ export function PublicarPanel() {
     limpiarFotos()
     setForm({ tipo, titulo: '', cuerpo: '', destino: 'todos', publica: hoyStr(), expira: '' })
   }
+
+  // Deep-link desde la invitación del tablón vacío de Inicio (HomePage/
+  // TablonGadget): /buzon?publicar=sugerencia abre el formulario YA en tipo
+  // sugerencia, sin que el vecino tenga que tocar "Sugerencia" a mano. Se
+  // limpia el parámetro tras abrir (replace) para que recargar la página o
+  // volver atrás no lo repita.
+  const [params, setParams] = useSearchParams()
+  useEffect(() => {
+    const tipo = params.get('publicar')
+    if (tipo === 'incidencia' || tipo === 'anuncio' || tipo === 'sugerencia') {
+      abrir(tipo)
+      const siguiente = new URLSearchParams(params)
+      siguiente.delete('publicar')
+      setParams(siguiente, { replace: true })
+    }
+    // Solo al montar: solo nos importa el valor que traía la URL al entrar.
+    // eslint-disable-next-line react-hooks/exhaustive-deps
+  }, [])
 
   const añadirFotos = async (files: FileList | null) => {
     if (!files || files.length === 0) return

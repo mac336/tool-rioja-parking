@@ -1,7 +1,7 @@
 import { useLayoutEffect, useRef, useState } from 'react'
 import { Adjuntos } from '@/components/Adjuntos'
 import { useNavigate } from 'react-router-dom'
-import { X, ChevronLeft, ChevronRight, TriangleAlert, Megaphone, Lightbulb, Heart } from 'lucide-react'
+import { X, ChevronLeft, ChevronRight, TriangleAlert, Megaphone, Lightbulb, Heart, Pencil } from 'lucide-react'
 import type { Mensaje, MensajeTipo, ImportanciaMensaje } from '@/types'
 import { POSTIT, TEMPORADAS, fechaMano, caducaTexto, paperDegradado, cintaWashi, CINTA_URGENTE, IMPORTANCIA_COLOR, gradoDe, pastelHex } from './postit'
 import { MotivoTemporada } from './MotivoTemporada'
@@ -186,7 +186,42 @@ function PostItHome({ m, rot, onClick }: { m: Mensaje; rot: string; onClick: () 
   )
 }
 
-export function TablonGadget({ mensajes, className }: { mensajes: Mensaje[]; className?: string }) {
+/** Tarjeta-invitación del tablón vacío (petición del usuario, 2026-09-06): en
+ *  vez del "no hay novedades" genérico, invita a proponer una sugerencia.
+ *  - Fondo lila muy claro + borde discontinuo lila (paleta de "sugerencia" en
+ *    postit.ts), esquinas redondeadas; SIN `shadow-neu*` (specs/18, diseño
+ *    plano; DEBT.md ya recoge esa deuda del resto de la app).
+ *  - El botón principal solo se ve si el rol PUEDE proponer (no el tester, que
+ *    es de solo lectura — RLS `msg_ins`: `not es_tester()`, mismo criterio que
+ *    ya usan Reservas/Encuestas/Sugerencias para este mismo rol). El enlace
+ *    secundario a Sugerencias se ve siempre. */
+function InvitacionSugerir({ puedeProponer }: { puedeProponer: boolean }) {
+  const nav = useNavigate()
+  return (
+    <div className="flex min-h-0 flex-1 flex-col items-center justify-center gap-2 rounded-[14px] border-2 border-dashed px-5 py-3 text-center"
+      style={{ background: '#F1ECFB', borderColor: '#B79BEA' }}>
+      <Lightbulb size={22} style={{ color: '#7A4FC0' }} />
+      <p className="mx-auto max-w-[230px] font-display text-[15px] font-extrabold leading-tight" style={{ color: '#6D4AA3' }}>
+        ¿Se te ocurre algo para mejorar la comunidad?
+      </p>
+      <p className="mx-auto max-w-[240px] text-[12.5px] leading-snug text-muted">
+        Hoy el tablón está tranquilo. Este hueco puede ser para tu idea.
+      </p>
+      {puedeProponer && (
+        <button type="button" onClick={() => nav('/buzon?publicar=sugerencia')}
+          className="mt-0.5 flex h-11 items-center gap-1.5 rounded-pill px-4 text-[13.5px] font-bold text-white active:scale-95"
+          style={{ background: '#7A4FC0' }}>
+          <Pencil size={16} /> Escribir una sugerencia
+        </button>
+      )}
+      <button type="button" onClick={() => nav('/sugerencias')} className="mt-0.5 text-[12px] font-bold" style={{ color: '#6D4AA3' }}>
+        Ver sugerencias de vecinos ›
+      </button>
+    </div>
+  )
+}
+
+export function TablonGadget({ mensajes, className, puedeProponerSugerencia = true }: { mensajes: Mensaje[]; className?: string; puedeProponerSugerencia?: boolean }) {
   const nav = useNavigate()
   const lista = ordenarTablon(mensajes)
   const railRef = useRef<HTMLDivElement>(null)
@@ -210,9 +245,7 @@ export function TablonGadget({ mensajes, className }: { mensajes: Mensaje[]; cla
       </div>
 
       {lista.length === 0 ? (
-        <div className="flex min-h-0 flex-1 items-center justify-center rounded-[14px] border border-dashed border-border bg-surface/50 px-6 text-center">
-          <p className="text-[13.5px] text-muted">No hay novedades en el tablón. 🌿<br />Aquí verás las incidencias, avisos y anuncios de la comunidad.</p>
-        </div>
+        <InvitacionSugerir puedeProponer={puedeProponerSugerencia} />
       ) : (
         <>
           {/* Carrusel de una línea (un post-it visible, asomo del siguiente) */}

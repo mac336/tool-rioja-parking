@@ -47,6 +47,17 @@ export async function irACalendarioSinRecargar(page: Page): Promise<void> {
   await page.getByRole('link', { name: 'Calendario' }).click()
 }
 
+/** Navega a un mosaico de "Servicios" de la Home SIN recargar (ver nota de
+ *  `irACalendarioSinRecargar`: `page.goto()` resetea el rol demo en memoria).
+ *  Se escopa a la sección "Servicios" porque algunos nombres de servicio (p.
+ *  ej. "Mensajes") coinciden con el nombre accesible de otro enlace de la
+ *  cabecera (el icono del Buzón, aria-label "Mensajes"). */
+export async function irAServicioSinRecargar(page: Page, nombre: string): Promise<void> {
+  await page.getByRole('link', { name: 'Inicio' }).click()
+  const servicios = page.locator('section', { hasText: 'Servicios' })
+  await servicios.getByRole('link', { name: nombre, exact: true }).click()
+}
+
 /** 'YYYY-MM-DD' (Europe/Madrid) de hoy + `dias` días naturales; para rellenar
  *  <input type="date"> en los tests sin depender de la hora local del runner. */
 export function ymdOffset(dias: number, base: Date = new Date()): string {

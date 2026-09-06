@@ -31,7 +31,7 @@ import { VotePage } from '@/features/encuestas/VotePage'
 import { ResultsPage } from '@/features/encuestas/ResultsPage'
 import { BookingsPage } from '@/features/bookings/BookingsPage'
 import { NuevaReservaPage } from '@/features/bookings/NuevaReservaPage'
-import { ParkingPage } from '@/features/parking/ParkingPage'
+import { ParkingPage, CESIONES_ACTIVAS } from '@/features/parking/ParkingPage'
 import { ContactsPage } from '@/features/contacts/ContactsPage'
 import { SettingsPage } from '@/features/settings/SettingsPage'
 import { ReciclajePage } from '@/features/misc/ReciclajePage'
@@ -99,6 +99,35 @@ describe('Home · Servicios incluye Calendario (C23)', () => {
       </MemoryRouter>,
     )
     expect(getByText('Calendario')).toBeTruthy()
+    cleanup()
+  })
+})
+
+// SUSPENDIDO 2026-09-06 (CESIONES_ACTIVAS): la Parte 2 de specs/08 (cedo/no la
+// necesito/necesito + demanda + reasignación) NO debe aparecer en /parking
+// mientras la constante siga en `false`. Si algún día se reactiva, esta
+// aserción negativa debe pasar a ser positiva (ver 70-impact-2.md §9 antes).
+describe('Parking · Parte 2 (cesión) suspendida', () => {
+  it('CESIONES_ACTIVAS sigue en false (no reactivar sin revisar 70-impact-2.md §9)', () => {
+    expect(CESIONES_ACTIVAS).toBe(false)
+  })
+
+  it('/parking NO muestra "¿Cedes o necesitas plaza?" ni el resto de la Parte 2', () => {
+    // OJO: `renderAt` (arriba) hace `cleanup()` antes de devolver el
+    // resultado — sirve solo para el smoke "no lanza", no para aserciones de
+    // contenido. Aquí renderizamos directo, como en el bloque C23 de abajo.
+    const { queryByText, getByText } = render(
+      <MemoryRouter initialEntries={['/parking']}>
+        <Routes><Route path="/parking" element={<ParkingPage />} /></Routes>
+      </MemoryRouter>,
+    )
+    // La Parte 1 (rotación) sigue intacta.
+    expect(getByText('Próximas quincenas · 6 plazas')).toBeTruthy()
+    // La Parte 2 entera ha desaparecido.
+    expect(queryByText('¿Cedes o necesitas plaza?')).toBeNull()
+    expect(queryByText('Demanda actual')).toBeNull()
+    expect(queryByText('Mis avisos de plaza')).toBeNull()
+    expect(queryByText('Reasignar huecos')).toBeNull()
     cleanup()
   })
 })

@@ -23,6 +23,11 @@ export async function parkingMisTurnos(): Promise<ReturnType<typeof proximosTurn
 }
 
 // ---- Cesiones ----------------------------------------------------------------
+// SUSPENDIDO 2026-09-06 (CESIONES_ACTIVAS en src/features/parking/ParkingPage.tsx):
+// la Parte 2 de specs/08 está apagada en la interfaz y `parking_cesiones` tiene
+// `insert`/`update` revocados a `authenticated` (mig. 0059). Estas 6 funciones
+// NO se borran (son lo que hace reversible el apagado): ver 70-impact-2.md §9
+// antes de reactivarlas, el circuito nunca cerró (H1-H5).
 export async function misCesiones(): Promise<ParkingCesion[]> {
   const vivienda = await viviendaActual()
   const { data, error } = await supabase.from('parking_cesiones')

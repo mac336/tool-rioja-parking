@@ -277,6 +277,9 @@ export function parkingProximas(n = 5): Promise<ParkingQuincena[]> { return dela
 export function parkingMisTurnos(): Promise<ReturnType<typeof proximosTurnos>> {
   return delay(proximosTurnos(currentUser.vivienda))
 }
+// SUSPENDIDO 2026-09-06 (CESIONES_ACTIVAS en ParkingPage.tsx): la UI ya no
+// llama a estas funciones (Parte 2 de specs/08 apagada). NO BORRAR — ver
+// 70-impact-2.md §9 y src/lib/db/parking.ts (equivalente real, con la misma nota).
 export const misCesiones = () => delay(db.cesiones.filter((c) => c.vivienda === currentUser.vivienda))
 export const cesionesActivas = () => delay(db.cesiones.filter((c) => c.estado === 'activa'))
 

@@ -228,7 +228,9 @@ export function puedeGestionarCalendario(rol: Role): boolean {
   return !esTester(rol) && tienePermiso(rol, 'gestionar_calendario')
 }
 
-/** Cuenta de pruebas: SOLO LECTURA (no puede reservar, votar, ceder ni sugerir).
+/** Cuenta de pruebas: SOLO LECTURA (no puede reservar, votar, ceder ni sugerir;
+ *  "ceder" plaza está además SUSPENDIDO para todos 2026-09-06, ver specs/08
+ *  §Parte 2 — el tester tampoco la vería aunque no fuera de solo lectura).
  *  Única acción permitida: chatear por el buzón (si tiene 'usar_buzon'). */
 export function esTester(rol: Role): boolean {
   return rol === 'tester'

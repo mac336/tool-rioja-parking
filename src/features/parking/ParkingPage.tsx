@@ -26,15 +26,32 @@ const CESION_TEXTO: Record<CesionTipo, string> = {
   necesita: 'Necesita plaza',
 }
 
+// SUSPENDIDO 2026-09-06 (CESIONES_ACTIVAS): decisión del usuario — «el ceder
+// plaza no está funcionando, vamos a desaparecerlo un tiempo» (ver
+// 70-impact-2.md del harness y specs/08 §Parte 2, marcada SUSPENDIDA). Única
+// palanca de la interfaz: con `false` no se pintan las 4 secciones de la
+// cesión/demanda/reasignación (ni se lanzan sus 3 consultas), pero el código
+// y sus tests se CONSERVAN — no borrar nada de este fichero por "código
+// muerto" sin releer antes el diagnóstico de 70-impact-2.md §9 (el circuito
+// nunca cerró: el beneficiario de una reasignación no la ve en ninguna
+// pantalla ni recibe aviso). Para reactivar: 1) `CESIONES_ACTIVAS = true`
+// aquí; 2) en servidor, `grant insert, update on parking_cesiones to
+// authenticated;` (revierte la mig. 0059); 3) antes de encender, borrar de
+// `parking_cesiones` cualquier fila anterior a la fecha de reactivación.
+export const CESIONES_ACTIVAS = false
+
 export function ParkingPage() {
   const { user, toast } = useApp()
   const tester = esTester(user.rol)
   const gestion = esGestion(user.rol)
   const misTurnos = useAsync(parkingMisTurnos, [user.vivienda])
   const proximas = useAsync(() => parkingProximas(5), [])
-  const demanda = useAsync(demandaParking, [])
-  const misAvisos = useAsync(misCesiones, [user.vivienda])
-  const activas = useAsync(() => (gestion ? cesionesActivas() : Promise.resolve([])), [gestion])
+  // SUSPENDIDO 2026-09-06 (CESIONES_ACTIVAS): con la cesión apagada no se
+  // lanzan estas 3 consultas (la pantalla carga más rápido); ver el comentario
+  // completo junto a la constante, arriba.
+  const demanda = useAsync(() => (CESIONES_ACTIVAS ? demandaParking() : Promise.resolve({ necesitan: 0, ceden: 0 })), [])
+  const misAvisos = useAsync(() => (CESIONES_ACTIVAS ? misCesiones() : Promise.resolve([])), [user.vivienda])
+  const activas = useAsync(() => (CESIONES_ACTIVAS && gestion ? cesionesActivas() : Promise.resolve([])), [gestion])
 
   const actual = misTurnos.data?.find((t) => t.actual)
   const futuros = misTurnos.data?.filter((t) => !t.actual) ?? []
@@ -175,133 +192,139 @@ export function ParkingPage() {
           </div>
         </section>
 
-
-        {/* ¿Cedes o necesitas plaza? */}
-        <section>
-          <h2 className="section-title mb-2 flex items-center gap-1.5"><ArrowLeftRight size={14} /> ¿Cedes o necesitas plaza?</h2>
-          <Card className="flex flex-col gap-4">
-            <SelectField label="¿Qué quieres avisar?" value={tipo} onChange={(e) => setTipo(e.target.value as CesionTipo)}>
-              {TIPO_LABEL.map((t) => <option key={t.value} value={t.value}>{t.label}</option>)}
-            </SelectField>
-            <div className="grid grid-cols-2 gap-3">
-              <Field label="Desde" type="date" value={desde} onChange={(e) => setDesde(e.target.value)} />
-              <Field label="Hasta" type="date" value={hasta} onChange={(e) => setHasta(e.target.value)} />
-            </div>
-            <Textarea label="Nota (opcional)" value={nota} onChange={(e) => setNota(e.target.value)} placeholder="Cualquier detalle útil para la gestión…" />
-            {tester && <Alert tipo="info">Cuenta de pruebas (Tester): solo lectura. Puedes mirarlo todo y chatear por el buzón, pero no realizar acciones.</Alert>}
-            <Button block disabled={tester || !valido || enviando} onClick={enviar}>
-              {enviando ? 'Enviando…' : 'Enviar aviso'}
-            </Button>
-          </Card>
-        </section>
-
-        {/* Panel de demanda */}
-        <section>
-          <h2 className="section-title mb-2">Demanda actual</h2>
-          <div className="grid grid-cols-2 gap-3">
-            <Card className="text-center">
-              <div className="font-display text-[28px] font-extrabold text-ink">{demanda.data?.necesitan ?? 0}</div>
-              <div className="mt-1 text-[13px] text-muted">viviendas necesitan plaza</div>
-            </Card>
-            <Card className="text-center">
-              <div className="font-display text-[28px] font-extrabold text-ink">{demanda.data?.ceden ?? 0}</div>
-              <div className="mt-1 text-[13px] text-muted">viviendas ceden</div>
-            </Card>
-          </div>
-        </section>
-
-        {/* Mis avisos de plaza */}
-        <section>
-          <h2 className="section-title mb-2 flex items-center gap-1.5"><Bell size={14} /> Mis avisos de plaza</h2>
-          {avisosOrdenados.length > 0 && avisosOrdenados.some((c) => c.estado !== 'activa') && (
-            <p className="mb-2 text-[12px] text-faint">Las canceladas y las ya pasadas quedan como histórico y se borran solas a los 10 días.</p>
-          )}
-          {avisosOrdenados.length === 0 ? (
-            <Card>
-              <EmptyState titulo="Sin avisos" texto="Cuando cedas o pidas plaza, tus avisos aparecerán aquí." />
-            </Card>
-          ) : (
-            <div className="flex flex-col gap-2">
-              {avisosOrdenados.map((c) => (
-                <Card key={c.id} className="flex items-start justify-between gap-3">
-                  <div className="min-w-0">
-                    <div className="text-[14px] font-bold text-ink">{CESION_TEXTO[c.tipo]}</div>
-                    <div className="mt-0.5 text-[13px] text-muted">{fechaCorta(c.desde)} – {fechaCorta(c.hasta)}</div>
-                    {c.nota && <div className="mt-1 text-[13px] text-faint">{c.nota}</div>}
-                    {c.estado === 'reasignada' && (
-                      <span className="mt-2 inline-flex items-center gap-1.5 rounded-pill bg-success-soft px-2.5 py-1 text-[12px] font-bold text-success-ink">
-                        Reasignada a {c.reasignada_a}
-                      </span>
-                    )}
-                    {c.estado === 'cancelada' && (
-                      <span className="mt-2 inline-flex items-center rounded-pill bg-surface-2 px-2.5 py-1 text-[12px] font-bold text-muted">
-                        Cancelada
-                      </span>
-                    )}
-                  </div>
-                  {c.estado === 'activa' && (
-                    <Button variant="danger-outline" size="md" className="shrink-0" onClick={() => cancelar(c)}>
-                      Cancelar
-                    </Button>
-                  )}
-                </Card>
-              ))}
-            </div>
-          )}
-        </section>
-
-        {/* Reasignar huecos (solo gestión) */}
-        {gestion && (
-          <section>
-            <h2 className="section-title mb-2 flex items-center gap-1.5"><Repeat size={14} /> Reasignar huecos</h2>
-
-            {solicitan.length > 0 && (
-              <Alert tipo="info">
-                <span className="font-bold">Prioridad — han pedido plaza:</span>{' '}
-                {viviendasPrioritarias.join(', ')}
-              </Alert>
-            )}
-
-            {huecos.length === 0 ? (
-              <Card className="mt-2">
-                <EmptyState titulo="No hay huecos disponibles" texto="Aquí verás las plazas que las viviendas ceden para poder reasignarlas." />
+        {/* SUSPENDIDO 2026-09-06 (CESIONES_ACTIVAS): Parte 2 entera de specs/08
+            (cedo/no la necesito/necesito + demanda + reasignación). NO borrar:
+            ver el comentario junto a la constante, arriba. */}
+        {CESIONES_ACTIVAS && (
+          <>
+            {/* ¿Cedes o necesitas plaza? */}
+            <section>
+              <h2 className="section-title mb-2 flex items-center gap-1.5"><ArrowLeftRight size={14} /> ¿Cedes o necesitas plaza?</h2>
+              <Card className="flex flex-col gap-4">
+                <SelectField label="¿Qué quieres avisar?" value={tipo} onChange={(e) => setTipo(e.target.value as CesionTipo)}>
+                  {TIPO_LABEL.map((t) => <option key={t.value} value={t.value}>{t.label}</option>)}
+                </SelectField>
+                <div className="grid grid-cols-2 gap-3">
+                  <Field label="Desde" type="date" value={desde} onChange={(e) => setDesde(e.target.value)} />
+                  <Field label="Hasta" type="date" value={hasta} onChange={(e) => setHasta(e.target.value)} />
+                </div>
+                <Textarea label="Nota (opcional)" value={nota} onChange={(e) => setNota(e.target.value)} placeholder="Cualquier detalle útil para la gestión…" />
+                {tester && <Alert tipo="info">Cuenta de pruebas (Tester): solo lectura. Puedes mirarlo todo y chatear por el buzón, pero no realizar acciones.</Alert>}
+                <Button block disabled={tester || !valido || enviando} onClick={enviar}>
+                  {enviando ? 'Enviando…' : 'Enviar aviso'}
+                </Button>
               </Card>
-            ) : (
-              <div className="mt-2 flex flex-col gap-2">
-                {huecos.map((c) => (
-                  <Card key={c.id} className="flex flex-col gap-3">
-                    <div>
-                      <div className="text-[14px] font-bold text-ink">{c.vivienda} · {CESION_TEXTO[c.tipo]}</div>
-                      <div className="mt-0.5 text-[13px] text-muted">{fechaCorta(c.desde)} – {fechaCorta(c.hasta)}</div>
-                      {c.nota && <div className="mt-1 text-[13px] text-faint">{c.nota}</div>}
-                    </div>
-                    <div className="flex items-end gap-2">
-                      <div className="min-w-0 flex-1">
-                        <SelectField
-                          label="Asignar a"
-                          value={destinos[c.id] ?? ''}
-                          onChange={(e) => setDestinos((d) => ({ ...d, [c.id]: e.target.value }))}
-                        >
-                          <option value="">Elegir vivienda…</option>
-                          {viviendasPrioritarias.length > 0 && (
-                            <optgroup label="Prioridad · han pedido plaza">
-                              {viviendasPrioritarias.map((v) => <option key={v} value={v}>{v}</option>)}
-                            </optgroup>
-                          )}
-                          <optgroup label="Resto de viviendas">
-                            {viviendasResto.map((v) => <option key={v} value={v}>{v}</option>)}
-                          </optgroup>
-                        </SelectField>
-                      </div>
-                      <Button className="shrink-0" disabled={!destinos[c.id]} onClick={() => reasignar(c)}>
-                        Reasignar
-                      </Button>
-                    </div>
-                  </Card>
-                ))}
+            </section>
+
+            {/* Panel de demanda */}
+            <section>
+              <h2 className="section-title mb-2">Demanda actual</h2>
+              <div className="grid grid-cols-2 gap-3">
+                <Card className="text-center">
+                  <div className="font-display text-[28px] font-extrabold text-ink">{demanda.data?.necesitan ?? 0}</div>
+                  <div className="mt-1 text-[13px] text-muted">viviendas necesitan plaza</div>
+                </Card>
+                <Card className="text-center">
+                  <div className="font-display text-[28px] font-extrabold text-ink">{demanda.data?.ceden ?? 0}</div>
+                  <div className="mt-1 text-[13px] text-muted">viviendas ceden</div>
+                </Card>
               </div>
+            </section>
+
+            {/* Mis avisos de plaza */}
+            <section>
+              <h2 className="section-title mb-2 flex items-center gap-1.5"><Bell size={14} /> Mis avisos de plaza</h2>
+              {avisosOrdenados.length > 0 && avisosOrdenados.some((c) => c.estado !== 'activa') && (
+                <p className="mb-2 text-[12px] text-faint">Las canceladas y las ya pasadas quedan como histórico y se borran solas a los 10 días.</p>
+              )}
+              {avisosOrdenados.length === 0 ? (
+                <Card>
+                  <EmptyState titulo="Sin avisos" texto="Cuando cedas o pidas plaza, tus avisos aparecerán aquí." />
+                </Card>
+              ) : (
+                <div className="flex flex-col gap-2">
+                  {avisosOrdenados.map((c) => (
+                    <Card key={c.id} className="flex items-start justify-between gap-3">
+                      <div className="min-w-0">
+                        <div className="text-[14px] font-bold text-ink">{CESION_TEXTO[c.tipo]}</div>
+                        <div className="mt-0.5 text-[13px] text-muted">{fechaCorta(c.desde)} – {fechaCorta(c.hasta)}</div>
+                        {c.nota && <div className="mt-1 text-[13px] text-faint">{c.nota}</div>}
+                        {c.estado === 'reasignada' && (
+                          <span className="mt-2 inline-flex items-center gap-1.5 rounded-pill bg-success-soft px-2.5 py-1 text-[12px] font-bold text-success-ink">
+                            Reasignada a {c.reasignada_a}
+                          </span>
+                        )}
+                        {c.estado === 'cancelada' && (
+                          <span className="mt-2 inline-flex items-center rounded-pill bg-surface-2 px-2.5 py-1 text-[12px] font-bold text-muted">
+                            Cancelada
+                          </span>
+                        )}
+                      </div>
+                      {c.estado === 'activa' && (
+                        <Button variant="danger-outline" size="md" className="shrink-0" onClick={() => cancelar(c)}>
+                          Cancelar
+                        </Button>
+                      )}
+                    </Card>
+                  ))}
+                </div>
+              )}
+            </section>
+
+            {/* Reasignar huecos (solo gestión) */}
+            {gestion && (
+              <section>
+                <h2 className="section-title mb-2 flex items-center gap-1.5"><Repeat size={14} /> Reasignar huecos</h2>
+
+                {solicitan.length > 0 && (
+                  <Alert tipo="info">
+                    <span className="font-bold">Prioridad — han pedido plaza:</span>{' '}
+                    {viviendasPrioritarias.join(', ')}
+                  </Alert>
+                )}
+
+                {huecos.length === 0 ? (
+                  <Card className="mt-2">
+                    <EmptyState titulo="No hay huecos disponibles" texto="Aquí verás las plazas que las viviendas ceden para poder reasignarlas." />
+                  </Card>
+                ) : (
+                  <div className="mt-2 flex flex-col gap-2">
+                    {huecos.map((c) => (
+                      <Card key={c.id} className="flex flex-col gap-3">
+                        <div>
+                          <div className="text-[14px] font-bold text-ink">{c.vivienda} · {CESION_TEXTO[c.tipo]}</div>
+                          <div className="mt-0.5 text-[13px] text-muted">{fechaCorta(c.desde)} – {fechaCorta(c.hasta)}</div>
+                          {c.nota && <div className="mt-1 text-[13px] text-faint">{c.nota}</div>}
+                        </div>
+                        <div className="flex items-end gap-2">
+                          <div className="min-w-0 flex-1">
+                            <SelectField
+                              label="Asignar a"
+                              value={destinos[c.id] ?? ''}
+                              onChange={(e) => setDestinos((d) => ({ ...d, [c.id]: e.target.value }))}
+                            >
+                              <option value="">Elegir vivienda…</option>
+                              {viviendasPrioritarias.length > 0 && (
+                                <optgroup label="Prioridad · han pedido plaza">
+                                  {viviendasPrioritarias.map((v) => <option key={v} value={v}>{v}</option>)}
+                                </optgroup>
+                              )}
+                              <optgroup label="Resto de viviendas">
+                                {viviendasResto.map((v) => <option key={v} value={v}>{v}</option>)}
+                              </optgroup>
+                            </SelectField>
+                          </div>
+                          <Button className="shrink-0" disabled={!destinos[c.id]} onClick={() => reasignar(c)}>
+                            Reasignar
+                          </Button>
+                        </div>
+                      </Card>
+                    ))}
+                  </div>
+                )}
+              </section>
             )}
-          </section>
+          </>
         )}
       </Page>
     </div>

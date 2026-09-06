@@ -529,6 +529,27 @@ select assert_igual((select count(*) from calendario_eventos e
   left join profiles p on p.id = e.created_by
   where e.created_by is not null and p.id is null), 0, 'CAL: sin created_by huérfanos');
 
+-- 9) purga automática de festivos pasados (mig. 0057, decisión del usuario
+--    2026-09-06): un festivo ya pasado se borra solo; un evento de comunidad
+--    pasado se conserva. purgar_festivos_pasados() borra TODO festivo pasado
+--    de la tabla (no solo el fixture de abajo), incluidos los 14 sembrados
+--    por 0056 si ya hubiera pasado alguno; por eso este bloque va en su
+--    PROPIA transacción con ROLLBACK: verifica el comportamiento real de la
+--    función sin dejar la tabla en un estado distinto al que tenía antes
+--    (el test 7 de arriba asume los 14 festivos sembrados intactos en cada
+--    pasada de este archivo).
+begin;
+insert into calendario_eventos (tipo, titulo, fecha) values ('festivo','__cal viejo__', current_date - 5);
+insert into calendario_eventos (tipo, titulo, fecha) values ('comunidad','__cal viejo com__', current_date - 5);
+select assert_igual((select count(*) from calendario_eventos where titulo in ('__cal viejo__','__cal viejo com__')), 2, 'CAL: purga - fixtures creadas antes de purgar');
+select purgar_festivos_pasados();
+select assert_igual((select count(*) from calendario_eventos where titulo='__cal viejo__'), 0, 'CAL: purgar_festivos_pasados() borra el festivo ya pasado');
+select assert_igual((select count(*) from calendario_eventos where titulo='__cal viejo com__'), 1, 'CAL: purgar_festivos_pasados() conserva el evento de comunidad pasado');
+rollback;
+-- Limpieza idempotente (defensiva, por si algún día este bloque se ejecuta
+-- fuera de la transacción de arriba): no debe quedar ningún fixture suelto.
+delete from calendario_eventos where titulo in ('__cal viejo__','__cal viejo com__');
+
 reset role;
 select '════════════════════════════════════════' as _;
 select '✅ TODOS LOS TESTS DE RLS PASARON' as resultado;

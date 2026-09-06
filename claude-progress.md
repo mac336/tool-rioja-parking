@@ -155,3 +155,60 @@ Pendiente del orquestador: relanzar `design-reviewer` sobre las capturas
 regeneradas, decidir `passes:true` vía `scripts/feature_list.py`, `npm audit` +
 revisión OWASP del bloque si no se hizo ya, y el resto del cierre de bloque
 (aplicar migración en producción si procede, PWA/lighthouse, `checkpoint.md`).
+
+## Pasada de uso · Calendario: purga automática de festivos pasados (rama `feat/calendario-purga`) — v1.49.1
+
+Petición del usuario (2026-09-06, en producción): *"No quiero fechas antiguas.
+Quiero que si ya pasó el festivo lo borres directamente. Si es de la comunidad
+sí se pueden quedar las fechas."* El usuario ya había borrado a mano en
+producción los 8 festivos de 2026 ya pasados (ene-ago); quedan 6 futuros + 1
+evento de comunidad («Cierre de la piscina», 13-09-2026).
+
+**Commit 1** (`dec66db`): `supabase/migrations/0057_purgar_festivos_pasados.sql`
+— función `purgar_festivos_pasados()` (mismo patrón que `purgar_cesiones`/0030:
+SQL `security definer set search_path=public`, `revoke execute` de
+público/anon/authenticated) que borra `tipo='festivo'` con
+`coalesce(fecha_fin, fecha) < (now() at time zone 'Europe/Madrid')::date`; job
+de `pg_cron` diario a las 03:25, reprogramable sin duplicar. Aplicada en LOCAL
+por psql y registrada en `schema_migrations`. Probada a mano **dentro de una
+transacción con `rollback`** (para no invalidar el seed de 14 festivos que
+asume `rls_test.sql`): antes 14 festivo/2 comunidad → la función borra 8 →
+después 6 festivo/2 comunidad; comunidad intacta. **Pendiente aplicarla en
+PRODUCCIÓN** (la aplica el orquestador).
+
+**Commit 2** (`ce17fc4`): `src/features/home/gadgetsHome.ts` —
+`particionarEventos(eventos, hoy)` reparte en `{ proximos, pasados }`
+descartando SIEMPRE los festivos pasados (defensa de cliente para que el
+efecto se note antes de que corra el cron). `src/features/calendario/
+CalendarioPage.tsx` usa esta partición: «Pasados (este año)» solo lista
+comunidad y no se pinta si queda vacía. `recordatorioCalendario()` no se tocó:
+ya solo consideraba festivos con `fecha = hoy`.
+
+**Commit 3** (siguiente): `tests/calendario.test.ts` (+6 tests
+`particionarEventos`, C27/C28 y casos de borde), `tests/rls/rls_test.sql`
+(bloque CAL, punto 9: purga en transacción propia con `rollback`, fixtures
+`__cal viejo__`/`__cal viejo com__`), `specs/21-modulo-calendario.md` (tabla de
+costuras + § Pantalla `/calendario` + C27/C28 + código previsto), `CHANGELOG.md`
++ `package.json` → **1.49.1**.
+
+### Verificado en esta pasada
+
+```bash
+cd /mnt/c/personal/tool-rioja-parking
+npx tsc --noEmit                    # limpio
+npx vitest run                      # todo verde (calendario 45 tests)
+bash scripts/run-rls-tests.sh       # TODOS LOS TESTS DE RLS PASARON (repetido 3 veces: idempotente)
+npx vite build                      # sin .map en dist/
+CAPTURAS_DIR=<ruta> npx playwright test   # ver resultado abajo
+```
+
+### Pendiente (cierre de bloque, lo hace el orquestador)
+
+- Aplicar `0057_purgar_festivos_pasados.sql` en **PRODUCCIÓN** (Management API
+  / SQL Editor, ver nota de memoria "Supabase CLI sin privilegios").
+- `npm audit` + revisión OWASP de la superficie nueva (mínima: una función
+  `security definer` sin grant a clientes + un cron job).
+- `design-reviewer` sobre capturas de `/calendario` con la sección «Pasados»
+  cambiada (solo comunidad).
+- Marcar `passes:true` vía `scripts/feature_list.py`, actualizar
+  `checkpoint.md` / journal del harness, PWA válida (lighthouse).

@@ -3,6 +3,21 @@
 Cambios funcionales relevantes, más recientes arriba. Cada entrada nueva se añade
 al implementar el cambio (ver `CLAUDE.md` → Forma de trabajo).
 
+## 2026-09-06
+
+- **v1.49.1 · Calendario: los festivos pasados se borran solos:** decisión del
+  usuario — *"No quiero fechas antiguas. Quiero que si ya pasó el festivo lo
+  borres directamente. Si es de la comunidad sí se pueden quedar las
+  fechas."* Migración **`0057_purgar_festivos_pasados.sql`** (mismo patrón que
+  `purgar_cesiones`/0030): función `purgar_festivos_pasados()` con job de
+  `pg_cron` diario a las 03:25 que borra físicamente todo `tipo='festivo'` con
+  `coalesce(fecha_fin, fecha)` anterior a hoy en Europe/Madrid; los eventos de
+  **comunidad nunca se tocan** (histórico indefinido en «Pasados (este año)»).
+  En el cliente, la sección «Pasados (este año)» de `/calendario` deja de
+  mostrar festivos de inmediato (no espera al cron): solo lista comunidad, y
+  desaparece por completo si no queda ninguna. Detalles y escenarios C27/C28
+  en `specs/21-modulo-calendario.md`.
+
 ## 2026-09-05
 
 - **v1.49.0 · Calendario (festivos de Madrid + fechas de la comunidad):**

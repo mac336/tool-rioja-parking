@@ -109,9 +109,19 @@ cuenta). El repo es público: sembrar festivos en la migración es correcto.
 
 **Sin columna `estado`.** Existencia = crear / editar / **borrar físico** (hard
 delete, como `borrarMensaje`). «Pasado» es **derivado**: `coalesce(fecha_fin,
-fecha) < hoy` con `hoy = claveDia(ahora)` en Europe/Madrid. **Sin purga** en v1
-(volumen ínfimo: ~14 festivos/año + pocos eventos); si hiciera falta, retención
-de `specs/10` con pg_cron (patrón 0030).
+fecha) < hoy` con `hoy = claveDia(ahora)` en Europe/Madrid.
+
+**Purga automática de festivos pasados** (mig. 0057, decisión del usuario
+2026-09-06: *"No quiero fechas antiguas. Quiero que si ya pasó el festivo lo
+borres directamente. Si es de la comunidad sí se pueden quedar las fechas."*):
+`purgar_festivos_pasados()` (mismo patrón que `purgar_cesiones`/0030) borra
+`from calendario_eventos where tipo='festivo' and coalesce(fecha_fin, fecha) <
+(now() at time zone 'Europe/Madrid')::date`, con job de `pg_cron` diario a las
+03:25. Los eventos `comunidad` **nunca** se tocan: se conservan como histórico
+en «Pasados (este año)» indefinidamente. En una BD **nueva**, el seed de 0056
+inserta los 14 festivos (incluidos los ya pasados según la fecha del momento)
+y la purga los limpia en su primera pasada del cron — comportamiento aceptado,
+no es un bug.
 
 | Costura | Al… | Decisión | Test de la costura |
 |---|---|---|---|
@@ -122,7 +132,8 @@ de `specs/10` con pg_cron (patrón 0030).
 | Campana `listAvisos` / push `notificar` | crear evento | **NO TOCAR** (no pedido; decisión explícita) | — |
 | `viviendas` | — | **Sin relación**: los eventos son de toda la comunidad | — |
 | Duplicados | dos eventos el mismo día | `comunidad`: permitidos; `festivo`: únicos por `(fecha, titulo)` | reinsertar seed → 0 filas nuevas |
-| Histórico | ¿se listan los pasados? | «Próximos» desde hoy + «Pasados (este año)» plegada; nada se borra solo | — |
+| Histórico | ¿se listan los pasados? | «Próximos» desde hoy + «Pasados (este año)» **solo comunidad**, plegada | filtro de cliente en `particionarEventos()`: un festivo pasado no aparece en ninguna sección |
+| Festivo que pasa | `coalesce(fecha_fin, fecha) < hoy` | **Se borra solo** (borrado físico) por `purgar_festivos_pasados()`, cron diario 03:25 (mig. 0057); comunidad se conserva | RLS: insertar festivo y comunidad pasados, `select purgar_festivos_pasados()` → festivo desaparece, comunidad sigue |
 
 **Verificador de coherencia** (al final de `tests/rls/rls_test.sql`):
 ```sql
@@ -212,8 +223,14 @@ spec-writer)*.
     evento en curso que empezó en un mes anterior se lista bajo su mes de
     inicio *(decisión spec-writer)*.
   - Sección **«Pasados (este año)»**: **plegada** por defecto (botón que la
-    despliega); eventos del año en curso ya pasados, del más reciente al más
-    antiguo *(orden: decisión spec-writer)*. Años anteriores no se listan.
+    despliega); **solo eventos de comunidad** del año en curso ya pasados, del
+    más reciente al más antiguo *(orden: decisión spec-writer)*. Años
+    anteriores no se listan. Los **festivos pasados no aparecen aquí ni en
+    ninguna otra sección**: se borran solos en servidor
+    (`purgar_festivos_pasados()`, mig. 0057) y el cliente los filtra de la
+    vista aunque el cron no haya corrido todavía (`particionarEventos()` en
+    `gadgetsHome.ts`). Si tras el filtro no queda ningún pasado, la sección
+    entera **no se pinta** (nada de una sección vacía).
   - **Fila** (`Card`): a la izquierda el **día** (número grande + día de la
     semana abreviado, «lun»); título; con permiso, **acciones compactas**
     **Editar**/**Borrar** (icono `Pencil`/`Trash2`, `aria-label="Editar/Borrar
@@ -361,14 +378,22 @@ calendario_eventos where titulo like '\_\_cal%'`):
    falla; `fecha < 2020-01-01` falla; rango de 367 días falla;
 7. re-ejecutar el seed → 0 filas nuevas;
 8. verificador de huérfanos (arriba) = 0; y borrar el `auth.users` de un creador
-   conserva el evento con `created_by null`.
+   conserva el evento con `created_by null`;
+9. **purga** (mig. 0057, C27/C28): insertar como postgres un festivo pasado
+   `__cal viejo__` y una comunidad pasada `__cal viejo com__`, ejecutar `select
+   purgar_festivos_pasados()` → el festivo desaparece, la comunidad sigue. Este
+   bloque va en su **propia transacción con `rollback`**: la función alcanza a
+   TODO festivo pasado de la tabla (no solo al fixture), y el test 7 de arriba
+   asume los 14 festivos sembrados intactos en cada pasada del archivo.
 
 **`tests/calendario.test.ts`** (unitario, patrón `parking.test.ts`):
 `recordatorioCalendario` (tabla de textos completa, festivo mañana → null,
 lista vacía → null, evento movido a +10 días → null, empate comunidad/festivo),
 `seleccionarGadgets` (3 candidatos → 2; parking+reserva → sin calendario; solo
 reserva → reserva+calendario; ninguno → solo calendario), `esPasado` en el
-cambio de día en Madrid (23:59 → 00:00, incl. cambio de hora de octubre).
+cambio de día en Madrid (23:59 → 00:00, incl. cambio de hora de octubre),
+`particionarEventos` (C27/C28: festivo pasado se descarta de ambas listas,
+comunidad pasado va a «pasados», festivo/en-curso de hoy va a «próximos»).
 
 **`tests/render.test.tsx`**: fila `['Calendario', <CalendarioPage />,
 '/calendario', '/calendario']`.
@@ -401,9 +426,10 @@ no expone nada nuevo; `npm audit --omit=dev` sin cambios; build sin source maps.
   2026, 0 filas nuevas en la segunda, todos con `fuente` no nula y
   `created_by null`.
 - **C8 · Lista ordenada y agrupada.** WHEN hay eventos en septiembre, octubre y
-  uno pasado en marzo → THEN «Próximos» muestra «Septiembre 2026» y «Octubre
-  2026» en ese orden con las filas por fecha asc; el de marzo está en «Pasados
-  (este año)», plegada por defecto.
+  uno de **comunidad** pasado en marzo → THEN «Próximos» muestra «Septiembre
+  2026» y «Octubre 2026» en ese orden con las filas por fecha asc; el de marzo
+  está en «Pasados (este año)», plegada por defecto (si en vez de comunidad
+  fuera un festivo pasado, no aparecería en ninguna sección: ver C27).
 - **C9 · Hoy festivo.** WHEN hoy (Madrid) = 2026-10-12 y no hay parking ni
   reserva → THEN la Home muestra el gadget overline «Festivo», texto «Hoy es
   festivo: Fiesta Nacional de España»; tap → `/calendario`.
@@ -454,13 +480,23 @@ no expone nada nuevo; `npm audit --omit=dev` sin cambios; build sin source maps.
   índice único parcial; con otra fecha → THEN se crea y muestra su `fuente`.
 - **C26 · Sin notificaciones.** WHEN se crea un evento → THEN no se invoca
   `notificar`, la campana no añade aviso y `push_subscriptions` no se toca.
+- **C27 · Festivo que pasa se borra solo.** WHEN un festivo tenía fecha de ayer
+  (o `fecha_fin` de ayer) → THEN ya no aparece en `/calendario` (ni en
+  «Próximos» ni en «Pasados», `particionarEventos()` lo descarta en el
+  cliente) y, en la siguiente pasada del cron (03:25), `purgar_festivos_pasados()`
+  lo borra físicamente de la BD.
+- **C28 · Comunidad pasado se conserva.** WHEN un evento de comunidad tenía
+  fecha de ayer (o `fecha_fin` de ayer) → THEN sigue existiendo en la BD y
+  sigue visible en «Pasados (este año)»; `purgar_festivos_pasados()` no lo
+  toca (solo alcanza a `tipo='festivo'`).
 
 ## Fuera de alcance / futuro
 
 - Exportación **.ics** / «añadir a mi calendario» (promesa del portal viejo).
 - **Notificaciones** (push o campana) de eventos.
 - Vista de **mes en rejilla**; solo lista.
-- **Purga automática** de pasados (volumen ínfimo; `specs/10` si hiciera falta).
+- **Purga de eventos de comunidad** pasados: se conservan como histórico sin
+  límite (solo se purgan los `festivo`, mig. 0057).
 - **Festivos 2027** (operativa anual arriba).
 - Generalizar los flags `solo*` de Servicios a `visible?: (rol) => boolean` (D2
   del informe: mejora opcional, no la exige este cambio).
@@ -469,6 +505,8 @@ no expone nada nuevo; `npm audit --omit=dev` sin cambios; build sin source maps.
 
 - `supabase/migrations/0056_calendario.sql` — tabla + constraints + índices +
   trigger + grants + RLS + permiso + seed 2026.
+- `supabase/migrations/0057_purgar_festivos_pasados.sql` — función
+  `purgar_festivos_pasados()` + job de `pg_cron` diario (patrón 0030).
 - `src/types/index.ts` (`EventoCalendario`), `src/lib/roles.ts` (`Permiso`,
   `GRUPOS_PERMISOS` grupo «Calendario», `DEFAULTS`, `puedeGestionarCalendario`),
   `src/lib/cache.ts` (`TTL.calendario`).

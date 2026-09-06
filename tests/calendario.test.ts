@@ -4,6 +4,7 @@ import {
   diasEntre,
   textoDia,
   esPasado,
+  particionarEventos,
   recordatorioCalendario,
   type CandidatoGadget,
 } from '@/features/home/gadgetsHome'
@@ -130,6 +131,53 @@ describe('esPasado', () => {
     // claves de día, así que un evento del 08 no es pasado ni el día 04 ni el 05.
     expect(esPasado({ fecha: '2026-09-08', fecha_fin: null }, '2026-09-04')).toBe(false)
     expect(esPasado({ fecha: '2026-09-08', fecha_fin: null }, '2026-09-05')).toBe(false)
+  })
+})
+
+describe('particionarEventos', () => {
+  it('C27 · festivo pasado (ayer) → NO aparece ni en próximos ni en pasados', () => {
+    const festivo = mkEvento({ tipo: 'festivo', titulo: 'Fiesta Nacional de España', fecha: '2026-09-04' })
+    const { proximos, pasados } = particionarEventos([festivo], HOY)
+    expect(proximos).toEqual([])
+    expect(pasados).toEqual([])
+  })
+
+  it('C28 · comunidad pasado (ayer) → va a "pasados"', () => {
+    const comunidad = mkEvento({ tipo: 'comunidad', titulo: 'Cierre de la piscina', fecha: '2026-09-04' })
+    const { proximos, pasados } = particionarEventos([comunidad], HOY)
+    expect(proximos).toEqual([])
+    expect(pasados).toEqual([comunidad])
+  })
+
+  it('festivo de hoy → va a "próximos" (no es pasado)', () => {
+    const festivo = mkEvento({ tipo: 'festivo', titulo: 'Fiesta Nacional de España', fecha: HOY })
+    const { proximos, pasados } = particionarEventos([festivo], HOY)
+    expect(proximos).toEqual([festivo])
+    expect(pasados).toEqual([])
+  })
+
+  it('evento en curso (empezó antes de hoy, fecha_fin >= hoy) → va a "próximos"', () => {
+    const enCurso = mkEvento({ tipo: 'comunidad', titulo: 'Cierre de la piscina', fecha: '2026-09-01', fecha_fin: HOY })
+    const { proximos, pasados } = particionarEventos([enCurso], HOY)
+    expect(proximos).toEqual([enCurso])
+    expect(pasados).toEqual([])
+  })
+
+  it('mezcla: festivo pasado se descarta, comunidad pasado se conserva, ambos próximos se mantienen', () => {
+    const festivoPasado = mkEvento({ tipo: 'festivo', titulo: 'Asunción de la Virgen', fecha: '2026-08-15' })
+    const comunidadPasado = mkEvento({ tipo: 'comunidad', titulo: 'Junta ordinaria', fecha: '2026-09-01' })
+    const festivoFuturo = mkEvento({ tipo: 'festivo', titulo: 'Fiesta Nacional de España', fecha: '2026-10-12' })
+    const comunidadFuturo = mkEvento({ tipo: 'comunidad', titulo: 'Cierre de la piscina', fecha: '2026-09-08' })
+    const { proximos, pasados } = particionarEventos(
+      [festivoPasado, comunidadPasado, festivoFuturo, comunidadFuturo],
+      HOY,
+    )
+    expect(proximos).toEqual([festivoFuturo, comunidadFuturo])
+    expect(pasados).toEqual([comunidadPasado])
+  })
+
+  it('lista vacía → ambos arrays vacíos', () => {
+    expect(particionarEventos([], HOY)).toEqual({ proximos: [], pasados: [] })
   })
 })
 

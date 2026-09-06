@@ -44,7 +44,9 @@ la comunidad mida la **demanda** de plazas.
 2. **"¿Qué plaza me toca?"**: autoseleccionar por la vivienda del perfil
    (sin pedir el piso cada vez).
 3. Tabla/calendario de próximas quincenas.
-4. Nota informativa (solo turismos; límite sábados 20:00).
+4. ~~Nota informativa (solo turismos; límite sábados 20:00)~~ — **RETIRADA** el
+   2026-09-06 a petición del usuario: la norma sigue vigente (Parte 1), pero no se
+   muestra en la pantalla.
 
 ## Parte 2 — Donación/cesión de plaza y demanda (nuevo)
 Un vecino puede avisar sobre su plaza:

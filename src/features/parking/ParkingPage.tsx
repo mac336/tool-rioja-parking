@@ -175,7 +175,6 @@ export function ParkingPage() {
           </div>
         </section>
 
-        <Alert tipo="info">Solo turismos. Los cambios de turno, hasta el sábado a las 20:00.</Alert>
 
         {/* ¿Cedes o necesitas plaza? */}
         <section>

@@ -5,6 +5,11 @@ al implementar el cambio (ver `CLAUDE.md` → Forma de trabajo).
 
 ## 2026-09-06
 
+- **v1.50.1 · Parking sin la nota informativa:** retirado el aviso «Solo turismos.
+  Los cambios de turno, hasta el sábado a las 20:00.» de la pantalla de Parking, a
+  petición del usuario. La norma no cambia (sigue en `specs/08`, Parte 1); solo deja
+  de ocupar sitio en la pantalla.
+
 - **v1.50.0 · Sugerencias con más de un mes fuera del tablón + invitación a
   sugerir cuando está vacío:** decisiones del usuario —
   *"quiero que para las sugerencias, una vez que pase más de 1 mes, las

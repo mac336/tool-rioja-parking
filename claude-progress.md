@@ -212,3 +212,67 @@ CAPTURAS_DIR=<ruta> npx playwright test   # ver resultado abajo
   cambiada (solo comunidad).
 - Marcar `passes:true` vía `scripts/feature_list.py`, actualizar
   `checkpoint.md` / journal del harness, PWA válida (lighthouse).
+
+## Pasada de uso · Tablón: sugerencias a 30 días + invitación cuando está vacío (rama `feat/tablon-sugerencias`) — v1.50.0
+
+Dos peticiones del usuario (2026-09-06, front puro, sin BD/migraciones):
+1. *"Quiero que para las sugerencias, una vez que pase más de 1 mes, las
+   ocultes del tablón principal y que solo sean visibles desde el menú de
+   Servicios → Sugerencias, donde los vecinos pueden seguir votando por
+   ellas."*
+2. *"Cuando no haya nada en el tablón, pon esta invitación a sugerir algo"*
+   (maqueta: tarjeta lila con icono, titular, texto, botón y enlace).
+
+**Commit 1** (`5f5b7ff`): extrae el filtro inline de `HomePage.tsx` a
+`src/features/mensajes/actividadTablon.ts` (`esActividadDeTablon`,
+`fechaActividad`, `DIAS_SUGERENCIA_EN_TABLON = 30`) e implementa la regla
+nueva: sugerencia visible en el tablón de Inicio solo ≤30 días naturales desde
+su fecha de actividad (created_at o, si es más tarde, updated_at — al editar
+"resucita"). Incidencia/aviso/anuncio sin cambio de comportamiento. 14 tests
+unitarios. Comprobado: `SugerenciasPage.tsx` (Servicios → Sugerencias) ya
+tenía su propio filtro por tipo, sin límite de antigüedad — no compartía
+código con este filtro, no hizo falta separar nada.
+
+**Commit 2** (`f78c087`): `TablonGadget.tsx` sustituye el "No hay novedades…"
+por `InvitacionSugerir` (fondo `#F1ECFB`, borde discontinuo `#B79BEA`, sin
+`shadow-neu*`): icono `Lightbulb`, titular, texto, botón píldora "Escribir una
+sugerencia" (≥44px, solo si `!esTester(rol)` — ver nota de diseño en
+`specs/16` sobre por qué NO se usa `publicar_sugerencia`/`tiposQuePublica`) y
+enlace "Ver sugerencias de vecinos ›". El botón navega a
+`/buzon?publicar=sugerencia`; `PublicarPanel.tsx` ahora lee ese query param
+(`useSearchParams`) para abrir el formulario ya en tipo Sugerencia y lo limpia
+tras abrir. e2e: `tests/e2e/sugerencias-invitacion.spec.ts` (8 casos; vacía el
+tablón borrando los 3 mensajes sembrados del mock desde Servicios → Mensajes
+como `app_admin` — acción real de la app, no datos falsos) + captura
+`home-tablon-vacio-movil.png` revisada a mano (se parece a la maqueta, cabe en
+390×844 sin cortar "Servicios").
+
+**Commit 3** (release): `specs/16-modulo-mensajes-y-tablon.md` (regla de 30
+días + sección "Tablón vacío: invitación a sugerir") y `specs/10` (referencia
+al estado vacío actualizada), `CHANGELOG.md` + `package.json` → **1.50.0**,
+este fichero.
+
+### Verificado en esta pasada
+
+```bash
+cd /mnt/c/personal/tool-rioja-parking
+npx tsc --noEmit                          # limpio
+npx vitest run                            # 114 tests, todo verde (14 nuevos)
+npx vite build                            # sin .map en dist/
+CAPTURAS_DIR=<ruta> npx playwright test   # 29 pasan / 3 skip (por diseño, ajenos a esta pasada)
+```
+
+Sin migraciones ni cambios de servidor: esta pasada es **solo front**.
+
+### Pendiente (cierre de bloque, lo hace el orquestador)
+
+- `npm audit` + revisión OWASP de la superficie nueva (mínima: un query param
+  de solo lectura en cliente, sin dato sensible ni escritura nueva en BD).
+- `design-reviewer` sobre la captura `home-tablon-vacio-movil.png` (y
+  home-movil.png de regresión, sin cambios).
+- Hueco anotado en `40-tests.md` (harness): el selector "DEMO · ver como rol"
+  no incluye `tester`, así que no hay e2e que confirme que el tester NO ve el
+  botón "Escribir una sugerencia" (solo el enlace). Verificación manual o
+  ampliar el selector demo en un incremento posterior.
+- Marcar `passes:true` vía `scripts/feature_list.py`, actualizar
+  `checkpoint.md` / journal del harness, PWA válida (lighthouse).

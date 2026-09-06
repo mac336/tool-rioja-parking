@@ -5,6 +5,28 @@ al implementar el cambio (ver `CLAUDE.md` → Forma de trabajo).
 
 ## 2026-09-06
 
+- **v1.50.0 · Sugerencias con más de un mes fuera del tablón + invitación a
+  sugerir cuando está vacío:** decisiones del usuario —
+  *"quiero que para las sugerencias, una vez que pase más de 1 mes, las
+  ocultes del tablón principal y que solo sean visibles desde el menú de
+  Servicios → Sugerencias, donde los vecinos pueden seguir votando por
+  ellas"* y *"cuando no haya nada en el tablón, pon esta invitación a sugerir
+  algo"*. Una sugerencia deja de verse en el **tablón de Inicio** a los **30
+  días naturales** desde su última actividad (creación o edición: editarla
+  la "resucita"), pero sigue **completa en Servicios → Sugerencias**, con
+  autor y sus **likes** de siempre — esa pantalla no cambia, nunca tuvo
+  límite de antigüedad. Constante `DIAS_SUGERENCIA_EN_TABLON` en la nueva
+  `src/features/mensajes/actividadTablon.ts` (función pura
+  `esActividadDeTablon`, extraída de `HomePage.tsx`, con 14 tests). Cuando el
+  tablón queda **vacío** (nada que mostrar, ni una incidencia), en vez del
+  antiguo "No hay novedades…" se ve una **tarjeta-invitación** (fondo lila,
+  borde discontinuo, icono, titular, texto y botón **"Escribir una
+  sugerencia"** que abre Buzón → Publicar ya en tipo Sugerencia —
+  `/buzon?publicar=sugerencia`, nuevo soporte de query param en
+  `PublicarPanel`— + enlace a Sugerencias). El botón no se ve para el
+  **tester** (solo lectura). Detalles y escenarios en
+  `specs/16-modulo-mensajes-y-tablon.md`.
+
 - **Calendario · festivos nacionales de 2027 (mig. 0058):** añadidos los 9 días
   festivos de 2027 que ya son ciertos (fiestas nacionales que no caen en domingo).
   El calendario laboral 2027 de la Comunidad de Madrid **aún no está publicado**

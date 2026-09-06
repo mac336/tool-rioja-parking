@@ -91,15 +91,59 @@ pinchadas con chincheta**, una **pila por tipo**:
 
 ### Filtro de "Actividad reciente" (solo Inicio)
 
-- **Incidencias y sugerencias:** siempre.
+- **Incidencias:** siempre.
+- **Sugerencias:** solo mientras tengan **≤ 30 días naturales** desde su fecha
+  de actividad (decisión del usuario, 2026-09-06: *"una vez que pase más de 1
+  mes, las ocultes del tablón principal"*). Pasado ese plazo se ocultan **solo
+  del tablón de Inicio**: siguen visibles (con autor y **votables**, mismos
+  likes de `mensaje_likes`) en **Servicios → Sugerencias**, que no usa este
+  filtro y siempre lista TODAS las sugerencias.
 - **Avisos y anuncios:** con fecha de **caducidad** → **hasta que caducan**;
   **sin** caducidad → solo mientras son **recientes** (2 días).
-- **"Reciente" cuenta desde la última actividad** (creación o **edición**): al
-  **editar** un mensaje, su `updated_at` se actualiza (trigger, mig. 0042) y el
-  mensaje **reaparece** en Inicio. Igual al **aprobar** una publicación de vecino.
+- **"Reciente"/"actividad" cuenta desde la última actividad** (creación o
+  **edición**): al **editar** un mensaje, su `updated_at` se actualiza
+  (trigger, mig. 0042) y el mensaje **reaparece** en Inicio — para una
+  sugerencia esto también vale como "resucitar": si el vecino la edita pasados
+  los 30 días, vuelve a contar como reciente y reaparece en el tablón.
+- Implementación: función pura `esActividadDeTablon(mensaje, ahora)` +
+  `fechaActividad(mensaje)` en `src/features/mensajes/actividadTablon.ts`
+  (constante `DIAS_SUGERENCIA_EN_TABLON = 30`), con test unitario
+  (`tests/actividadTablon.test.ts`). `HomePage.tsx` la usa para construir la
+  lista que recibe `TablonGadget`.
 
 La pantalla completa de Mensajes muestra **todo** (por pestañas); el filtro es
-solo para el resumen de Inicio.
+solo para el resumen de Inicio. **Servicios → Sugerencias** (`SugerenciasPage`)
+tiene su **propio** filtro (por tipo, sin límite de antigüedad): no comparte
+código con `esActividadDeTablon` y no debe empezar a hacerlo sin querer.
+
+### Tablón vacío: invitación a sugerir (decisión del usuario, 2026-09-06)
+
+Cuando no hay **ninguna** actividad que mostrar (`lista.length === 0` en
+`TablonGadget`), en vez del antiguo "No hay novedades…" se pinta una
+**tarjeta-invitación** a proponer una sugerencia:
+
+- **Estilo:** fondo lila muy claro (`#F1ECFB`, el `paper` de "sugerencia" en
+  `postit.ts`) con **borde discontinuo** lila (`#B79BEA`), esquinas
+  redondeadas; **sin `shadow-neu*`** (diseño plano, `specs/18`).
+- **Contenido, centrado:** icono `Lightbulb` (`#7A4FC0`) → titular «¿Se te
+  ocurre algo para mejorar la comunidad?» (`font-display`, `#6D4AA3`) → texto
+  «Hoy el tablón está tranquilo. Este hueco puede ser para tu idea.» → botón
+  píldora **«Escribir una sugerencia»** (icono `Pencil`, fondo `#7A4FC0`,
+  texto blanco, alto ≥ 44 px) → enlace discreto **«Ver sugerencias de vecinos
+  ›»**.
+- **Destinos:** el botón navega a `/buzon?publicar=sugerencia` (ver
+  "Publicaciones de vecinos" más abajo: `PublicarPanel` lee ese query param y
+  abre el formulario ya en tipo Sugerencia, limpiando el parámetro tras
+  abrirlo). El enlace navega a `/sugerencias`.
+- **Quién ve el botón:** cualquier rol que pueda **proponer** una sugerencia
+  vía Buzón, es decir, todos **salvo el tester** (`!esTester(rol)`, mismo
+  criterio que impone la RLS `msg_ins`: `not es_tester()`, mig. 0040). **No**
+  se usa `publicar_sugerencia`/`tiposQuePublica`: ese permiso es para publicar
+  **directo** (sin moderación, uso de gestión) y habría ocultado el botón a
+  cualquier vecino normal, que sí puede proponer. Si el rol no puede proponer,
+  se ve la tarjeta **sin el botón** (el enlace a Sugerencias se ve siempre).
+- Componente `InvitacionSugerir` dentro de `TablonGadget.tsx`; prop
+  `puedeProponerSugerencia` calculada en `HomePage.tsx`.
 
 ## Estilo estacional e importancia (post-its decorados) — mig. 0043
 

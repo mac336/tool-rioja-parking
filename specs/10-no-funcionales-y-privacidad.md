@@ -56,7 +56,8 @@
   localStorage solo como respaldo (demo/offline).
 - **Home = panel de GADGETS (sin scroll en móvil):** cabecera → [encuesta] →
   **tablón elástico** (absorbe el hueco libre con tope de altura; sin mensajes
-  muestra "no hay novedades"; ver `specs/16`) → **bloque contextual** →
+  muestra una tarjeta-invitación a proponer una sugerencia, no un "no hay
+  novedades" genérico; ver `specs/16`) → **bloque contextual** →
   **Servicios** (pieza clave: SIEMPRE visible, pegada al footer, nunca scrollea;
   todo lo nuevo debe caber en el espacio de arriba). La barra inferior queda con
   **Inicio y Más** (y **Gestión** en medio para roles con panel, v1.14.1); "Más"

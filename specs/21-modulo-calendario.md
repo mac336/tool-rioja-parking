@@ -184,12 +184,18 @@ Los **traslados** (2-nov, 7-dic) se siembran con el nombre de la fiesta
 trasladada; el recordatorio dice «Hoy es festivo: Todos los Santos (trasladado
 del domingo 1)».
 
-**2027: NO se siembra** (decisión del usuario 2026-09-05). A esa fecha no hay
-fuente oficial: la Comunidad aprueba su decreto a finales de septiembre, el BOE
-publica la relación conjunta en octubre-noviembre y el Ayuntamiento fija los 2
-locales en diciembre. 2027 tiene colisiones con fin de semana (1-may sáb, 2-may
-dom, 15-may sáb, 15-ago dom, 25-dic sáb) que el decreto resolverá con traslados
-**no deducibles**. Nada de `⚠️ SUPUESTO` en datos sembrados.
+**2027 (mig. 0058, 2026-09-06): sembrados SOLO los 9 festivos nacionales ciertos.**
+A esa fecha el decreto de la Comunidad de Madrid para 2027 **no está publicado**
+(comunidad.madrid solo tiene el de 2026); se aprueba a finales de septiembre y
+los 2 locales del municipio los fija el Ayuntamiento en diciembre. Se siembran
+las fiestas **nacionales** que no dependen de ese decreto ni se trasladan
+(Estatuto de los Trabajadores, art. 37.2; ninguna cae en domingo): 1-ene, 6-ene,
+26-mar (Viernes Santo), 1-may, 12-oct, 1-nov, 6-dic, 8-dic y 25-dic.
+**Faltan y se añadirán cuando se publiquen:** Jueves Santo (25-03, lo elige la
+Comunidad), Fiesta de la Comunidad de Madrid (02-05, **cae domingo** → se
+traslada), Asunción (15-08, **cae domingo** → se traslada) y los dos locales
+(San Isidro 15-05 cae sábado, Almudena 09-11). El aviso de esa carencia va en la
+columna `fuente` de esas 9 filas, que la lista muestra una vez al pie.
 
 **Operativa anual (cada otoño):** cuando BOCM/BOE publiquen el año siguiente,
 **o** migración `00NN_festivos_AAAA.sql` (mismo formato: `on conflict do

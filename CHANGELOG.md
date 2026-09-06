@@ -5,6 +5,14 @@ al implementar el cambio (ver `CLAUDE.md` → Forma de trabajo).
 
 ## 2026-09-06
 
+- **Calendario · festivos nacionales de 2027 (mig. 0058):** añadidos los 9 días
+  festivos de 2027 que ya son ciertos (fiestas nacionales que no caen en domingo).
+  El calendario laboral 2027 de la Comunidad de Madrid **aún no está publicado**
+  (se aprueba a finales de septiembre; los 2 locales del municipio, en diciembre),
+  así que **faltan** Jueves Santo, el 2 de mayo, la Asunción —los dos últimos caen
+  en domingo y se trasladan— y San Isidro y la Almudena. El pie de la lista lo dice.
+  Sin cambios en la app: no sube la versión del front.
+
 - **v1.49.2 · El aviso de los eventos de la comunidad se adelanta a una semana:**
   el recordatorio de la portada de un evento de la comunidad (junta, cierre de la
   piscina…) aparece ahora **desde 7 días antes** en vez de 3, con el texto «en N

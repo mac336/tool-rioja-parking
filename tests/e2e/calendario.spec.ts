@@ -43,6 +43,11 @@ test.describe('Calendario · lista (C19, demo)', () => {
     await expect(page.getByText('Natividad del Señor')).toBeVisible()
     // Agrupado por mes: al menos una cabecera "<Mes> 2026" (SectionTitle).
     await expect(page.getByText(/2026/).first()).toBeVisible()
+    // H3: la fuente del decreto sale UNA sola vez, al pie de "Próximos" (no
+    // bajo cada uno de los 3 festivos sembrados) y sin el "consultado
+    // AAAA-MM-DD" de trazabilidad (eso solo se ve en la hoja de edición).
+    await expect(page.getByText(/^Festivos 2026:/)).toHaveCount(1)
+    await expect(page.getByText(/consultado/)).toHaveCount(0)
   })
 })
 

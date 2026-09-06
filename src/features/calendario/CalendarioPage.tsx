@@ -54,6 +54,31 @@ function ordenPasados(a: EventoCalendario, b: EventoCalendario): number {
   return a.titulo.localeCompare(b.titulo, 'es')
 }
 
+/** Quita el sufijo "· consultado AAAA-MM-DD" (trazabilidad de datos, no
+ *  información para el vecino) de una cita de fuente. El resto de la cita
+ *  (decreto, BOCM, fecha de publicación) se conserva. */
+function fuenteMostrable(fuente: string): string {
+  return fuente.replace(/\s*·\s*consultado\s+\d{4}-\d{2}-\d{2}\s*$/i, '').trim()
+}
+
+/** Una línea por año con festivos en `eventos`, agrupando las fuentes
+ *  DISTINTAS de esos festivos (specs/21 § Pie de «Próximos»; H3): así el
+ *  vecino ve la cita del decreto una vez por año en vez de bajo cada uno de
+ *  los 14 festivos. */
+function notasFuentePorAnio(eventos: EventoCalendario[]): string[] {
+  const porAnio = new Map<string, Set<string>>()
+  for (const e of eventos) {
+    if (e.tipo !== 'festivo' || !e.fuente) continue
+    const anio = e.fecha.slice(0, 4)
+    const set = porAnio.get(anio) ?? new Set<string>()
+    set.add(fuenteMostrable(e.fuente))
+    porAnio.set(anio, set)
+  }
+  return [...porAnio.entries()]
+    .sort(([a], [b]) => a.localeCompare(b))
+    .map(([anio, fuentes]) => `Festivos ${anio}: ${[...fuentes].join(' · ')}`)
+}
+
 // ---- Formulario (hoja modal) --------------------------------------------------
 
 interface FormState {
@@ -170,6 +195,10 @@ export function CalendarioPage() {
   const aniosFestivo = new Set(eventos.filter((e) => e.tipo === 'festivo').map((e) => Number(e.fecha.slice(0, 4))))
   const aniosPendientes = [...aniosAVista].filter((a) => !aniosFestivo.has(a)).sort((a, b) => a - b)
 
+  // ---- Pie de "Próximos": fuente de los festivos visibles, una vez por año
+  // y por fuente distinta (specs/21 § Pie de «Próximos»; H3).
+  const notasFuente = notasFuentePorAnio(proximos)
+
   return (
     <div className="min-h-full bg-bg">
       <SubHeader titulo="Calendario" right={puede && (
@@ -195,6 +224,14 @@ export function CalendarioPage() {
                 </div>
               </section>
             ))}
+
+            {notasFuente.length > 0 && (
+              <div className="flex flex-col gap-1 px-1">
+                {notasFuente.map((linea) => (
+                  <p key={linea} className="text-[11px] leading-snug text-faint">{linea}</p>
+                ))}
+              </div>
+            )}
 
             {aniosPendientes.length > 0 && (
               <div className="flex flex-col gap-1 px-1">
@@ -321,7 +358,8 @@ function FilaEvento({ e, puede, onEditar, onBorrar }: { e: EventoCalendario; pue
           </div>
           {tieneRango && <p className="mt-1 text-[12.5px] text-muted">{rangoLista(e.fecha, e.fecha_fin as string)}</p>}
           {e.nota && <p className="mt-1 text-[13px] leading-snug text-muted">{e.nota}</p>}
-          {e.tipo === 'festivo' && e.fuente && <p className="mt-1 text-[11px] leading-snug text-faint">{e.fuente}</p>}
+          {/* La fuente del festivo NO se repite por fila (H3): se agrupa una
+             vez por año/fuente distinta al pie de "Próximos". */}
         </div>
       </div>
     </Card>

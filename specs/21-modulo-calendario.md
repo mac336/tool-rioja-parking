@@ -224,8 +224,16 @@ spec-writer)*.
     `specs/18`: festivo → `bg-warn-soft text-warn-ink` + `PartyPopper`;
     comunidad → `bg-info-soft text-info-ink` + `CalendarRange`). Si tiene
     `fecha_fin` > `fecha`, rango «del 1 al 15 de septiembre» (mismo estilo que
-    `rangoFechas`); la `nota`, si la hay, como texto secundario; en festivos,
-    la `fuente` en texto pequeño.
+    `rangoFechas`); la `nota`, si la hay, como texto secundario. **La `fuente`
+    NO se repite por fila** (14 festivos al año con la misma cita bajo cada
+    uno es ruido para el vecino): se agrupa una vez por fuente distinta al pie
+    de la sección, ver abajo.
+  - **Pie de «Próximos»**: si hay festivos visibles, una línea por año con la
+    cita agrupando las **fuentes distintas** de esos festivos: «Festivos
+    AAAA: `<fuente 1>` · `<fuente 2>`…» — sin el «consultado AAAA-MM-DD» (esa
+    parte es trazabilidad de datos, no información para el vecino; el resto
+    de la cita —decreto, BOCM, fecha de publicación— sí se conserva). Si no
+    hay festivos en «Próximos», no se muestra nada.
   - Nota «Festivos de AAAA: pendientes de publicación oficial» (arriba).
 - **Hoja modal** (patrón de `SugerenciasPage.tsx`: hoja inferior con
   `.app-viewport`, `max-h-full overflow-y-auto`; `specs/10`/`18`) para **crear y
@@ -237,7 +245,9 @@ spec-writer)*.
   - **Nota** (`Textarea`, opcional, ≤ 500).
   - **Tipo** (`SelectField`: **Comunidad** por defecto / **Festivo**; el
     festivo manual sirve para años futuros aún sin migración).
-  - **Fuente** (`Field`, solo visible si tipo = festivo; opcional).
+  - **Fuente** (`Field`, solo visible si tipo = festivo; opcional; cita
+    completa, con el «consultado AAAA-MM-DD» de trazabilidad — este campo solo
+    lo ve quien gestiona; en la fila de la lista NO se repite, ver § Fila).
   - Acciones: **Guardar** / **Cancelar**; en edición además **Borrar** con
     **confirmación explícita**. Al guardar o borrar: `cacheBust('calendario')`,
     cierra la hoja y la lista se refresca.

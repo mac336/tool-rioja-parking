@@ -133,6 +133,17 @@ carril. Tras `git push`, si hay divergencia, reconcilia sin perder trabajo ajeno
   Home solo si hay hueco en el cupo: comunidad desde 3 días antes hasta
   `fecha_fin`; festivo solo el día («Hoy es festivo: …»). **Sin push ni
   campana** (decisión explícita). Tabla `calendario_eventos` (mig. 0056).
+- **Parking — cesión de plaza: SUSPENDIDA** (2026-09-06, evolutivo #2, ver
+  `70-impact-2.md` del harness). La Parte 2 de `specs/08` (cedo/no la
+  necesito/necesito + panel de demanda + reasignación por gestión) está
+  apagada en UI por `CESIONES_ACTIVAS = false`
+  (`src/features/parking/ParkingPage.tsx`) y en servidor por
+  `revoke insert, update on parking_cesiones from authenticated` (mig.
+  0059); nada se borró (tabla, policies, cron y funciones se conservan
+  marcadas). La rotación (Parte 1) sigue intacta. Motivo: 0 uso registrado en
+  producción y un diseño que nunca cerró su círculo (el beneficiario de una
+  reasignación no la ve ni recibe aviso) — revisar `70-impact-2.md §9` antes
+  de reactivar.
 - **PII:** NO se cifra el nombre por columna (decisión tomada); se protege con
   cifrado de disco en reposo + RLS + minimización (solo nombre/alias).
 - **Zona horaria:** Europe/Madrid para toda la lógica de fechas.

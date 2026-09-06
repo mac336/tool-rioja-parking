@@ -35,7 +35,8 @@ Orden sugerido de construcción. Cada fase deja algo utilizable y verificable.
 - Zonas comunes (Jardín, Piscina, Sala comunidad, Lonja Delantera) + calendario +
   reservas con nº de invitados, **aprobación** y anti-solapamiento
   (pendiente/aprobada bloquean franja).
-- Parking: donación/cesión de plaza y panel de demanda (por vivienda).
+- Parking: donación/cesión de plaza y panel de demanda (por vivienda)
+  (suspendido 2026-09-06, ver módulo 08).
 - **Salida:** reservas y gestión de plazas.
 
 ## Fase 5 · Pulido y revisión final

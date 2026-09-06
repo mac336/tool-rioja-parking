@@ -62,7 +62,10 @@ En el primer acceso se muestran y **aceptan** las normas de convivencia
 - **1 voto por vivienda**; se puede cambiar hasta el cierre; cuenta como uno.
 - Etiqueta visible "sondeo informal, sin valor oficial".
 
-## Parking – cesiones (módulo 08)
+## Parking – cesiones (módulo 08) — **SUSPENDIDA 2026-09-06**
+> Estas reglas anti-disputa no aplican mientras no haya cesiones activas (ver
+> módulo 08, Parte 2, marcada SUSPENDIDA). Se conservan aquí para cuando se
+> reactive.
 - Reasignación de huecos cedidos por la **gestión**, con prioridad a quien antes
   marcó "necesito" (orden por fecha). Evita el "primero que lo pilla".
 - Un hueco reasignado no se puede reclamar; se guarda histórico.

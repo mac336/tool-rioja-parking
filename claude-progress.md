@@ -276,3 +276,86 @@ Sin migraciones ni cambios de servidor: esta pasada es **solo front**.
   ampliar el selector demo en un incremento posterior.
 - Marcar `passes:true` vía `scripts/feature_list.py`, actualizar
   `checkpoint.md` / journal del harness, PWA válida (lighthouse).
+
+## Evolutivo 2 · Suspender la cesión de plaza de parking (rama `feat/parking-suspender-cesiones`, specs/08 Parte 2) — v1.51.0
+
+Petición del usuario (2026-09-06): *"el ceder plaza no está funcionando, vamos
+a desaparecerlo un tiempo"*. Gate resuelto en `70-impact-2.md` (harness):
+salida **A · encaje limpio** — apagar la Parte 2 **entera** de `specs/08`
+(cedo mi plaza / no la necesito / necesito plaza + panel de demanda +
+reasignación por gestión), con constante de código `CESIONES_ACTIVAS = false`
+(vía b) **+** bloqueo en servidor (`revoke insert, update` a `authenticated`).
+La Parte 1 (rotación) no se toca ni una línea. Diagnóstico completo de por qué
+la función nunca llegó a usarse (0 filas en producción, 0 filas en
+`audit_log`, el circuito nunca cerró: quien recibe una plaza reasignada no lo
+ve en ninguna pantalla ni recibe aviso) en `70-impact-2.md §9` — **no se
+arregla ahora**, queda registrado como deuda de diseño para cuando se
+reactive.
+
+**Commit 1** (`809dd99`): `export const CESIONES_ACTIVAS = false` en
+`src/features/parking/ParkingPage.tsx` (no en `src/lib/parking.ts`: ese
+módulo es cálculo puro de rotación, sin BD ni UI, y solo lo consume
+ParkingPage — el interruptor vive donde se consume). Las 4 secciones de la
+Parte 2 (¿Cedes o necesitas plaza?, Demanda actual, Mis avisos de plaza,
+Reasignar huecos) quedan envueltas en un único `{CESIONES_ACTIVAS && (...)}`,
+sin huecos ni separadores sueltos; dejan de lanzarse las 3 consultas
+asociadas (`demandaParking`, `misCesiones`, `cesionesActivas`). Código
+conservado y marcado `SUSPENDIDO 2026-09-06` en `ParkingPage.tsx`,
+`src/lib/db/parking.ts` (6 funciones) y `apiMock.ts` — nada se borra.
+`roles.ts`: nota en el comentario del tester. Test negativo en
+`tests/render.test.tsx` (confirmado a mano: rompe si se pone
+`CESIONES_ACTIVAS = true`, verde de vuelta a `false`).
+
+**Commit 2** (`427b34f`): migración `0059_suspender_cesiones.sql`
+(`revoke insert, update on parking_cesiones from authenticated`, idempotente,
+cabecera con el `grant` exacto de reactivación), aplicada en LOCAL y
+registrada en `schema_migrations`. Se conservan `select`/`delete`, todas las
+policies `ces_*`, el trigger de auditoría y el cron `purgar_cesiones`.
+Bloque 17 de `tests/rls/rls_test.sql` (antes MEDIO 2) reescrito: un vecino no
+inserta ni actualiza, la gestión tampoco (el revoke es sobre el rol de BD
+`authenticated`), `select` sigue permitido, `anon` sigue sin nada.
+
+**Hallazgo aparte, sin relación con este evolutivo** (`3863389`): al correr
+`run-rls-tests.sh` para verificar, la suite ya fallaba en el bloque CAL
+(calendario) en `main` sin tocar nada de parking — el literal "14 festivos
+sembrados" quedó roto desde que se fusionó la mig. 0058 (festivos nacionales
+de 2027, +9 filas permanentes: 14+9=23). Corregido el literal en 2 puntos,
+commit propio, sin tocar nada de calendario/festivos en sí.
+
+**Commit 3** (release): specs/08 (Parte 2 marcada **SUSPENDIDA 2026-09-06**,
+con motivo, alcance y cómo reactivar — no se borra), specs/04 (nota en
+`parking_cesiones`), specs/15 (§Parking–cesiones suspendida), specs/01,
+specs/12 y specs/README (coletilla "(suspendido 2026-09-06)"), `CLAUDE.md`
+del repo (§Estado y decisiones vigentes), `CHANGELOG.md` + `package.json` →
+**v1.51.0**, este fichero. Nuevo e2e `tests/e2e/parking-suspendido.spec.ts`
+(vecino: rotación visible + Parte 2 ausente + captura `parking-movil.png`;
+gestión/presidente: regresión de que tampoco ve "Reasignar huecos").
+
+### Verificado en esta pasada
+
+```bash
+cd /mnt/c/personal/tool-rioja-parking
+npx tsc --noEmit                          # limpio
+npx vitest run                            # 102 pasan / 8 skip (incluye los 12 de rotación intactos)
+bash scripts/run-rls-tests.sh             # ✅ TODOS LOS TESTS DE RLS PASARON
+npx vite build                            # sin .map en dist/
+CAPTURAS_DIR=<ruta> npx playwright test   # 33 pasan / 3 skip (por diseño, ajenos a esta pasada)
+```
+
+Captura `parking-movil.png` revisada a mano: sin huecos, títulos vacíos ni
+separadores sueltos; la pantalla queda solo con la rotación (hero de la
+quincena actual, "Mis próximos turnos" y la tabla de 6 plazas).
+
+### Pendiente (cierre de bloque, lo hace el orquestador)
+
+- Aplicar la migración 0059 en **PRODUCCIÓN** (revoke; `parking_cesiones`
+  tiene 0 filas, sin riesgo de datos).
+- `npm audit` + revisión OWASP de la superficie (esta pasada **reduce**
+  superficie: menos endpoints escribibles, menos JS en el bundle).
+- `design-reviewer` sobre `parking-movil.png` (y regresión de Home/Calendario,
+  sin cambios).
+- Marcar `passes:true` de las features afectadas vía `scripts/feature_list.py`,
+  actualizar `checkpoint.md` / journal del harness, PWA válida (lighthouse).
+- Deuda de diseño registrada en `70-impact-2.md §9` (H1–H5): si algún día se
+  reactiva la cesión, revisar ese diagnóstico ANTES — no es solo un
+  interruptor.

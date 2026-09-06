@@ -19,7 +19,7 @@ evolución del portal **Rioja 25** desde una PWA estática informativa hacia una
 | 04 | [04-modelo-de-datos.md](04-modelo-de-datos.md) | Tablas, relaciones y RLS (estado actual arriba) |
 | 06 | [06-modulo-encuestas.md](06-modulo-encuestas.md) | Encuestas (sondeos informales) |
 | 07 | [07-modulo-reservas.md](07-modulo-reservas.md) | Reserva de zonas comunes (multi-zona, con aprobación) |
-| 08 | [08-modulo-parking.md](08-modulo-parking.md) | Rotación de plazas + cesión + aviso contextual en Inicio |
+| 08 | [08-modulo-parking.md](08-modulo-parking.md) | Rotación de plazas + cesión (suspendido 2026-09-06) + aviso contextual en Inicio |
 | 09 | [09-modulo-contactos.md](09-modulo-contactos.md) | Directorio de contactos |
 | 14 | [14-modulo-sugerencias-app.md](14-modulo-sugerencias-app.md) | **RETIRADO** — el feedback va por el chat del buzón; histórico en Dashboard |
 | 15 | [15-reglas-de-uso-limites-y-moderacion.md](15-reglas-de-uso-limites-y-moderacion.md) | Límites anti-abuso y reglas de convivencia |
@@ -59,7 +59,7 @@ evolución del portal **Rioja 25** desde una PWA estática informativa hacia una
   gestión publica directo; el **vecino propone** incidencias/anuncios/sugerencias
   desde Buzón → Publicar, con **moderación**; módulo 16), **buzón privado** por
   canales (módulo 17), encuestas, reservas multi-zona (con aprobación), parking
-  (rotación + cesión) y contactos.
+  (rotación + cesión, **cesión suspendida 2026-09-06**) y contactos.
 - **Sistema viejo de incidencias/anuncios (pre-0013):** RETIRADO; hoy todo vive
   en el modelo de **mensajes** con estados/moderación. Ver módulos 16 y 17.
 - **Reglas anti-abuso (módulo 15):** 1 reserva vigente por vivienda (cualquier

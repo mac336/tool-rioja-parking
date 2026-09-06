@@ -212,6 +212,12 @@ la zona. Se garantiza con índice único parcial. Ver módulos 07 y 15.
 ### `parking_cesiones` (módulo 08)
 Cesión/donación de plaza y medición de demanda.
 
+> **SUSPENDIDA 2026-09-06** (ver módulo 08, Parte 2): `insert`/`update`
+> revocados a `authenticated` (mig. `0059_suspender_cesiones.sql`); `select` y
+> `delete` sin cambios. Policies, trigger de auditoría (`cesion_after_update`)
+> y cron `purgar_cesiones` **conservados** corriendo. La tabla existe, con 0
+> filas en producción (nunca se llegó a usar).
+
 | Campo | Tipo | Notas |
 |-------|------|-------|
 | id | uuid PK | |

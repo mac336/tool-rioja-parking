@@ -5,6 +5,25 @@ al implementar el cambio (ver `CLAUDE.md` → Forma de trabajo).
 
 ## 2026-09-06
 
+- **v1.51.0 · Ceder plaza de parking: SUSPENDIDO:** decisión del usuario —
+  *"el ceder plaza no está funcionando, vamos a desaparecerlo un tiempo"*.
+  Se apaga la Parte 2 entera del módulo Parking: el formulario **"¿Cedes o
+  necesitas plaza?"**, el panel **"Demanda actual"**, **"Mis avisos de
+  plaza"** y, para la gestión, **"Reasignar huecos"**. La pantalla de
+  Parking queda solo con la rotación (esta quincena, mis próximos turnos y
+  la tabla de 6 plazas), que **no cambia ni una línea**. Con
+  `parking_cesiones` en 0 filas en producción y sin ninguna reasignación
+  registrada nunca en el histórico, la función no llegó a usarse; al mirar
+  el código se ve además por qué: la reasignación no altera la rotación y el
+  vecino que recibe una plaza no lo ve en ninguna pantalla ni recibe aviso
+  (diagnóstico completo en `70-impact-2.md`, no se arregla ahora, queda
+  registrado). **No se borra nada**: la tabla, sus políticas de seguridad, el
+  histórico y el código quedan conservados y marcados, apagados por un
+  interruptor de código (`CESIONES_ACTIVAS`) y, en el servidor, revocando el
+  permiso de escritura sobre esa tabla (mig. 0059) para que nadie pueda
+  seguir creando avisos aunque no se vean en pantalla. Se puede reactivar el
+  día que se decida arreglar el diseño (ver `specs/08`).
+
 - **v1.50.1 · Parking sin la nota informativa:** retirado el aviso «Solo turismos.
   Los cambios de turno, hasta el sábado a las 20:00.» de la pantalla de Parking, a
   petición del usuario. La norma no cambia (sigue en `specs/08`, Parte 1); solo deja

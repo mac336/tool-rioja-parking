@@ -49,6 +49,36 @@ la comunidad mida la **demanda** de plazas.
    muestra en la pantalla.
 
 ## Parte 2 — Donación/cesión de plaza y demanda (nuevo)
+
+> **Estado: SUSPENDIDA 2026-09-06.** Decisión del usuario («el ceder plaza no
+> está funcionando, vamos a desaparecerlo un tiempo» — ver `70-impact-2.md`
+> del harness, salida A del gate). Se apaga la Parte 2 **entera** (las tres
+> piezas —avisar, medir demanda, repartir— son un solo circuito; dejar
+> "necesito plaza" sin nadie que ceda es un formulario que no puede acabar en
+> nada). **Motivo:** con `parking_cesiones` en 0 filas en producción y
+> `audit_log` sin ninguna fila `entidad='parking_cesion'`, la función nunca
+> llegó a usarse — y al leer el código aparece por qué: el circuito nunca
+> cerró su propio círculo (ver `70-impact-2.md §9`): la cesión no altera la
+> rotación (Parte 1, §Datos de arriba dice que "sobrescribe" y el código no lo
+> hace), y **el vecino que recibe una plaza reasignada no lo ve en ninguna
+> pantalla ni recibe aviso**. Antes de reactivar esta función hay que releer
+> ese diagnóstico completo, no solo encender el interruptor.
+>
+> **Qué se apaga:** el formulario "¿Cedes o necesitas plaza?", el panel
+> "Demanda actual", "Mis avisos de plaza" y "Reasignar huecos" (gestión).
+> **Qué NO se toca:** la Parte 1 (rotación), ni una línea; la tabla
+> `parking_cesiones`, sus policies, su trigger de auditoría y el cron de
+> purga (ver más abajo) se conservan corriendo; el código de UI y de datos se
+> conserva marcado `SUSPENDIDO 2026-09-06` (no se borra nada).
+>
+> **Cómo se reactiva:** (1) en código, `CESIONES_ACTIVAS = true` en
+> `src/features/parking/ParkingPage.tsx`; (2) en servidor,
+> `grant insert, update on parking_cesiones to authenticated;` (revierte la
+> migración `0059_suspender_cesiones.sql`); (3) **antes de encender**, borrar
+> de `parking_cesiones` cualquier fila anterior a la fecha de reactivación
+> (si la migración 0059 no se hubiera aplicado, podrían haberse acumulado
+> filas invisibles mientras tanto).
+
 Un vecino puede avisar sobre su plaza:
 - **Cede** su plaza por un **día, una semana** o un periodo → queda disponible.
 - **No la necesita** (indicación general de que no usará su plaza).
@@ -85,3 +115,8 @@ plaza en un periodo concreto. El autor puede **cancelar** su aviso mientras siga
 Las cesiones **canceladas/reasignadas** o **ya pasadas** se mantienen como
 histórico en "Mis avisos de plaza", pero un job diario de `pg_cron`
 (`purgar_cesiones`, 03:15) las **borra a los 10 días** para no acumular ruido.
+
+> Con la Parte 2 **SUSPENDIDA** (arriba), "Mis avisos de plaza" no se ve y
+> este aviso de la purga tampoco; el job **sigue corriendo** igualmente (sobre
+> una tabla vacía borra 0 filas) como red de seguridad ante cualquier fila que
+> entrara por `service_role`.

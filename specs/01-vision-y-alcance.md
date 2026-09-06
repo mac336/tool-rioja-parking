@@ -47,7 +47,8 @@ grados de permiso); `vecino` es el rol base.
 4. **Reservas de zonas comunes**: reservar franja con nº de invitados; de
    **aprobación directa** (queda confirmada al instante; módulo 07).
 5. **Parking**: rotación de las 6 plazas exteriores (portada de la app actual) +
-   posibilidad de **donar/ceder** la plaza y medir la demanda (módulo 08).
+   posibilidad de **donar/ceder** la plaza y medir la demanda (módulo 08,
+   **suspendido 2026-09-06**).
 6. **Contactos**: directorio actual (administrador, proveedores, junta), **movido
    detrás del login** (módulo 09).
 7. **Tablón de anuncios**: cualquiera crea un anuncio (con límite de texto y

@@ -50,6 +50,33 @@ export function esPasado(e: { fecha: string; fecha_fin: string | null }, hoy: st
   return fin < hoy
 }
 
+export interface ParticionEventos<T> {
+  proximos: T[]
+  pasados: T[]
+}
+
+/** Reparte `eventos` entre "próximos" y "pasados" para la pantalla
+ *  /calendario (specs/21 § Ciclo de vida y relaciones, decisión del usuario
+ *  2026-09-06): un festivo que ya pasó se borra solo en el servidor
+ *  (`purgar_festivos_pasados()`, cron diario a las 03:25), pero esta
+ *  partición defiende la vista aunque el cron aún no haya corrido —
+ *  ningún festivo pasado se muestra JAMÁS, ni en "Próximos" ni en
+ *  "Pasados". Los eventos de comunidad pasados SÍ se conservan como
+ *  histórico en "Pasados". */
+export function particionarEventos<T extends { fecha: string; fecha_fin: string | null; tipo: TipoEvento }>(
+  eventos: T[],
+  hoy: string,
+): ParticionEventos<T> {
+  const proximos: T[] = []
+  const pasados: T[] = []
+  for (const e of eventos) {
+    if (!esPasado(e, hoy)) proximos.push(e)
+    else if (e.tipo === 'comunidad') pasados.push(e)
+    // festivo pasado: se descarta, no aparece en ninguna sección.
+  }
+  return { proximos, pasados }
+}
+
 export interface RecordatorioCalendario {
   tipo: TipoEvento
   titulo: string

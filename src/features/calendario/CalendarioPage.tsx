@@ -7,7 +7,7 @@ import { TTL } from '@/lib/cache'
 import { useApp } from '@/store'
 import { puedeGestionarCalendario } from '@/lib/roles'
 import { claveDia } from '@/lib/format'
-import { diasEntre, textoDia, esPasado } from '@/features/home/gadgetsHome'
+import { diasEntre, textoDia, particionarEventos } from '@/features/home/gadgetsHome'
 import { listEventos, crearEvento, editarEvento, borrarEvento } from '@/lib/api'
 import type { EventoCalendario, TipoEvento } from '@/types'
 
@@ -168,8 +168,14 @@ export function CalendarioPage() {
     }
   }
 
+  // ---- Próximos / Pasados: la partición descarta los festivos ya pasados
+  // (se borran solos en servidor, purgar_festivos_pasados(); esto defiende la
+  // vista aunque el cron aún no haya corrido) y conserva la comunidad pasada
+  // como histórico (specs/21 § Ciclo de vida y relaciones).
+  const { proximos: proximosCrudos, pasados: pasadosCrudos } = particionarEventos(eventos, hoy)
+
   // ---- Próximos: coalesce(fecha_fin, fecha) >= hoy, agrupados por mes de inicio.
-  const proximos = eventos.filter((e) => !esPasado(e, hoy)).sort(ordenProximos)
+  const proximos = proximosCrudos.sort(ordenProximos)
   const gruposProximos: { mes: string; eventos: EventoCalendario[] }[] = []
   for (const e of proximos) {
     const clave = mesTitulo(e.fecha)
@@ -178,9 +184,9 @@ export function CalendarioPage() {
     else gruposProximos.push({ mes: clave, eventos: [e] })
   }
 
-  // ---- Pasados (este año): del más reciente al más antiguo.
+  // ---- Pasados (este año): solo comunidad, del más reciente al más antiguo.
   const anioHoy = hoy.slice(0, 4)
-  const pasados = eventos.filter((e) => esPasado(e, hoy) && e.fecha.slice(0, 4) === anioHoy).sort(ordenPasados)
+  const pasados = pasadosCrudos.filter((e) => e.fecha.slice(0, 4) === anioHoy).sort(ordenPasados)
 
   // ---- Festivos pendientes de publicación (años a la vista sin ninguna fila
   // 'festivo'): año en curso, año siguiente si hoy ≥ 1-oct, y cualquier año con

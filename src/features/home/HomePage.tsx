@@ -9,6 +9,7 @@ import { contarAvisosNuevos } from '@/lib/avisosVistos'
 import { puedePublicarAlgo, puedeVotar, puedeReservar, puedeVerMiComunidad } from '@/lib/roles'
 import { Logo } from '@/components/Logo'
 import { TablonGadget } from '@/features/mensajes/TablonGadget'
+import { esActividadDeTablon } from '@/features/mensajes/actividadTablon'
 import { GadgetContextual } from '@/features/home/GadgetContextual'
 import { seleccionarGadgets, recordatorioCalendario } from '@/features/home/gadgetsHome'
 
@@ -90,22 +91,10 @@ export function HomePage() {
   ], 2)
 
   // Actividad reciente para el tablón: incidencias abiertas; avisos vigentes (o
-  // sin caducidad, 2 días); anuncios de los últimos 2 días.
-  const DOS_DIAS = 2 * 864e5
-  // Fecha de actividad = la más reciente entre creación y edición (mig. 0042):
-  // al editar un mensaje "resucita" en Inicio.
-  const fechaAct = (m: { created_at: string; updated_at?: string }) =>
-    Math.max(new Date(m.created_at).getTime(), m.updated_at ? new Date(m.updated_at).getTime() : 0)
-  const reciente = (m: { created_at: string; updated_at?: string }) => ahora - fechaAct(m) <= DOS_DIAS
-  // Avisos y anuncios: si tienen caducidad se muestran hasta que caducan; si no,
-  // solo mientras son recientes (o se hayan editado).
-  const vigenteOReciente = (m: { created_at: string; updated_at?: string; expira_at?: string | null }) =>
-    m.expira_at ? new Date(m.expira_at).getTime() >= ahora : reciente(m)
-  const actividad = (mensajes.data ?? []).filter((m) => {
-    if (m.tipo === 'incidencia' || m.tipo === 'sugerencia') return true
-    if (m.tipo === 'aviso' || m.tipo === 'anuncio') return vigenteOReciente(m)
-    return reciente(m)
-  })
+  // sin caducidad, 2 días); anuncios de los últimos 2 días; sugerencias con
+  // menos de 30 días de actividad (specs/16 § Filtro de "Actividad reciente").
+  // Regla completa en actividadTablon.ts (testeada aparte de esta pantalla).
+  const actividad = (mensajes.data ?? []).filter((m) => esActividadDeTablon(m, ahora))
 
   return (
     // HOME = panel de GADGETS, fijada a la pantalla (sin scroll en móvil):

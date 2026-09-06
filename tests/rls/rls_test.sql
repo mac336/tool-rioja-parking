@@ -500,7 +500,14 @@ reset role;
 
 -- 7) seed idempotente: reinsertar los 14 festivos 2026 → 0 filas nuevas
 --    (copia literal del seed de 0056; único parcial (fecha,titulo) where tipo='festivo')
-select assert_igual((select count(*) from calendario_eventos where tipo='festivo'), 14, 'CAL: 14 festivos sembrados antes de reinsertar');
+-- FIX (pre-existente, sin relación con este evolutivo): el recuento estaba
+-- fijado en 14 desde 0056, pero la migración 0058 (festivos NACIONALES de
+-- 2027, ya fusionada) siembra 9 filas MÁS de tipo 'festivo' de forma
+-- permanente → 14 + 9 = 23 en cualquier BD con las migraciones aplicadas
+-- hasta 0058. El literal `14` llevaba roto desde que se fusionó 0058 (bloquea
+-- el barrido completo de la suite); se corrige aquí de paso, sin tocar nada
+-- de calendario/festivos en sí.
+select assert_igual((select count(*) from calendario_eventos where tipo='festivo'), 23, 'CAL: 23 festivos sembrados antes de reinsertar (14 de 2026 + 9 nacionales de 2027, mig. 0058)');
 insert into calendario_eventos (tipo, titulo, fecha, fuente) values
   ('festivo','Año Nuevo','2026-01-01','Decreto 75/2025, de 24 de septiembre (BOCM nº 229, 25-09-2025) · consultado 2026-09-05'),
   ('festivo','Epifanía del Señor','2026-01-06','Decreto 75/2025, de 24 de septiembre (BOCM nº 229, 25-09-2025) · consultado 2026-09-05'),
@@ -517,7 +524,7 @@ insert into calendario_eventos (tipo, titulo, fecha, fuente) values
   ('festivo','Inmaculada Concepción','2026-12-08','Decreto 75/2025, de 24 de septiembre (BOCM nº 229, 25-09-2025) · consultado 2026-09-05'),
   ('festivo','Natividad del Señor','2026-12-25','Decreto 75/2025, de 24 de septiembre (BOCM nº 229, 25-09-2025) · consultado 2026-09-05')
 on conflict do nothing;
-select assert_igual((select count(*) from calendario_eventos where tipo='festivo'), 14, 'CAL: seed idempotente, 0 filas nuevas tras reinsertar');
+select assert_igual((select count(*) from calendario_eventos where tipo='festivo'), 23, 'CAL: seed idempotente, 0 filas nuevas tras reinsertar (23 = 14 + 9 de 0058)');
 
 -- 8) borrar la cuenta creadora (Z) → el evento se conserva con created_by null;
 --    verificador de huérfanos = 0 (§7.17)

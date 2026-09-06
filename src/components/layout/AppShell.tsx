@@ -34,7 +34,7 @@ export function AppShell({ children }: { children: ReactNode }) {
 export function SubHeader({ titulo, right }: { titulo: string; right?: ReactNode }) {
   const nav = useNavigate()
   return (
-    <header className="sticky top-0 z-10 flex min-h-[62px] items-center gap-2 border-b border-border bg-surface/95 px-3 py-2 backdrop-blur safe-top">
+    <header className="sticky top-0 z-10 flex min-h-[62px] items-center gap-2 border-b border-border bg-surface/95 px-3 backdrop-blur safe-top">
       <button onClick={() => nav(-1)} aria-label="Atrás"
         className="flex h-10 w-10 items-center justify-center rounded-full hover:bg-surface-2">
         <ChevronLeft size={24} />

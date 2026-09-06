@@ -98,3 +98,60 @@ NUNCA `supabase db reset` ni `npm run db:test` en este repo: la migración
 `0007_incidencias_moderacion` no es transaccional (`alter type … add value` +
 uso en la misma transacción → 55P04) y el reset deja la BD local rota. Las
 migraciones se aplican por `psql` fichero a fichero (ver `CLAUDE.md` del repo).
+
+## Evolutivo 1 · Calendario — remediación del design-review (NO APTO → cierre)
+
+`design-reviewer` dio **NO APTO** (1 ROTO + 4 POBRE + 3 DETALLE,
+`49-design-review.md`). Commits en `feat/calendario`, en este orden:
+
+- **`1531354` / `1ac56f7`** — `fix(ui)`: H1 (ROTO). `.safe-top` pisaba el
+  `padding-top` de `SubHeader` → «Nueva» y el ‹ atrás a 0px del borde en
+  cualquier dispositivo sin inset (Android, escritorio, iPhone en pestaña).
+  `SubHeader` gana `min-h-[62px]` + `items-center` (como `ScreenHeader`) **sin
+  padding vertical propio** (el primer intento con `py-2` seguía asimétrico:
+  medido `box('Nueva').y = 3.5px`, bajo el mínimo 6px). NO se tocó `.safe-top`
+  ni `TabBar` (afectaría a toda la app).
+- **`1a60c71`** — `fix(calendario)`: H2 (dos píldoras Editar/Borrar de 46px a
+  ancho completo, ~1/3 de la fila) + H6 (píldora de tipo saltaba de línea).
+  Ahora iconos compactos (`aria-label`, 44×44, sin `shadow-neu`) a la derecha
+  de la cabecera de fila, y la píldora de tipo en línea propia bajo el título.
+- **`0de3991`** — `fix(calendario)`: H3 (la fuente del decreto se repetía bajo
+  cada uno de los 14 festivos/año, con «consultado AAAA-MM-DD» de trazabilidad
+  visible al vecino). Ahora una nota al pie de «Próximos», una vez por año y
+  por fuente distinta, sin «consultado» (ese campo sigue completo en la BD y
+  en la hoja de edición). `specs/21` § Fila / § Hoja modal actualizadas.
+- **`9186474`** — `test(e2e)`: H8a (`locale: 'es-ES'` + `timezoneId:
+  'Europe/Madrid'` en `playwright.config.ts`, capturas fieles). Aserciones de
+  geometría nuevas que habrían pillado H1 (`y >= 6`, centroY a ≤2px del centro
+  de la cabecera, para «Nueva» y ‹ atrás) y H2 (acciones ≥44×44, fila de
+  festivo con permiso ≤120px alto en móvil). Capturas nuevas:
+  `calendario-vecino-movil.png`, `calendario-editar-movil.png`.
+
+**Deuda registrada, NO tocada en este cierre** (primitivos compartidos por
+toda la app; entran por `impact-analyst`): H4 (`Card`/`Button` con
+`shadow-neu*` contradicen el diseño plano de `specs/18`), H5 (dos «Nueva»
+distintos entre Sugerencias y Calendario), H7 (`safe-bottom` en la hoja modal
++ `HojaModal` compartida). Pendiente del orquestador registrarlas en
+`DEBT.md`.
+
+**Hueco sin cerrar**: `calendario-pasados-movil.png` no se capturó — el mock
+no tiene ningún evento pasado del año en curso; no se inventan datos (§7.17).
+
+**Limitación del entorno de test (no del código)**: el widget nativo `<input
+type="date">` sigue mostrando `mm/dd/yyyy` en este sandbox pese al `locale`
+del contexto de Playwright — falta la locale `es_ES` a nivel de sistema
+operativo (`locale -a` no la lista) y `--lang=es` en `launchOptions` tampoco lo
+cambió. El resto de fechas de la app (`Intl.DateTimeFormat('es-ES', …)` en
+`CalendarioPage.tsx`, `HomePage.tsx`, etc.) ya salían y siguen saliendo en
+español; en un dispositivo real (con locale del SO correcta) el date picker
+nativo también se verá en `dd/mm/aaaa`.
+
+Verificación final de este cierre: `npx tsc --noEmit` limpio, `npx vitest run`
+77/77, `npx vite build` sin `.map`, `npx playwright test` → **21 passed, 3
+skipped** (2 intencionados por proyecto — capturas solo-móvil — + el scroll de
+Servicios que solo aplica en móvil).
+
+Pendiente del orquestador: relanzar `design-reviewer` sobre las capturas
+regeneradas, decidir `passes:true` vía `scripts/feature_list.py`, `npm audit` +
+revisión OWASP del bloque si no se hizo ya, y el resto del cierre de bloque
+(aplicar migración en producción si procede, PWA/lighthouse, `checkpoint.md`).

@@ -95,18 +95,22 @@ interface Candidato {
 }
 
 // Ventana y textos de la tabla de specs/21 § Recordatorio en la Home.
+/** Días de antelación con que se avisa de un evento de COMUNIDAD en la Home.
+ *  Decisión del usuario 2026-09-06: una semana (antes eran 3 días). Los festivos
+ *  no usan ventana: se avisan solo el día (specs/21 § Recordatorio en la Home). */
+const VENTANA_COMUNIDAD_DIAS = 7
+
 function candidatoDe(e: EventoCalendario, hoy: string): Candidato | null {
   if (e.tipo === 'festivo') {
     if (e.fecha !== hoy) return null // festivo: SOLO el día, ni antes ni después
     return { evento: e, tipo: 'festivo', titulo: e.titulo, overline: 'Festivo', detalle: null, fecha: e.fecha }
   }
-  // comunidad: hoy ∈ [fecha − 3 días, coalesce(fecha_fin, fecha)]
+  // comunidad: hoy ∈ [fecha − VENTANA_COMUNIDAD_DIAS, coalesce(fecha_fin, fecha)]
   const fin = e.fecha_fin ?? e.fecha
   const d = diasEntre(hoy, e.fecha) // días desde hoy hasta fecha (fecha - hoy)
-  if (d > 3 || hoy > fin) return null
+  if (d > VENTANA_COMUNIDAD_DIAS || hoy > fin) return null
   let detalle: string
-  if (d === 3) detalle = 'en 3 días'
-  else if (d === 2) detalle = 'en 2 días'
+  if (d >= 2) detalle = `en ${d} días`
   else if (d === 1) detalle = 'mañana'
   else if (d === 0 && fin === e.fecha) detalle = 'hoy'
   else if (d === 0 && fin > e.fecha) detalle = `desde hoy hasta el ${textoDia(fin)}`

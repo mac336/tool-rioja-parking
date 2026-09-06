@@ -14,7 +14,7 @@ capital** (los añade el harness por su cuenta, con fuente oficial) y las
 **fechas importantes de la comunidad** (p. ej. cierre de la piscina, junta),
 con botón **«Nueva»** visible **solo** para administradores, junta y el
 developer; y en la **Home**, **solo si sobra espacio** en el bloque de gadgets
-contextuales, un **recordatorio**: eventos de comunidad **desde 3 días antes**
+contextuales, un **recordatorio**: eventos de comunidad **desde una semana antes**
 y festivos **solo el día**, diciendo qué se festeja.
 
 Este módulo **absorbe la promesa de `specs/01`** («sección Junta: la lógica de
@@ -295,7 +295,7 @@ del gadget de calendario: `linear-gradient(150deg,#D06A5A,#6B2A22)`
 **Candidato** (`hoy` = `claveDia(ahora)`, Europe/Madrid; diferencias en días
 naturales calculadas sobre `'YYYY-MM-DD'`, no sobre milisegundos locales, para
 no fallar en cambios de hora):
-- **comunidad:** `hoy ∈ [fecha − 3 días, coalesce(fecha_fin, fecha)]`.
+- **comunidad:** `hoy ∈ [fecha − 7 días, coalesce(fecha_fin, fecha)]` (constante `VENTANA_COMUNIDAD_DIAS = 7` en `gadgetsHome.ts`; era 3 hasta el 2026-09-06).
 - **festivo:** `hoy = fecha` (solo el día; ni antes ni después).
 - Entre varios candidatos gana el de **`fecha` más próxima**; a igual fecha,
   **comunidad antes que festivo**; luego título *(decisión spec-writer: lo
@@ -306,14 +306,13 @@ no fallar en cambios de hora):
 
 | Tipo | Situación | Overline | Texto |
 |---|---|---|---|
-| comunidad | `d = 3` | Calendario | **<título>** · en 3 días |
-| comunidad | `d = 2` | Calendario | **<título>** · en 2 días |
+| comunidad | `2 ≤ d ≤ 7` | Calendario | **<título>** · en `d` días |
 | comunidad | `d = 1` | Calendario | **<título>** · mañana |
 | comunidad | `d = 0` y `fin = fecha` | Calendario | **<título>** · hoy |
 | comunidad | `d = 0` y `fin > fecha` | Calendario | **<título>** · desde hoy hasta el D de mes |
 | comunidad | `d < 0` y `hoy < fin` | Calendario | **<título>** · hasta el D de mes |
 | comunidad | `d < 0` y `hoy = fin` | Calendario | **<título>** · termina hoy *(decisión spec-writer)* |
-| comunidad | `d > 3` o `hoy > fin` | — | no es candidato |
+| comunidad | `d > 7` o `hoy > fin` | — | no es candidato |
 | festivo | `d = 0` | Festivo | Hoy es festivo: **<título>** |
 | festivo | `d ≠ 0` | — | no es candidato |
 
@@ -436,9 +435,9 @@ no expone nada nuevo; `npm audit --omit=dev` sin cambios; build sin source maps.
 - **C10 · Festivo mañana.** WHEN hoy = 2026-10-11 → THEN **no** hay gadget de
   festivo (solo el día).
 - **C11 · Comunidad a 3 días.** WHEN hay evento el 2026-09-08 y hoy es
-  2026-09-05 → THEN gadget «Calendario» / «<título> · en 3 días».
-- **C12 · Comunidad a 4 días.** WHEN el evento es el 2026-09-09 y hoy es
-  2026-09-05 → THEN **no** hay gadget de calendario.
+  2026-09-05 → THEN gadget «Calendario» / «<título> · en 3 días»; y a 7 días (12-09) → «en 7 días» (ventana de una semana desde 2026-09-06).
+- **C12 · Comunidad fuera de la ventana.** WHEN el evento es el 2026-09-13 y hoy es
+  2026-09-05 (d=8) → THEN **no** hay gadget de calendario; a 7 días o menos, sí.
 - **C13 · Evento en curso.** WHEN el evento va del 09-15 al 09-22 y hoy es 09-18
   → THEN texto «<título> · hasta el 22 de septiembre»; hoy 09-22 → «termina hoy»;
   hoy 09-23 → nada.

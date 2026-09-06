@@ -249,8 +249,23 @@ describe('recordatorioCalendario', () => {
     expect(recordatorioCalendario([e], '2026-09-23')).toBeNull()
   })
 
-  it('C12 · comunidad a 4 días (d=4) → no es candidato → null', () => {
+  it('C11b · comunidad a 7 días (borde de la ventana) → "en 7 días"', () => {
+    const e = mkEvento({ tipo: 'comunidad', titulo: 'Cierre de la piscina', fecha: '2026-09-12' })
+    expect(recordatorioCalendario([e], '2026-09-05')).toMatchObject({ overline: 'Calendario', detalle: 'en 7 días' })
+  })
+
+  it('comunidad a 5 días → "en 5 días"', () => {
+    const e = mkEvento({ tipo: 'comunidad', titulo: 'Junta ordinaria', fecha: '2026-09-10' })
+    expect(recordatorioCalendario([e], '2026-09-05')).toMatchObject({ detalle: 'en 5 días' })
+  })
+
+  it('comunidad a 4 días → "en 4 días" (antes quedaba fuera de la ventana)', () => {
     const e = mkEvento({ tipo: 'comunidad', titulo: 'Cierre de la piscina', fecha: '2026-09-09' })
+    expect(recordatorioCalendario([e], '2026-09-05')).toMatchObject({ detalle: 'en 4 días' })
+  })
+
+  it('C12 · comunidad a 8 días (d=8) → fuera de la ventana → null', () => {
+    const e = mkEvento({ tipo: 'comunidad', titulo: 'Cierre de la piscina', fecha: '2026-09-13' })
     expect(recordatorioCalendario([e], '2026-09-05')).toBeNull()
   })
 

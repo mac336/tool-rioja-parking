@@ -5,6 +5,15 @@ al implementar el cambio (ver `CLAUDE.md` → Forma de trabajo).
 
 ## 2026-09-06
 
+- **v1.49.2 · El aviso de los eventos de la comunidad se adelanta a una semana:**
+  el recordatorio de la portada de un evento de la comunidad (junta, cierre de la
+  piscina…) aparece ahora **desde 7 días antes** en vez de 3, con el texto «en N
+  días» hasta la víspera («mañana») y el día («hoy»). Los **festivos no cambian**:
+  se siguen avisando solo el día de la celebración. Constante
+  `VENTANA_COMUNIDAD_DIAS` en `gadgetsHome.ts`; ver `specs/21`.
+
+## 2026-09-06
+
 - **v1.49.1 · Calendario: los festivos pasados se borran solos:** decisión del
   usuario — *"No quiero fechas antiguas. Quiero que si ya pasó el festivo lo
   borres directamente. Si es de la comunidad sí se pueden quedar las

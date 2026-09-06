@@ -248,12 +248,73 @@ insert into encuesta_opciones (id, pregunta_id, texto, orden) values
 set role authenticated;
 select set_config('request.jwt.claims', json_build_object('sub',:'uidA','role','authenticated')::text, false);
 
--- 17) MEDIO 2: un vecino NO puede auto-reasignar su cesión de parking
+-- 17) SUSPENDIDA 2026-09-06 (CESIONES_ACTIVAS=false en ParkingPage.tsx, mig.
+-- 0059): la Parte 2 de specs/08 (cedo/no la necesito/necesito + demanda +
+-- reasignación) está apagada también en servidor — `revoke insert, update on
+-- parking_cesiones from authenticated`. Antes este bloque afirmaba (MEDIO 2,
+-- SECURITY_REVIEW.md) que un vecino no puede AUTO-REASIGNAR su propia
+-- cesión; ahora, con el revoke, un vecino no puede ni siquiera CREAR una
+-- (mucho menos reasignarla) — y tampoco puede la gestión, porque el revoke
+-- es sobre el rol de BD `authenticated`, común a todo usuario logueado
+-- (vecino o presidente, aquí uidP). `select` sigue permitido a los activos;
+-- `anon` sigue sin ningún grant (nunca lo tuvo).
+--
+-- AL REACTIVAR (revertir 0059 + CESIONES_ACTIVAS=true, revisando ANTES
+-- 70-impact-2.md §9): este bloque debe volver a su forma original —
+--   insert como uidA (debe funcionar) y luego
+--   assert_falla del update a 'reasignada' (MEDIO 2 sigue vigente entonces:
+--   el dueño puede cancelar su cesión pero no auto-reasignarla, ver
+--   ces_upd_own).
+
+-- 17a) Un vecino activo NO puede insertar una cesión (revoke insert).
+select assert_falla(
+  $f$insert into parking_cesiones (vivienda, tipo, desde, hasta, estado)
+    values ('Bajo A', 'cede', current_date, current_date + 5, 'activa')$f$,
+  'SUSPENDIDA: vecino no puede insertar cesión (revoke insert authenticated)');
+
+-- Fixture con privilegios elevados (bypassa el revoke) para poder probar el
+-- update por separado: sin esto no habría ninguna fila sobre la que intentar
+-- actualizar (el insert de arriba, correctamente, no llegó a crear nada).
+reset role;
+select set_config('request.jwt.claims', '', false);
 insert into parking_cesiones (vivienda, tipo, desde, hasta, estado)
   values ('Bajo A', 'cede', current_date, current_date + 5, 'activa');
+
+-- 17b) Ese mismo vecino NO puede actualizarla (ni cancelarla, ni
+-- reasignarla, ni nada): revoke update, un nivel por debajo de la policy.
+set role authenticated;
+select set_config('request.jwt.claims', json_build_object('sub',:'uidA','role','authenticated')::text, false);
 select assert_falla(
   $f$update parking_cesiones set estado='reasignada', reasignada_a='3º C Dcha' where vivienda='Bajo A'$f$,
-  'MEDIO2: vecino auto-reasigna su cesión de parking');
+  'SUSPENDIDA: vecino no puede actualizar cesión, ni auto-reasignarla (revoke update authenticated)');
+
+-- 17c) La gestión TAMPOCO puede escribir: ni insertar...
+select set_config('request.jwt.claims', json_build_object('sub',:'uidP','role','authenticated')::text, false);
+select assert_falla(
+  $f$insert into parking_cesiones (vivienda, tipo, desde, hasta, estado)
+    values ('2º A Dcha', 'necesita', current_date, current_date + 5, 'activa')$f$,
+  'SUSPENDIDA: gestión tampoco puede insertar cesión (el revoke es sobre el rol authenticated)');
+-- ...ni reasignar (la acción propia de gestión, policy ces_upd_gestion,
+-- queda igualmente bloqueada por el revoke, un nivel por debajo de la RLS).
+select assert_falla(
+  $f$update parking_cesiones set estado='reasignada', reasignada_a='3º C Dcha' where vivienda='Bajo A'$f$,
+  'SUSPENDIDA: gestión tampoco puede reasignar un hueco (revoke update authenticated)');
+
+-- 17d) select SÍ sigue permitido a un activo (no se bloquea la lectura).
+select assert_min((select count(*) from parking_cesiones where vivienda = 'Bajo A'), 1,
+  'SUSPENDIDA: select en parking_cesiones sigue permitido a un vecino activo');
+
+-- 17e) anon sigue sin ningún grant sobre esta tabla (sin cambios: nunca lo tuvo).
+reset role;
+set role anon;
+select set_config('request.jwt.claims', json_build_object('role','anon')::text, false);
+select assert_falla($f$select count(*) from parking_cesiones$f$,
+  'SUSPENDIDA: anon sigue sin grant en parking_cesiones (sin cambios)');
+
+-- Restaura el contexto esperado por el resto de la suite (vecino A, authenticated).
+reset role;
+set role authenticated;
+select set_config('request.jwt.claims', json_build_object('sub',:'uidA','role','authenticated')::text, false);
 
 -- 18) BAJO 4: no se puede votar en una pregunta con una opción de OTRA pregunta
 select assert_falla(

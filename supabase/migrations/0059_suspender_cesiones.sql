@@ -1,0 +1,54 @@
+-- 0059 · Suspender la cesión de plaza (Parte 2 de specs/08) en servidor
+-- ---------------------------------------------------------------------------
+-- Decisión del usuario 2026-09-06: «el ceder plaza no está funcionando, vamos
+-- a desaparecerlo un tiempo» (ver 70-impact-2.md del harness, salida A del
+-- gate). Se apaga la Parte 2 ENTERA del módulo Parking (cedo mi plaza / no la
+-- necesito / necesito plaza + panel de demanda + reasignación por gestión).
+--
+-- La UI ya se apaga con la constante `CESIONES_ACTIVAS = false`
+-- (src/features/parking/ParkingPage.tsx), pero eso NO basta (§7.11): con la
+-- sesión en el navegador, cualquier vecino podría seguir insertando o
+-- actualizando `parking_cesiones` directamente contra PostgREST aunque la
+-- pantalla no muestre el formulario. La seguridad la impone el servidor, no
+-- la interfaz.
+--
+-- QUÉ SE APAGA: el `insert` y el `update` de `parking_cesiones` para el rol
+-- de BD `authenticated` — es decir, TODO usuario logueado, incluida la
+-- gestión (el revoke es sobre el rol de conexión, no sobre el rol de negocio
+-- `profiles.rol`; en este proyecto tanto un vecino como un presidente se
+-- conectan como `authenticated`).
+--
+-- QUÉ NO SE TOCA:
+--   · `select` en `parking_cesiones` para `authenticated`: se conserva (no
+--     hay nada que leer con la tabla vacía, pero mantiene accesible el
+--     histórico a gestión si algún día lo hubiera).
+--   · `delete`: sin cambios (solo `app_admin` por policy `ces_del`, intacta).
+--   · Las policies `ces_sel/ces_ins/ces_upd_own/ces_upd_gestion/ces_del`: se
+--     CONSERVAN todas — son la documentación viva de cómo se vuelve. El
+--     `revoke` es el interruptor exterior; no hace falta reescribirlas.
+--   · El trigger `trg_cesion_after_update` y el cron `purgar_cesiones`: se
+--     dejan corriendo como red de seguridad (sin `insert`/`update` desde el
+--     cliente no tienen nada que auditar/purgar; si algo entrara por
+--     `service_role`, que conserva `all privileges`, 0003:36, el cron lo
+--     limpiaría igual a los 10 días).
+--   · `anon`: no tenía ni tiene ningún grant de datos sobre esta tabla.
+--   · La tabla, sus columnas, sus datos (0 filas en producción): nada se
+--     borra.
+--
+-- Idempotente: un `revoke` de un privilegio que ya no está concedido no falla
+-- en PostgreSQL (solo emite un NOTICE), así que esta migración puede
+-- reaplicarse sin riesgo.
+--
+-- CÓMO REACTIVAR (revisar ANTES el diagnóstico de 70-impact-2.md §9 — la
+-- función nunca cerró su círculo, no es solo un interruptor apagado por
+-- volumen: H1 el beneficiario de una reasignación no la ve en ninguna
+-- pantalla ni recibe aviso; H2 la rotación no lee las cesiones; H3 el toast
+-- "aviso enviado a la gestión" no envía nada):
+--   1. En código: `CESIONES_ACTIVAS = true` en
+--      `src/features/parking/ParkingPage.tsx`.
+--   2. En servidor, revertir exactamente este `revoke`:
+--        grant insert, update on parking_cesiones to authenticated;
+--   3. Antes de encender: borrar de `parking_cesiones` cualquier fila
+--      anterior a la fecha de reactivación (regla de specs/08 Parte 2).
+
+revoke insert, update on parking_cesiones from authenticated;

@@ -288,8 +288,27 @@ function FilaEvento({ e, puede, onEditar, onBorrar }: { e: EventoCalendario; pue
           <span className="mt-0.5 text-[10.5px] font-semibold uppercase text-faint">{diaSemanaAbrev(e.fecha)}</span>
         </div>
         <div className="min-w-0 flex-1">
-          <div className="flex flex-wrap items-center gap-1.5">
-            <h3 className="text-[15px] font-bold leading-tight text-ink">{e.titulo}</h3>
+          <div className="flex items-start justify-between gap-2">
+            <h3 className="min-w-0 text-[15px] font-bold leading-tight text-ink">{e.titulo}</h3>
+            {/* Acciones compactas (H2): iconos alineados a la derecha de la
+               cabecera de la fila, área pulsable 44×44, sin shadow-neu (antes
+               dos píldoras de 46 px a ancho completo, ~1/3 de la fila). */}
+            {puede && (
+              <div className="-mr-2 -mt-2 flex shrink-0 gap-0.5">
+                <button type="button" onClick={onEditar} aria-label={`Editar ${e.titulo}`}
+                  className="flex h-11 w-11 items-center justify-center rounded-full text-muted hover:bg-surface-2 active:bg-surface-2">
+                  <Pencil size={17} />
+                </button>
+                <button type="button" onClick={onBorrar} aria-label={`Borrar ${e.titulo}`}
+                  className="flex h-11 w-11 items-center justify-center rounded-full text-danger hover:bg-danger-soft active:bg-danger-soft">
+                  <Trash2 size={17} />
+                </button>
+              </div>
+            )}
+          </div>
+          {/* Distintivo de tipo en línea propia (H6): posición estable, no
+             depende del largo del título (antes saltaba de línea con flex-wrap). */}
+          <div className="mt-1">
             {e.tipo === 'festivo' ? (
               <span className="inline-flex items-center gap-1 rounded-pill bg-warn-soft px-2 py-0.5 text-[11px] font-bold text-warn-ink">
                 <PartyPopper size={12} /> Festivo
@@ -300,17 +319,11 @@ function FilaEvento({ e, puede, onEditar, onBorrar }: { e: EventoCalendario; pue
               </span>
             )}
           </div>
-          {tieneRango && <p className="mt-0.5 text-[12.5px] text-muted">{rangoLista(e.fecha, e.fecha_fin as string)}</p>}
+          {tieneRango && <p className="mt-1 text-[12.5px] text-muted">{rangoLista(e.fecha, e.fecha_fin as string)}</p>}
           {e.nota && <p className="mt-1 text-[13px] leading-snug text-muted">{e.nota}</p>}
           {e.tipo === 'festivo' && e.fuente && <p className="mt-1 text-[11px] leading-snug text-faint">{e.fuente}</p>}
         </div>
       </div>
-      {puede && (
-        <div className="flex gap-2 border-t border-border pt-2">
-          <Button variant="secondary" size="md" onClick={onEditar} className="flex-1"><Pencil size={16} /> Editar</Button>
-          <Button variant="danger-outline" size="md" onClick={onBorrar} className="flex-1"><Trash2 size={16} /> Borrar</Button>
-        </div>
-      )}
     </Card>
   )
 }

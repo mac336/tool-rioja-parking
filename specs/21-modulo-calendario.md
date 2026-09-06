@@ -215,12 +215,17 @@ spec-writer)*.
     despliega); eventos del año en curso ya pasados, del más reciente al más
     antiguo *(orden: decisión spec-writer)*. Años anteriores no se listan.
   - **Fila** (`Card`): a la izquierda el **día** (número grande + día de la
-    semana abreviado, «lun»); título; **distintivo de tipo** (píldora, `specs/18`:
-    festivo → `bg-warn-soft text-warn-ink` + `PartyPopper`; comunidad →
-    `bg-info-soft text-info-ink` + `CalendarRange`); si tiene `fecha_fin` >
-    `fecha`, rango «del 1 al 15 de septiembre» (mismo estilo que `rangoFechas`);
-    la `nota`, si la hay, como texto secundario; en festivos, la `fuente` en
-    texto pequeño. Con permiso, acciones **Editar** y **Borrar** en la fila.
+    semana abreviado, «lun»); título; con permiso, **acciones compactas**
+    **Editar**/**Borrar** (icono `Pencil`/`Trash2`, `aria-label="Editar/Borrar
+    <título>"`, área pulsable ≥ 44×44 px, sin `shadow-neu`) alineadas a la
+    derecha de la cabecera de la fila (una fila de festivo con permiso ≤ 120 px
+    de alto en móvil). En **línea propia bajo el título** (posición estable:
+    no cambia según el largo del título) el **distintivo de tipo** (píldora,
+    `specs/18`: festivo → `bg-warn-soft text-warn-ink` + `PartyPopper`;
+    comunidad → `bg-info-soft text-info-ink` + `CalendarRange`). Si tiene
+    `fecha_fin` > `fecha`, rango «del 1 al 15 de septiembre» (mismo estilo que
+    `rangoFechas`); la `nota`, si la hay, como texto secundario; en festivos,
+    la `fuente` en texto pequeño.
   - Nota «Festivos de AAAA: pendientes de publicación oficial» (arriba).
 - **Hoja modal** (patrón de `SugerenciasPage.tsx`: hoja inferior con
   `.app-viewport`, `max-h-full overflow-y-auto`; `specs/10`/`18`) para **crear y

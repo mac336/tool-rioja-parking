@@ -264,6 +264,25 @@ mismo asistente por pasos, `src/features/mensajes/AsistenteMensaje.tsx`:
   problema» en incidencia, y sus equivalentes en anuncio y sugerencia.
 - **«¿Dónde lo publicas?» es un paso** (solo en el buzón), con el aviso de que va
   a aprobación.
+### Firma y autoría (mig. 0062)
+El catálogo de firmas incluye «Administrador», «Conserje», «la Junta» **y todos
+los pisos**, así que elegir firma es **firmar en nombre de otro**. Pasa a ser un
+permiso configurable, **`elegir_firma`**:
+
+- **Con el permiso** (por defecto gestión + conserje; app_admin siempre): ve el
+  paso *«¿De parte de quién?»* y firma como quiera.
+- **Sin él** (vecino, inquilino): **el paso no aparece**, se publica **sin firma**
+  y el post-it muestra a **su autor** (nombre · piso). Nada queda anónimo ni
+  atribuido a otro.
+- ⚠️ Lo impone la **BD**, no la interfaz: el trigger `mensajes_guard_firma`
+  anula la firma de quien no tiene el permiso (mismo patrón que el guard de
+  `grado`/`color` de la 0054). Verificado en producción: un vecino que intenta
+  firmar «Administrador» acaba con `firma = null`; la junta firma «la Junta» sin
+  problema.
+- El pie del post-it lo resuelve `pieAutoria()` (`postit.ts`): firma si la hay,
+  si no el autor. `listMensajes` rellena el autor de **todo mensaje sin firma**,
+  no solo de las sugerencias.
+
 - Pasos que dependen del origen: *importancia*, *firma*, *caducidad* y *prioridad
   invisible* solo en `gestion`; *Borrador* y las fechas del anuncio solo en
   `buzon`. La **sugerencia nunca** elige importancia ni firma (lleva autor visible).

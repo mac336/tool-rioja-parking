@@ -87,6 +87,16 @@ export const GRADO_DEFECTO: Record<MensajeTipo, number> = {
 export const gradoDe = (m: { tipo: MensajeTipo; grado?: number | null }): number =>
   m.grado ?? GRADO_DEFECTO[m.tipo]
 
+/** Pie del post-it: la FIRMA si la hay; si no, el AUTOR (nombre · piso).
+ *  Desde la mig. 0062 quien no tiene `elegir_firma` publica sin firma, así que
+ *  nada queda anónimo ni firmado en nombre de otro. Vacío si no hay ninguno. */
+export const pieAutoria = (m: { tipo?: MensajeTipo; firma?: string | null; autor_nombre?: string | null; autor_vivienda?: string | null }): string => {
+  if (m.firma) return `— ${m.firma}`
+  if (m.autor_nombre) return `— ${m.autor_nombre}${m.autor_vivienda ? ` · ${m.autor_vivienda}` : ''}`
+  // La sugerencia siempre enseña autoría; si no se pudo resolver, «Vecino».
+  return m.tipo === 'sugerencia' ? '— Vecino' : ''
+}
+
 /** Papel degradado de temporada (sustituye el color plano). */
 export const paperDegradado = (paper: string, tint: string) =>
   `linear-gradient(175deg, ${paper}, color-mix(in srgb, ${paper} 82%, ${tint}))`

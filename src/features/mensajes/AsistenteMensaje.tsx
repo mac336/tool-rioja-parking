@@ -23,6 +23,7 @@ import { useEffect, useState } from 'react'
 import { X, Send, ChevronLeft, ArrowRight, ImagePlus, Trash2, FileEdit } from 'lucide-react'
 import { Button, Field, Textarea, SelectField, cx } from '@/components/ui'
 import { useApp } from '@/store'
+import { puedeElegirFirma } from '@/lib/roles'
 import { crearMensaje, editarMensaje, crearPublicacion } from '@/lib/api'
 import { comprimirImagen, type FotoComprimida } from '@/lib/imagen'
 import type { Mensaje, MensajeTipo, MensajeDestino, EstiloTemporada, ImportanciaMensaje } from '@/types'
@@ -81,7 +82,10 @@ export interface AsistenteMensajeProps {
 }
 
 export function AsistenteMensaje({ origen, tipos, tipoInicial, edicion, onCerrar, onHecho }: AsistenteMensajeProps) {
-  const { toast } = useApp()
+  const { toast, user } = useApp()
+  // Firmar en nombre de otro es un PERMISO (mig. 0062): sin él no se ve el paso,
+  // se publica sin firma y el post-it muestra a su autor.
+  const eligeFirma = puedeElegirFirma(user.rol)
   const tipoArranque = edicion?.tipo ?? tipoInicial ?? tipos[0] ?? 'aviso'
   const [form, setForm] = useState<FormState>(() => ({
     id: edicion?.id,
@@ -114,7 +118,7 @@ export function AsistenteMensaje({ origen, tipos, tipoInicial, edicion, onCerrar
     ...(origen === 'gestion' && (form.tipo === 'aviso' || form.tipo === 'incidencia') ? ['importancia' as const] : []),
     ...(origen === 'buzon' && !edicion ? ['destino' as const] : []),
     // La sugerencia lleva AUTOR visible (nombre + piso), no firma.
-    ...(origen === 'gestion' && form.tipo !== 'sugerencia' ? ['firma' as const] : []),
+    ...(origen === 'gestion' && form.tipo !== 'sugerencia' && eligeFirma ? ['firma' as const] : []),
     ...(origen === 'gestion' || aspectoLibre ? ['opciones' as const] : []),
     'resumen',
   ]
@@ -169,7 +173,7 @@ export function AsistenteMensaje({ origen, tipos, tipoInicial, edicion, onCerrar
         const payload = {
           tipo: form.tipo, titulo: form.titulo.trim(), cuerpo: form.cuerpo.trim(),
           expira_at: form.expira ? new Date(`${form.expira}T23:59:59`).toISOString() : null,
-          firma: form.firma,
+          firma: eligeFirma ? form.firma : null,
           estilo,
           importancia: admiteImportancia ? (form.importancia || null) : null,
           grado: form.grado === '' ? null : form.grado,
@@ -395,7 +399,7 @@ export function AsistenteMensaje({ origen, tipos, tipoInicial, edicion, onCerrar
               {origen === 'gestion' && (form.tipo === 'aviso' || form.tipo === 'incidencia') && (
                 <div><span className="text-muted">Importancia:</span> {IMPORTANCIAS.find((i) => i.valor === form.importancia)?.label ?? 'Normal'}</div>
               )}
-              {origen === 'gestion' && <div><span className="text-muted">De parte de:</span> {form.firma}</div>}
+              {origen === 'gestion' && eligeFirma && <div><span className="text-muted">De parte de:</span> {form.firma}</div>}
               <div><span className="text-muted">Caduca:</span> {form.expira || 'sin caducidad'}</div>
               {!aspectoLibre && (
                 <div><span className="text-muted">Aspecto:</span> {TEMPORADAS[ASPECTO_FIJO[form.tipo]!.estilo].etiqueta} · {PASTELES[ASPECTO_FIJO[form.tipo]!.color]?.etiqueta} <span className="text-faint">(fijo para este tipo)</span></div>

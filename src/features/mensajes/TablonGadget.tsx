@@ -3,7 +3,7 @@ import { Adjuntos } from '@/components/Adjuntos'
 import { useNavigate } from 'react-router-dom'
 import { X, ChevronLeft, ChevronRight, TriangleAlert, Megaphone, Lightbulb, Heart, Pencil, Images } from 'lucide-react'
 import type { Mensaje, MensajeTipo, ImportanciaMensaje } from '@/types'
-import { POSTIT, TEMPORADAS, fechaMano, caducaTexto, paperDegradado, cintaWashi, CINTA_URGENTE, IMPORTANCIA_COLOR, gradoDe, pastelHex } from './postit'
+import { POSTIT, TEMPORADAS, fechaMano, caducaTexto, paperDegradado, cintaWashi, CINTA_URGENTE, IMPORTANCIA_COLOR, gradoDe, pastelHex, pieAutoria } from './postit'
 import { MotivoTemporada } from './MotivoTemporada'
 import { alternarLike } from '@/lib/api'
 import { cx } from '@/components/ui'
@@ -163,9 +163,7 @@ function PostItHome({ m, rot, onClick }: { m: Mensaje; rot: string; onClick: () 
 
       <div className="relative mt-1 flex shrink-0 items-center justify-between gap-2">
         <span className="truncate text-[11px] font-bold" style={{ color: '#8B9DAA' }}>
-          {m.tipo === 'sugerencia'
-            ? `— ${m.autor_nombre ?? 'Vecino'}${m.autor_vivienda ? ` · ${m.autor_vivienda}` : ''}`
-            : (m.firma ? `— ${m.firma}` : '')}
+          {pieAutoria(m)}
         </span>
         <span className="flex shrink-0 items-center gap-1.5">
           {/* Aviso de que la nota lleva fotos: al pulsarla, el visor las muestra. */}
@@ -380,9 +378,7 @@ function PostItVisor({ lista, inicial, onClose }: { lista: Mensaje[]; inicial: n
                   </div>
                   <div className="relative mt-4 flex shrink-0 items-end justify-between gap-2">
                     <span style={{ fontFamily: 'var(--font-hand)', fontSize: '18px', color: '#5C7180', opacity: 0.9 }}>
-                      {msg.tipo === 'sugerencia'
-                        ? `— ${msg.autor_nombre ?? 'Vecino'}${msg.autor_vivienda ? ` · ${msg.autor_vivienda}` : ''}`
-                        : (msg.firma ? `— ${msg.firma}` : '')}
+                      {pieAutoria(msg)}
                     </span>
                     {msg.tipo === 'sugerencia' ? (
                       <button type="button" onClick={() => toggleLike(msg.id)}

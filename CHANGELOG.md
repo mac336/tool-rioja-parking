@@ -3,6 +3,16 @@
 Cambios funcionales relevantes, más recientes arriba. Cada entrada nueva se añade
 al implementar el cambio (ver `CLAUDE.md` → Forma de trabajo).
 
+- **v1.55.0 · Firmar en nombre de otro pasa a ser un permiso (mig. 0062):** el
+  selector de firma del asistente ofrece «Administrador», «Conserje», «la Junta»
+  **y todos los pisos**, así que cualquiera que llegara al alta directa podía
+  publicar **a nombre de otro vecino**. Ahora hace falta el permiso nuevo
+  **«Firmar en nombre de otros»** (`elegir_firma`), activo por defecto en gestión
+  y conserje. Quien no lo tiene **ni ve el paso**: publica sin firma y el post-it
+  muestra **quién lo ha creado** (nombre · piso). Lo impone un **trigger en la
+  BD**, no solo la interfaz — comprobado en producción: un vecino que intenta
+  firmar «Administrador» acaba sin firma, y la junta sigue firmando «la Junta».
+
 - **v1.54.1 · Los permisos de publicar dicen lo que hacen:** en Gestión →
   Permisos, «Publicar incidencias» se describía como *«Crear y editar
   incidencias»*, sin avisar de que ese permiso **publica directo, saltándose la

@@ -19,16 +19,24 @@ export async function listMensajes(): Promise<Mensaje[]> {
   if (error) throw error
   const msgs = await conAdjuntos((data ?? []) as Mensaje[])
 
+  // Autor: lo necesitan las SUGERENCIAS (siempre lo muestran) y todo mensaje SIN
+  // firma — desde la mig. 0062, quien no tiene `elegir_firma` publica sin firma y
+  // el post-it enseña a su autor, para que nadie publique de forma anónima ni en
+  // nombre de otro. El `directorio` ya expone nombre/vivienda a los activos.
   const sugerencias = msgs.filter((m) => m.tipo === 'sugerencia')
-  if (sugerencias.length === 0) return msgs
-
-  // Autor de cada sugerencia (directorio).
-  const autorIds = [...new Set(sugerencias.map((m) => m.created_by).filter(Boolean) as string[])]
+  const necesitanAutor = msgs.filter((m) => m.tipo === 'sugerencia' || !m.firma)
+  const autorIds = [...new Set(necesitanAutor.map((m) => m.created_by).filter(Boolean) as string[])]
   const autores = new Map<string, { nombre: string; vivienda: string }>()
   if (autorIds.length > 0) {
     const { data: dir } = await supabase.from('directorio').select('id, nombre, vivienda').in('id', autorIds)
     for (const d of dir ?? []) autores.set(d.id as string, { nombre: d.nombre as string, vivienda: (d.vivienda as string) ?? '' })
   }
+  const conAutor = (m: Mensaje): Mensaje => ({
+    ...m,
+    autor_nombre: m.created_by ? autores.get(m.created_by)?.nombre : undefined,
+    autor_vivienda: m.created_by ? autores.get(m.created_by)?.vivienda : undefined,
+  })
+  if (sugerencias.length === 0) return msgs.map((m) => (m.firma ? m : conAutor(m)))
   // Likes de esas sugerencias.
   const ids = sugerencias.map((m) => m.id)
   const { data: { user } } = await supabase.auth.getUser()
@@ -41,10 +49,8 @@ export async function listMensajes(): Promise<Mensaje[]> {
     total.set(l.mensaje_id as string, (total.get(l.mensaje_id as string) ?? 0) + 1)
     if (miVivienda && l.vivienda === miVivienda) mio.add(l.mensaje_id as string)
   }
-  return msgs.map((m) => m.tipo !== 'sugerencia' ? m : {
-    ...m,
-    autor_nombre: m.created_by ? autores.get(m.created_by)?.nombre : undefined,
-    autor_vivienda: m.created_by ? autores.get(m.created_by)?.vivienda : undefined,
+  return msgs.map((m) => m.tipo !== 'sugerencia' ? (m.firma ? m : conAutor(m)) : {
+    ...conAutor(m),
     likes: total.get(m.id) ?? 0,
     yo_like: mio.has(m.id),
   })

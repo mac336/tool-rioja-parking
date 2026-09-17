@@ -67,7 +67,20 @@ export async function alternarLike(mensajeId: string, dar: boolean): Promise<voi
   cacheBust('mensajes')
 }
 
-export interface MensajeInput { tipo: MensajeTipo; titulo: string; cuerpo: string; expira_at?: string | null; firma?: string | null; estilo?: string | null; importancia?: string | null; grado?: number | null; color?: string | null }
+export interface MensajeInput { tipo: MensajeTipo; titulo: string; cuerpo: string; expira_at?: string | null; firma?: string | null; estilo?: string | null; importancia?: string | null; grado?: number | null; color?: string | null; fotos?: Blob[] }
+
+/** Sube las fotos de un mensaje al bucket privado y las registra (máx. 2).
+ *  Best-effort: si una falla, el mensaje queda igualmente creado (no lo dejamos
+ *  a medias por una foto). Lo usan las DOS vías de alta: publicar directo
+ *  (Gestión → Mensajes) y proponer desde Buzón → Publicar. */
+async function subirFotos(mensajeId: string, fotos: Blob[] | undefined): Promise<void> {
+  for (const [i, foto] of (fotos ?? []).slice(0, 2).entries()) {
+    const path = `${mensajeId}/${i}.webp`
+    const up = await supabase.storage.from('adjuntos').upload(path, foto, { contentType: foto.type || 'image/webp', upsert: true })
+    if (up.error) continue
+    await supabase.from('mensaje_adjuntos').insert({ mensaje_id: mensajeId, path, orden: i })
+  }
+}
 
 /** Gestión publica directamente (estado=publicado, destino=todos). */
 export async function crearMensaje(input: MensajeInput): Promise<Mensaje> {
@@ -82,6 +95,7 @@ export async function crearMensaje(input: MensajeInput): Promise<Mensaje> {
     })
     .select('*').single()
   if (error) throw error
+  await subirFotos(data.id as string, input.fotos)
   void supabase.functions.invoke('notificar', { body: { kind: 'mensaje', id: data.id } }).catch(() => undefined)
   cacheBust('mensajes', 'avisos')
   return data as Mensaje
@@ -116,16 +130,7 @@ export async function crearPublicacion(input: PublicacionInput): Promise<Mensaje
     .select('*').single()
   if (error) throw error
 
-  // Fotos (incidencias): subir al bucket bajo {mensaje_id}/{orden}.webp y
-  // registrar en mensaje_adjuntos. Best-effort: si una falla, la incidencia queda
-  // igualmente creada (no dejamos el mensaje a medias por una foto).
-  const fotos = (input.fotos ?? []).slice(0, 2)
-  for (let i = 0; i < fotos.length; i++) {
-    const path = `${data.id}/${i}.webp`
-    const up = await supabase.storage.from('adjuntos').upload(path, fotos[i], { contentType: 'image/webp', upsert: true })
-    if (up.error) continue
-    await supabase.from('mensaje_adjuntos').insert({ mensaje_id: data.id, path, orden: i })
-  }
+  await subirFotos(data.id as string, input.fotos)
 
   if (estado !== 'borrador') {
     void supabase.functions.invoke('notificar', { body: { kind: 'publicacion', id: data.id } }).catch(() => undefined)

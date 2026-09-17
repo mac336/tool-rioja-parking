@@ -1,5 +1,5 @@
 import { useEffect, useState } from 'react'
-import { Plus, X, Send, Trash2, ChevronLeft, ArrowRight } from 'lucide-react'
+import { Plus, X, Send, Trash2, ChevronLeft, ArrowRight, ImagePlus } from 'lucide-react'
 import { Page } from '@/components/layout/AppShell'
 import { Button, Field, Textarea, SelectField, EmptyState, ErrorState, SkeletonList, cx } from '@/components/ui'
 import { useAsync } from '@/lib/useAsync'
@@ -12,6 +12,10 @@ import type { Mensaje, MensajeTipo, EstiloTemporada, ImportanciaMensaje } from '
 import { MensajeCard, TIPO_META } from './MensajeCard'
 import { TEMPORADAS, TEMPORADAS_ORDEN, IMPORTANCIA_COLOR, PASTELES, PASTELES_ORDEN } from './postit'
 import { MotivoTemporada } from './MotivoTemporada'
+import { comprimirImagen, type FotoComprimida } from '@/lib/imagen'
+
+/** Máximo de fotos por mensaje (mismo tope que Buzón → Publicar y que la BD). */
+const MAX_FOTOS = 2
 
 // Orden fijo de las pestañas. Las visibles y las creables dependen de los
 // PERMISOS POR TIPO del rol. Las sugerencias las publican los vecinos (buzón) y
@@ -49,10 +53,25 @@ export function MensajesPage() {
   const [form, setForm] = useState<FormState | null>(null)
   const [saving, setSaving] = useState(false)
   const [pasoMsg, setPasoMsg] = useState<PasoMsg>('tipo')
+  const [fotos, setFotos] = useState<FotoComprimida[]>([])
+  const [procesandoFoto, setProcesandoFoto] = useState(false)
+
+  const limpiarFotos = () => { fotos.forEach((f) => URL.revokeObjectURL(f.url)); setFotos([]) }
+  const anadirFotos = async (files: FileList | null) => {
+    if (!files || files.length === 0) return
+    setProcesandoFoto(true)
+    try {
+      for (const file of Array.from(files).slice(0, MAX_FOTOS - fotos.length)) {
+        try { const f = await comprimirImagen(file); setFotos((prev) => [...prev, f]) }
+        catch (e) { toast(e instanceof Error ? e.message : 'No se pudo añadir la foto', 'error') }
+      }
+    } finally { setProcesandoFoto(false) }
+  }
+  const quitarFoto = (i: number) => setFotos((prev) => { URL.revokeObjectURL(prev[i].url); return prev.filter((_, j) => j !== i) })
 
   const nuevoTipo = creables.includes(tab) ? tab : (creables[0] ?? 'aviso')
-  const abrirNuevo = () => { setPasoMsg('tipo'); setForm({ tipo: nuevoTipo, titulo: '', cuerpo: '', expira: mananaStr(), firma: 'Administrador', estilo: '', importancia: '', grado: '', color: '' }) }
-  const abrirEditar = (m: Mensaje) => { setPasoMsg('tipo'); setForm({ id: m.id, tipo: m.tipo, titulo: m.titulo, cuerpo: m.cuerpo, expira: m.expira_at ? m.expira_at.slice(0, 10) : '', firma: m.firma || 'Administrador', estilo: m.estilo ?? '', importancia: m.importancia ?? '', grado: (m.grado as 1 | 2 | 3 | null | undefined) ?? '', color: m.color ?? '' }) }
+  const abrirNuevo = () => { setPasoMsg('tipo'); limpiarFotos(); setForm({ tipo: nuevoTipo, titulo: '', cuerpo: '', expira: mananaStr(), firma: 'Administrador', estilo: '', importancia: '', grado: '', color: '' }) }
+  const abrirEditar = (m: Mensaje) => { setPasoMsg('tipo'); limpiarFotos(); setForm({ id: m.id, tipo: m.tipo, titulo: m.titulo, cuerpo: m.cuerpo, expira: m.expira_at ? m.expira_at.slice(0, 10) : '', firma: m.firma || 'Administrador', estilo: m.estilo ?? '', importancia: m.importancia ?? '', grado: (m.grado as 1 | 2 | 3 | null | undefined) ?? '', color: m.color ?? '' }) }
 
   // Pasos del asistente de mensaje (importancia solo en aviso/incidencia).
   const pasosMsg: PasoMsg[] = form
@@ -83,8 +102,8 @@ export function MensajesPage() {
         color: form.color || null,
       }
       if (form.id) { await editarMensaje(form.id, payload); toast('Mensaje actualizado') }
-      else { await crearMensaje(payload); toast('Mensaje publicado y notificado', 'ok') }
-      setForm(null); refetch()
+      else { await crearMensaje({ ...payload, fotos: fotos.length ? fotos.map((f) => f.blob) : undefined }); toast('Mensaje publicado y notificado', 'ok') }
+      setForm(null); limpiarFotos(); refetch()
     } catch { toast('No se pudo guardar el mensaje', 'error') } finally { setSaving(false) }
   }
 
@@ -165,7 +184,36 @@ export function MensajesPage() {
               )}
 
               {pasoMsg === 'cuerpo' && (
-                <Textarea label="Mensaje" value={form.cuerpo} maxLength={4000} rows={7} onChange={(e) => setForm({ ...form, cuerpo: e.target.value })} placeholder="Escribe el mensaje para la comunidad…" />
+                <div className="flex flex-col gap-3">
+                  <Textarea label="Mensaje" value={form.cuerpo} maxLength={4000} rows={7} onChange={(e) => setForm({ ...form, cuerpo: e.target.value })} placeholder="Escribe el mensaje para la comunidad…" />
+                  {/* Fotos: igual que en Buzón → Publicar. Al EDITAR no se tocan
+                      las que ya tiene el mensaje, así que no se ofrece el selector. */}
+                  {!form.id && form.tipo !== 'sugerencia' && (
+                    <div>
+                      <div className="mb-1.5 text-[13px] font-semibold text-muted">Fotos (opcional, máx. {MAX_FOTOS})</div>
+                      <div className="flex flex-wrap gap-2">
+                        {fotos.map((f, i) => (
+                          <div key={f.url} className="relative h-20 w-20 overflow-hidden rounded-[12px] border border-border">
+                            <img src={f.url} alt={`Foto ${i + 1}`} className="h-full w-full object-cover" />
+                            <button type="button" onClick={() => quitarFoto(i)} aria-label="Quitar foto"
+                              className="absolute right-1 top-1 flex h-6 w-6 items-center justify-center rounded-full bg-black/60 text-white">
+                              <X size={14} />
+                            </button>
+                          </div>
+                        ))}
+                        {fotos.length < MAX_FOTOS && (
+                          <label className={cx('flex h-20 w-20 cursor-pointer flex-col items-center justify-center gap-1 rounded-[12px] border border-dashed border-border text-faint hover:bg-surface-2', procesandoFoto && 'pointer-events-none opacity-60')}>
+                            <ImagePlus size={20} />
+                            <span className="text-[10.5px] font-semibold">{procesandoFoto ? 'Procesando…' : 'Añadir'}</span>
+                            <input type="file" accept="image/*" multiple className="hidden"
+                              onChange={(e) => { void anadirFotos(e.target.files); e.target.value = '' }} />
+                          </label>
+                        )}
+                      </div>
+                      <p className="mt-1 text-[11.5px] text-faint">Se optimizan antes de subir y se elimina la ubicación de la foto.</p>
+                    </div>
+                  )}
+                </div>
               )}
 
               {pasoMsg === 'importancia' && (

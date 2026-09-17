@@ -247,15 +247,20 @@ el **chat del buzón** (canal Desarrollador).
 
 ## Fotos en incidencias (mig. 0036)
 
-Al reportar una **incidencia** o publicar un **anuncio** desde Buzón → Publicar
-se pueden adjuntar **1–2 fotos**:
+Se pueden adjuntar **1–2 fotos** desde las **dos** vías de alta (v1.53.0): Buzón →
+Publicar (vecino que propone) y **Gestión → Mensajes → Nuevo** (quien publica
+directo), en el paso *Mensaje* y para todo tipo salvo sugerencia. Al **editar** un
+mensaje no se ofrece el selector: las fotos que ya tiene no se tocan.
 - **Compresión en el cliente** (`src/lib/imagen.ts`): redimensiona a lado máx.
   1600px y reencoda a **WebP** (≤~800 KB). El paso por `<canvas>` **elimina el
   EXIF**, incluida la geolocalización.
 - **Bucket privado `adjuntos`** (tope duro 3 MB, solo webp/jpeg/png). Rutas
   `{mensaje_id}/{orden}.webp`. Tabla `mensaje_adjuntos` (RLS: se ve la foto si se
   ve el mensaje; sube el autor mientras está sin publicar o un moderador; nunca
-  el tester). Se sirven con **URL firmada** (5 min).
+  el tester). Se sirven con **URL firmada** (5 min). La rama de `adj_ins` que
+  permite adjuntar al **publicar directo** (autor con `publicar_<tipo>`) la añade
+  la mig. **0060**: sin ella el mensaje nace ya `publicado` y la RLS rechazaba
+  sus fotos.
 - **Limpieza:** al borrar el mensaje, el cascade borra las filas y un **trigger**
   borra el objeto de Storage. Los ficheros no quedan huérfanos.
 - Se ven en el tablón (visor), en "Mis publicaciones" y en Gestión →

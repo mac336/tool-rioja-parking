@@ -5,6 +5,20 @@ al implementar el cambio (ver `CLAUDE.md` → Forma de trabajo).
 
 ## 2026-09-17
 
+- **v1.53.0 · Fotos también al crear desde Gestión → Mensajes:** el asistente de
+  **Nuevo mensaje** gana el selector de **1–2 fotos** en el paso *Mensaje* (todos
+  los tipos menos sugerencia), con la misma compresión que el buzón (lado máx.
+  1600 px y borrado de la ubicación EXIF). Antes solo se podían adjuntar desde
+  Buzón → Publicar. Al **editar** no se ofrece: las fotos existentes no se tocan.
+  - Migración **`0060`**: la política `adj_ins` no contemplaba al que **publica
+    directo** (su mensaje nace ya `publicado`, así que no encajaba en ninguna rama
+    y la RLS rechazaba las fotos). Se añade esa rama para el **autor** que tiene
+    `publicar_<tipo>`; sigue sin poder tocar las fotos de otros.
+  - La subida se unifica en un helper `subirFotos()` que usan las dos vías, y pasa
+    a declarar el **tipo real** del fichero (`foto.type`) en vez de asumir WebP.
+
+## 2026-09-17
+
 - **v1.52.0 · Las fotos de las incidencias vuelven a verse + aviso en la nota:**
   - **Arreglo:** las fotos no se veían **por la CSP**. `img-src` era
     `'self' data: blob:` y las fotos se sirven desde

@@ -116,6 +116,12 @@ no solo en la interfaz.
     - `ver_<tipo>` — ver ese tipo en el tablón (`ver_aviso`, `ver_anuncio`,
       `ver_incidencia`, `ver_sugerencia`).
     - `publicar_<tipo>` — crear y editar/borrar ese tipo (`publicar_aviso`, …).
+      ⚠️ **Publica DIRECTO, saltándose la aprobación**: la RLS `msg_ins` acepta
+      `estado='publicado'` cuando `puede_publicar_tipo()` es cierto, y quien lo
+      tiene ve la celda **Mensajes** en Servicios (`soloPublica` en la Home). Sin
+      este permiso, lo que el vecino escriba desde el buzón queda **pendiente**.
+      El texto del panel de Permisos lo dice explícitamente (v1.54.1): antes
+      ponía solo «Crear y editar», que no dejaba ver la consecuencia.
     - `aprobar_incidencias` / `aprobar_anuncios` — moderar las que envían vecinos.
   - **Reservas** (ver `specs/07`):
     - `realizar_reservas` — reservar zonas comunes.

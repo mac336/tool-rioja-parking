@@ -3,6 +3,13 @@
 Cambios funcionales relevantes, más recientes arriba. Cada entrada nueva se añade
 al implementar el cambio (ver `CLAUDE.md` → Forma de trabajo).
 
+- **v1.54.1 · Los permisos de publicar dicen lo que hacen:** en Gestión →
+  Permisos, «Publicar incidencias» se describía como *«Crear y editar
+  incidencias»*, sin avisar de que ese permiso **publica directo, saltándose la
+  aprobación**. Quien lo activaba no podía saberlo. Los cuatro `publicar_<tipo>`
+  pasan a decir *«Publica … DIRECTAMENTE en el tablón, sin pasar por
+  aprobación»*. Solo cambia el texto: ningún permiso se ha tocado.
+
 ## 2026-09-17
 
 - **v1.54.0 · Un solo asistente para crear mensajes + arreglado el borrado:**

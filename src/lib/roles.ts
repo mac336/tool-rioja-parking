@@ -60,16 +60,21 @@ export type TipoMensaje = 'aviso' | 'anuncio' | 'incidencia' | 'sugerencia'
 
 // Catálogo AGRUPADO y ORDENADO. El panel del app_admin lo pinta por secciones.
 // Añadir una función nueva = añadir su permiso al grupo que corresponda.
+// OJO con los textos de `publicar_<tipo>`: ese permiso NO es solo "crear". Quien
+// lo tiene ve la celda Mensajes en Servicios (HomePage, soloPublica) y publica
+// directo, porque la RLS `msg_ins` acepta estado='publicado' si
+// puede_publicar_tipo() es cierto. Sin él, lo que escriba va a APROBACIÓN. El
+// texto debe decirlo o el app_admin no puede saber qué está activando.
 export const GRUPOS_PERMISOS: { grupo: string; permisos: { key: Permiso; label: string; desc: string }[] }[] = [
   { grupo: 'Tablón', permisos: [
     { key: 'ver_aviso', label: 'Ver avisos', desc: 'Ver los avisos en el tablón' },
-    { key: 'publicar_aviso', label: 'Publicar avisos', desc: 'Crear y editar avisos para la comunidad' },
+    { key: 'publicar_aviso', label: 'Publicar avisos', desc: 'Publica avisos DIRECTAMENTE en el tablón, sin pasar por aprobación' },
     { key: 'ver_incidencia', label: 'Ver incidencias', desc: 'Ver las incidencias en el tablón' },
-    { key: 'publicar_incidencia', label: 'Publicar incidencias', desc: 'Crear y editar incidencias' },
+    { key: 'publicar_incidencia', label: 'Publicar incidencias', desc: 'Publica incidencias DIRECTAMENTE en el tablón, sin pasar por aprobación' },
     { key: 'ver_anuncio', label: 'Ver anuncios', desc: 'Ver los anuncios en el tablón' },
-    { key: 'publicar_anuncio', label: 'Publicar anuncios', desc: 'Crear y editar anuncios' },
+    { key: 'publicar_anuncio', label: 'Publicar anuncios', desc: 'Publica anuncios DIRECTAMENTE en el tablón, sin pasar por aprobación' },
     { key: 'ver_sugerencia', label: 'Ver sugerencias', desc: 'Ver las sugerencias en el tablón' },
-    { key: 'publicar_sugerencia', label: 'Publicar sugerencias', desc: 'Crear y editar sugerencias' },
+    { key: 'publicar_sugerencia', label: 'Publicar sugerencias', desc: 'Publica sugerencias DIRECTAMENTE en el tablón, sin pasar por aprobación' },
     { key: 'aprobar_incidencias', label: 'Aprobar incidencias de vecinos', desc: 'Aprobar o rechazar las incidencias que envían los vecinos' },
     { key: 'aprobar_anuncios', label: 'Aprobar anuncios de vecinos', desc: 'Aprobar o rechazar los anuncios que envían los vecinos' },
   ] },

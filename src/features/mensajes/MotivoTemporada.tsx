@@ -1,5 +1,5 @@
 import type { ReactNode } from 'react'
-import { Sun, Leaf, Snowflake, Heart, TriangleAlert, XCircle } from 'lucide-react'
+import { Sun, Leaf, Snowflake, Heart, TriangleAlert, XCircle, Lightbulb } from 'lucide-react'
 import type { EstiloTemporada } from '@/types'
 import { TEMPORADAS } from './postit'
 
@@ -21,6 +21,7 @@ export function MotivoTemporada({ estilo, size = 18, color }: { estilo: EstiloTe
   switch (t.motivo) {
     case 'warning': return <TriangleAlert size={size} style={{ color: c }} aria-label="Warning" />
     case 'problem': return <XCircle size={size} style={{ color: c }} aria-label="Problem" />
+    case 'foco': return <Lightbulb size={size} style={{ color: c }} aria-label="Idea" />
     case 'sol': return <Sun size={size} style={{ color: c }} aria-label="Verano" />
     case 'hoja': return <Leaf size={size} style={{ color: c }} aria-label="Otoño" />
     case 'copo': return <Snowflake size={size} style={{ color: c }} aria-label="Navidad" />

@@ -245,12 +245,46 @@ el **chat del buzón** (canal Desarrollador).
   solo la editan los moderadores. El autor puede **retirarla borrándola**
   (RLS `msg_upd`/`msg_del`, mig. 0034/0035).
 
+## Asistente único de alta (v1.54.0)
+
+Había **tres** formularios distintos para crear lo mismo. Ahora los tres abren el
+mismo asistente por pasos, `src/features/mensajes/AsistenteMensaje.tsx`:
+
+| Entrada | `origen` | Tipo | Resultado |
+|---|---|---|---|
+| Buzón → Publicar | `buzon` | el que pulses (salta el paso 1) | a **aprobación**, o privado a administración |
+| Gestión → Mensajes → Nuevo | `gestion` | se elige en el paso 1 | **publicado** directo |
+| Servicios → Sugerencias → Nueva | `gestion` | sugerencia (salta el paso 1) | **publicado** directo |
+
+- **La publicación NO cambia** respecto a antes: cada entrada conserva su función
+  (`crearPublicacion` / `crearMensaje`) y su resultado.
+- **Paso 1 con botones** (icono + nombre), no desplegable. Si la entrada ya trae
+  el tipo, ese paso no aparece.
+- **Textos por tipo**, los del buzón: «¿Qué quieres reportar?» / «Describe el
+  problema» en incidencia, y sus equivalentes en anuncio y sugerencia.
+- **«¿Dónde lo publicas?» es un paso** (solo en el buzón), con el aviso de que va
+  a aprobación.
+- Pasos que dependen del origen: *importancia*, *firma*, *caducidad* y *prioridad
+  invisible* solo en `gestion`; *Borrador* y las fechas del anuncio solo en
+  `buzon`. La **sugerencia nunca** elige importancia ni firma (lleva autor visible).
+
+### Aspecto fijo por tipo
+`ASPECTO_FIJO` en `postit.ts` decide el aspecto sin preguntar:
+
+| Tipo | Estilo | Papel | ¿Se elige? |
+|---|---|---|---|
+| incidencia | `problem` | rosa | no, ni se muestra |
+| sugerencia | `idea` (**foco**, estilo nuevo) | lila | no, ni se muestra |
+| aviso y anuncio | a elección | a elección | sí |
+
+El estilo `idea` se añadió en v1.54.0 (`TEMPORADAS` + motivo `foco`); `estilo` es
+una columna `text` libre, así que **no hizo falta migración**.
+
 ## Fotos en incidencias (mig. 0036)
 
-Se pueden adjuntar **1–2 fotos** desde las **dos** vías de alta (v1.53.0): Buzón →
-Publicar (vecino que propone) y **Gestión → Mensajes → Nuevo** (quien publica
-directo), en el paso *Mensaje* y para todo tipo salvo sugerencia. Al **editar** un
-mensaje no se ofrece el selector: las fotos que ya tiene no se tocan.
+Se pueden adjuntar **1–2 fotos** desde cualquiera de las vías de alta, en el paso
+*Mensaje* del asistente y para todo tipo salvo sugerencia. Al **editar** un mensaje
+no se ofrece el selector: las fotos que ya tiene no se tocan.
 - **Compresión en el cliente** (`src/lib/imagen.ts`): redimensiona a lado máx.
   1600px y reencoda a **WebP** (≤~800 KB). El paso por `<canvas>` **elimina el
   EXIF**, incluida la geolocalización.
@@ -261,8 +295,19 @@ mensaje no se ofrece el selector: las fotos que ya tiene no se tocan.
   permite adjuntar al **publicar directo** (autor con `publicar_<tipo>`) la añade
   la mig. **0060**: sin ella el mensaje nace ya `publicado` y la RLS rechazaba
   sus fotos.
-- **Limpieza:** al borrar el mensaje, el cascade borra las filas y un **trigger**
-  borra el objeto de Storage. Los ficheros no quedan huérfanos.
+- **Limpieza (mig. 0061):** `borrarMensaje()` borra **primero las fotos con la
+  Storage API** y luego el mensaje (el cascade se lleva las filas). Ese orden es
+  a propósito: si falla el borrado del fichero, el mensaje sigue intacto y se
+  reintenta; al revés se perderían las rutas y el fichero quedaría huérfano.
+  - ⚠️ **No se puede borrar de `storage.objects` con SQL.** Supabase lo prohíbe
+    (`protect_objects_delete`, error `42501`) para evitar ficheros huérfanos. El
+    trigger de la 0036 hacía justo eso, así que lanzaba excepción y **tumbaba la
+    transacción entera: ningún mensaje con fotos se podía borrar** (y en la app
+    fallaba en silencio). Saltaba incluso si el objeto ya no existía, porque la
+    protección es de sentencia. Retirado en la 0061.
+  - El permiso de borrado del bucket (`adjuntos_delete`) se alinea con quien
+    puede borrar el mensaje (`msg_del`): si no, un moderador borraba la
+    incidencia de otro y las fotos quedaban huérfanas ocupando espacio.
 - Se ven en el tablón (visor), en "Mis publicaciones" y en Gestión →
   Publicaciones (el moderador ve la foto antes de aprobar). En la **nota de la
   Home** no caben, así que el post-it muestra un **distintivo con el nº de fotos**

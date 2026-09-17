@@ -5,6 +5,28 @@ al implementar el cambio (ver `CLAUDE.md` → Forma de trabajo).
 
 ## 2026-09-17
 
+- **v1.54.0 · Un solo asistente para crear mensajes + arreglado el borrado:**
+  - **Unificación:** los **tres** formularios que había (Buzón → Publicar, Gestión
+    → Mensajes → Nuevo y Servicios → Sugerencias → Nueva) pasan a abrir el mismo
+    **asistente por pasos**. El paso 1 es de **botones** (icono + nombre) en vez
+    de desplegable, y si entras desde el buzón pulsando «Incidencia» ese paso se
+    **salta**. Los textos son los del buzón, por tipo («¿Qué quieres reportar?»,
+    «Describe el problema»…), y **«¿Dónde lo publicas?» es ahora un paso**.
+    **La publicación no cambia**: el buzón sigue yendo a aprobación y la gestión
+    sigue publicando directo.
+  - **Aspecto fijo por tipo:** la **incidencia** sale siempre con estilo *Problem*
+    y papel rosa, y la **sugerencia** con un estilo nuevo de **foco** (*Idea*) y
+    papel lila — sin preguntar y sin mostrar selectores. Solo **aviso y anuncio**
+    eligen estilo y color. La sugerencia tampoco elige importancia (normal).
+  - **Arreglado: no se podía borrar ningún mensaje con fotos** (mig. **0061**).
+    Supabase prohíbe borrar de `storage.objects` por SQL (`42501`) y el trigger de
+    la 0036 hacía exactamente eso: lanzaba excepción y tumbaba el borrado entero,
+    fallando **en silencio** en la app. Ahora las fotos se borran con la **Storage
+    API** antes que el mensaje —que además es lo único que libera el espacio— y el
+    botón Borrar avisa si algo falla.
+
+## 2026-09-17
+
 - **v1.53.0 · Fotos también al crear desde Gestión → Mensajes:** el asistente de
   **Nuevo mensaje** gana el selector de **1–2 fotos** en el paso *Mensaje* (todos
   los tipos menos sugerencia), con la misma compresión que el buzón (lado máx.

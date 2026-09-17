@@ -1,18 +1,12 @@
 import { useEffect, useState } from 'react'
 import { useSearchParams } from 'react-router-dom'
-import { TriangleAlert, Megaphone, Lightbulb, X, Send, FileEdit, Clock, Check, Ban, ImagePlus } from 'lucide-react'
-import { Card, Field, Textarea, Button, cx } from '@/components/ui'
+import { TriangleAlert, Megaphone, Lightbulb, FileEdit, Clock, Check, Ban } from 'lucide-react'
+import { Card, cx } from '@/components/ui'
 import { useAsync } from '@/lib/useAsync'
-import { useApp } from '@/store'
 import { fechaHora } from '@/lib/format'
-import { comprimirImagen, type FotoComprimida } from '@/lib/imagen'
-import { crearPublicacion, misPublicaciones } from '@/lib/api'
-import type { Mensaje, MensajeEstado, MensajeDestino } from '@/types'
-
-const MAX_FOTOS = 2
-
-const hoyStr = () => { const d = new Date(); d.setHours(0, 0, 0, 0); return d.toISOString().slice(0, 10) }
-const masMeses = (n: number) => { const d = new Date(); d.setMonth(d.getMonth() + n); return d.toISOString().slice(0, 10) }
+import { misPublicaciones } from '@/lib/api'
+import type { Mensaje, MensajeEstado, MensajeTipo } from '@/types'
+import { AsistenteMensaje } from '@/features/mensajes/AsistenteMensaje'
 
 const ESTADO_META: Record<MensajeEstado, { label: string; cls: string; Icon: typeof Clock }> = {
   borrador: { label: 'Borrador', cls: 'bg-surface-2 text-muted', Icon: FileEdit },
@@ -21,43 +15,23 @@ const ESTADO_META: Record<MensajeEstado, { label: string; cls: string; Icon: typ
   rechazado: { label: 'No publicado', cls: 'bg-danger-soft text-danger-ink', Icon: Ban },
 }
 
-type FormState = {
-  tipo: 'incidencia' | 'anuncio' | 'sugerencia'
-  titulo: string
-  cuerpo: string
-  destino: MensajeDestino
-  publica: string
-  expira: string
-}
-
-/** Panel "Publicar" del buzón: el vecino reporta una incidencia o publica un
- *  anuncio; se guarda en `mensajes` (pendiente de aprobar / privado a admin). */
+/** Panel "Publicar" del buzón: el vecino reporta una incidencia, publica un
+ *  anuncio o propone una sugerencia. El formulario es el ASISTENTE ÚNICO
+ *  (`AsistenteMensaje`, v1.54.0), el mismo de Gestión → Mensajes y de
+ *  Sugerencias; aquí se abre con el tipo ya elegido, así que se salta el paso 1.
+ *  El comportamiento no cambia: sigue yendo a aprobación (o privado a admin). */
 export function PublicarPanel() {
-  const { toast } = useApp()
   const mias = useAsync(misPublicaciones, [])
-  const [form, setForm] = useState<FormState | null>(null)
-  const [busy, setBusy] = useState(false)
-  const [fotos, setFotos] = useState<FotoComprimida[]>([])
-  const [procesando, setProcesando] = useState(false)
+  const [tipoNuevo, setTipoNuevo] = useState<MensajeTipo | null>(null)
 
-  const limpiarFotos = () => { fotos.forEach((f) => URL.revokeObjectURL(f.url)); setFotos([]) }
-  const cerrar = () => { setForm(null); limpiarFotos() }
-
-  const abrir = (tipo: 'incidencia' | 'anuncio' | 'sugerencia') => {
-    limpiarFotos()
-    setForm({ tipo, titulo: '', cuerpo: '', destino: 'todos', publica: hoyStr(), expira: '' })
-  }
-
-  // Deep-link desde la invitación del tablón vacío de Inicio (HomePage/
-  // TablonGadget): /buzon?publicar=sugerencia abre el formulario YA en tipo
-  // sugerencia, sin que el vecino tenga que tocar "Sugerencia" a mano. Se
-  // limpia el parámetro tras abrir (replace) para que recargar la página o
-  // volver atrás no lo repita.
+  // Deep-link desde la invitación del tablón vacío de Inicio: /buzon?publicar=
+  // sugerencia abre el asistente YA en ese tipo. Se limpia el parámetro tras
+  // abrir (replace) para que recargar o volver atrás no lo repita.
   const [params, setParams] = useSearchParams()
   useEffect(() => {
     const tipo = params.get('publicar')
     if (tipo === 'incidencia' || tipo === 'anuncio' || tipo === 'sugerencia') {
-      abrir(tipo)
+      setTipoNuevo(tipo)
       const siguiente = new URLSearchParams(params)
       siguiente.delete('publicar')
       setParams(siguiente, { replace: true })
@@ -65,46 +39,6 @@ export function PublicarPanel() {
     // Solo al montar: solo nos importa el valor que traía la URL al entrar.
     // eslint-disable-next-line react-hooks/exhaustive-deps
   }, [])
-
-  const añadirFotos = async (files: FileList | null) => {
-    if (!files || files.length === 0) return
-    setProcesando(true)
-    try {
-      const hueco = MAX_FOTOS - fotos.length
-      for (const file of Array.from(files).slice(0, hueco)) {
-        try { const f = await comprimirImagen(file); setFotos((prev) => [...prev, f]) }
-        catch (e) { toast(e instanceof Error ? e.message : 'No se pudo añadir la foto', 'error') }
-      }
-    } finally { setProcesando(false) }
-  }
-  const quitarFoto = (i: number) => setFotos((prev) => { URL.revokeObjectURL(prev[i].url); return prev.filter((_, j) => j !== i) })
-
-  const valido = !!form && form.titulo.trim().length >= 3 && form.cuerpo.trim().length >= 3
-
-  const enviar = async (borrador: boolean) => {
-    if (!form || !valido) return
-    setBusy(true)
-    try {
-      await crearPublicacion({
-        tipo: form.tipo,
-        titulo: form.titulo.trim(),
-        cuerpo: form.cuerpo.trim(),
-        destino: form.destino,
-        publica_at: form.tipo === 'anuncio' && form.publica ? new Date(form.publica).toISOString() : undefined,
-        expira_at: form.tipo === 'anuncio' && form.expira ? new Date(form.expira).toISOString() : undefined,
-        borrador,
-        fotos: form.tipo !== 'sugerencia' && fotos.length ? fotos.map((f) => f.blob) : undefined,
-      })
-      const queTipo = form.tipo
-      if (borrador) toast('Guardado como borrador', 'info')
-      else if (form.destino === 'administracion') toast('Enviado a administración', 'ok')
-      else toast(`Se ha levantado tu ${queTipo}. Se publicará en cuanto la apruebe la administración.`, 'ok')
-      cerrar()
-      mias.refetch()
-    } catch {
-      toast('No se pudo enviar. Inténtalo de nuevo.', 'error')
-    } finally { setBusy(false) }
-  }
 
   const lista = mias.data ?? []
 
@@ -114,15 +48,15 @@ export function PublicarPanel() {
       <p className="-mt-1 text-[12.5px] text-muted">Reporta una incidencia o publica un anuncio. Antes de verse en la app lo revisa la administración.</p>
 
       <div className="grid grid-cols-3 gap-2">
-        <button type="button" onClick={() => abrir('incidencia')}
+        <button type="button" onClick={() => setTipoNuevo('incidencia')}
           className="flex flex-col items-center justify-center gap-1 rounded-[14px] border border-border bg-surface px-2 py-2.5 text-[12.5px] font-bold text-ink hover:bg-surface-2">
           <TriangleAlert size={19} className="text-danger" /> Incidencia
         </button>
-        <button type="button" onClick={() => abrir('anuncio')}
+        <button type="button" onClick={() => setTipoNuevo('anuncio')}
           className="flex flex-col items-center justify-center gap-1 rounded-[14px] border border-border bg-surface px-2 py-2.5 text-[12.5px] font-bold text-ink hover:bg-surface-2">
           <Megaphone size={19} className="text-primary" /> Anuncio
         </button>
-        <button type="button" onClick={() => abrir('sugerencia')}
+        <button type="button" onClick={() => setTipoNuevo('sugerencia')}
           className="flex flex-col items-center justify-center gap-1 rounded-[14px] border border-border bg-surface px-2 py-2.5 text-[12.5px] font-bold text-ink hover:bg-surface-2">
           <Lightbulb size={19} style={{ color: '#6D4AA3' }} /> Sugerencia
         </button>
@@ -154,97 +88,13 @@ export function PublicarPanel() {
         </div>
       )}
 
-      {/* Formulario */}
-      {form && (
-        <div className="app-viewport z-50 flex items-end justify-center bg-black/40 sm:items-center" onClick={cerrar}>
-          <div className="max-h-full w-full max-w-[520px] overflow-y-auto rounded-t-[20px] bg-surface p-5 shadow-xl sm:rounded-[20px]" onClick={(e) => e.stopPropagation()}>
-            <div className="mb-3 flex items-center justify-between">
-              <h3 className="font-display text-[18px] font-bold text-ink">
-                {form.tipo === 'incidencia' ? 'Reportar incidencia' : form.tipo === 'sugerencia' ? 'Nueva sugerencia' : 'Publicar anuncio'}
-              </h3>
-              <button onClick={cerrar} aria-label="Cerrar" className="rounded-full p-1.5 text-faint hover:bg-surface-2"><X size={20} /></button>
-            </div>
-
-            <div className="flex flex-col gap-3">
-              <Field label={form.tipo === 'incidencia' ? '¿Qué quieres reportar?' : form.tipo === 'sugerencia' ? '¿Qué quieres sugerir?' : '¿Qué quieres anunciar?'}
-                value={form.titulo} maxLength={140}
-                onChange={(e) => setForm({ ...form, titulo: e.target.value })}
-                placeholder={form.tipo === 'incidencia' ? 'Ej. Luz fundida en el portal 2' : form.tipo === 'sugerencia' ? 'Ej. Pedir 3 presupuestos antes de contratar' : 'Ej. Vendo bicicleta de niño'} />
-              <Textarea label={form.tipo === 'incidencia' ? 'Describe el problema' : form.tipo === 'sugerencia' ? 'Explica tu sugerencia' : 'Describe tu anuncio'}
-                value={form.cuerpo} maxLength={4000} rows={5}
-                onChange={(e) => setForm({ ...form, cuerpo: e.target.value })}
-                placeholder="Cuéntanos los detalles…" />
-
-              {form.tipo !== 'sugerencia' && (
-                <div>
-                  <div className="mb-1.5 text-[13px] font-semibold text-muted">Fotos (opcional, máx. {MAX_FOTOS})</div>
-                  <div className="flex flex-wrap gap-2">
-                    {fotos.map((f, i) => (
-                      <div key={f.url} className="relative h-20 w-20 overflow-hidden rounded-[12px] border border-border">
-                        <img src={f.url} alt={`Foto ${i + 1}`} className="h-full w-full object-cover" />
-                        <button type="button" onClick={() => quitarFoto(i)} aria-label="Quitar foto"
-                          className="absolute right-1 top-1 flex h-6 w-6 items-center justify-center rounded-full bg-black/60 text-white">
-                          <X size={14} />
-                        </button>
-                      </div>
-                    ))}
-                    {fotos.length < MAX_FOTOS && (
-                      <label className={cx('flex h-20 w-20 cursor-pointer flex-col items-center justify-center gap-1 rounded-[12px] border border-dashed border-border text-faint hover:bg-surface-2', procesando && 'pointer-events-none opacity-60')}>
-                        <ImagePlus size={20} />
-                        <span className="text-[10.5px] font-semibold">{procesando ? 'Procesando…' : 'Añadir'}</span>
-                        <input type="file" accept="image/*" multiple className="hidden"
-                          onChange={(e) => { void añadirFotos(e.target.files); e.target.value = '' }} />
-                      </label>
-                    )}
-                  </div>
-                  <p className="mt-1 text-[11.5px] text-faint">Se optimizan en tu móvil antes de subir y se elimina la ubicación de la foto.</p>
-                </div>
-              )}
-
-              {form.tipo === 'anuncio' && (
-                <div className="grid grid-cols-2 gap-3">
-                  <Field label="Se publica el" type="date" value={form.publica} min={hoyStr()} max={masMeses(2)}
-                    onChange={(e) => setForm({ ...form, publica: e.target.value })} />
-                  <Field label="Hasta (máx. 2 meses)" type="date" value={form.expira} min={form.publica || hoyStr()} max={masMeses(2)}
-                    onChange={(e) => setForm({ ...form, expira: e.target.value })} />
-                </div>
-              )}
-
-              {/* Destino */}
-              <div>
-                <div className="mb-1.5 text-[13px] font-semibold text-muted">¿Dónde lo publicas?</div>
-                <div className="grid grid-cols-1 gap-2">
-                  {([['todos', 'Para todos los vecinos', 'Se verá en el tablón (tras aprobación).'],
-                     ['administracion', 'Solo a administración', 'Privado: solo lo ve la gestión.']] as [MensajeDestino, string, string][]).map(([val, tit, sub]) => (
-                    <button key={val} type="button" onClick={() => setForm({ ...form, destino: val })}
-                      className={cx('flex items-start gap-2.5 rounded-[14px] border p-3 text-left transition-colors',
-                        form.destino === val ? 'border-primary bg-primary-soft' : 'border-border bg-surface hover:bg-surface-2')}>
-                      <span className={cx('mt-0.5 flex h-4 w-4 shrink-0 items-center justify-center rounded-full border-2',
-                        form.destino === val ? 'border-primary' : 'border-border')}>
-                        {form.destino === val && <span className="h-2 w-2 rounded-full bg-primary" />}
-                      </span>
-                      <span>
-                        <span className="block text-[14px] font-semibold text-ink">{tit}</span>
-                        <span className="block text-[12px] text-muted">{sub}</span>
-                      </span>
-                    </button>
-                  ))}
-                </div>
-              </div>
-
-              {form.destino === 'todos' && (
-                <p className="rounded-[12px] bg-warn-soft px-3 py-2 text-[12.5px] text-warn-ink">
-                  Al enviarlo se <b>levanta</b> y se manda a <b>aprobación</b>. Se publicará en cuanto lo apruebe la administración.
-                </p>
-              )}
-
-              <div className="flex gap-2">
-                <Button variant="secondary" disabled={busy || procesando || !valido} onClick={() => enviar(true)}><FileEdit size={17} /> Borrador</Button>
-                <Button block disabled={busy || procesando || !valido} onClick={() => enviar(false)}><Send size={17} /> {busy ? 'Enviando…' : 'Enviar'}</Button>
-              </div>
-            </div>
-          </div>
-        </div>
+      {/* Formulario */}      {tipoNuevo && (
+        <AsistenteMensaje
+          origen="buzon"
+          tipos={['incidencia', 'anuncio', 'sugerencia']}
+          tipoInicial={tipoNuevo}
+          onCerrar={() => setTipoNuevo(null)}
+          onHecho={mias.refetch} />
       )}
     </section>
   )

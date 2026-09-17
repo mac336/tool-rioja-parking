@@ -121,7 +121,7 @@ export interface Mensaje {
 }
 
 /** Estilo del post-it (decoración): temporadas + semánticos (warning/problem). */
-export type EstiloTemporada = 'primavera' | 'verano' | 'otono' | 'halloween' | 'navidad' | 'valentin' | 'carnaval' | 'ssanta' | 'warning' | 'problem'
+export type EstiloTemporada = 'primavera' | 'verano' | 'otono' | 'halloween' | 'navidad' | 'valentin' | 'carnaval' | 'ssanta' | 'warning' | 'problem' | 'idea'
 /** Importancia (avisos e incidencias). null/ausente = normal. */
 export type ImportanciaMensaje = 'media' | 'alta'
 

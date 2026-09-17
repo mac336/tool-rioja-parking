@@ -1,13 +1,14 @@
 import { useState } from 'react'
-import { Lightbulb, Heart, Plus, Send, X } from 'lucide-react'
+import { Lightbulb, Heart, Plus } from 'lucide-react'
 import { SubHeader, Page } from '@/components/layout/AppShell'
-import { Card, Field, Textarea, Button, Alert, EmptyState, ErrorState, SkeletonList, cx } from '@/components/ui'
+import { Card, EmptyState, ErrorState, SkeletonList, cx } from '@/components/ui'
 import { useAsync } from '@/lib/useAsync'
 import { TTL } from '@/lib/cache'
 import { useApp } from '@/store'
 import { puedePublicarTipo, esTester } from '@/lib/roles'
 import { fechaCorta } from '@/lib/format'
-import { listMensajes, alternarLike, crearMensaje } from '@/lib/api'
+import { listMensajes, alternarLike } from '@/lib/api'
+import { AsistenteMensaje } from '@/features/mensajes/AsistenteMensaje'
 import type { Mensaje } from '@/types'
 
 const LILA = '#6D4AA3'
@@ -43,27 +44,15 @@ export function SugerenciasPage() {
     }
   }
 
-  // Alta directa (solo administración con permiso).
-  const [form, setForm] = useState<{ titulo: string; cuerpo: string } | null>(null)
-  const [saving, setSaving] = useState(false)
-  const valido = !!form && form.titulo.trim().length >= 3 && form.cuerpo.trim().length >= 3
-
-  const publicar = async () => {
-    if (!form || !valido) return
-    setSaving(true)
-    try {
-      await crearMensaje({ tipo: 'sugerencia', titulo: form.titulo.trim(), cuerpo: form.cuerpo.trim() })
-      toast('Sugerencia publicada', 'ok')
-      setForm(null); refetch()
-    } catch {
-      toast('No se pudo publicar', 'error')
-    } finally { setSaving(false) }
-  }
+  // Alta directa (solo con permiso): usa el ASISTENTE ÚNICO (v1.54.0), el mismo
+  // de Gestión → Mensajes y del buzón, abierto ya en tipo sugerencia (salta el
+  // paso 1). Publica directo, igual que antes.
+  const [abierto, setAbierto] = useState(false)
 
   return (
     <div className="min-h-full bg-bg">
       <SubHeader titulo="Sugerencias" right={puede && (
-        <button onClick={() => setForm({ titulo: '', cuerpo: '' })} disabled={tester}
+        <button onClick={() => setAbierto(true)} disabled={tester}
           className="flex h-10 items-center gap-1.5 rounded-pill bg-primary px-3.5 text-[14px] font-bold text-white shadow-primary disabled:opacity-50">
           <Plus size={18} /> Nueva
         </button>
@@ -111,27 +100,13 @@ export function SugerenciasPage() {
       </Page>
 
       {/* Alta directa (administración) */}
-      {form && (
-        <div className="app-viewport z-50 flex items-end justify-center bg-black/40 sm:items-center" onClick={() => setForm(null)}>
-          <div className="max-h-full w-full max-w-[520px] overflow-y-auto rounded-t-[20px] bg-surface p-5 shadow-xl sm:rounded-[20px]" onClick={(e) => e.stopPropagation()}>
-            <div className="mb-3 flex items-center justify-between">
-              <h3 className="font-display text-[18px] font-bold text-ink">Nueva sugerencia</h3>
-              <button onClick={() => setForm(null)} aria-label="Cerrar" className="rounded-full p-1.5 text-faint hover:bg-surface-2"><X size={20} /></button>
-            </div>
-            <div className="flex flex-col gap-3">
-              <Field label="Título" value={form.titulo} maxLength={140}
-                onChange={(e) => setForm({ ...form, titulo: e.target.value })}
-                placeholder="Ej. Pedir 3 presupuestos antes de contratar" />
-              <Textarea label="Sugerencia" value={form.cuerpo} maxLength={4000} rows={5}
-                onChange={(e) => setForm({ ...form, cuerpo: e.target.value })}
-                placeholder="Explica la propuesta para la comunidad…" />
-              {tester && <Alert tipo="info">Cuenta de pruebas (Tester): solo lectura.</Alert>}
-              <Button block size="lg" disabled={saving || !valido || tester} onClick={publicar}>
-                <Send size={18} /> {saving ? 'Publicando…' : 'Publicar sugerencia'}
-              </Button>
-            </div>
-          </div>
-        </div>
+      {abierto && (
+        <AsistenteMensaje
+          origen="gestion"
+          tipos={['sugerencia']}
+          tipoInicial="sugerencia"
+          onCerrar={() => setAbierto(false)}
+          onHecho={refetch} />
       )}
     </div>
   )

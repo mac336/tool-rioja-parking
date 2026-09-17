@@ -213,6 +213,17 @@ export async function editarMensaje(id: string, input: MensajeInput): Promise<vo
 }
 
 export async function borrarMensaje(id: string): Promise<void> {
+  // Las fotos se borran ANTES y con la Storage API (mig. 0061): es lo único que
+  // libera el fichero de verdad — borrar la fila de `storage.objects` por SQL
+  // está PROHIBIDO por Supabase y tumbaba el borrado entero. Primero el fichero
+  // y luego el mensaje: si algo falla aquí, el mensaje sigue intacto y se puede
+  // reintentar; al revés perderíamos las rutas y el fichero quedaría huérfano.
+  const { data: adj } = await supabase.from('mensaje_adjuntos').select('path').eq('mensaje_id', id)
+  const paths = (adj ?? []).map((a) => a.path as string)
+  if (paths.length > 0) {
+    const { error: errFotos } = await supabase.storage.from('adjuntos').remove(paths)
+    if (errFotos) throw errFotos
+  }
   const { error } = await supabase.from('mensajes').delete().eq('id', id)
   if (error) throw error
   cacheBust('mensajes', 'avisos')

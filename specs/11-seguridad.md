@@ -96,6 +96,11 @@
   `Referrer-Policy`, `Strict-Transport-Security`, `X-Frame-Options`/CSP
   `frame-ancestors` para evitar *clickjacking*.
 - CORS de Supabase limitado a los dominios de la app.
+- ⚠️ **`img-src` tiene que incluir `https://*.supabase.co`**: las fotos de las
+  incidencias (bucket `adjuntos`, URL firmada) son de **otro origen**. Sin ello el
+  navegador las bloquea en silencio y parece un fallo de permisos cuando no lo es
+  (ocurrió en producción; corregido en v1.52.0). No basta con tenerlo en
+  `connect-src`: cada directiva se evalúa por separado.
 
 ### Integridad de encuestas
 - `UNIQUE(encuesta_id, vivienda)` + RLS: **un voto por vivienda**, solo con

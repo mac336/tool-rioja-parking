@@ -1,7 +1,7 @@
 import { useLayoutEffect, useRef, useState } from 'react'
 import { Adjuntos } from '@/components/Adjuntos'
 import { useNavigate } from 'react-router-dom'
-import { X, ChevronLeft, ChevronRight, TriangleAlert, Megaphone, Lightbulb, Heart, Pencil } from 'lucide-react'
+import { X, ChevronLeft, ChevronRight, TriangleAlert, Megaphone, Lightbulb, Heart, Pencil, Images } from 'lucide-react'
 import type { Mensaje, MensajeTipo, ImportanciaMensaje } from '@/types'
 import { POSTIT, TEMPORADAS, fechaMano, caducaTexto, paperDegradado, cintaWashi, CINTA_URGENTE, IMPORTANCIA_COLOR, gradoDe, pastelHex } from './postit'
 import { MotivoTemporada } from './MotivoTemporada'
@@ -108,6 +108,7 @@ function PostItHome({ m, rot, onClick }: { m: Mensaje; rot: string; onClick: () 
   const pastel = pastelHex(m.color)
   const papel = pastel ? (t ? paperDegradado(pastel, t.tint) : pastel) : (t ? paperDegradado(t.paper, t.tint) : e.paper)
   const urgente = importanciaDe(m) === 'alta'
+  const nFotos = m.adjuntos?.length ?? 0
   const { ref, lineas } = useLineasQueCaben(19.5)
   return (
     <div role="button" tabIndex={0} onClick={onClick}
@@ -166,21 +167,31 @@ function PostItHome({ m, rot, onClick }: { m: Mensaje; rot: string; onClick: () 
             ? `— ${m.autor_nombre ?? 'Vecino'}${m.autor_vivienda ? ` · ${m.autor_vivienda}` : ''}`
             : (m.firma ? `— ${m.firma}` : '')}
         </span>
-        {m.tipo === 'sugerencia' ? (
-          <span className="flex shrink-0 items-center gap-1 text-[12px] font-bold" style={{ color: tint }}>
-            <Heart size={13} fill={m.yo_like ? tint : 'none'} /> {m.likes ?? 0}
-          </span>
-        ) : (
-          <span className="flex shrink-0 items-center gap-1.5">
-            {m.tipo === 'aviso' && m.expira_at && (
-              <span className="inline-block px-[7px] py-0.5 text-[9px] font-extrabold uppercase tracking-[0.1em]"
-                style={{ color: tint, border: `1px dashed ${tint}`, borderRadius: '3px', transform: 'rotate(-1.5deg)', opacity: 0.75 }}>
-                {caducaTexto(m.expira_at)}
-              </span>
-            )}
-            <SelloPie m={m} />
-          </span>
-        )}
+        <span className="flex shrink-0 items-center gap-1.5">
+          {/* Aviso de que la nota lleva fotos: al pulsarla, el visor las muestra. */}
+          {nFotos > 0 && (
+            <span className="flex items-center gap-1 rounded-pill px-[7px] py-0.5 text-[11px] font-extrabold"
+              style={{ color: tint, background: `${tint}1f` }}
+              aria-label={`${nFotos} ${nFotos === 1 ? 'foto' : 'fotos'}`}>
+              <Images size={12} /> {nFotos}
+            </span>
+          )}
+          {m.tipo === 'sugerencia' ? (
+            <span className="flex shrink-0 items-center gap-1 text-[12px] font-bold" style={{ color: tint }}>
+              <Heart size={13} fill={m.yo_like ? tint : 'none'} /> {m.likes ?? 0}
+            </span>
+          ) : (
+            <>
+              {m.tipo === 'aviso' && m.expira_at && (
+                <span className="inline-block px-[7px] py-0.5 text-[9px] font-extrabold uppercase tracking-[0.1em]"
+                  style={{ color: tint, border: `1px dashed ${tint}`, borderRadius: '3px', transform: 'rotate(-1.5deg)', opacity: 0.75 }}>
+                  {caducaTexto(m.expira_at)}
+                </span>
+              )}
+              <SelloPie m={m} />
+            </>
+          )}
+        </span>
       </div>
     </div>
   )

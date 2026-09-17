@@ -259,4 +259,17 @@ se pueden adjuntar **1–2 fotos**:
 - **Limpieza:** al borrar el mensaje, el cascade borra las filas y un **trigger**
   borra el objeto de Storage. Los ficheros no quedan huérfanos.
 - Se ven en el tablón (visor), en "Mis publicaciones" y en Gestión →
-  Publicaciones (el moderador ve la foto antes de aprobar).
+  Publicaciones (el moderador ve la foto antes de aprobar). En la **nota de la
+  Home** no caben, así que el post-it muestra un **distintivo con el nº de fotos**
+  (icono + número, v1.52.0); al pulsar la nota, el visor las despliega bajo el
+  cuerpo del mensaje.
+- ⚠️ **La CSP debe permitir Supabase en `img-src`.** Las fotos se sirven desde
+  `https://<proyecto>.supabase.co/storage/...`, que es **otro origen**: con
+  `img-src 'self' data: blob:` el navegador las bloquea y no se ve ninguna, aunque
+  el fichero, la RLS y la URL firmada estén perfectos (fallo real en producción,
+  v1.52.0). Ver `specs/11`.
+- ⚠️ **El reencodado a WebP no siempre ocurre.** `canvas.toBlob(cb,'image/webp',q)`
+  **cae a PNG en silencio** si el navegador no sabe codificar WebP (Safari/iOS), y
+  PNG ignora la calidad, así que el bucle de `imagen.ts` no reduce el tamaño. Se
+  sube entonces un PNG de ~2 MB con nombre `.webp` (el redimensionado a 1600 px y
+  el borrado de EXIF sí se aplican). Queda cerca del tope de 3 MB del bucket.

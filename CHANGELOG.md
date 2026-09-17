@@ -3,6 +3,20 @@
 Cambios funcionales relevantes, más recientes arriba. Cada entrada nueva se añade
 al implementar el cambio (ver `CLAUDE.md` → Forma de trabajo).
 
+## 2026-09-17
+
+- **v1.52.0 · Las fotos de las incidencias vuelven a verse + aviso en la nota:**
+  - **Arreglo:** las fotos no se veían **por la CSP**. `img-src` era
+    `'self' data: blob:` y las fotos se sirven desde
+    `https://<proyecto>.supabase.co/storage/...` (otro origen), así que el
+    navegador las bloqueaba. El fichero, la RLS y la URL firmada estaban bien; solo
+    faltaba el permiso. Añadido `https://*.supabase.co` a `img-src`
+    (`connect-src` ya lo tenía: cada directiva va por su cuenta).
+  - **Nuevo:** el post-it de la Home muestra un **distintivo con el nº de fotos**
+    cuando la nota lleva; al pulsarla, el visor las despliega bajo el texto.
+  - Detectado de paso (sin corregir): en Safari/iOS el reencodado a WebP **cae a
+    PNG en silencio**, así que se suben ~2 MB en vez de ≤800 KB. Ver `specs/16`.
+
 ## 2026-09-06
 
 - **v1.51.0 · Ceder plaza de parking: SUSPENDIDO:** decisión del usuario —

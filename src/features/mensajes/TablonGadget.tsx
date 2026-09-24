@@ -1,12 +1,12 @@
 import { useLayoutEffect, useRef, useState } from 'react'
 import { Adjuntos } from '@/components/Adjuntos'
 import { useNavigate } from 'react-router-dom'
-import { X, ChevronLeft, ChevronRight, TriangleAlert, Megaphone, Lightbulb, Heart, Pencil, Images, MessageCircle } from 'lucide-react'
+import { X, ChevronLeft, ChevronRight, TriangleAlert, Megaphone, Lightbulb, Heart, Pencil, Images } from 'lucide-react'
 import type { Mensaje, MensajeTipo, ImportanciaMensaje } from '@/types'
 import { POSTIT, TEMPORADAS, fechaMano, caducaTexto, paperDegradado, cintaWashi, CINTA_URGENTE, IMPORTANCIA_COLOR, gradoDe, pastelHex, pieAutoria } from './postit'
 import { MotivoTemporada } from './MotivoTemporada'
 import { alternarLike, contarComentarios } from '@/lib/api'
-import { Comentarios } from './Comentarios'
+import { AccionesTarjeta } from './AccionesTarjeta'
 import { cx } from '@/components/ui'
 
 // Color del icono/tinte según importancia (solo avisos): media=ámbar, alta=rojo.
@@ -107,6 +107,7 @@ function useLineasQueCaben(lineaPx: number, minimo = 2) {
 }
 
 function PostItHome({ m, rot, onClick }: { m: Mensaje; rot: string; onClick: () => void }) {
+  const tarjetaRef = useRef<HTMLDivElement>(null)
   const e = POSTIT[m.tipo]
   const t = m.estilo ? TEMPORADAS[m.estilo] : null
   const tint = t ? t.tint : e.tint
@@ -118,7 +119,7 @@ function PostItHome({ m, rot, onClick }: { m: Mensaje; rot: string; onClick: () 
   const nCom = m.comentarios ?? 0
   const { ref, lineas } = useLineasQueCaben(19.5)
   return (
-    <div role="button" tabIndex={0} onClick={onClick}
+    <div ref={tarjetaRef} role="button" tabIndex={0} onClick={onClick}
       onKeyDown={(ev) => { if (ev.key === 'Enter' || ev.key === ' ') { ev.preventDefault(); onClick() } }}
       className="relative flex h-full w-[84%] shrink-0 cursor-pointer snap-center flex-col rounded-[8px] px-4 pb-3 pt-4"
       style={{
@@ -181,13 +182,6 @@ function PostItHome({ m, rot, onClick }: { m: Mensaje; rot: string; onClick: () 
               <Images size={12} /> {nFotos}
             </span>
           )}
-          {nCom > 0 && (
-            <span className="flex items-center gap-1 rounded-pill px-[7px] py-0.5 text-[11px] font-extrabold"
-              style={{ color: tint, background: `${tint}1f` }}
-              aria-label={`${nCom} ${nCom === 1 ? 'comentario' : 'comentarios'}`}>
-              <MessageCircle size={12} /> {nCom}
-            </span>
-          )}
           {m.tipo === 'sugerencia' ? (
             <span className="flex shrink-0 items-center gap-1 text-[12px] font-bold" style={{ color: tint }}>
               <Heart size={13} fill={m.yo_like ? tint : 'none'} /> {m.likes ?? 0}
@@ -205,6 +199,15 @@ function PostItHome({ m, rot, onClick }: { m: Mensaje; rot: string; onClick: () 
           )}
         </span>
       </div>
+
+      {/* Acciones al estilo de las redes: comentar (abre el popup) y compartir.
+          También aquí, en la HOME, sin tener que abrir la tarjeta antes. */}
+      {admiteComentarios(m.tipo) && (
+        <div className="relative mt-1.5 flex shrink-0 justify-start border-t border-black/[0.07] pt-1.5">
+          <AccionesTarjeta compacto mensajeId={m.id} titulo={m.titulo} nComentarios={nCom}
+            tint={tint} nodoCaptura={() => tarjetaRef.current} />
+        </div>
+      )}
     </div>
   )
 }
@@ -299,6 +302,7 @@ export function TablonGadget({ mensajes, className, puedeProponerSugerencia = tr
 const TIPO_LABEL: Record<MensajeTipo, string> = { incidencia: 'Incidencia', aviso: 'Aviso', anuncio: 'Anuncio', sugerencia: 'Sugerencia' }
 
 function PostItVisor({ lista, inicial, onClose }: { lista: Mensaje[]; inicial: number; onClose: () => void }) {
+  const tarjetaVisorRef = useRef<HTMLDivElement>(null)
   const [idx, setIdx] = useState(inicial)
   const toque = useRef<{ x: number; y: number } | null>(null)
   const m = lista[idx]
@@ -355,7 +359,8 @@ function PostItVisor({ lista, inicial, onClose }: { lista: Mensaje[]; inicial: n
             const urgente = importanciaDe(msg) === 'alta'
             return (
               <div key={msg.id} className="flex h-full w-full shrink-0 items-center justify-center px-7 py-3">
-                <div className="relative flex max-h-full w-full max-w-[330px] flex-col rounded-[10px] px-6 pb-6 pt-6"
+                <div ref={i === idx ? tarjetaVisorRef : null}
+                  className="relative flex max-h-full w-full max-w-[330px] flex-col rounded-[10px] px-6 pb-6 pt-6"
                   style={{
                     background: papel, transform: `rotate(${i % 2 ? '0.8deg' : '-0.8deg'})`,
                     boxShadow: '0 20px 50px -18px rgba(0,0,0,.8), 0 1px 0 rgba(255,255,255,.7) inset', minHeight: '55%',
@@ -389,12 +394,13 @@ function PostItVisor({ lista, inicial, onClose }: { lista: Mensaje[]; inicial: n
                   <div className="relative mt-3 min-h-0 flex-1 overflow-y-auto">
                     <p className="whitespace-pre-wrap text-[15px] leading-[1.55]" style={{ color: '#4A5B66' }}>{msg.cuerpo}</p>
                     <Adjuntos urls={msg.adjuntos} />
-                    {admiteComentarios(msg.tipo) && (
-                      <div className="mt-3 rounded-[12px] bg-black/75 px-3 py-2">
-                        <Comentarios mensajeId={msg.id} />
-                      </div>
-                    )}
                   </div>
+                  {admiteComentarios(msg.tipo) && (
+                    <div className="relative mt-3 flex shrink-0 justify-start border-t border-black/[0.07] pt-2">
+                      <AccionesTarjeta mensajeId={msg.id} titulo={msg.titulo} nComentarios={msg.comentarios ?? 0}
+                        tint={tint} nodoCaptura={() => tarjetaVisorRef.current} />
+                    </div>
+                  )}
                   <div className="relative mt-4 flex shrink-0 items-end justify-between gap-2">
                     <span style={{ fontFamily: 'var(--font-hand)', fontSize: '18px', color: '#5C7180', opacity: 0.9 }}>
                       {pieAutoria(msg)}

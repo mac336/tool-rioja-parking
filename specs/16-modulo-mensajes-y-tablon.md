@@ -301,10 +301,18 @@ una columna `text` libre, así que **no hizo falta migración**.
 
 ## Comentarios en las tarjetas (mig. 0063, v1.56.0)
 
-El vecino **responde** a una tarjeta desde el **visor** a pantalla completa, estilo
-«respuesta». Nunca desde el post-it de la Home: la Home es un panel de gadgets
-**sin scroll** (`specs/10`), así que ahí solo va el **contador** (icono + número,
-junto al de fotos).
+Cada tarjeta lleva al pie una **barra de acciones discreta**, al estilo de las
+redes (iconos de trazo, sin fondo): **comentar** y **compartir**. Está en los
+**dos** sitios —el post-it del tablón de la Home y el visor— y hace lo mismo en
+ambos, así que no hace falta abrir la tarjeta para responder (v1.57.0).
+
+- **Comentar** abre un **popup** (`ComentariosModal`): hoja inferior en móvil,
+  diálogo centrado en escritorio. Ahí se leen los comentarios y se escribe el
+  propio. El icono muestra el **número** al lado cuando hay alguno, y se
+  actualiza al instante al comentar o borrar (contador local: no espera a que
+  caduque la caché de 2 min del tablón).
+- El hilo **ya no va incrustado** en el visor: ocupaba demasiado y obligaba a
+  abrir la tarjeta. La Home sigue **sin scroll** (`specs/10`).
 
 - **Dónde se puede:** incidencias, anuncios y sugerencias. Los **avisos NO**: son
   comunicados de la administración y no queremos que un corte de agua se
@@ -326,6 +334,23 @@ junto al de fotos).
   cascade`), igual que los likes y las fotos. No hay purga automática: los borra
   el **app_admin** desde la pestaña **Caducados**.
 - Máximo **1000 caracteres** por comentario (constraint en BD).
+
+### Compartir una tarjeta como imagen (v1.57.0)
+El botón de **compartir** genera un **PNG del post-it** y lo entrega al **menú
+nativo** del móvil (Web Share API con ficheros: WhatsApp, Telegram, correo…).
+
+- `src/lib/compartir.ts`, con **`html-to-image` cargado por `import()` dinámico**:
+  el arranque de la app va justo contra el objetivo de <200 KB gzip de
+  `specs/10`, así que la librería queda en un **chunk aparte** (~5 KB gzip) que
+  solo se descarga la primera vez que alguien pulsa Compartir.
+- La barra de acciones se marca con `data-no-captura="1"` y se **excluye** de la
+  foto, para que no salgan los botones dentro de la imagen.
+- **Sin Web Share de ficheros** (escritorio, iOS antiguo) se **descarga** el PNG.
+  Si el usuario cierra la hoja de compartir no se avisa de nada: no es un error.
+- ⚠️ **Privacidad:** la imagen incluye el **pie de autoría** (nombre · piso), así
+  que compartirla fuera de la comunidad saca datos de un vecino. Es una decisión
+  consciente —es lo que hace útil compartir una incidencia— pero conviene tenerlo
+  presente si algún día se revisa el aviso de privacidad (`specs/10`).
 
 ### Cerrar una incidencia y la pestaña «Caducados»
 Las incidencias **no caducan solas** (`esActividadDeTablon` las devuelve siempre),

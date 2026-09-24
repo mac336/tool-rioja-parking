@@ -3,6 +3,19 @@
 Cambios funcionales relevantes, más recientes arriba. Cada entrada nueva se añade
 al implementar el cambio (ver `CLAUDE.md` → Forma de trabajo).
 
+- **v1.57.0 · Comentar y compartir desde la propia tarjeta:** cada tarjeta lleva
+  ahora al pie una **barra discreta** al estilo de las redes, con **comentar** y
+  **compartir**, tanto en el **tablón de Inicio** como en el visor.
+  - **Comentar** abre un **popup** con el hilo: se leen los comentarios de los
+    demás y se escribe el propio sin salir de donde estabas. Ya no hace falta
+    abrir la tarjeta primero. El número junto al icono se actualiza al instante.
+  - **Compartir** genera una **captura de la tarjeta** y la pasa al menú del
+    móvil (WhatsApp, Telegram, correo…), como en cualquier app. En escritorio,
+    donde no existe ese menú, descarga la imagen. Los propios botones no salen
+    en la foto.
+  - La librería de captura se descarga **solo al pulsar Compartir** (chunk
+    aparte, ~5 KB gzip): el arranque de la app no engorda por esto.
+
 ## 2026-09-24
 
 - **v1.56.0 · Comentarios en las tarjetas del tablón (mig. 0063):** los vecinos

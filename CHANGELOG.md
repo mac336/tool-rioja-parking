@@ -3,6 +3,16 @@
 Cambios funcionales relevantes, más recientes arriba. Cada entrada nueva se añade
 al implementar el cambio (ver `CLAUDE.md` → Forma de trabajo).
 
+- **v1.58.0 · Se acabaron las pantallas girando para siempre:** el cliente de
+  Supabase no tenía **ningún límite de espera**. Una petición atascada no falla
+  nunca —ni resuelve ni rechaza— y como la app solo reacciona a errores, la
+  pantalla se quedaba cargando indefinidamente (pasaba en **Vecinos** y en el
+  **login**, que se quedaba en «Entrando…»). Ahora hay un tope de **20 s** (90 s
+  para subir fotos, que con mala cobertura tardan más): al agotarse, la pantalla
+  muestra su **error con botón de reintentar** en vez de girar sin fin.
+  - Diagnóstico: los picos venían del **servidor de Auth** de Supabase (12–21 s
+    en `/auth/v1/`), no de la base de datos, que respondía en 50–170 ms.
+
 - **v1.57.0 · Comentar y compartir desde la propia tarjeta:** cada tarjeta lleva
   ahora al pie una **barra discreta** al estilo de las redes, con **comentar** y
   **compartir**, tanto en el **tablón de Inicio** como en el visor.

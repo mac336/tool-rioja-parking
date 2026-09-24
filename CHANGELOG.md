@@ -3,6 +3,14 @@
 Cambios funcionales relevantes, más recientes arriba. Cada entrada nueva se añade
 al implementar el cambio (ver `CLAUDE.md` → Forma de trabajo).
 
+- **v1.58.1 · Arreglado: el icono de comentarios no abría el popup.** Al pulsarlo
+  en el tablón de Inicio solo se oscurecía la propia tarjeta y no aparecía nada.
+  El post-it está **ligeramente girado** (`transform`), y en CSS un ancestro con
+  `transform` se convierte en el marco de referencia de sus hijos `fixed`: el
+  popup quedaba **encerrado dentro de la nota** en vez de ocupar la pantalla.
+  Ahora se monta fuera del árbol (portal). El **visor de fotos** tenía el mismo
+  fallo latente por el mismo motivo y queda arreglado de paso.
+
 - **v1.58.0 · La app pide 24 cosas menos a la red en cada pantalla:** cada
   función de datos llamaba a `auth.getUser()`, y eso es **siempre un viaje al
   servidor de Auth**. Una sola carga de Inicio disparaba un puñado de ellos, y

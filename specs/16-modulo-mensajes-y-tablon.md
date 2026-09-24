@@ -306,6 +306,12 @@ redes (iconos de trazo, sin fondo): **comentar** y **compartir**. Está en los
 **dos** sitios —el post-it del tablón de la Home y el visor— y hace lo mismo en
 ambos, así que no hace falta abrir la tarjeta para responder (v1.57.0).
 
+- ⚠️ El popup y el visor de fotos se montan con **`createPortal` en `<body>`**.
+  El post-it lleva `transform: rotate(...)`, y **un ancestro con `transform` pasa
+  a ser el marco de referencia de sus hijos `position: fixed`**: sin el portal,
+  `.app-viewport` quedaba encerrado DENTRO de la tarjeta (se veía el velo oscuro
+  sobre el post-it y el popup no aparecía). Cualquier ventana nueva que se monte
+  dentro de un post-it necesita lo mismo.
 - **Comentar** abre un **popup** (`ComentariosModal`): hoja inferior en móvil,
   diálogo centrado en escritorio. Ahí se leen los comentarios y se escribe el
   propio. El icono muestra el **número** al lado cuando hay alguno, y se

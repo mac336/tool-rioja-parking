@@ -2,6 +2,7 @@
 // tarjeta, tanto en el tablón de la HOME como en el visor. Hoja inferior en
 // móvil y diálogo centrado en escritorio, con `.app-viewport` para que el
 // teclado de iOS no descuadre la pantalla (specs/10 § Layout app-shell).
+import { createPortal } from 'react-dom'
 import { X } from 'lucide-react'
 import { Comentarios } from './Comentarios'
 
@@ -11,7 +12,12 @@ export function ComentariosModal({ mensajeId, titulo, onCerrar, onCambio }: {
   onCerrar: () => void
   onCambio?: (n: number) => void
 }) {
-  return (
+  // PORTAL a <body> a propósito: el post-it tiene `transform: rotate(...)`, y un
+  // ancestro con transform pasa a ser el marco de referencia de sus hijos
+  // `position: fixed`. Sin el portal, `.app-viewport` se quedaba encerrado
+  // DENTRO de la tarjeta: se veía el velo oscuro sobre el post-it y el popup no
+  // aparecía por ningún lado.
+  return createPortal(
     <div className="app-viewport z-[70] flex items-end justify-center bg-black/45 sm:items-center"
       onClick={onCerrar}>
       <div className="flex max-h-full w-full max-w-[520px] flex-col rounded-t-[20px] bg-surface p-4 shadow-xl sm:rounded-[20px]"
@@ -26,6 +32,7 @@ export function ComentariosModal({ mensajeId, titulo, onCerrar, onCambio }: {
         </div>
         <Comentarios mensajeId={mensajeId} onCambio={onCambio} />
       </div>
-    </div>
+    </div>,
+    document.body,
   )
 }

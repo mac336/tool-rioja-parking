@@ -1,4 +1,5 @@
 import { useState } from 'react'
+import { createPortal } from 'react-dom'
 import { X } from 'lucide-react'
 
 /** Galería de fotos de un mensaje (URLs firmadas). Miniaturas + visor a pantalla
@@ -17,13 +18,17 @@ export function Adjuntos({ urls, size = 84 }: { urls?: string[]; size?: number }
           </button>
         ))}
       </div>
-      {full && (
+      {/* Portal por lo mismo que el popup de comentarios: el post-it que contiene
+          estas fotos lleva `transform`, y eso encerraría el visor a pantalla
+          completa dentro de la tarjeta. */}
+      {full && createPortal(
         <div className="app-viewport z-[60] flex items-center justify-center bg-black/90 p-4" onClick={() => setFull(null)}>
           <button aria-label="Cerrar" className="absolute right-4 top-[calc(env(safe-area-inset-top)+12px)] flex h-10 w-10 items-center justify-center rounded-full bg-white/15 text-white">
             <X size={22} />
           </button>
           <img src={full} alt="Foto" className="max-h-full max-w-full rounded-[12px] object-contain" onClick={(e) => e.stopPropagation()} />
-        </div>
+        </div>,
+        document.body,
       )}
     </>
   )

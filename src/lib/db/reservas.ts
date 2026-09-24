@@ -3,7 +3,7 @@
 // dejan propagar como error. Una reserva puede abarcar VARIAS zonas en el mismo
 // horario: son N filas que comparten `grupo_id` y se gestionan en bloque.
 // Firmas idénticas al mock (src/lib/apiMock.ts).
-import { supabase } from '@/lib/supabase'
+import { supabase, usuarioActual } from '@/lib/supabase'
 import { cacheBust } from '@/lib/cache'
 import { getConfig } from './config'
 import type { Reserva, ReservaGrupo, CrearReservaInput, ZonaComun } from '@/types'
@@ -51,7 +51,7 @@ function agrupar(rows: Reserva[]): ReservaGrupo[] {
 
 /** Usuario autenticado + su vivienda (desde profiles). */
 async function sesion(): Promise<{ userId: string; vivienda: string }> {
-  const { data: { user } } = await supabase.auth.getUser()
+  const user = await usuarioActual()
   if (!user) throw new Error('No autenticado')
   const { data, error } = await supabase.from('profiles')
     .select('vivienda').eq('id', user.id).single()
@@ -73,7 +73,7 @@ export async function listZonas(): Promise<ZonaComun[]> {
 
 // ---- Reservas del usuario (agrupadas) ----------------------------------------
 export async function misReservas(): Promise<ReservaGrupo[]> {
-  const { data: { user } } = await supabase.auth.getUser()
+  const user = await usuarioActual()
   if (!user) throw new Error('No autenticado')
   const { data, error } = await supabase.from('reservas')
     .select(RESERVA_SELECT)
@@ -210,7 +210,7 @@ export async function reservasGestion(desdeISO: string, hastaISO: string): Promi
 /** Aprobar/rechazar un grupo de reserva pendiente (gestión). */
 export async function resolverReserva(grupoId: string, aprobar: boolean, motivo?: string): Promise<void> {
   if (!UUID_RE.test(grupoId)) throw new Error('Identificador de reserva no válido.')
-  const { data: { user } } = await supabase.auth.getUser()
+  const user = await usuarioActual()
   if (!user) throw new Error('No autenticado')
   const { error } = await supabase.from('reservas')
     .update({ estado: aprobar ? 'aprobada' : 'rechazada', motivo_rechazo: motivo ?? null, aprobada_por: user.id })

@@ -4,7 +4,7 @@
 // (destino=todos) o como reporte privado a administración (destino=administracion).
 // La visibilidad y la edición son POR TIPO (permisos ver_<tipo>/publicar_<tipo>).
 // Estado, destino y visibilidad los impone la RLS (migraciones 0031 y 0040).
-import { supabase } from '@/lib/supabase'
+import { supabase, usuarioActual } from '@/lib/supabase'
 import type { Mensaje, MensajeTipo, MensajeDestino } from '@/types'
 import { cacheBust } from '@/lib/cache'
 import { contarComentarios } from './comentarios'
@@ -40,7 +40,7 @@ export async function listMensajes(): Promise<Mensaje[]> {
   if (sugerencias.length === 0) return msgs.map((m) => (m.firma ? m : conAutor(m)))
   // Likes de esas sugerencias.
   const ids = sugerencias.map((m) => m.id)
-  const { data: { user } } = await supabase.auth.getUser()
+  const user = await usuarioActual()
   let miVivienda = ''
   if (user) { const { data: p } = await supabase.from('profiles').select('vivienda').eq('id', user.id).single(); miVivienda = (p?.vivienda as string) ?? '' }
   const { data: likes } = await supabase.from('mensaje_likes').select('mensaje_id, vivienda').in('mensaje_id', ids)
@@ -59,7 +59,7 @@ export async function listMensajes(): Promise<Mensaje[]> {
 
 /** Da o quita el "me gusta" de mi vivienda a una sugerencia. */
 export async function alternarLike(mensajeId: string, dar: boolean): Promise<void> {
-  const { data: { user } } = await supabase.auth.getUser()
+  const user = await usuarioActual()
   if (!user) throw new Error('No autenticado')
   const { data: perfil } = await supabase.from('profiles').select('vivienda').eq('id', user.id).single()
   const vivienda = perfil?.vivienda as string | null
@@ -91,7 +91,7 @@ async function subirFotos(mensajeId: string, fotos: Blob[] | undefined): Promise
 
 /** Gestión publica directamente (estado=publicado, destino=todos). */
 export async function crearMensaje(input: MensajeInput): Promise<Mensaje> {
-  const { data: { user } } = await supabase.auth.getUser()
+  const user = await usuarioActual()
   const { data, error } = await supabase.from('mensajes')
     .insert({
       tipo: input.tipo, titulo: input.titulo, cuerpo: input.cuerpo,
@@ -123,7 +123,7 @@ export interface PublicacionInput {
  *  (o borrador); destino=administracion → reporte privado (publicado para la
  *  gestión). */
 export async function crearPublicacion(input: PublicacionInput): Promise<Mensaje> {
-  const { data: { user } } = await supabase.auth.getUser()
+  const user = await usuarioActual()
   if (!user) throw new Error('No autenticado')
   const estado = input.destino === 'administracion' ? 'publicado' : (input.borrador ? 'borrador' : 'pendiente')
   const { data, error } = await supabase.from('mensajes')
@@ -181,7 +181,7 @@ async function conAdjuntos(msgs: Mensaje[]): Promise<Mensaje[]> {
 
 /** Mis publicaciones (las que yo he enviado): borradores, pendientes, etc. */
 export async function misPublicaciones(): Promise<Mensaje[]> {
-  const { data: { user } } = await supabase.auth.getUser()
+  const user = await usuarioActual()
   if (!user) return []
   const { data, error } = await supabase.from('mensajes')
     .select('*').eq('created_by', user.id).order('created_at', { ascending: false })

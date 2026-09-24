@@ -1,10 +1,10 @@
 // Suscripciones push del usuario — implementación real (Supabase).
 // El envío lo hace el servidor; aquí solo guardamos/quitamos la suscripción del
 // dispositivo. Firmas idénticas al mock.
-import { supabase } from '@/lib/supabase'
+import { supabase, usuarioActual } from '@/lib/supabase'
 
 export async function guardarSuscripcionPush(sub: PushSubscriptionJSON, userAgent: string): Promise<void> {
-  const { data: { user } } = await supabase.auth.getUser()
+  const user = await usuarioActual()
   if (!user) throw new Error('No autenticado')
   const keys = sub.keys ?? { p256dh: '', auth: '' }
   const { error } = await supabase.from('push_subscriptions').upsert({

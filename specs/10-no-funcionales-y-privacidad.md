@@ -87,6 +87,23 @@
   desde el icono) el paso 2 se omite.
 
 ## Rendimiento
+### Llamadas a la red y atascos (v1.58.0)
+Diagnóstico del 24-09-2026, con la app quedándose «cargando» sin fin en Vecinos y
+en el login: los picos **no eran de la base de datos** (50–170 ms, 14 MB, 100 % de
+aciertos de caché) sino del **servidor de Auth** de Supabase — 12–21 s medidos en
+`/auth/v1/token` y `/auth/v1/user`. Dos reglas que salen de ahí:
+
+- **Nunca `auth.getUser()` en una función de datos.** Hace SIEMPRE un viaje a
+  `/auth/v1/user`; había **24** repartidos por `lib/db/*`, así que una sola carga
+  de la Home disparaba un puñado. Se usa **`usuarioActual()`**
+  (`lib/supabase.ts`), que lee la sesión de local **sin red**. Basta, porque
+  quien decide es la **RLS** leyendo el JWT en el servidor. `getUser()` se
+  mantiene solo en `session.ts`, la puerta de entrada.
+- **El cliente tiene tope de espera**: 20 s (90 s en Storage, que sube fotos).
+  Sin él una petición colgada no falla nunca y `useAsync` —que solo reacciona a
+  errores— deja la pantalla girando para siempre.
+
+
 - App ligera: carga inicial rápida en móvil (objetivo < 200 KB JS inicial
   comprimido; *code-splitting* por módulo).
 - Listados paginados si crecen (incidencias, reservas).

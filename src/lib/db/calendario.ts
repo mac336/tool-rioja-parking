@@ -3,7 +3,7 @@
 // (cal_sel deja leer a cualquier cuenta activa; cal_ins/cal_upd/cal_del exigen
 // el permiso 'gestionar_calendario'), las constraints de BD se propagan como
 // error. Firmas idénticas al mock (src/lib/apiMock.ts). specs/21.
-import { supabase } from '@/lib/supabase'
+import { supabase, usuarioActual } from '@/lib/supabase'
 import { cacheBust } from '@/lib/cache'
 import type { EventoCalendario, TipoEvento } from '@/types'
 
@@ -26,7 +26,7 @@ export async function listEventos(): Promise<EventoCalendario[]> {
 
 /** created_by = auth.uid() (la RLS lo exige: cal_ins comprueba created_by = auth.uid()). */
 export async function crearEvento(input: EventoCalendarioInput): Promise<EventoCalendario> {
-  const { data: { user } } = await supabase.auth.getUser()
+  const user = await usuarioActual()
   if (!user) throw new Error('No autenticado')
   const { data, error } = await supabase.from('calendario_eventos')
     .insert({

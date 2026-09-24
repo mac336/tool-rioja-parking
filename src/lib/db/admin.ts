@@ -2,7 +2,7 @@
 // real (Supabase). Firmas idénticas al mock (src/lib/apiMock.ts). RLS decide
 // qué ve gestión; las operaciones sensibles (alta, suspensión, cambio de rol)
 // pasan por Edge Functions con service_role, no por escritura directa.
-import { supabase } from '@/lib/supabase'
+import { supabase, usuarioActual } from '@/lib/supabase'
 import type { AccessRequest, Profile, Role } from '@/types'
 import { iniciales, fechaCorta } from '@/lib/format'
 import { cacheBust } from '@/lib/cache'
@@ -175,7 +175,7 @@ export async function listAvisos(): Promise<Aviso[]> {
   const avisos: Aviso[] = []
   const nowISO = new Date().toISOString()
 
-  const { data: { user } } = await supabase.auth.getUser()
+  const user = await usuarioActual()
   if (!user) return avisos
 
   // Mensajes recientes del tablón: SOLO los ya publicados y para todos (no

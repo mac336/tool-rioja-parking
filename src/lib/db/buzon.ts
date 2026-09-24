@@ -1,7 +1,7 @@
 // Buzón privado vecino↔administración — implementación real (Supabase).
 // RLS: el vecino ve solo sus hilos; la gestión ve todos. de_gestion lo fija un
 // trigger (no de confianza en cliente). Firmas idénticas al mock.
-import { supabase } from '@/lib/supabase'
+import { supabase, usuarioActual } from '@/lib/supabase'
 import type { Hilo, HiloMensaje, HiloCanal, MensajeTipo } from '@/types'
 import { crearMensaje } from '@/lib/db/mensajes'
 
@@ -27,7 +27,7 @@ export async function listHilos(): Promise<Hilo[]> {
 
 /** Un hilo con sus mensajes (marcándolo como leído para quien lo abre). */
 export async function getHilo(id: string): Promise<{ hilo: Hilo; mensajes: HiloMensaje[] } | null> {
-  const { data: { user } } = await supabase.auth.getUser()
+  const user = await usuarioActual()
   if (!user) throw new Error('No autenticado')
   const { data: hilo, error } = await supabase.from('hilos').select('*').eq('id', id).maybeSingle()
   if (error) throw error
@@ -45,7 +45,7 @@ export async function getHilo(id: string): Promise<{ hilo: Hilo; mensajes: HiloM
 
 /** El vecino abre un hilo nuevo (dirigido a un canal) con su primer mensaje. */
 export async function crearHilo(input: { asunto: string; texto: string; canal: HiloCanal }): Promise<string> {
-  const { data: { user } } = await supabase.auth.getUser()
+  const user = await usuarioActual()
   if (!user) throw new Error('No autenticado')
   const { data: hilo, error } = await supabase.from('hilos')
     .insert({ vecino_id: user.id, asunto: input.asunto, canal: input.canal }).select('id').single()
@@ -59,7 +59,7 @@ export async function crearHilo(input: { asunto: string; texto: string; canal: H
 /** La GESTIÓN inicia un chat con un vecino (permiso escribir_vecinos; RLS
  *  exige que el canal sea el suyo). El primer mensaje lo firma la gestión. */
 export async function crearHiloComoGestion(input: { vecinoId: string; texto: string; canal: HiloCanal }): Promise<string> {
-  const { data: { user } } = await supabase.auth.getUser()
+  const user = await usuarioActual()
   if (!user) throw new Error('No autenticado')
   const { data: hilo, error } = await supabase.from('hilos')
     .insert({ vecino_id: input.vecinoId, asunto: 'Mensaje de la gestión', canal: input.canal }).select('id').single()
@@ -79,7 +79,7 @@ export async function listDirectorio(): Promise<{ id: string; nombre: string; vi
 
 /** Añade un mensaje a un hilo (vecino o gestión). */
 export async function responderHilo(hiloId: string, texto: string): Promise<void> {
-  const { data: { user } } = await supabase.auth.getUser()
+  const user = await usuarioActual()
   if (!user) throw new Error('No autenticado')
   const { error } = await supabase.from('hilo_mensajes').insert({ hilo_id: hiloId, autor_id: user.id, texto })
   if (error) throw error

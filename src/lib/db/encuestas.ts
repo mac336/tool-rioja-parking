@@ -6,7 +6,7 @@
 // (se cuentan las filas de encuesta_votos). Los triggers de BD validan que la
 // encuesta esté abierta, la opción única y la pertenencia opción↔pregunta; aquí
 // solo emitimos las operaciones. La escritura la gatea RLS (gestión).
-import { supabase } from '@/lib/supabase'
+import { supabase, usuarioActual } from '@/lib/supabase'
 import { cacheBust } from '@/lib/cache'
 import { esViviendaEspecial } from '@/lib/parking'
 import type {
@@ -46,7 +46,7 @@ function derivarEstado(apertura: string, cierre: string): EncuestaEstado {
 
 /** Vivienda del usuario actual (o null si no autenticado / sin vivienda). */
 async function miViviendaOpt(): Promise<string | null> {
-  const { data: { user } } = await supabase.auth.getUser()
+  const user = await usuarioActual()
   if (!user) return null
   const { data } = await supabase.from('profiles').select('vivienda').eq('id', user.id).single()
   return data?.vivienda ?? null
@@ -54,7 +54,7 @@ async function miViviendaOpt(): Promise<string | null> {
 
 /** Usuario + vivienda obligatorios para escribir un voto. */
 async function usuarioYVivienda(): Promise<{ userId: string; vivienda: string }> {
-  const { data: { user } } = await supabase.auth.getUser()
+  const user = await usuarioActual()
   if (!user) throw new Error('No autenticado')
   const { data, error } = await supabase.from('profiles').select('vivienda').eq('id', user.id).single()
   if (error) throw error
@@ -167,7 +167,7 @@ export async function crearEncuesta(input: {
   titulo: string; descripcion?: string; cierre: string; formato: EncuestaFormato
   preguntas: { texto: string; tipo: EncuestaTipo; opciones: string[] }[]
 }): Promise<Encuesta> {
-  const { data: { user } } = await supabase.auth.getUser()
+  const user = await usuarioActual()
   if (!user) throw new Error('No autenticado')
   // apertura la pone la BD por defecto (now()).
   const { data: enc, error } = await supabase.from('encuestas').insert({
@@ -216,7 +216,7 @@ export async function borrarEncuesta(id: string): Promise<void> {
 
 /** Crea una encuesta de JUNTA: cada punto es una pregunta con Aprobar/Rechazar. */
 export async function crearEncuestaJunta(input: { titulo: string; descripcion?: string; cierre: string; puntos: string[] }): Promise<Encuesta> {
-  const { data: { user } } = await supabase.auth.getUser()
+  const user = await usuarioActual()
   if (!user) throw new Error('No autenticado')
   const { data: enc, error } = await supabase.from('encuestas').insert({
     titulo: input.titulo, descripcion: input.descripcion ?? null, cierre: input.cierre,

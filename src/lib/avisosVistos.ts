@@ -4,7 +4,7 @@
 // entre dispositivos (web y PWA). El localStorage queda como respaldo para el
 // modo demo (sin backend) y mientras el perfil no ha recargado.
 import type { Aviso } from '@/lib/api'
-import { supabase, usingSupabase } from '@/lib/supabase'
+import { supabase, usingSupabase, usuarioActual } from '@/lib/supabase'
 
 const KEY = 'r25-avisos-vistos'
 
@@ -14,7 +14,7 @@ export async function marcarAvisosVistos(): Promise<void> {
   try { localStorage.setItem(KEY, ahora) } catch { /* noop */ }
   if (usingSupabase) {
     try {
-      const { data: { user } } = await supabase.auth.getUser()
+      const user = await usuarioActual()
       if (user) await supabase.from('profiles').update({ avisos_vistos_at: ahora }).eq('id', user.id)
     } catch { /* best-effort: queda el respaldo local */ }
   }

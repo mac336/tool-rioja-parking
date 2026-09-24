@@ -48,5 +48,20 @@ export const supabase = createClient(url ?? '', anon ?? '', {
   global: { fetch: fetchConTope },
 })
 
+/** Usuario actual SIN ir a la red (v1.58.0).
+ *  `auth.getUser()` hace SIEMPRE una petición a /auth/v1/user para validar el
+ *  token contra el servidor. La app lo llamaba en cada función de datos: una
+ *  sola carga de la Home disparaba un puñado de viajes, y cuando el Auth de
+ *  Supabase tiene un pico (se midieron 12-21 s) se acumulan y todo se atasca.
+ *  `getSession()` lee la sesión de almacenamiento local, sin red, y refresca
+ *  sola si hace falta. Para lo que necesitamos —el id con el que filtrar o
+ *  firmar una fila— basta: quien decide de verdad es la RLS, que lee el JWT en
+ *  el servidor. La validación contra el servidor se mantiene donde importa, en
+ *  `session.ts` (la puerta de entrada). */
+export async function usuarioActual(): Promise<{ id: string } | null> {
+  const { data: { session } } = await supabase.auth.getSession()
+  return session?.user ? { id: session.user.id } : null
+}
+
 /** true si la app está configurada para usar el backend real. */
 export const usingSupabase = import.meta.env.VITE_DATA_SOURCE === 'supabase' && !!url && !!anon

@@ -1,13 +1,13 @@
 // Parking (cesiones) — implementación real (Supabase). La rotación de plazas
 // (parkingProximas / parkingMisTurnos) es cálculo puro sobre `@/lib/parking`; solo
 // las cesiones viven en BD. La escritura/visibilidad la gatea RLS.
-import { supabase } from '@/lib/supabase'
+import { supabase, usuarioActual } from '@/lib/supabase'
 import type { ParkingCesion, CesionTipo } from '@/types'
 import { proximosTurnos } from '@/lib/parking'
 
 // ---- Sesión: vivienda del usuario actual -------------------------------------
 async function viviendaActual(): Promise<string> {
-  const { data: { user } } = await supabase.auth.getUser()
+  const user = await usuarioActual()
   if (!user) throw new Error('No autenticado')
   const { data, error } = await supabase.from('profiles')
     .select('vivienda').eq('id', user.id).single()
@@ -64,7 +64,7 @@ export async function cancelarCesion(id: string): Promise<void> {
 }
 
 export async function reasignarCesion(id: string, viviendaDestino: string): Promise<void> {
-  const { data: { user } } = await supabase.auth.getUser()
+  const user = await usuarioActual()
   if (!user) throw new Error('No autenticado')
   const { error } = await supabase.from('parking_cesiones')
     .update({ estado: 'reasignada', reasignada_a: viviendaDestino, gestionada_por: user.id })

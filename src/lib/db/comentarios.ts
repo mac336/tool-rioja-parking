@@ -2,7 +2,7 @@
 // Se comentan incidencias, anuncios y sugerencias; los AVISOS no (son
 // comunicados de la administración, ver specs/16). Publicación directa: la RLS
 // decide quién puede escribir y quién puede borrar, la interfaz solo acompaña.
-import { supabase } from '@/lib/supabase'
+import { supabase, usuarioActual } from '@/lib/supabase'
 import type { Comentario } from '@/types'
 import { cacheBust } from '@/lib/cache'
 
@@ -22,7 +22,7 @@ export async function listComentarios(mensajeId: string): Promise<Comentario[]> 
     for (const d of dir ?? []) autores.set(d.id as string, { nombre: d.nombre as string, vivienda: (d.vivienda as string) ?? '' })
   }
   // Reportes: los míos (para no reportar dos veces) y el total si soy gestión.
-  const { data: { user } } = await supabase.auth.getUser()
+  const user = await usuarioActual()
   const { data: reps } = await supabase.from('comentario_reportes')
     .select('comentario_id, reportado_por').in('comentario_id', filas.map((c) => c.id))
   const total = new Map<string, number>()

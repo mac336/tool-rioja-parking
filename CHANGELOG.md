@@ -3,6 +3,14 @@
 Cambios funcionales relevantes, más recientes arriba. Cada entrada nueva se añade
 al implementar el cambio (ver `CLAUDE.md` → Forma de trabajo).
 
+- **v1.58.0 · La app pide 24 cosas menos a la red en cada pantalla:** cada
+  función de datos llamaba a `auth.getUser()`, y eso es **siempre un viaje al
+  servidor de Auth**. Una sola carga de Inicio disparaba un puñado de ellos, y
+  cuando Auth tenía un pico (12–21 s medidos) se acumulaban y la app se atascaba
+  entera. Ahora se lee la sesión **de local, sin red**; la seguridad no cambia
+  un ápice, porque quien decide siempre ha sido la RLS en el servidor. La
+  validación contra el servidor se mantiene donde importa: al entrar.
+
 - **v1.58.0 · Se acabaron las pantallas girando para siempre:** el cliente de
   Supabase no tenía **ningún límite de espera**. Una petición atascada no falla
   nunca —ni resuelve ni rechaza— y como la app solo reacciona a errores, la

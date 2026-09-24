@@ -3,6 +3,13 @@
 Cambios funcionales relevantes, más recientes arriba. Cada entrada nueva se añade
 al implementar el cambio (ver `CLAUDE.md` → Forma de trabajo).
 
+- **v1.58.2 · Arreglado: no se podían escribir espacios en un comentario.** El
+  post-it del tablón se comporta como un botón y captura **Espacio y Enter** para
+  abrirse. Los eventos de React **suben por el árbol de componentes aunque el hijo
+  esté en un portal**, así que cada espacio escrito en el popup llegaba hasta esa
+  nota, se cancelaba… y encima abría el visor. Ahora la nota solo atiende al
+  teclado cuando el foco está **en ella**, y el popup no deja escapar sus eventos.
+
 - **v1.58.1 · Arreglado: el icono de comentarios no abría el popup.** Al pulsarlo
   en el tablón de Inicio solo se oscurecía la propia tarjeta y no aparecía nada.
   El post-it está **ligeramente girado** (`transform`), y en CSS un ancestro con

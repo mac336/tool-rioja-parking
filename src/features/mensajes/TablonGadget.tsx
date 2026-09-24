@@ -120,7 +120,15 @@ function PostItHome({ m, rot, onClick }: { m: Mensaje; rot: string; onClick: () 
   const { ref, lineas } = useLineasQueCaben(19.5)
   return (
     <div ref={tarjetaRef} role="button" tabIndex={0} onClick={onClick}
-      onKeyDown={(ev) => { if (ev.key === 'Enter' || ev.key === ' ') { ev.preventDefault(); onClick() } }}
+      onKeyDown={(ev) => {
+        // Solo si el foco está en la NOTA, no en algo de dentro. Los eventos de
+        // React suben por el árbol de COMPONENTES aunque el hijo esté en un
+        // portal: sin esta guarda, cada espacio escrito en el popup de
+        // comentarios llegaba aquí, se cancelaba (preventDefault) y encima
+        // abría el visor.
+        if (ev.target !== ev.currentTarget) return
+        if (ev.key === 'Enter' || ev.key === ' ') { ev.preventDefault(); onClick() }
+      }}
       className="relative flex h-full w-[84%] shrink-0 cursor-pointer snap-center flex-col rounded-[8px] px-4 pb-3 pt-4"
       style={{
         background: papel, transform: `rotate(${rot})`,

@@ -21,7 +21,8 @@ export function ComentariosModal({ mensajeId, titulo, onCerrar, onCambio }: {
     <div className="app-viewport z-[70] flex items-end justify-center bg-black/45 sm:items-center"
       onClick={onCerrar}>
       <div className="flex max-h-full w-full max-w-[520px] flex-col rounded-t-[20px] bg-surface p-4 shadow-xl sm:rounded-[20px]"
-        onClick={(e) => e.stopPropagation()}>
+        onClick={(e) => e.stopPropagation()}
+        onKeyDown={(e) => e.stopPropagation()}>
         <div className="mb-2 flex shrink-0 items-start justify-between gap-2">
           <div className="min-w-0">
             <h3 className="font-display text-[17px] font-bold text-ink">Comentarios</h3>

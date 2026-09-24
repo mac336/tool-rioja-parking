@@ -3,6 +3,30 @@
 Cambios funcionales relevantes, más recientes arriba. Cada entrada nueva se añade
 al implementar el cambio (ver `CLAUDE.md` → Forma de trabajo).
 
+## 2026-09-24
+
+- **v1.56.0 · Comentarios en las tarjetas del tablón (mig. 0063):** los vecinos
+  pueden **responder** a una incidencia, un anuncio o una sugerencia, al estilo de
+  una conversación. Se escribe desde el **visor** (al abrir la tarjeta); el
+  post-it de Inicio solo muestra el **contador**, porque la Home no scrollea.
+  - Los **avisos NO admiten comentarios**: son comunicados de la administración y
+    no queremos convertir un corte de agua en un hilo de quejas. Lo impide la RLS.
+  - **Autor siempre visible** (nombre · piso). Publicación **directa**, sin cola:
+    a cambio, el autor o la gestión pueden **borrar** cualquier comentario y
+    cualquiera puede **reportarlo** (1 por persona; solo marca, no oculta).
+  - Al escribir se recuerdan las **normas de convivencia** que el vecino ya aceptó
+    al entrar por primera vez: sin insultos ni comentarios que inciten a una pelea.
+  - Permiso **«Comentar en el tablón»** configurable por rol (todos menos el
+    tester). Push **solo al autor** de la tarjeta, para no saturar.
+  - Los comentarios **mueren con su tarjeta** (cascade), como los likes y las fotos.
+
+- **v1.56.0 · Cerrar incidencias + pestaña «Caducados»:** las incidencias no
+  caducaban nunca, así que una ya resuelta se quedaba en el tablón para siempre.
+  Ahora hay botón **«Marcar como cerrada»** (le pone fecha de caducidad ayer: deja
+  de verse, **no se borra**) y una pestaña **Caducados** —solo para el admin de la
+  app— donde se borran de verdad las tarjetas que ya no se ven, con sus
+  comentarios y fotos.
+
 - **v1.55.0 · Firmar en nombre de otro pasa a ser un permiso (mig. 0062):** el
   selector de firma del asistente ofrece «Administrador», «Conserje», «la Junta»
   **y todos los pisos**, así que cualquiera que llegara al alta directa podía

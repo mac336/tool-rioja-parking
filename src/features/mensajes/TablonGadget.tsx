@@ -1,11 +1,12 @@
 import { useLayoutEffect, useRef, useState } from 'react'
 import { Adjuntos } from '@/components/Adjuntos'
 import { useNavigate } from 'react-router-dom'
-import { X, ChevronLeft, ChevronRight, TriangleAlert, Megaphone, Lightbulb, Heart, Pencil, Images } from 'lucide-react'
+import { X, ChevronLeft, ChevronRight, TriangleAlert, Megaphone, Lightbulb, Heart, Pencil, Images, MessageCircle } from 'lucide-react'
 import type { Mensaje, MensajeTipo, ImportanciaMensaje } from '@/types'
 import { POSTIT, TEMPORADAS, fechaMano, caducaTexto, paperDegradado, cintaWashi, CINTA_URGENTE, IMPORTANCIA_COLOR, gradoDe, pastelHex, pieAutoria } from './postit'
 import { MotivoTemporada } from './MotivoTemporada'
-import { alternarLike } from '@/lib/api'
+import { alternarLike, contarComentarios } from '@/lib/api'
+import { Comentarios } from './Comentarios'
 import { cx } from '@/components/ui'
 
 // Color del icono/tinte según importancia (solo avisos): media=ámbar, alta=rojo.
@@ -77,6 +78,11 @@ function SelloPie({ m, lg }: { m: Mensaje; lg?: boolean }) {
 }
 
 /** Ordena para la Home: grado desc (3→1) y, a igual grado, más reciente arriba. */
+/** Tipos que admiten comentarios. Los AVISOS no: son comunicados de la
+ *  administración (specs/16). Mismo criterio que la RLS `com_ins` de la 0063. */
+export const admiteComentarios = (t: MensajeTipo): boolean =>
+  t === 'incidencia' || t === 'anuncio' || t === 'sugerencia'
+
 export function ordenarTablon(mensajes: Mensaje[]): Mensaje[] {
   return [...mensajes].sort((a, b) => {
     const g = gradoDe(b) - gradoDe(a)
@@ -109,6 +115,7 @@ function PostItHome({ m, rot, onClick }: { m: Mensaje; rot: string; onClick: () 
   const papel = pastel ? (t ? paperDegradado(pastel, t.tint) : pastel) : (t ? paperDegradado(t.paper, t.tint) : e.paper)
   const urgente = importanciaDe(m) === 'alta'
   const nFotos = m.adjuntos?.length ?? 0
+  const nCom = m.comentarios ?? 0
   const { ref, lineas } = useLineasQueCaben(19.5)
   return (
     <div role="button" tabIndex={0} onClick={onClick}
@@ -172,6 +179,13 @@ function PostItHome({ m, rot, onClick }: { m: Mensaje; rot: string; onClick: () 
               style={{ color: tint, background: `${tint}1f` }}
               aria-label={`${nFotos} ${nFotos === 1 ? 'foto' : 'fotos'}`}>
               <Images size={12} /> {nFotos}
+            </span>
+          )}
+          {nCom > 0 && (
+            <span className="flex items-center gap-1 rounded-pill px-[7px] py-0.5 text-[11px] font-extrabold"
+              style={{ color: tint, background: `${tint}1f` }}
+              aria-label={`${nCom} ${nCom === 1 ? 'comentario' : 'comentarios'}`}>
+              <MessageCircle size={12} /> {nCom}
             </span>
           )}
           {m.tipo === 'sugerencia' ? (
@@ -375,6 +389,11 @@ function PostItVisor({ lista, inicial, onClose }: { lista: Mensaje[]; inicial: n
                   <div className="relative mt-3 min-h-0 flex-1 overflow-y-auto">
                     <p className="whitespace-pre-wrap text-[15px] leading-[1.55]" style={{ color: '#4A5B66' }}>{msg.cuerpo}</p>
                     <Adjuntos urls={msg.adjuntos} />
+                    {admiteComentarios(msg.tipo) && (
+                      <div className="mt-3 rounded-[12px] bg-black/75 px-3 py-2">
+                        <Comentarios mensajeId={msg.id} />
+                      </div>
+                    )}
                   </div>
                   <div className="relative mt-4 flex shrink-0 items-end justify-between gap-2">
                     <span style={{ fontFamily: 'var(--font-hand)', fontSize: '18px', color: '#5C7180', opacity: 0.9 }}>

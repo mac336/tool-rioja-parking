@@ -32,7 +32,12 @@ export function fechaActividad(m: Pick<Mensaje, 'created_at' | 'updated_at'>): n
  *    mientras son recientes (2 días).
  *  - resto: recientes (2 días). */
 export function esActividadDeTablon(m: Mensaje, ahora: number): boolean {
-  if (m.tipo === 'incidencia') return true
+  // Incidencia: visible SIEMPRE mientras esté abierta. Al pulsar «Cerrada»
+  // (v1.56.0) se le pone `expira_at` en el pasado y desaparece del tablón —
+  // antes no había forma de retirar una incidencia resuelta salvo borrarla.
+  if (m.tipo === 'incidencia') {
+    return m.expira_at ? new Date(m.expira_at).getTime() >= ahora : true
+  }
   if (m.tipo === 'sugerencia') return ahora - fechaActividad(m) <= MS_SUGERENCIA_EN_TABLON
 
   const reciente = ahora - fechaActividad(m) <= DOS_DIAS_MS

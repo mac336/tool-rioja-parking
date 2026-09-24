@@ -112,6 +112,7 @@ export interface Mensaje {
   likes?: number // nº de "me gusta" (sugerencias)
   yo_like?: boolean // mi vivienda ya dio like
   adjuntos?: string[] // URLs firmadas de las fotos (incidencias); se rellena al listar
+  comentarios?: number // nº de comentarios (mig. 0063); se rellena al listar
   created_at: string
   updated_at?: string // fecha de última edición (mig. 0042); "resucita" en Inicio
   estilo?: EstiloTemporada | null // decoración estacional del post-it (mig. 0043)
@@ -121,6 +122,19 @@ export interface Mensaje {
 }
 
 /** Estilo del post-it (decoración): temporadas + semánticos (warning/problem). */
+/** Comentario de una tarjeta del tablón (mig. 0063). */
+export interface Comentario {
+  id: string
+  mensaje_id: string
+  cuerpo: string
+  created_by: string
+  created_at: string
+  autor_nombre?: string
+  autor_vivienda?: string
+  reportes?: number
+  yo_reporte?: boolean
+}
+
 export type EstiloTemporada = 'primavera' | 'verano' | 'otono' | 'halloween' | 'navidad' | 'valentin' | 'carnaval' | 'ssanta' | 'warning' | 'problem' | 'idea'
 /** Importancia (avisos e incidencias). null/ausente = normal. */
 export type ImportanciaMensaje = 'media' | 'alta'

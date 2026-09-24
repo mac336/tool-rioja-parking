@@ -56,6 +56,7 @@ export type Permiso =
   // Calendario (festivos + fechas de la comunidad, specs/21)
   | 'gestionar_calendario'
   | 'elegir_firma'
+  | 'comentar'
 
 export type TipoMensaje = 'aviso' | 'anuncio' | 'incidencia' | 'sugerencia'
 
@@ -76,6 +77,7 @@ export const GRUPOS_PERMISOS: { grupo: string; permisos: { key: Permiso; label: 
     { key: 'publicar_anuncio', label: 'Publicar anuncios', desc: 'Publica anuncios DIRECTAMENTE en el tablón, sin pasar por aprobación' },
     { key: 'ver_sugerencia', label: 'Ver sugerencias', desc: 'Ver las sugerencias en el tablón' },
     { key: 'publicar_sugerencia', label: 'Publicar sugerencias', desc: 'Publica sugerencias DIRECTAMENTE en el tablón, sin pasar por aprobación' },
+    { key: 'comentar', label: 'Comentar en el tablón', desc: 'Responder a incidencias, anuncios y sugerencias. Los avisos no admiten comentarios' },
     { key: 'elegir_firma', label: 'Firmar en nombre de otros', desc: 'Elegir la firma del post-it (Administrador, Conserje, la Junta, un piso…). Sin este permiso se publica sin firma y el post-it muestra a su autor' },
     { key: 'aprobar_incidencias', label: 'Aprobar incidencias de vecinos', desc: 'Aprobar o rechazar las incidencias que envían los vecinos' },
     { key: 'aprobar_anuncios', label: 'Aprobar anuncios de vecinos', desc: 'Aprobar o rechazar los anuncios que envían los vecinos' },
@@ -147,6 +149,13 @@ const DEFAULTS: Record<Permiso, Role[]> = {
   // Firmar como otro: gestión + conserje (firma sus avisos como «Conserje»).
   // Coincide con la semilla SQL de la mig. 0062; app_admin implícito.
   elegir_firma: [...GESTION, 'conserje'],
+  // Comentar: todos menos el tester (solo lectura). Coincide con la mig. 0063.
+  comentar: TODOS.filter((r) => r !== 'tester'),
+}
+
+/** ¿Puede comentar en el tablón? El tester nunca (cuenta de solo lectura). */
+export function puedeComentar(rol: Role): boolean {
+  return !esTester(rol) && tienePermiso(rol, 'comentar')
 }
 
 /** ¿Puede elegir la firma del post-it? Si no, publica sin firma y se muestra su

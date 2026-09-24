@@ -57,6 +57,20 @@ En el primer acceso se muestran y **aceptan** las normas de convivencia
 - El vecino puede además mandar **reportes privados** a administración por el
   buzón (módulo 17).
 
+### Comentarios (mig. 0063)
+- Se comenta en **incidencias, anuncios y sugerencias**; los **avisos no**.
+- **Publicación directa** (si no, no hay conversación) con **autor visible**.
+  Permiso `comentar`: todos menos el **tester**.
+- Al escribir se recuerdan las **normas de convivencia ya aceptadas**: sin
+  insultos, groserías ni comentarios que inciten a una pelea.
+- **Borrado** por el autor o por la gestión; **reporte** de 1 por persona, que
+  solo marca (la gestión decide).
+- ⚠️ **Pendiente:** hoy NO existe forma de retirar el permiso de comentar a **una
+  persona concreta** — los permisos son por ROL. Silenciar a alguien exigiría
+  suspenderle la cuenta entera. Si llega a hacer falta, habrá que añadir un
+  bloqueo individual (columna en `profiles` + RLS). Decisión del usuario
+  (2026-09-24): de momento el aviso es disuasorio.
+
 ## Encuestas (módulo 06)
 - Las crea solo la **gestión** (evita saturación de encuestas).
 - **1 voto por vivienda**; se puede cambiar hasta el cierre; cuenta como uno.
@@ -97,5 +111,7 @@ En el primer acceso se muestran y **aceptan** las normas de convivencia
 | Aprobación de reservas | **directa** (flag para exigir aprobación) |
 | Fotos por incidencia/anuncio | **2** |
 | Likes de sugerencia | **1 por vivienda** |
+| Longitud de un comentario | **1000 caracteres** |
+| Reportes por comentario | **1 por persona** |
 | Votos por vivienda y encuesta | **1** |
 | Cuentas por vivienda | **2** |

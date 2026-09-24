@@ -445,6 +445,41 @@ export function alternarLike(mensajeId: string, dar: boolean): Promise<void> {
   else { db.likes = db.likes.filter((l) => !(l.mensaje_id === mensajeId && l.vivienda === viv)) }
   return delay(undefined)
 }
+// --- Comentarios del tablón (mig. 0063) — versión demo en memoria ----------
+const _comentarios: import('@/types').Comentario[] = []
+export function listComentarios(mensajeId: string): Promise<import('@/types').Comentario[]> {
+  return Promise.resolve(_comentarios.filter((c) => c.mensaje_id === mensajeId))
+}
+export function contarComentarios(ids: string[]): Promise<Record<string, number>> {
+  const out: Record<string, number> = {}
+  for (const c of _comentarios) if (ids.includes(c.mensaje_id)) out[c.mensaje_id] = (out[c.mensaje_id] ?? 0) + 1
+  return Promise.resolve(out)
+}
+export function crearComentario(mensajeId: string, cuerpo: string): Promise<void> {
+  _comentarios.push({
+    id: `c${_comentarios.length + 1}`, mensaje_id: mensajeId, cuerpo: cuerpo.trim(),
+    created_by: 'demo', created_at: new Date().toISOString(),
+    autor_nombre: 'Vecino demo', autor_vivienda: 'Bajo C', reportes: 0, yo_reporte: false,
+  })
+  return Promise.resolve()
+}
+export function borrarComentario(id: string): Promise<void> {
+  const i = _comentarios.findIndex((c) => c.id === id)
+  if (i >= 0) _comentarios.splice(i, 1)
+  return Promise.resolve()
+}
+export function reportarComentario(id: string): Promise<void> {
+  const c = _comentarios.find((x) => x.id === id)
+  if (c) { c.reportes = (c.reportes ?? 0) + 1; c.yo_reporte = true }
+  return Promise.resolve()
+}
+
+export function cerrarMensaje(id: string): Promise<void> {
+  const m = db.mensajes.find((x) => x.id === id)
+  if (m) { const d = new Date(); d.setDate(d.getDate() - 1); m.expira_at = d.toISOString() }
+  return delay(undefined)
+}
+
 type MensajeInput = { tipo: MensajeTipo; titulo: string; cuerpo: string; expira_at?: string | null; firma?: string | null; estilo?: string | null; importancia?: string | null; grado?: number | null; color?: string | null; fotos?: Blob[] }
 export function crearMensaje(input: MensajeInput): Promise<Mensaje> {
   const m: Mensaje = { id: uid(), tipo: input.tipo, titulo: input.titulo, cuerpo: input.cuerpo, expira_at: input.expira_at ?? null, firma: input.firma ?? null, estilo: (input.estilo ?? null) as Mensaje['estilo'], importancia: (input.importancia ?? null) as Mensaje['importancia'], grado: input.grado ?? null, color: input.color ?? null, created_by: currentUser.id, activo: true, created_at: now(), updated_at: now() }

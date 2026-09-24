@@ -64,6 +64,16 @@ describe('esActividadDeTablon', () => {
     expect(esActividadDeTablon(m, AHORA)).toBe(true)
   })
 
+  it('incidencia CERRADA (expira_at en el pasado) → false, sale del tablón', () => {
+    const m = mkMensaje({ tipo: 'incidencia', created_at: haceDias(3), expira_at: haceDias(1) })
+    expect(esActividadDeTablon(m, AHORA)).toBe(false)
+  })
+
+  it('incidencia con expira_at futuro → true (sigue abierta)', () => {
+    const m = mkMensaje({ tipo: 'incidencia', created_at: haceDias(3), expira_at: new Date(AHORA + 864e5).toISOString() })
+    expect(esActividadDeTablon(m, AHORA)).toBe(true)
+  })
+
   it('incidencia de 6 meses → true (siempre, sin límite de antigüedad)', () => {
     const m = mkMensaje({ tipo: 'incidencia', created_at: haceDias(182) })
     expect(esActividadDeTablon(m, AHORA)).toBe(true)

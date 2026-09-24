@@ -299,6 +299,45 @@ permiso configurable, **`elegir_firma`**:
 El estilo `idea` se añadió en v1.54.0 (`TEMPORADAS` + motivo `foco`); `estilo` es
 una columna `text` libre, así que **no hizo falta migración**.
 
+## Comentarios en las tarjetas (mig. 0063, v1.56.0)
+
+El vecino **responde** a una tarjeta desde el **visor** a pantalla completa, estilo
+«respuesta». Nunca desde el post-it de la Home: la Home es un panel de gadgets
+**sin scroll** (`specs/10`), así que ahí solo va el **contador** (icono + número,
+junto al de fotos).
+
+- **Dónde se puede:** incidencias, anuncios y sugerencias. Los **avisos NO**: son
+  comunicados de la administración y no queremos que un corte de agua se
+  convierta en un hilo de quejas. Lo impone la RLS `com_ins`, no la interfaz.
+- **Autor siempre visible** (nombre · piso). Nada anónimo, igual que las firmas.
+- **Publicación directa**, sin cola de moderación: si pasara por aprobación no
+  habría conversación. A cambio:
+  - **Borrar**: el autor del comentario, o quien gestiona/modera (`com_del`).
+  - **Reportar**: 1 por persona (`comentario_reportes`). Solo **marca**; no oculta
+    nada solo. La gestión ve el contador de reportes junto al comentario.
+- **Permiso `comentar`** (configurable): por defecto todos menos el **tester**
+  (cuenta de solo lectura).
+- **Aviso de convivencia** bajo la caja de texto, recordando las normas que el
+  vecino **ya aceptó** en el primer acceso (`normas_aceptadas_at`, `specs/15`).
+- **Notificación**: push **solo al autor de la tarjeta** (`kind: 'comentario'`).
+  A los demás que hayan comentado no se les avisa: con un hilo activo sería
+  ruidoso enseguida.
+- **Ciclo de vida:** los comentarios **mueren con su tarjeta** (`on delete
+  cascade`), igual que los likes y las fotos. No hay purga automática: los borra
+  el **app_admin** desde la pestaña **Caducados**.
+- Máximo **1000 caracteres** por comentario (constraint en BD).
+
+### Cerrar una incidencia y la pestaña «Caducados»
+Las incidencias **no caducan solas** (`esActividadDeTablon` las devuelve siempre),
+así que hasta v1.56.0 no había forma de retirar una ya resuelta salvo borrarla:
+
+- Botón **«Marcar como cerrada»** (Gestión → Mensajes, quien pueda publicar
+  incidencias): pone `expira_at` **ayer**. Deja de verse en el tablón, **no se
+  borra**, y conserva sus comentarios.
+- Pestaña **«Caducados»** (solo **app_admin**): lista lo que ya no se ve en el
+  tablón —caducado o cerrado— para borrarlo de verdad. Avisa de que al borrar se
+  van también **comentarios y fotos**, sin vuelta atrás.
+
 ## Fotos en incidencias (mig. 0036)
 
 Se pueden adjuntar **1–2 fotos** desde cualquiera de las vías de alta, en el paso

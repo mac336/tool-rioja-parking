@@ -147,6 +147,22 @@ Deno.serve(async (req) => {
       return json({ ok: true })
     }
 
+    if (kind === 'comentario') {
+      // Alguien comentó una tarjeta → avisar SOLO a su autor (mig. 0063).
+      // A los demás que comentaron NO se les avisa: con pocos vecinos y un hilo
+      // activo se volvería ruidoso enseguida (decisión de diseño, v1.56.0).
+      const { data: m } = await admin.from('mensajes')
+        .select('titulo, created_by, tipo').eq('id', id).single()
+      if (!m?.created_by) return json({ ok: true, skipped: 'sin autor' })
+      if (m.created_by === user.id) return json({ ok: true, skipped: 'me comento a mi mismo' })
+      await enviarPushAUsuarios(admin, [m.created_by as string], {
+        title: '💬 Nuevo comentario',
+        body: `Han respondido a "${m.titulo as string}"`,
+        url: '/',
+      })
+      return json({ ok: true })
+    }
+
     if (kind === 'publicacion_rechazada') {
       // Un moderador rechazó una publicación → avisar al AUTOR.
       // Autoriza: quien llama debe poder moderar (app_admin o permiso de aprobar).

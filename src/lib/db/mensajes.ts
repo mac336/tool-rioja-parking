@@ -7,6 +7,7 @@
 import { supabase } from '@/lib/supabase'
 import type { Mensaje, MensajeTipo, MensajeDestino } from '@/types'
 import { cacheBust } from '@/lib/cache'
+import { contarComentarios } from './comentarios'
 
 /** Tablón público de la Home: solo publicado, para todos, vigente. A las
  *  SUGERENCIAS les adjunta autor (nombre/piso) y likes (total + si di el mío). */
@@ -17,7 +18,7 @@ export async function listMensajes(): Promise<Mensaje[]> {
     .lte('publica_at', nowISO)
     .order('created_at', { ascending: false })
   if (error) throw error
-  const msgs = await conAdjuntos((data ?? []) as Mensaje[])
+  const msgs = await conComentarios(await conAdjuntos((data ?? []) as Mensaje[]))
 
   // Autor: lo necesitan las SUGERENCIAS (siempre lo muestran) y todo mensaje SIN
   // firma — desde la mig. 0062, quien no tiene `elegir_firma` publica sin firma y
@@ -145,6 +146,17 @@ export async function crearPublicacion(input: PublicacionInput): Promise<Mensaje
   return data as Mensaje
 }
 
+/** Adjunta el nº de comentarios de cada tarjeta, para el contador del post-it
+ *  (el hilo en sí se carga al abrir el visor, no aquí). */
+async function conComentarios(msgs: Mensaje[]): Promise<Mensaje[]> {
+  const ids = msgs.filter((m) => m.tipo !== 'aviso').map((m) => m.id)
+  if (ids.length === 0) return msgs
+  try {
+    const n = await contarComentarios(ids)
+    return msgs.map((m) => (n[m.id] ? { ...m, comentarios: n[m.id] } : m))
+  } catch { return msgs } // el contador es decorativo: nunca debe tumbar el tablón
+}
+
 /** Adjunta a cada mensaje las URLs firmadas de sus fotos (bucket privado, TTL corto). */
 async function conAdjuntos(msgs: Mensaje[]): Promise<Mensaje[]> {
   const ids = msgs.map((m) => m.id)
@@ -214,6 +226,16 @@ export async function moderarPublicacion(id: string, aprobar: boolean): Promise<
 export async function editarMensaje(id: string, input: MensajeInput): Promise<void> {
   const { error } = await supabase.from('mensajes')
     .update({ tipo: input.tipo, titulo: input.titulo, cuerpo: input.cuerpo, expira_at: input.expira_at ?? null, firma: input.firma ?? null, estilo: input.estilo ?? null, importancia: input.importancia ?? null, grado: input.grado ?? null, color: input.color ?? null }).eq('id', id)
+  if (error) throw error
+  cacheBust('mensajes', 'avisos')
+}
+
+/** «Cerrada»: retira la tarjeta del tablón sin borrarla, poniéndole `expira_at`
+ *  AYER. Pensado para las incidencias, que si no no caducan nunca (v1.56.0).
+ *  Sigue en Gestión → Mensajes (pestaña Caducados) con sus comentarios. */
+export async function cerrarMensaje(id: string): Promise<void> {
+  const ayer = new Date(); ayer.setDate(ayer.getDate() - 1); ayer.setHours(23, 59, 59, 0)
+  const { error } = await supabase.from('mensajes').update({ expira_at: ayer.toISOString() }).eq('id', id)
   if (error) throw error
   cacheBust('mensajes', 'avisos')
 }

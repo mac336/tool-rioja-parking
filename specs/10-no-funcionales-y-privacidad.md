@@ -80,6 +80,16 @@
     pantallas de 667 px Servicios empezaría a scrollear. Hoy: 8 para la gestión
     (Mensajes, Votaciones, Reservas, Parking, Contactos, Sugerencias, Mi
     Comunidad, Calendario); el resto de roles ve menos según permisos.
+- **Consejo de convivencia (v1.59.0):** si al vecino **no le toca nada** (ni
+  parking, ni reserva, ni recordatorio de calendario) y queda hueco entre el
+  tablón y Servicios, ahí se muestra un **recordatorio de una norma real** de la
+  comunidad. Es **relleno**: nunca desplaza información. La decisión vive en
+  `tocaConsejo()` (`gadgetsHome.ts`, con tests) junto al resto de la lógica del
+  hueco, y el componente se mide con **`useLineasQueCaben`** —el mismo hook que
+  usa el post-it— para elegir versión corta (1 línea) o larga (2), o callarse si
+  no cabe. Rota **por orden**, uno por apertura (índice en `localStorage`).
+  Editables en **Gestión → Consejos** (tabla `consejos_convivencia`, mig. 0064),
+  con ventana opcional de temporada `MM-DD` para los de piscina.
 - **Bienvenida** al abrir (una vez por sesión de pestaña) en **dos pasos**:
   (1) mensaje de bienvenida; (2) **invitación a instalar la app** en el móvil
   (Android: instalador nativo; iPhone: guía Compartir → Añadir a pantalla de

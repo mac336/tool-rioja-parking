@@ -122,6 +122,18 @@ export interface Mensaje {
 }
 
 /** Estilo del post-it (decoración): temporadas + semánticos (warning/problem). */
+/** Consejo de convivencia del hueco de la Home (mig. 0064). */
+export interface Consejo {
+  id: string
+  texto_corto: string
+  texto_largo: string | null
+  icono: string | null
+  orden: number
+  activo: boolean
+  visible_desde: string | null   // 'MM-DD'
+  visible_hasta: string | null   // 'MM-DD'
+}
+
 /** Comentario de una tarjeta del tablón (mig. 0063). */
 export interface Comentario {
   id: string

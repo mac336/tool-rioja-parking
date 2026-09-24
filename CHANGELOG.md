@@ -3,6 +3,22 @@
 Cambios funcionales relevantes, más recientes arriba. Cada entrada nueva se añade
 al implementar el cambio (ver `CLAUDE.md` → Forma de trabajo).
 
+## 2026-09-24
+
+- **v1.59.0 · Consejos de convivencia en el hueco de la portada (mig. 0064):**
+  cuando un vecino abre la app y **no tiene nada que mirar** (ni turno de
+  parking, ni reserva, ni recordatorio) queda un hueco vacío en la portada. Ahora
+  ahí aparece un **recordatorio de una norma de la comunidad**, discreto, al pie.
+  - **Nunca desplaza información real**: si hay algo que contarle, no sale. Y si
+    el hueco es pequeño se calla; si da para dos líneas, usa la versión larga.
+  - Va **rotando por orden**, uno por apertura.
+  - **Editables en Gestión → Consejos**: añadir, cambiar, apagar o borrar sin
+    desplegar nada, con posibilidad de limitar uno a una temporada (los de
+    piscina, por ejemplo).
+  - Los 5 iniciales los revisó y aprobó el usuario uno a uno: plazas exteriores,
+    abrir la puerta a desconocidos, reservar zonas comunes desde la app, anular
+    la reserva que no se use y asomarse a Mi Comunidad.
+
 - **v1.58.2 · Arreglado: no se podían escribir espacios en un comentario.** El
   post-it del tablón se comporta como un botón y captura **Espacio y Enter** para
   abrirse. Los eventos de React **suben por el árbol de componentes aunque el hijo

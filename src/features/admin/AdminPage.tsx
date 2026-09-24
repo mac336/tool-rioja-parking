@@ -27,8 +27,9 @@ import {
   listRolePermisos, setRolePermiso,
   getConfig, setConfig, avisarActualizacion,
 } from '@/lib/api'
+import { ConsejosTab } from './ConsejosTab'
 
-type TabKey = 'vecinos' | 'publicaciones' | 'reservas' | 'permisos' | 'config'
+type TabKey = 'vecinos' | 'publicaciones' | 'reservas' | 'permisos' | 'consejos' | 'config'
 type Seleccion = { vivienda: string; rol: Role }
 type Toast = (t: string, tipo?: 'ok' | 'error' | 'info') => void
 
@@ -55,6 +56,7 @@ export function AdminPage() {
     { key: 'publicaciones', label: 'Publicaciones', show: puedeModerarPublicaciones(rol), count: n.publicaciones },
     { key: 'reservas', label: 'Reservas', show: puedeAdmin(rol), count: 0 },
     { key: 'permisos', label: 'Permisos', show: true, count: 0 },
+    { key: 'consejos', label: 'Consejos', show: puedeAdmin(rol), count: 0 },
     { key: 'config', label: 'Configuración', show: esAppAdmin(rol), count: 0 },
   ] as { key: TabKey; label: string; show: boolean; count: number }[]).filter((t) => t.show)
 
@@ -93,6 +95,7 @@ export function AdminPage() {
         {tab === 'reservas' && <ReservasTab onToast={toast} />}
         {tab === 'vecinos' && <VecinosTab canManage={puedeAprobarAltas(rol)} currentUserId={user.id} onToast={toast} onChanged={refrescar} />}
         {tab === 'permisos' && <PermisosTab canEdit={esAppAdmin(rol)} onToast={toast} />}
+        {tab === 'consejos' && <ConsejosTab canEdit={puedeAdmin(rol)} onToast={toast} />}
         {tab === 'config' && <ConfiguracionTab onToast={toast} />}
       </div>
     </div>

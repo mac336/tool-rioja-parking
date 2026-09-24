@@ -25,6 +25,7 @@ export const {
   guardarSuscripcionPush, quitarSuscripcionPush, probarPush,
   listMensajes, crearMensaje, editarMensaje, borrarMensaje, cerrarMensaje, crearPublicacion, misPublicaciones, publicacionesGestion, moderarPublicacion, alternarLike,
   listComentarios, contarComentarios, crearComentario, borrarComentario, reportarComentario,
+  listConsejos, listConsejosGestion, crearConsejo, editarConsejo, borrarConsejo,
   listHilos, getHilo, crearHilo, crearHiloComoGestion, listDirectorio, responderHilo, cerrarHilo, borrarHilo, convertirEnMensaje,
   listAvisos,
   getComunidadDatos,

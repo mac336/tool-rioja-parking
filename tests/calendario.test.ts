@@ -1,6 +1,7 @@
 import { describe, it, expect } from 'vitest'
 import {
   seleccionarGadgets,
+  tocaConsejo,
   diasEntre,
   textoDia,
   esPasado,
@@ -295,5 +296,22 @@ describe('recordatorioCalendario', () => {
     const cerca = mkEvento({ tipo: 'comunidad', titulo: 'Cerca', fecha: '2026-09-06' })
     const r = recordatorioCalendario([lejos, cerca], '2026-09-05')
     expect(r?.titulo).toBe('Cerca')
+  })
+})
+
+// ---------------------------------------------------------------------------
+// tocaConsejo — el consejo de convivencia es RELLENO del hueco de la Home
+// ---------------------------------------------------------------------------
+describe('tocaConsejo', () => {
+  it('sin ningún gadget contextual → sí se enseña consejo', () => {
+    expect(tocaConsejo([])).toBe(true)
+  })
+
+  it('con un gadget (p. ej. parking) → NO se enseña: no desplaza información real', () => {
+    expect(tocaConsejo([{ clave: 'parking' }])).toBe(false)
+  })
+
+  it('con el cupo lleno → tampoco', () => {
+    expect(tocaConsejo([{ clave: 'parking' }, { clave: 'reserva' }])).toBe(false)
   })
 })

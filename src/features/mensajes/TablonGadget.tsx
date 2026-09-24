@@ -1,4 +1,4 @@
-import { useLayoutEffect, useRef, useState } from 'react'
+import { useRef, useState } from 'react'
 import { Adjuntos } from '@/components/Adjuntos'
 import { useNavigate } from 'react-router-dom'
 import { X, ChevronLeft, ChevronRight, TriangleAlert, Megaphone, Lightbulb, Heart, Pencil, Images } from 'lucide-react'
@@ -8,6 +8,7 @@ import { MotivoTemporada } from './MotivoTemporada'
 import { alternarLike, contarComentarios } from '@/lib/api'
 import { AccionesTarjeta } from './AccionesTarjeta'
 import { cx } from '@/components/ui'
+import { useLineasQueCaben } from '@/lib/useLineasQueCaben'
 
 // Color del icono/tinte según importancia (solo avisos): media=ámbar, alta=rojo.
 const colorImportancia = (imp: ImportanciaMensaje | null | undefined): string | null =>
@@ -91,20 +92,6 @@ export function ordenarTablon(mensajes: Mensaje[]): Mensaje[] {
 }
 
 /** Clamp dinámico: nº de líneas que caben en el hueco medido. */
-function useLineasQueCaben(lineaPx: number, minimo = 2) {
-  const ref = useRef<HTMLDivElement>(null)
-  const [lineas, setLineas] = useState(3)
-  useLayoutEffect(() => {
-    const el = ref.current
-    if (!el) return
-    const medir = () => setLineas(Math.max(minimo, Math.floor(el.clientHeight / lineaPx)))
-    medir()
-    const ro = new ResizeObserver(medir)
-    ro.observe(el)
-    return () => ro.disconnect()
-  }, [lineaPx, minimo])
-  return { ref, lineas }
-}
 
 function PostItHome({ m, rot, onClick }: { m: Mensaje; rot: string; onClick: () => void }) {
   const tarjetaRef = useRef<HTMLDivElement>(null)

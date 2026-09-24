@@ -9,9 +9,10 @@ import { contarAvisosNuevos } from '@/lib/avisosVistos'
 import { puedePublicarAlgo, puedeVotar, puedeReservar, puedeVerMiComunidad, esTester } from '@/lib/roles'
 import { Logo } from '@/components/Logo'
 import { TablonGadget } from '@/features/mensajes/TablonGadget'
+import { ConsejoConvivencia } from './ConsejoConvivencia'
 import { esActividadDeTablon } from '@/features/mensajes/actividadTablon'
 import { GadgetContextual } from '@/features/home/GadgetContextual'
-import { seleccionarGadgets, recordatorioCalendario } from '@/features/home/gadgetsHome'
+import { seleccionarGadgets, recordatorioCalendario, tocaConsejo } from '@/features/home/gadgetsHome'
 
 // Servicios (accesos a módulos) en círculo — colores fijos de cada módulo.
 // - "Buzón" NO va aquí: está arriba en la cabecera (icono 💬), sería duplicado.
@@ -206,6 +207,14 @@ export function HomePage() {
             </GadgetContextual>
           ) : null)}
         </div>
+      )}
+
+      {/* Consejo de convivencia: SOLO cuando el vecino no tiene nada que mirar
+          (ni parking, ni reserva, ni recordatorio) y queda hueco libre. Es
+          relleno: nunca debe desplazar información real. Él mismo se mide y se
+          calla si el hueco es demasiado pequeño (v1.59.0). */}
+      {tocaConsejo(gadgetsContextuales) && (
+        <ConsejoConvivencia className="my-auto min-h-0 flex-1 shrink" />
       )}
 
       {/* SERVICIOS — PIEZA CLAVE de la Home: siempre visible, pegado al footer,

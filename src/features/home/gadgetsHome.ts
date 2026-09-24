@@ -23,6 +23,15 @@ export function seleccionarGadgets<T>(
     .slice(0, cupo)
 }
 
+/** ¿Toca enseñar un consejo de convivencia en el hueco de la Home?
+ *  SOLO cuando no hay ningún gadget contextual: el consejo es RELLENO y nunca
+ *  debe desplazar información real del vecino (parking, reserva, calendario).
+ *  Decisión del usuario 2026-09-24. Que haya hueco material lo comprueba el
+ *  propio componente midiéndose; aquí solo decidimos si procede. */
+export function tocaConsejo(gadgets: readonly unknown[]): boolean {
+  return gadgets.length === 0
+}
+
 function parseYMD(ymd: string): { y: number; m: number; d: number } {
   const [y, m, d] = ymd.split('-').map(Number)
   return { y, m, d }

@@ -445,6 +445,26 @@ export function alternarLike(mensajeId: string, dar: boolean): Promise<void> {
   else { db.likes = db.likes.filter((l) => !(l.mensaje_id === mensajeId && l.vivienda === viv)) }
   return delay(undefined)
 }
+// --- Consejos de convivencia (mig. 0064) — versión demo en memoria ---------
+const _consejos: import('@/types').Consejo[] = [
+  { id: 'k1', texto_corto: 'Respeta aparcamiento en las plazas exteriores.',
+    texto_largo: 'Las plazas exteriores van por turnos quincenales. Aparcar en la de otro deja a alguien sin sitio.',
+    icono: 'Car', orden: 10, activo: true, visible_desde: null, visible_hasta: null },
+  { id: 'k2', texto_corto: 'Cuidado al abrir la puerta a desconocidos.',
+    texto_largo: null, icono: 'ShieldAlert', orden: 20, activo: true, visible_desde: null, visible_hasta: null },
+]
+export function listConsejos(): Promise<import('@/types').Consejo[]> { return delay(_consejos.filter((c) => c.activo)) }
+export function listConsejosGestion(): Promise<import('@/types').Consejo[]> { return delay(_consejos) }
+export function crearConsejo(i: Record<string, unknown>): Promise<void> {
+  _consejos.push({ id: `k${_consejos.length + 1}`, ...i } as import('@/types').Consejo); return delay(undefined)
+}
+export function editarConsejo(id: string, i: Record<string, unknown>): Promise<void> {
+  const c = _consejos.find((x) => x.id === id); if (c) Object.assign(c, i); return delay(undefined)
+}
+export function borrarConsejo(id: string): Promise<void> {
+  const j = _consejos.findIndex((x) => x.id === id); if (j >= 0) _consejos.splice(j, 1); return delay(undefined)
+}
+
 // --- Comentarios del tablón (mig. 0063) — versión demo en memoria ----------
 const _comentarios: import('@/types').Comentario[] = []
 export function listComentarios(mensajeId: string): Promise<import('@/types').Comentario[]> {

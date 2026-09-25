@@ -87,7 +87,12 @@
   `tocaConsejo()` (`gadgetsHome.ts`, con tests) junto al resto de la lógica del
   hueco, y el componente se mide con **`useLineasQueCaben`** —el mismo hook que
   usa el post-it— para elegir versión corta (1 línea) o larga (2), o callarse si
-  no cabe. Rota **por orden**, uno por apertura (índice en `localStorage`).
+  no cabe. Se **releva cada 20 s** mientras la portada está a la vista (v1.59.1),
+  por orden y continuando donde lo dejó (índice en `localStorage`), con un
+  fundido suave. **No corre en segundo plano** (`document.hidden`): ni gasta
+  batería ni consume rotación sin que nadie lea. La lista se pide **una sola vez
+  por sesión** (`TTL.consejos`, sin caducidad, caché en memoria), así que el
+  relevo no toca la red.
   Editables en **Gestión → Consejos** (tabla `consejos_convivencia`, mig. 0064),
   con ventana opcional de temporada `MM-DD` para los de piscina.
 - **Bienvenida** al abrir (una vez por sesión de pestaña) en **dos pasos**:

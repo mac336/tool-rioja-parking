@@ -3,6 +3,12 @@
 Cambios funcionales relevantes, más recientes arriba. Cada entrada nueva se añade
 al implementar el cambio (ver `CLAUDE.md` → Forma de trabajo).
 
+- **v1.59.1 · Los consejos se van relevando solos cada 20 segundos**, con un
+  fundido suave, en vez de cambiar solo al entrar en la portada. Se **detiene con
+  la app en segundo plano** (no gasta batería ni consume rotación sin que nadie
+  lo lea) y respeta «reducir movimiento». Los consejos se piden **una sola vez
+  por sesión**: el relevo trabaja sobre la lista ya descargada y no toca la red.
+
 ## 2026-09-24
 
 - **v1.59.0 · Consejos de convivencia en el hueco de la portada (mig. 0064):**

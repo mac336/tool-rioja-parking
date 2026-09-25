@@ -112,6 +112,14 @@
   }
 }
 
+/* Relevo suave del consejo de convivencia de la portada (v1.59.1). El bloque de
+   abajo (prefers-reduced-motion) lo deja plano para quien lo tenga activado. */
+@keyframes consejo-entra {
+  from { opacity: 0; transform: translateY(3px); }
+  to   { opacity: 1; transform: none; }
+}
+.consejo-entra { animation: consejo-entra 420ms ease-out; }
+
 /* Respeta "reducir movimiento" (accesibilidad — vecinos mayores) */
 @media (prefers-reduced-motion: reduce) {
   *, *::before, *::after {

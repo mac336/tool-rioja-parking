@@ -22,6 +22,9 @@ import { useLineasQueCaben } from '@/lib/useLineasQueCaben'
 const CLAVE_IDX = 'r25-consejo-idx'
 /** Alto aproximado de una línea de texto del consejo, en px. */
 const LINEA_PX = 17
+/** Cada cuánto se releva el consejo mientras la portada está a la vista
+ *  (petición del usuario, v1.59.1). No corre en segundo plano. */
+const RELEVO_MS = 20_000
 
 /** Siguiente índice de la rotación. Se avanza UNA vez por montaje de la Home. */
 function siguienteIndice(total: number): number {
@@ -41,7 +44,9 @@ function IconoConsejo({ nombre, size }: { nombre: string | null; size: number })
 }
 
 export function ConsejoConvivencia({ className }: { className?: string }) {
-  const { data } = useAsync(listConsejos, [], { key: 'consejos', ttlMs: TTL.contactos })
+  // UNA sola llamada por sesión: la caché no caduca (ver TTL.consejos). El
+  // relevo de cada 20 s trabaja sobre la lista ya descargada, sin tocar la red.
+  const { data } = useAsync(listConsejos, [], { key: 'consejos', ttlMs: TTL.consejos })
   // Mismo hook que usa el post-it del tablón para su cuerpo elástico: mide el
   // hueco real y dice cuántas líneas caben. `minimo: 0` porque aquí la
   // respuesta legítima puede ser "ninguna" → no se enseña nada.
@@ -52,6 +57,23 @@ export function ConsejoConvivencia({ className }: { className?: string }) {
 
   const lista = data ?? []
   useEffect(() => { if (lista.length > 0 && idx === null) setIdx(siguienteIndice(lista.length)) }, [lista.length, idx])
+
+  // Relevo cada 20 s. Se salta los ciclos con la app en SEGUNDO PLANO: si no,
+  // al volver habrías "consumido" media rotación sin haber leído nada, y en un
+  // móvil es puro gasto de batería.
+  useEffect(() => {
+    const total = lista.length
+    if (total <= 1) return
+    const t = setInterval(() => {
+      if (typeof document !== 'undefined' && document.hidden) return
+      setIdx((prev) => {
+        const sig = ((prev ?? 0) + 1) % total
+        try { localStorage.setItem(CLAVE_IDX, String(sig)) } catch { /* noop */ }
+        return sig
+      })
+    }, RELEVO_MS)
+    return () => clearInterval(t)
+  }, [lista.length])
 
   if (lista.length === 0 || idx === null) return <div ref={ref} className={className} />
 
@@ -65,7 +87,7 @@ export function ConsejoConvivencia({ className }: { className?: string }) {
       {hayHueco && (
         <div className="flex max-w-[420px] items-start gap-2 px-4 text-center">
           <IconoConsejo nombre={c.icono} size={15} />
-          <p className={cx('text-left text-[12.5px] leading-[1.35] text-faint', !cabenDos && 'line-clamp-1')}>
+          <p key={c.id} className={cx('consejo-entra text-left text-[12.5px] leading-[1.35] text-faint', !cabenDos && 'line-clamp-1')}>
             {texto}
           </p>
         </div>

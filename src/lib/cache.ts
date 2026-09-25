@@ -19,6 +19,12 @@ export const TTL = {
   zonas: 600_000,      // 10 min (catálogo de zonas)
   solicitudes: 60_000, // badge de gestión: 1 min
   calendario: 600_000, // 10 min (festivos + comunidad: cambia poco, specs/21)
+  // Consejos de convivencia: los edita la gestión a mano y cambian rarísimo,
+  // mientras que el bloque de la portada se releva cada 20 s. Se piden UNA sola
+  // vez por sesión: sin caducidad. Esta caché es EN MEMORIA, así que al recargar
+  // la app se vuelve a pedir — que es justo lo que queremos. Al editarlos desde
+  // Gestión se invalida a mano (cacheBust('consejos')).
+  consejos: Number.POSITIVE_INFINITY,
 } as const
 
 type Entry = { t: number; data: unknown }
